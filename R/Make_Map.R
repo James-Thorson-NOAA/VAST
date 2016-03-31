@@ -120,7 +120,12 @@ function( Version, TmbData, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, Rh
       Map[["beta2_t"]] = fixval_fn( fixvalTF=YearNotInData ) 
     }
   }
-  
+  # fix AR across bins
+  if( TmbData$n_c==1 ){
+    Map[["rho_c1"]] = factor(NA)
+    Map[["rho_c2"]] = factor(NA)
+  }
+
   # Static covariates
   Var_j = apply( TmbData[["X_xj"]], MARGIN=2, FUN=var )
   Map[["gamma1_j"]] = Map[["gamma2_j"]] = 1:TmbData$n_j
