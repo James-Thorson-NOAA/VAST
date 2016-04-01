@@ -27,12 +27,12 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   if( RhoConfig[["Beta1"]]!=0 ) Random = c(Random, "beta1_ct")
   if( RhoConfig[["Beta2"]]!=0 ) Random = c(Random, "beta2_ct")
   if( Use_REML==TRUE ){
-    Random = union(Random, c("beta1_ct","gamma1_j","gamma1_tp","lambda1_k","beta2_ct","gamma2_j","gamma2_tp","lambda2_k"))
+    Random = union(Random, c("beta1_ct","gamma1_j","gamma1_tp","gamma1_ctp","lambda1_k","beta2_ct","gamma2_j","gamma2_tp","gamma2_ctp","lambda2_k"))
     Random = Random[which(Random %in% names(Parameters))]
   }
 
   # Which parameters are turned off
-  if( length(Map)==1 && Map=="generate" ) Map = Make_Map( Version=Version, TmbData=TmbData, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig, Aniso=TmbData[['Options_vec']]['Aniso'])
+  if( length(Map)==1 && Map=="generate" ) Map = Make_Map( Version=Version, TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig, Aniso=TmbData[['Options_vec']]['Aniso'])
 
   # Build object
   dyn.load( paste0(RunDir,"/",dynlib(Version)) ) # random=Random,
