@@ -80,8 +80,8 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   Bounds = boundsifpresent_fn( par=Obj$par, name="rho_c1", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="rho_c2", lower=-0.99, upper=0.99, bounds=Bounds)
   if( TmbData[["n_f_input"]]==0 ){
-    Bounds = boundsifpresent_fn( par=Obj$par, name="L1_z", lower=-0.99, upper=0.99, bounds=Bounds)
-    Bounds = boundsifpresent_fn( par=Obj$par, name="L2_z", lower=-0.99, upper=0.99, bounds=Bounds)
+    Bounds = boundsifpresent_fn( par=Obj$par, name="L1_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
+    Bounds = boundsifpresent_fn( par=Obj$par, name="L2_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
   }
 
   # Change convergence tolerance

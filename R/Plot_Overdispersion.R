@@ -1,5 +1,16 @@
 
-Plot_Overdispersion = function( filename, Data, ParHat, Report, ControlList=list("Width"=8, "Height"=4, "Res"=200, "Units"='in') ){
+Plot_Overdispersion = function( filename, Data, ParHat, Report, SD=NULL, ControlList=list("Width"=8, "Height"=4, "Res"=200, "Units"='in') ){
+  SE_hat_fn = function( SD, Report, Map=NULL, parname){
+    Return = array(NA, dim=dim(Report[[parname]]))
+    if( !is.null(Map) ){
+      if( parname %in% names(Map) ) Return[which(!is.na(Map[[parname]]))] = summary(SD)[which(parname==rownames(summary(SD))),'Std. Error']
+      if( !(parname %in% names(Map)) ) Return[] = summary(SD)[which(parname==rownames(summary(SD))),'Std. Error']
+    }
+    if( is.null(Map) ) Return[] = summary(SD)[which(parname==rownames(summary(SD))),'Std. Error']
+    return(Return)
+  }
+  DerivedQuants = NULL
+
   if( Data[["n_f_input"]]<0 ){
     message("No overdispersion in model")
   }
@@ -11,6 +22,11 @@ Plot_Overdispersion = function( filename, Data, ParHat, Report, ControlList=list
   if( Data[["n_f_input"]]>0 ){
     Cov1_cc = Report[["L1_cf"]] %*% t(Report[["L1_cf"]])
     Cov2_cc = Report[["L2_cf"]] %*% t(Report[["L2_cf"]])
+    # Save Ls
+    DerivedQuants[["L1_cf"]] = Report[["L1_cf"]]
+    if(!is.null(SD)) DerivedQuants[["SE_L1_cf"]] = SE_hat_fn( SD=SD, Report=Report, Map=InputList$Map, parname="L1_cf")
+    DerivedQuants[["L2_cf"]] = Report[["L1_cf"]]
+    if(!is.null(SD)) DerivedQuants[["SE_L2_cf"]] = SE_hat_fn( SD=SD, Report=Report, Map=InputList$Map, parname="L2_cf")
   }
 
   if( Data[["n_f_input"]]>=0 ){
@@ -25,7 +41,7 @@ Plot_Overdispersion = function( filename, Data, ParHat, Report, ControlList=list
     dev.off()
 
     # Return
-    Return = list("Cov1_cc"=Cov1_cc, "Cov2_cc"=Cov2_cc)
+    Return = list("Cov1_cc"=Cov1_cc, "Cov2_cc"=Cov2_cc, "DerivedQuants"=DerivedQuants)
     return( invisible(Return) )
   }
 }
