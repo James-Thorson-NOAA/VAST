@@ -39,64 +39,67 @@ function( Version, TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Conf
 
   # Measurement error models
   if(TmbData[["ObsModel"]]%in%c(0,1,2)){
-    Map[["logSigmaM"]] = factor( c(1,NA) )
+    Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,NA) )
+  }
+  if(TmbData[["ObsModel"]]%in%c(5)){
+    Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,2) )
   }
   if(TmbData[["ObsModel"]]%in%c(6)){
-    Map[["logSigmaM"]] = factor( c(NA,NA) )
+    Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(NA,NA) )
   }
   # Anisotropy
   if(Aniso==0 | all(TmbData[["FieldConfig"]]==0)) Map[['ln_H_input']] = factor( rep(NA,2) )
   
   # Beta1 -- Fixed
-  if( RhoConfig["Beta1"]==0 && Version%in%c("comp_index_v1b","comp_index_v1a")){
+  if( RhoConfig["Beta1"]==0 && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
     Map[["Beta_mean1"]] = factor( NA )
     Map[["Beta_rho1"]] = factor( NA )
     Map[["logsigmaB1"]] = factor( NA )
   }
   # Beta1 -- White-noise
-  if( RhoConfig["Beta1"]==1 && Version%in%c("comp_index_v1b","comp_index_v1a")){
+  if( RhoConfig["Beta1"]==1 && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
     Map[["Beta_rho1"]] = factor( NA )
   }
   # Beta1 -- Random-walk
-  if( RhoConfig["Beta1"]==2 && Version%in%c("comp_index_v1b","comp_index_v1a")){
+  if( RhoConfig["Beta1"]==2 && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
     Map[["Beta_mean1"]] = factor( NA )
     Map[["Beta_rho1"]] = factor( NA )
   }
   # Beta1 -- Constant
-  if( RhoConfig["Beta1"]==3 && Version%in%c("comp_index_v1b","comp_index_v1a")){
+  if( RhoConfig["Beta1"]==3 && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
     Map[["Beta_mean1"]] = factor( NA )
     Map[["Beta_rho1"]] = factor( NA )
     Map[["logsigmaB1"]] = factor( NA )
     Map[["beta1_ct"]] = factor( array(1,dim=c(TmbData$n_c,TmbData$n_t)) )
   }
   # Beta2 -- Fixed
-  if( RhoConfig["Beta2"]==0 && Version%in%c("comp_index_v1b","comp_index_v1a")){
+  if( RhoConfig["Beta2"]==0 && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
     Map[["Beta_mean2"]] = factor( NA )
     Map[["Beta_rho2"]] = factor( NA )
     Map[["logsigmaB2"]] = factor( NA )
   }
   # Beta2 -- White-noise
-  if( RhoConfig["Beta2"]==1 && Version%in%c("comp_index_v1b","comp_index_v1a")){
+  if( RhoConfig["Beta2"]==1 && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
     Map[["Beta_rho2"]] = factor( NA )
   }
   # Beta2 -- Random-walk
-  if( RhoConfig["Beta2"]==2 && Version%in%c("comp_index_v1b","comp_index_v1a")){
+  if( RhoConfig["Beta2"]==2 && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
     Map[["Beta_mean2"]] = factor( NA )
     Map[["Beta_rho2"]] = factor( NA )
   }
   # Beta2 -- Constant
-  if( RhoConfig["Beta2"]==3 && Version%in%c("comp_index_v1b","comp_index_v1a")){
+  if( RhoConfig["Beta2"]==3 && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
     Map[["Beta_mean2"]] = factor( NA )
     Map[["Beta_rho2"]] = factor( NA )
     Map[["logsigmaB2"]] = factor( NA )
     Map[["beta2_ct"]] = factor( array(1,dim=c(TmbData$n_c,TmbData$n_t)) )
   }
   # Epsilon1 -- Fixed OR White-noise OR Random walk
-  if( RhoConfig["Epsilon1"]%in%c(0,1,2) && Version%in%c("comp_index_v1b","comp_index_v1a")){
+  if( RhoConfig["Epsilon1"]%in%c(0,1,2) && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
     Map[["Epsilon_rho1"]] = factor( NA )
   }
   # Epsilon2 -- Fixed OR White-noise OR Random walk
-  if( RhoConfig["Epsilon2"]%in%c(0,1,2) && Version%in%c("comp_index_v1b","comp_index_v1a")){
+  if( RhoConfig["Epsilon2"]%in%c(0,1,2) && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
     Map[["Epsilon_rho2"]] = factor( NA )
   }
   # fix betas and/or epsilons for missing years if betas are fixed-effects
@@ -104,19 +107,19 @@ function( Version, TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Conf
   if( sum(YearNotInData)>0 ){
     stop("Haven't built missing years feature yet")
     # Beta1 -- Fixed
-    if( RhoConfig["Beta1"]==0 && Version%in%c("comp_index_v1b","comp_index_v1a")){
+    if( RhoConfig["Beta1"]==0 && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
       Map[["beta1_t"]] = fixval_fn( fixvalTF=YearNotInData )
     }
     # Beta1 -- White-noise
-    if( RhoConfig["Beta1"]==1 && Version%in%c("comp_index_v1b","comp_index_v1a")){
+    if( RhoConfig["Beta1"]==1 && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
       Map[["beta1_t"]] = fixval_fn( fixvalTF=YearNotInData )
     }
     # Beta2 -- Fixed
-    if( RhoConfig["Beta2"]==0 && Version%in%c("comp_index_v1b","comp_index_v1a")){
+    if( RhoConfig["Beta2"]==0 && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
       Map[["beta2_t"]] = fixval_fn( fixvalTF=YearNotInData ) 
     }
     # Beta2 -- White-noise
-    if( RhoConfig["Beta2"]==1 && Version%in%c("comp_index_v1b","comp_index_v1a")){
+    if( RhoConfig["Beta2"]==1 && Version%in%c("comp_index_v1c","comp_index_v1b","comp_index_v1a")){
       Map[["beta2_t"]] = fixval_fn( fixvalTF=YearNotInData ) 
     }
   }
@@ -124,6 +127,14 @@ function( Version, TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Conf
   if( TmbData$n_c==1 ){
     Map[["rho_c1"]] = factor(NA)
     Map[["rho_c2"]] = factor(NA)
+  }
+
+  # Overdispersion parameters
+  if( "n_v"%in%names(TmbData) && TmbData[["n_f_input"]]<0 ){
+    Map[["L1_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
+    Map[["eta1_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta1_vf"]])))
+    Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
+    Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
   }
 
   # Static covariates

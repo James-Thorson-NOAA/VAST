@@ -23,12 +23,14 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   if( length(Parameters)==1 && Parameters=="generate" ) Parameters = Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
 
   # Which are random
-  if( length(Random)==1 && Random=="generate" ) Random = c("Epsiloninput1_sct", "Omegainput1_sc", "Epsiloninput2_sct", "Omegainput2_sc")
-  if( RhoConfig[["Beta1"]]!=0 ) Random = c(Random, "beta1_ct")
-  if( RhoConfig[["Beta2"]]!=0 ) Random = c(Random, "beta2_ct")
-  if( Use_REML==TRUE ){
-    Random = union(Random, c("beta1_ct","gamma1_j","gamma1_tp","gamma1_ctp","lambda1_k","beta2_ct","gamma2_j","gamma2_tp","gamma2_ctp","lambda2_k"))
-    Random = Random[which(Random %in% names(Parameters))]
+  if( length(Random)==1 && Random=="generate" ){
+    Random = c("Epsiloninput1_sct", "Omegainput1_sc", "eta1_vf", "Epsiloninput2_sct", "Omegainput2_sc", "eta2_vf")
+    if( RhoConfig[["Beta1"]]!=0 ) Random = c(Random, "beta1_ct")
+    if( RhoConfig[["Beta2"]]!=0 ) Random = c(Random, "beta2_ct")
+    if( Use_REML==TRUE ){
+      Random = union(Random, c("beta1_ct","gamma1_j","gamma1_tp","gamma1_ctp","lambda1_k","beta2_ct","gamma2_j","gamma2_tp","gamma2_ctp","lambda2_k"))
+      Random = Random[which(Random %in% names(Parameters))]
+    }
   }
 
   # Which parameters are turned off
@@ -77,6 +79,10 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   Bounds = boundsifpresent_fn( par=Obj$par, name="Epsilon_rho2", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="rho_c1", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="rho_c2", lower=-0.99, upper=0.99, bounds=Bounds)
+  if( TmbData[["n_f_input"]]==0 ){
+    Bounds = boundsifpresent_fn( par=Obj$par, name="L1_z", lower=-0.99, upper=0.99, bounds=Bounds)
+    Bounds = boundsifpresent_fn( par=Obj$par, name="L2_z", lower=-0.99, upper=0.99, bounds=Bounds)
+  }
 
   # Change convergence tolerance
   Obj$env$inner.control$step.tol <- c(1e-8,1e-12,1e-15)[ConvergeTol] # Default : 1e-8  # Change in parameters limit inner optimization
