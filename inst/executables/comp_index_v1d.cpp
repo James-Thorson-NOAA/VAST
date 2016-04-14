@@ -31,6 +31,36 @@ matrix<Type> loadings_matrix( vector<Type> L_val, int n_rows, int n_cols ){
   return L_rc;
 }
 
+// IN: eta1_vf; n_f_input; L1_z
+// OUT: jnll_comp; eta1_vc
+template<class Type>
+matrix<Type> jnll_fn( int n_f, int n_f_input, int n_c, int n_v, matrix<Type> eta_vf, vector<Type> L_z, Type &jnll_pointer){
+  using namespace density;
+  matrix<Type> eta_vc(n_v, n_c);
+  vector<Type> Tmp_c;
+  // AR1 structure
+  if( n_f_input==0 ){
+    for(int v=0; v<n_v; v++){
+      Tmp_c = eta_vc.row(v);
+      jnll_pointer += SCALE( AR1(L_z(1)), exp(L_z(0)) )( Tmp_c );
+    }
+    eta_vc = eta_vf;
+  }
+  // Factor analysis structure
+  if( n_f_input>0 ){
+    // Assemble the loadings matrix
+    matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
+    // Multiply out overdispersion
+    eta_vc = eta_vf * L_cf.transpose();
+    // Probability of overdispersion
+    for(int v=0; v<n_v; v++){
+    for(int f=0; f<n_f; f++){
+      jnll_pointer -= dnorm( eta_vf(v,f), Type(0.0), Type(1.0), true );
+    }}
+  }
+  return eta_vc;
+}
+
 // CMP distribution
 template<class Type>
 Type dCMP(Type x, Type mu, Type nu, int give_log=0, int iter_max=30, int break_point=10){
@@ -246,55 +276,12 @@ Type objective_function<Type>::operator() ()
   }
 
   ////// Probability of correlated overdispersion among bins
+  // IN: eta1_vf; n_f_input; L1_z
+  // OUT: jnll_comp; eta1_vc
   matrix<Type> eta1_vc(n_v, n_c);
+  eta1_vc = jnll_fn( n_f, n_f_input, n_c, n_v, eta1_vf, L1_z, jnll_comp(4) );
   matrix<Type> eta2_vc(n_v, n_c);
-  vector<Type> Tmp_c;
-  if( n_f_input==0 ){
-  // AR1 structure
-    ///// Encounter probability
-    //AR1_t<Type> Tmp1 = AR1(L1_z(0));
-    for(int v=0; v<n_v; v++){
-      Tmp_c = eta1_vf.row(v);
-      jnll_comp(4) += SCALE( AR1(L1_z(1)), exp(L1_z(0)) )( Tmp_c );
-    }
-    eta1_vc = eta1_vf;
-    ///// Positive catch rates
-    //AR1_t<Type> Tmp2 = AR1( L2_z(0) );
-    for(int v=0; v<n_v; v++){
-      Tmp_c = eta2_vf.row(v);
-      jnll_comp(5) += SCALE( AR1(L2_z(1)), exp(L2_z(0)) )( Tmp_c );
-    }
-    eta2_vc = eta2_vf;
-  }
-  if( n_f_input>0 ){
-  // Factor analysis structure
-    ///// Encounter probability
-    // Assemble the loadings matrix
-    matrix<Type> L1_cf = loadings_matrix( L1_z, n_c, n_f );
-    // Multiply out overdispersion
-    eta1_vc = eta1_vf * L1_cf.transpose();
-    // Probability of overdispersion
-    for(int v=0; v<n_v; v++){
-    for(int f=0; f<n_f; f++){
-      jnll_comp(4) -= dnorm( eta1_vf(v,f), Type(0.0), Type(1.0), true );
-    }}
-    REPORT( L1_cf );
-    REPORT( eta1_vf );
-    ADREPORT( L1_cf );
-    ///// Positive catch rates
-    // Assemble the loadings matrix
-    matrix<Type> L2_cf = loadings_matrix( L2_z, n_c, n_f );
-    // Multiply out overdispersion
-    eta2_vc = eta2_vf * L2_cf.transpose();
-    // Probability of overdispersion
-    for(int v=0; v<n_v; v++){
-    for(int f=0; f<n_f; f++){
-      jnll_comp(5) -= dnorm( eta2_vf(v,f), Type(0.0), Type(1.0), true );
-    }}
-    REPORT( L2_cf );
-    REPORT( eta2_vc );
-    ADREPORT( L2_cf );
-  }
+  eta2_vc = jnll_fn( n_f, n_f_input, n_c, n_v, eta2_vf, L2_z, jnll_comp(5) );
 
   // Possible structure on betas
   if( Options_vec(2)!=0 ){

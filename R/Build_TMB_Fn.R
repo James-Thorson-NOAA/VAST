@@ -2,7 +2,7 @@ Build_TMB_Fn <-
 function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
   ConvergeTol=1, Use_REML=FALSE, loc_x=NULL, Parameters="generate", Random="generate", Map="generate",
-  DiagnosticDir=NULL, TmbDir=system.file("executables", package="SpatialCompData"), RunDir=getwd() ){
+  DiagnosticDir=NULL, TmbDir=system.file("executables",package="SpatialCompData"), RunDir=getwd() ){
                                             
   # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
@@ -24,17 +24,18 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
 
   # Which are random
   if( length(Random)==1 && Random=="generate" ){
-    Random = c("Epsiloninput1_sct", "Omegainput1_sc", "eta1_vf", "Epsiloninput2_sct", "Omegainput2_sc", "eta2_vf")
+    Random = c("Epsiloninput1_sct", "Omegainput1_sc", "Epsiloninput1_sft", "Omegainput1_sf", "eta1_vf", "Epsiloninput2_sct", "Omegainput2_sc", "Epsiloninput2_sft", "Omegainput2_sf", "eta2_vf")
     if( RhoConfig[["Beta1"]]!=0 ) Random = c(Random, "beta1_ct")
     if( RhoConfig[["Beta2"]]!=0 ) Random = c(Random, "beta2_ct")
     if( Use_REML==TRUE ){
       Random = union(Random, c("beta1_ct","gamma1_j","gamma1_tp","gamma1_ctp","lambda1_k","beta2_ct","gamma2_j","gamma2_tp","gamma2_ctp","lambda2_k"))
       Random = Random[which(Random %in% names(Parameters))]
     }
+    Random = Random[which(Random %in% names(Parameters))]
   }
 
   # Which parameters are turned off
-  if( length(Map)==1 && Map=="generate" ) Map = Make_Map( Version=Version, TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig, Aniso=TmbData[['Options_vec']]['Aniso'])
+  if( length(Map)==1 && Map=="generate" ) Map = Make_Map( Version=Version, TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
 
   # Build object
   dyn.load( paste0(RunDir,"/",dynlib(Version)) ) # random=Random,
@@ -82,6 +83,11 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   if( TmbData[["n_f_input"]]==0 ){
     Bounds = boundsifpresent_fn( par=Obj$par, name="L1_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
     Bounds = boundsifpresent_fn( par=Obj$par, name="L2_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
+  }
+  for(i in 1:4){
+    if( TmbData[["FieldConfig"]][i]==0 ){
+      Bounds = boundsifpresent_fn( par=Obj$par, name=c("L_omega1_z","L_epsilon1_z","L_omega2_z","L_epsilon2_z")[i], lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
+    }
   }
 
   # Change convergence tolerance

@@ -1,16 +1,10 @@
 
-Plot_Overdispersion = function( filename, Data, ParHat, Report, SD=NULL, ControlList=list("Width"=8, "Height"=4, "Res"=200, "Units"='in') ){
-  SE_hat_fn = function( SD, Report, Map=NULL, parname){
-    Return = array(NA, dim=dim(Report[[parname]]))
-    if( !is.null(Map) ){
-      if( parname %in% names(Map) ) Return[which(!is.na(Map[[parname]]))] = summary(SD)[which(parname==rownames(summary(SD))),'Std. Error']
-      if( !(parname %in% names(Map)) ) Return[] = summary(SD)[which(parname==rownames(summary(SD))),'Std. Error']
-    }
-    if( is.null(Map) ) Return[] = summary(SD)[which(parname==rownames(summary(SD))),'Std. Error']
-    return(Return)
+Plot_Overdispersion = function( filename1, filename2, Data, ParHat, Report, SD=NULL, Map=NULL, ControlList1=list("Width"=8, "Height"=4, "Res"=200, "Units"='in'), ControlList2=list("Width"=8, "Height"=8, "Res"=200, "Units"='in') ){
+  if( !("ThorsonUtilities" %in% installed.packages()[,1]) ){
+    devtools::install_github("james-thorson/utilities")
   }
-  DerivedQuants = NULL
 
+  Derived_Quants = NULL
   if( Data[["n_f_input"]]<0 ){
     message("No overdispersion in model")
   }
@@ -23,25 +17,51 @@ Plot_Overdispersion = function( filename, Data, ParHat, Report, SD=NULL, Control
     Cov1_cc = Report[["L1_cf"]] %*% t(Report[["L1_cf"]])
     Cov2_cc = Report[["L2_cf"]] %*% t(Report[["L2_cf"]])
     # Save Ls
-    DerivedQuants[["L1_cf"]] = Report[["L1_cf"]]
-    if(!is.null(SD)) DerivedQuants[["SE_L1_cf"]] = SE_hat_fn( SD=SD, Report=Report, Map=InputList$Map, parname="L1_cf")
-    DerivedQuants[["L2_cf"]] = Report[["L1_cf"]]
-    if(!is.null(SD)) DerivedQuants[["SE_L2_cf"]] = SE_hat_fn( SD=SD, Report=Report, Map=InputList$Map, parname="L2_cf")
+    Derived_Quants[["L1_cf"]] = Report[["L1_cf"]]
+    if(!is.null(SD) & !is.null(Map)) Derived_Quants[["SE_L1_cf"]] = ThorsonUtilities::SE_hat_fn( SD=SD, Map=Map, Dim=dim(Report[["L1_ct"]]), parname="L1_cf")
+    Derived_Quants[["var_L1_cf"]] = colSums( Derived_Quants[["L1_cf"]]^2 )
+    Derived_Quants[["prop_var_L1_cf"]] = cumsum(sort(Derived_Quants[["var_L1_cf"]],decreasing=TRUE)) / sum(Derived_Quants[["var_L1_cf"]])
+    Derived_Quants[["L2_cf"]] = Report[["L1_cf"]]
+    if(!is.null(SD) & !is.null(Map)) Derived_Quants[["SE_L2_cf"]] = ThorsonUtilities::SE_hat_fn( SD=SD, Dim=dim(Report[["L1_ct"]]), Map=Map, parname="L2_cf")
+    Derived_Quants[["var_L2_cf"]] = colSums( Derived_Quants[["L2_cf"]]^2 )
+    Derived_Quants[["prop_var_L2_cf"]] = cumsum(sort(Derived_Quants[["var_L2_cf"]],decreasing=TRUE)) / sum(Derived_Quants[["var_L2_cf"]])
+    # Save overdispersion
+    if( !("eta1_vc" %in% names(Report)) ){
+      Report[["eta1_vc"]] = ParHat[["eta1_vf"]] %*% t(Report[["L1_cf"]])
+      Report[["eta2_vc"]] = ParHat[["eta2_vf"]] %*% t(Report[["L2_cf"]])
+    }
+    Derived_Quants[["cov_eta1_vc"]] = cov( Report[["eta1_vc"]] )
+    Derived_Quants[["cov_eta2_vc"]] = cov( Report[["eta2_vc"]] )
   }
 
   if( Data[["n_f_input"]]>=0 ){
-    # Plot
-    png( file=filename, width=ControlList$Width, height=ControlList$Height, res=ControlList$Res, units=ControlList$Units )
-      par( mfrow=c(1,2), mar=c(0,2,3,0), mgp=c(2,0.5,0), tck=-0.02, oma=c(0,0,0,0))
-      for(i in 1:2){
-        Cov_cc = list(Cov1_cc, Cov2_cc)[[i]]
+    # Plot covariance
+    png( file=paste0(filename1,".png"), width=ControlList1$Width, height=ControlList1$Height, res=ControlList1$Res, units=ControlList1$Units )
+      par( mfrow=c(2,2), mar=c(0,2,3,0), mgp=c(2,0.5,0), tck=-0.02, oma=c(0,0,0,0))
+      for(i in 1:4){
+        Cov_cc = list(Cov1_cc, Cov2_cc, Derived_Quants[["cov_eta1_vc"]], Derived_Quants[["cov_eta2_vc"]])[[i]]
         plot_cov( Cov=Cov_cc )
-        title( main=c("Encounter prob","Positive catch rate")[i], line=2 )
+        title( main=c("Encounter prob (pop.)","Positive catch rate (pop.)","Encounter prob (sample)","Positive catch rate (sample)")[i], line=2 )
       }
     dev.off()
 
+    # Plot distributions
+    for(i in 1:2){
+      png( file=paste0(filename2,"_",i,".png"), width=ControlList2$Width, height=ControlList2$Height, res=ControlList2$Res, units=ControlList2$Units )
+        Mat = list( Report[["eta1_vc"]], Report[["eta2_vc"]] )[[i]]
+        par( mfrow=rep(Data$n_c,2), mar=c(0,0,0,0), mgp=c(2,0.5,0), tck=-0.02, oma=c(0,0,0,0))
+        for(i in 1:2){
+          for(j1 in 1:Data$n_c){
+          for(j2 in 1:Data$n_c){
+            if(j1==j2) hist( Mat[,j1], xlab="", ylab="", xaxt="n", yaxt="n" )
+            if(j1!=j2) plot( x=Mat[,j1], y=Mat[,j2], xlab="", ylab="", xaxt="n", yaxt="n" )
+          }}
+        }
+      dev.off()
+    }
+
     # Return
-    Return = list("Cov1_cc"=Cov1_cc, "Cov2_cc"=Cov2_cc, "DerivedQuants"=DerivedQuants)
+    Return = list("Cov1_cc"=Cov1_cc, "Cov2_cc"=Cov2_cc, "Derived_Quants"=Derived_Quants)
     return( invisible(Return) )
   }
 }

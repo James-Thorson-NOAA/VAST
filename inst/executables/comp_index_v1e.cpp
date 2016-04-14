@@ -31,6 +31,57 @@ matrix<Type> loadings_matrix( vector<Type> L_val, int n_rows, int n_cols ){
   return L_rc;
 }
 
+// IN: eta1_vf; n_f_input; L1_z
+// OUT: jnll_comp; eta1_vc
+template<class Type>
+matrix<Type> overdispersion_by_category_nll( int n_f, int n_f_input, int n_c, int n_v, matrix<Type> eta_vf, vector<Type> L_z, Type &jnll_pointer){
+  using namespace density;
+  matrix<Type> eta_vc(n_v, n_c);
+  vector<Type> Tmp_c;
+  // AR1 structure
+  if( n_f_input==0 ){
+    for(int v=0; v<n_v; v++){
+      Tmp_c = eta_vc.row(v);
+      jnll_pointer += SCALE( AR1(L_z(1)), exp(L_z(0)) )( Tmp_c );
+    }
+    eta_vc = eta_vf;
+  }
+  // Factor analysis structure
+  if( n_f_input>0 ){
+    // Assemble the loadings matrix
+    matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
+    // Multiply out overdispersion
+    eta_vc = eta_vf * L_cf.transpose();
+    // Probability of overdispersion
+    for(int v=0; v<n_v; v++){
+    for(int f=0; f<n_f; f++){
+      jnll_pointer -= dnorm( eta_vf(v,f), Type(0.0), Type(1.0), true );
+    }}
+  }
+  return eta_vc;
+}
+
+// Input: L_omega1_z, Q1, Omegainput1_sf, n_f, n_s, n_c, FieldConfig(0)
+// Output: jnll_comp(0), Omega1_sc
+template<class Type>                                                                                        //
+matrix<Type> gmrf_by_category_nll( int n_f, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, vector<Type> L_z, Eigen::SparseMatrix<Type> Q, Type &jnll_pointer){
+  using namespace density;
+  matrix<Type> gmrf_sc(n_s, n_c);
+  Type logtau;
+  if(n_f==0){
+    logtau = L_z(0) - logkappa;  //
+    jnll_pointer += SEPARABLE( AR1(L_z(1)), GMRF(Q) )(gmrf_input_sf);
+    gmrf_sc = gmrf_input_sf / exp(logtau);                                // Rescaling from comp_index_v1d.cpp
+  }
+  if(n_f>0){
+    logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
+    for( int f=0; f<n_f; f++ ) jnll_pointer += SCALE( GMRF(Q), exp(-logtau))(gmrf_input_sf.col(f));  // Rescaling from spatial_vam_v13.cpp
+    matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
+    gmrf_sc = gmrf_input_sf.matrix() * L_cf.transpose();
+  }
+  return gmrf_sc;
+}
+
 // CMP distribution
 template<class Type>
 Type dCMP(Type x, Type mu, Type nu, int give_log=0, int iter_max=30, int break_point=10){
@@ -72,14 +123,6 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(n_f_input);          // Number of factors for tows/vessels effect (allowable range: from 0 to n_c)
   DATA_INTEGER(n_l);         // Number of indices to post-process
   DATA_INTEGER(n_m);         // Number of range metrics to use (probably 2 for Eastings-Northings)
-
-  // Processing
-  int n_f;
-  if( n_f_input==0 ){
-    n_f = n_c;     // AR1 correlation structure on overdispersion
-  }else{
-    n_f = n_f_input; // Factor correlation structure on overdispersion, with rank n_f
-  }
 
   // Config
   DATA_IVECTOR( Options_vec );
@@ -125,37 +168,35 @@ Type objective_function<Type>::operator() ()
   PARAMETER_ARRAY(gamma1_ctp);       // Dynamic covariate effect
   PARAMETER_VECTOR(lambda1_k);       // Catchability coefficients
   PARAMETER_VECTOR(L1_z);          // Overdispersion parameters
-  PARAMETER(logetaE1);      
-  PARAMETER(logetaO1);
+  PARAMETER_VECTOR(L_omega1_z);
+  PARAMETER_VECTOR(L_epsilon1_z);
   PARAMETER(logkappa1);
   PARAMETER(Beta_mean1);  // mean-reversion for beta1_t
   PARAMETER(logsigmaB1);  // SD of beta1_t (default: not included in objective function)
   PARAMETER(Beta_rho1);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER(Epsilon_rho1);  // AR1 for presence/absence Epsilon component, Default=0
-  PARAMETER(rho_c1);         // AR1 among categories
   // -- Gaussian random fields
   PARAMETER_MATRIX(eta1_vf);
-  PARAMETER_ARRAY(Omegainput1_sc);      // Expectation
-  PARAMETER_ARRAY(Epsiloninput1_sct);   // Annual variation
+  PARAMETER_ARRAY(Omegainput1_sf);      // Expectation
+  PARAMETER_ARRAY(Epsiloninput1_sft);   // Annual variation
   //  -- positive catch rates
   PARAMETER_MATRIX(beta2_ct);  // Year effect
   PARAMETER_VECTOR(gamma2_j);        // Covariate effect
   PARAMETER_ARRAY(gamma2_ctp);       // Dynamic covariate effect
   PARAMETER_VECTOR(lambda2_k);       // Catchability coefficients
   PARAMETER_VECTOR(L2_z);          // Overdispersion parameters
-  PARAMETER(logetaE2);      
-  PARAMETER(logetaO2);
+  PARAMETER_VECTOR(L_omega2_z);
+  PARAMETER_VECTOR(L_epsilon2_z);
   PARAMETER(logkappa2);
   PARAMETER(Beta_mean2);  // mean-reversion for beta2_t
   PARAMETER(logsigmaB2);  // SD of beta2_t (default: not included in objective function)
   PARAMETER(Beta_rho2);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER(Epsilon_rho2);  // AR1 for positive catch Epsilon component, Default=0
-  PARAMETER(rho_c2);         // AR1 among categories
   PARAMETER_ARRAY(logSigmaM);   // Slots: 0=mix1 CV, 1=prob-of-mix1, 2=
   // -- Gaussian random fields
   PARAMETER_MATRIX(eta2_vf);
-  PARAMETER_ARRAY(Omegainput2_sc);      // Expectation
-  PARAMETER_ARRAY(Epsiloninput2_sct);   // Annual variation
+  PARAMETER_ARRAY(Omegainput2_sf);      // Expectation
+  PARAMETER_ARRAY(Epsiloninput2_sft);   // Annual variation
 
   // Indices -- i=Observation; j=Covariate; v=Vessel; t=Year; s=Stratum
   int i,j,v,t,s,c;
@@ -176,21 +217,7 @@ Type objective_function<Type>::operator() ()
   Type jnll = 0;                
   
   // Derived parameters
-  Type pi = 3.141592;
-  Type logtauE1 = logetaE1 - logkappa1;
-  Type logtauO1 = logetaO1 - logkappa1;
-  Type kappa1_pow2 = exp(2.0*logkappa1);
-  Type kappa1_pow4 = kappa1_pow2*kappa1_pow2;
-  Type SigmaE1 = 1 / sqrt(4*pi*exp(2*logtauE1)*exp(2*logkappa1));
-  Type SigmaO1 = 1 / sqrt(4*pi*exp(2*logtauO1)*exp(2*logkappa1));
   Type Range_raw1 = sqrt(8) / exp( logkappa1 );   // Range = approx. distance @ 10% correlation
-
-  Type logtauE2 = logetaE2 - logkappa2;
-  Type logtauO2 = logetaO2 - logkappa2;
-  Type kappa2_pow2 = exp(2.0*logkappa2);
-  Type kappa2_pow4 = kappa2_pow2*kappa2_pow2;
-  Type SigmaE2 = 1 / sqrt(4*pi*exp(2*logtauE2)*exp(2*logkappa2));
-  Type SigmaO2 = 1 / sqrt(4*pi*exp(2*logtauO2)*exp(2*logkappa2));
   Type Range_raw2 = sqrt(8) / exp( logkappa2 );     // Range = approx. distance @ 10% correlation
   array<Type> SigmaM( n_c, 2 );
   SigmaM = exp( logSigmaM );
@@ -202,22 +229,7 @@ Type objective_function<Type>::operator() ()
   H(0,1) = ln_H_input(1);
   H(1,1) = (1+ln_H_input(1)*ln_H_input(1)) / exp(ln_H_input(0));
 
-  // Derived fields
-  matrix<Type> Omega1_sc(n_s, n_c);
-  array<Type> Epsilon1_sct(n_s, n_c, n_t);
-  matrix<Type> Omega2_sc(n_s, n_c);
-  array<Type> Epsilon2_sct(n_s, n_c, n_t);
-  for(s=0; s<n_s; s++){
-  for(c=0; c<n_c; c++){
-    Omega1_sc(s,c) = Omegainput1_sc(s,c) / exp(logtauO1);
-    Omega2_sc(s,c) = Omegainput2_sc(s,c) / exp(logtauO2);
-    for(t=0;t<n_t;t++){
-      Epsilon1_sct(s,c,t) = Epsiloninput1_sct(s,c,t) / exp(logtauE1);
-      Epsilon2_sct(s,c,t) = Epsiloninput2_sct(s,c,t) / exp(logtauE2);
-    }
-  }}
-  
-  // Random field probability                                                                                                                              
+  // Random field probability
   Eigen::SparseMatrix<Type> Q1;
   Eigen::SparseMatrix<Type> Q2;
   if( Options_vec(0)==0 ){
@@ -228,73 +240,42 @@ Type objective_function<Type>::operator() ()
     Q1 = Q_spde(spde_aniso, exp(logkappa1), H);
     Q2 = Q_spde(spde_aniso, exp(logkappa2), H);
   }
-  GMRF_t<Type> Tmp1 = GMRF(Q1); // SEPARABLE( AR1(rho_c1), GMRF(Q1) );
-  GMRF_t<Type> Tmp2 = GMRF(Q2); // SEPARABLE( AR1(rho_c2), GMRF(Q2) );
-  if(FieldConfig(0)==1) jnll_comp(0) = SEPARABLE( AR1(rho_c1), GMRF(Q1) )(Omegainput1_sc);
-  if(FieldConfig(1)==1){
-    for(t=0;t<n_t;t++){
-      if(t==0) jnll_comp(1) += SEPARABLE( AR1(rho_c1), GMRF(Q1) )(Epsiloninput1_sct.col(t));
-      if(t>=1) jnll_comp(1) += SEPARABLE( AR1(rho_c1), GMRF(Q1) )(Epsiloninput1_sct.col(t) - Epsilon_rho1*Epsiloninput1_sct.col(t-1));
+  // Probability of encounter
+  array<Type> Omega1_sc(n_s, n_c);
+  Omega1_sc = gmrf_by_category_nll(FieldConfig(0), n_s, n_c, logkappa1, Omegainput1_sf, L_omega1_z, Q1, jnll_comp(0));
+  array<Type> Epsilon1_sct(n_s, n_c, n_t);
+  for(t=0; t<n_t; t++){
+    if(t==0) Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), L_epsilon1_z, Q1, jnll_comp(1));
+    if(t>=1){
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t)-Epsilon_rho1*Epsiloninput1_sft.col(t-1), L_epsilon1_z, Q1, jnll_comp(1));
+      Epsilon1_sct.col(t) += Epsilon_rho1 * Epsilon1_sct.col(t-1);
     }
   }
-  if(FieldConfig(2)==1) jnll_comp(2) = SEPARABLE( AR1(rho_c2), GMRF(Q2) )(Omegainput2_sc);
-  if(FieldConfig(3)==1){
-    for(t=0;t<n_t;t++){
-      if(t==0) jnll_comp(3) += SEPARABLE( AR1(rho_c2), GMRF(Q2) )(Epsiloninput2_sct.col(t));
-      if(t>=1) jnll_comp(3) += SEPARABLE( AR1(rho_c2), GMRF(Q2) )(Epsiloninput2_sct.col(t) - Epsilon_rho2*Epsiloninput2_sct.col(t-1));
+  // Positive catch rate
+  array<Type> Omega2_sc(n_s, n_c);
+  Omega2_sc = gmrf_by_category_nll(FieldConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, L_omega2_z, Q2, jnll_comp(2));
+  array<Type> Epsilon2_sct(n_s, n_c, n_t);
+  for(t=0;t<n_t;t++){
+    if(t==0) Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), L_epsilon2_z, Q2, jnll_comp(3));
+    if(t>=1){
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t)-Epsilon_rho2*Epsiloninput2_sft.col(t-1), L_epsilon2_z, Q2, jnll_comp(3));
+      Epsilon2_sct.col(t) += Epsilon_rho2 * Epsilon2_sct.col(t-1);
     }
   }
 
   ////// Probability of correlated overdispersion among bins
-  matrix<Type> eta1_vc(n_v, n_c);
-  matrix<Type> eta2_vc(n_v, n_c);
-  vector<Type> Tmp_c;
+  int n_f;
   if( n_f_input==0 ){
-  // AR1 structure
-    ///// Encounter probability
-    //AR1_t<Type> Tmp1 = AR1(L1_z(0));
-    for(int v=0; v<n_v; v++){
-      Tmp_c = eta1_vf.row(v);
-      jnll_comp(4) += SCALE( AR1(L1_z(1)), exp(L1_z(0)) )( Tmp_c );
-    }
-    eta1_vc = eta1_vf;
-    ///// Positive catch rates
-    //AR1_t<Type> Tmp2 = AR1( L2_z(0) );
-    for(int v=0; v<n_v; v++){
-      Tmp_c = eta2_vf.row(v);
-      jnll_comp(5) += SCALE( AR1(L2_z(1)), exp(L2_z(0)) )( Tmp_c );
-    }
-    eta2_vc = eta2_vf;
+    n_f = n_c;     // AR1 correlation structure on overdispersion
+  }else{
+    n_f = n_f_input; // Factor correlation structure on overdispersion, with rank n_f
   }
-  if( n_f_input>0 ){
-  // Factor analysis structure
-    ///// Encounter probability
-    // Assemble the loadings matrix
-    matrix<Type> L1_cf = loadings_matrix( L1_z, n_c, n_f );
-    // Multiply out overdispersion
-    eta1_vc = eta1_vf * L1_cf.transpose();
-    // Probability of overdispersion
-    for(int v=0; v<n_v; v++){
-    for(int f=0; f<n_f; f++){
-      jnll_comp(4) -= dnorm( eta1_vf(v,f), Type(0.0), Type(1.0), true );
-    }}
-    REPORT( L1_cf );
-    REPORT( eta1_vf );
-    ADREPORT( L1_cf );
-    ///// Positive catch rates
-    // Assemble the loadings matrix
-    matrix<Type> L2_cf = loadings_matrix( L2_z, n_c, n_f );
-    // Multiply out overdispersion
-    eta2_vc = eta2_vf * L2_cf.transpose();
-    // Probability of overdispersion
-    for(int v=0; v<n_v; v++){
-    for(int f=0; f<n_f; f++){
-      jnll_comp(5) -= dnorm( eta2_vf(v,f), Type(0.0), Type(1.0), true );
-    }}
-    REPORT( L2_cf );
-    REPORT( eta2_vc );
-    ADREPORT( L2_cf );
-  }
+  // IN: eta1_vf; n_f_input; L1_z
+  // OUT: jnll_comp; eta1_vc
+  matrix<Type> eta1_vc(n_v, n_c);
+  eta1_vc = overdispersion_by_category_nll( n_f, n_f_input, n_c, n_v, eta1_vf, L1_z, jnll_comp(4) );
+  matrix<Type> eta2_vc(n_v, n_c);
+  eta2_vc = overdispersion_by_category_nll( n_f, n_f_input, n_c, n_v, eta2_vf, L2_z, jnll_comp(5) );
 
   // Possible structure on betas
   if( Options_vec(2)!=0 ){
@@ -488,10 +469,6 @@ Type objective_function<Type>::operator() ()
   REPORT( zeta1_i );
   REPORT( zeta2_i );
   
-  REPORT( SigmaE1 );
-  REPORT( SigmaO1 );
-  REPORT( SigmaE2 );
-  REPORT( SigmaO2 );
   REPORT( SigmaM );
   REPORT( Index_ctl );
   REPORT( D_xct );
@@ -514,10 +491,6 @@ Type objective_function<Type>::operator() ()
   ADREPORT( Range_raw2 );
   ADREPORT( Index_ctl );
   ADREPORT( ln_Index_ctl);
-  ADREPORT( SigmaE1 );
-  ADREPORT( SigmaO1 );
-  ADREPORT( SigmaE2 );
-  ADREPORT( SigmaO2 );
   ADREPORT( SigmaM );
 
   return jnll;
