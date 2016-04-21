@@ -8,28 +8,9 @@ Plot_Overdispersion = function( filename1, filename2, Data, ParHat, Report, SD=N
   if( Data[["n_f_input"]]<0 ){
     message("No overdispersion in model")
   }
-  if( Data[["n_f_input"]]==0 ){
-    Dist_cc = outer( 1:Data[["n_c"]], 1:Data[["n_c"]], FUN=function(a,b){abs(a-b)})
-    Cov1_cc = ParHat[["L1_z"]] ^ Dist_cc
-    Cov2_cc = ParHat[["L2_z"]] ^ Dist_cc
-  }
-  if( Data[["n_f_input"]]>0 ){
-    Cov1_cc = Report[["L1_cf"]] %*% t(Report[["L1_cf"]])
-    Cov2_cc = Report[["L2_cf"]] %*% t(Report[["L2_cf"]])
-    # Save Ls
-    Derived_Quants[["L1_cf"]] = Report[["L1_cf"]]
-    if(!is.null(SD) & !is.null(Map)) Derived_Quants[["SE_L1_cf"]] = ThorsonUtilities::SE_hat_fn( SD=SD, Map=Map, Dim=dim(Report[["L1_ct"]]), parname="L1_cf")
-    Derived_Quants[["var_L1_cf"]] = colSums( Derived_Quants[["L1_cf"]]^2 )
-    Derived_Quants[["prop_var_L1_cf"]] = cumsum(sort(Derived_Quants[["var_L1_cf"]],decreasing=TRUE)) / sum(Derived_Quants[["var_L1_cf"]])
-    Derived_Quants[["L2_cf"]] = Report[["L1_cf"]]
-    if(!is.null(SD) & !is.null(Map)) Derived_Quants[["SE_L2_cf"]] = ThorsonUtilities::SE_hat_fn( SD=SD, Dim=dim(Report[["L1_ct"]]), Map=Map, parname="L2_cf")
-    Derived_Quants[["var_L2_cf"]] = colSums( Derived_Quants[["L2_cf"]]^2 )
-    Derived_Quants[["prop_var_L2_cf"]] = cumsum(sort(Derived_Quants[["var_L2_cf"]],decreasing=TRUE)) / sum(Derived_Quants[["var_L2_cf"]])
-    # Save overdispersion
-    if( !("eta1_vc" %in% names(Report)) ){
-      Report[["eta1_vc"]] = ParHat[["eta1_vf"]] %*% t(Report[["L1_cf"]])
-      Report[["eta2_vc"]] = ParHat[["eta2_vf"]] %*% t(Report[["L2_cf"]])
-    }
+  if( Data[["n_f_input"]]>=0 ){
+    Cov1_cc = calc_cov( n_f=Data[["n_f_input"]], n_c=Data[["n_c"]], L_z=ParHat[["L1_z"]])
+    Cov2_cc = calc_cov( n_f=Data[["n_f_input"]], n_c=Data[["n_c"]], L_z=ParHat[["L2_z"]])
     Derived_Quants[["cov_eta1_vc"]] = cov( Report[["eta1_vc"]] )
     Derived_Quants[["cov_eta2_vc"]] = cov( Report[["eta2_vc"]] )
   }
@@ -61,7 +42,7 @@ Plot_Overdispersion = function( filename1, filename2, Data, ParHat, Report, SD=N
     }
 
     # Return
-    Return = list("Cov1_cc"=Cov1_cc, "Cov2_cc"=Cov2_cc, "Derived_Quants"=Derived_Quants)
+    Return = list("Cov1_cc"=Cov1_cc, "Cov2_cc"=Cov2_cc)
     return( invisible(Return) )
   }
 }

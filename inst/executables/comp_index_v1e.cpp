@@ -466,6 +466,8 @@ Type objective_function<Type>::operator() ()
   REPORT( eta2_x );
   REPORT( eta1_xct );
   REPORT( eta2_xct );
+  REPORT( eta1_vc );
+  REPORT( eta2_vc );
   REPORT( zeta1_i );
   REPORT( zeta2_i );
   

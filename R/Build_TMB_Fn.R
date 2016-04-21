@@ -39,7 +39,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
 
   # Build object
   dyn.load( paste0(RunDir,"/",dynlib(Version)) ) # random=Random,
-  Obj <- MakeADFun(data=TmbData, parameters=Parameters, hessian=FALSE, map=Map, random=Random, inner.method="newton")
+  Obj <- MakeADFun(data=TmbData, parameters=Parameters, hessian=FALSE, map=Map, random=Random, inner.method="newton", DLL=Version)  #
   Obj$control <- list(trace=1, parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 
   # Diagnostic functions (optional)
