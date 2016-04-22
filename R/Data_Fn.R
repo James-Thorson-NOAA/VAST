@@ -22,7 +22,11 @@ function( Version, FieldConfig, ObsModel, b_i, a_i, c_i, s_i, t_i, a_xl, v_i=rep
   n_f_input = NA
   if( n_f=="AR1" ) n_f_input = 0
   if( is.numeric(n_f) && n_f>0 && n_f<=n_c ) n_f_input = n_f
-  if( is.numeric(n_f) && n_f==0 ) n_f_input = -1
+  if( is.numeric(n_f) && n_f==0 ){
+    n_f_input = -1
+    v_i = rep(0,length(b_i))
+    n_v = 1
+  }
   if( is.na(n_f_input) ) stop( "'n_f' must be: 0 (turn off overdispersion); 'AR1' (use AR1 structure); or 0<n_f<=n_c (factor structure)" )
 
   ###
