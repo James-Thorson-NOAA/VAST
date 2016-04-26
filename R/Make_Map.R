@@ -15,12 +15,12 @@ function( Version, TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Conf
   if(TmbData[["FieldConfig"]]['Omega1']<0){
     if("Omegainput1_sc" %in% names(TmbParams)) Map[["Omegainput1_sc"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput1_sc"]])) )
     if("Omegainput1_sf" %in% names(TmbParams)) Map[["Omegainput1_sf"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput1_sf"]])) )
-    if("logetaO1" %in% names(TmbParams)) Map[["logetaO1"]] = factor(NA)
+    if("L_omega1_z" %in% names(TmbParams)) Map[["L_omega1_z"]] = factor( rep(NA,length(TmbParams[["L_omega1_z"]])) )
   }
   if(TmbData[["FieldConfig"]]['Epsilon1']<0){
     if("Epsiloninput1_sct" %in% names(TmbParams)) Map[["Epsiloninput1_sct"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sct"]])) )
     if("Epsiloninput1_sft" %in% names(TmbParams)) Map[["Epsiloninput1_sft"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sft"]])) )
-    if("logetaE1" %in% names(TmbParams)) Map[["logetaE1"]] = factor(NA)
+    if("L_epsilon1_z" %in% names(TmbParams)) Map[["L_epsilon1_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon1_z"]])) )
   }
   if(TmbData[["FieldConfig"]]['Omega1']<0 & TmbData[["FieldConfig"]]['Epsilon1']<0){
     Map[["logkappa1"]] = factor(NA)
@@ -29,12 +29,12 @@ function( Version, TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Conf
   if(TmbData[["FieldConfig"]]['Omega2']<0){
     if("Omegainput2_sc" %in% names(TmbParams)) Map[["Omegainput2_sc"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput2_sc"]])) )
     if("Omegainput2_sf" %in% names(TmbParams)) Map[["Omegainput2_sf"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput2_sf"]])) )
-    if("logetaO2" %in% names(TmbParams)) Map[["logetaO2"]] = factor(NA)
+    if("L_omega2_z" %in% names(TmbParams)) Map[["L_omega2_z"]] = factor( rep(NA,length(TmbParams[["L_omega2_z"]])) )
   }
   if(TmbData[["FieldConfig"]]['Epsilon2']<0){
     if("Epsiloninput2_sct" %in% names(TmbParams)) Map[["Epsiloninput2_sct"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sct"]])) )
     if("Epsiloninput2_sft" %in% names(TmbParams)) Map[["Epsiloninput2_sft"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sft"]])) )
-    if("logetaE2" %in% names(TmbParams))  Map[["logetaE2"]] = factor(NA)
+    if("L_epsilon2_z" %in% names(TmbParams)) Map[["L_epsilon2_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon2_z"]])) )
   }
   if(TmbData[["FieldConfig"]]['Omega2']<0 & TmbData[["FieldConfig"]]['Epsilon2']<0){
     Map[["logkappa2"]] = factor(NA)
