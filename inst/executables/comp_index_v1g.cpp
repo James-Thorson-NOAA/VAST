@@ -38,6 +38,10 @@ matrix<Type> overdispersion_by_category_nll( int n_f, int n_f_input, int n_c, in
   using namespace density;
   matrix<Type> eta_vc(n_v, n_c);
   vector<Type> Tmp_c;
+  // Turn off
+  if(n_f_input<0){
+    eta_vc.setZero();
+  }
   // AR1 structure
   if( n_f_input==0 ){
     for(int v=0; v<n_v; v++){
@@ -68,11 +72,17 @@ matrix<Type> gmrf_by_category_nll( int n_f, int n_s, int n_c, Type logkappa, arr
   using namespace density;
   matrix<Type> gmrf_sc(n_s, n_c);
   Type logtau;
+  // Turn off
+  if(n_f<0){
+    gmrf_sc.setZero();
+  }
+  // AR1 structure
   if(n_f==0){
     logtau = L_z(0) - logkappa;  //
     jnll_pointer += SEPARABLE( AR1(L_z(1)), GMRF(Q) )(gmrf_input_sf);
     gmrf_sc = gmrf_input_sf / exp(logtau);                                // Rescaling from comp_index_v1d.cpp
   }
+  // Factor analysis structure
   if(n_f>0){
     logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
     for( int f=0; f<n_f; f++ ) jnll_pointer += SCALE( GMRF(Q), exp(-logtau))(gmrf_input_sf.col(f));  // Rescaling from spatial_vam_v13.cpp
@@ -134,6 +144,8 @@ Type objective_function<Type>::operator() ()
   // Slot 5 -- Upper limit constant of integration calculation for Conway-Maxwell-Poisson density function
   DATA_IVECTOR(FieldConfig);  // Input settings
   DATA_IVECTOR(ObsModel);    // Observation model
+  // Slot 0: Distribution for positive catches
+  // Slot 1: Link function for encounter probabilities
   DATA_IVECTOR(Options);    // Reporting options
   // Slot 0: DEPRECATED
   // Slot 1: DEPRECATED
@@ -220,7 +232,7 @@ Type objective_function<Type>::operator() ()
   // Derived parameters
   Type Range_raw1 = sqrt(8) / exp( logkappa1 );   // Range = approx. distance @ 10% correlation
   Type Range_raw2 = sqrt(8) / exp( logkappa2 );     // Range = approx. distance @ 10% correlation
-  array<Type> SigmaM( n_c, 2 );
+  array<Type> SigmaM( n_c, 3 );
   SigmaM = exp( logSigmaM );
 
   // Anisotropy elements
@@ -325,16 +337,24 @@ Type objective_function<Type>::operator() ()
 
   // Likelihood contribution from observations
   for (int i=0;i<n_i;i++){
-    // P1_i and R1_i: Presence-absence prediction
-    // P2_i and R2_i: Positive density prediction
     // Linear predictors
     P1_i(i) =  beta1_ct(c_i(i),t_i(i)) + Omega1_sc(s_i(i),c_i(i)) + Epsilon1_sct(s_i(i),c_i(i),t_i(i)) + eta1_x(s_i(i)) + eta1_xct(s_i(i),c_i(i),t_i(i)) + zeta1_i(i) + eta1_vc(v_i(i),c_i(i));
     P2_i(i) =  beta2_ct(c_i(i),t_i(i)) + Omega2_sc(s_i(i),c_i(i)) + Epsilon2_sct(s_i(i),c_i(i),t_i(i)) + eta2_x(s_i(i)) + eta2_xct(s_i(i),c_i(i),t_i(i)) + zeta2_i(i) + eta2_vc(v_i(i),c_i(i));
     // Responses
-    R1_i(i) = invlogit( P1_i(i) );
-    R2_i(i) = exp( P2_i(i) );
+    if( ObsModel(1)==0 ){
+      // P1_i: Logit-Probability of occurrence
+      // P2_i: Log-Positive density prediction
+      R1_i(i) = invlogit( P1_i(i) );
+      R2_i(i) = exp( P2_i(i) );
+    }
+    if( ObsModel(1)==1 ){
+      // P1_i: Log-Density
+      // P2_i: Log-Variation in positive catch rates in excess of density
+      R1_i(i) = Type(1.0) - exp( -1*SigmaM(c_i(i),2)*exp(P1_i(i)) );
+      R2_i(i) = exp(P1_i(i)) / R1_i(i) * exp( P2_i(i) );
+    }
     // Likelihood for models with continuous positive support
-    if(ObsModel(0)==0 | ObsModel(0)==1 | ObsModel(0)==2 | ObsModel(0)==11 | ObsModel(0)==12){ 
+    if(ObsModel(0)==0 | ObsModel(0)==1 | ObsModel(0)==2){
       // Presence-absence likelihood
       if( b_i(i) > 0 ){
         LogProb1_i(i) = log( R1_i(i) );
@@ -344,7 +364,7 @@ Type objective_function<Type>::operator() ()
       // Positive density likelihood -- models with continuous positive support
       if( b_i(i) > 0 ){    // 1e-500 causes overflow on laptop
         if(ObsModel(0)==0) LogProb2_i(i) = dnorm(b_i(i), R2_i(i)*a_i(i), SigmaM(c_i(i),0), true);
-        if(ObsModel(0)==1) LogProb2_i(i) = dlnorm(b_i(i), P2_i(i)+log(a_i(i))-pow(SigmaM(c_i(i),0),2)/2, SigmaM(c_i(i),0), true); // log-space
+        if(ObsModel(0)==1) LogProb2_i(i) = dlnorm(b_i(i), log(R2_i(i)*a_i(i))-pow(SigmaM(c_i(i),0),2)/2, SigmaM(c_i(i),0), true); // log-space
         if(ObsModel(0)==2) LogProb2_i(i) = dgamma(b_i(i), 1/pow(SigmaM(c_i(i),0),2), R2_i(i)*a_i(i)*pow(SigmaM(c_i(i),0),2), true); // shape = 1/CV^2, scale = mean*CV^2
       }else{
         LogProb2_i(i) = 0;
@@ -378,11 +398,17 @@ Type objective_function<Type>::operator() ()
   for(int t=0; t<n_t; t++){
   for(int x=0; x<n_x; x++){
     P1_xct(x,c,t) = beta1_ct(c,t) + Omega1_sc(x,c) + Epsilon1_sct(x,c,t) + eta1_x(x) + eta1_xct(x,c,t);
-    R1_xct(x,c,t) = invlogit( P1_xct(x,c,t) );
     P2_xct(x,c,t) =  beta2_ct(c,t) + Omega2_sc(x,c) + Epsilon2_sct(x,c,t) + eta2_x(x) + eta2_xct(x,c,t);
-    if(ObsModel(0)==0 | ObsModel(0)==1 | ObsModel(0)==2 | ObsModel(0)==4 | ObsModel(0)==5) R2_xct(x,c,t) = exp( P2_xct(x,c,t) );
+    if( ObsModel(1)==0 ){
+      R1_xct(x,c,t) = invlogit( P1_xct(x,c,t) );
+      R2_xct(x,c,t) = exp( P2_xct(x,c,t) );
+    }
+    if( ObsModel(1)==1 ){
+      R1_xct(x,c,t) = Type(1.0) - exp( -SigmaM(c,2)*exp(P1_xct(x,c,t)) );
+      R2_xct(x,c,t) = exp(P1_xct(x,c,t)) / R1_xct(x,c,t) * exp( P2_xct(x,c,t) );
+    }
     // Expected value for predictive distribution in a grid cell
-    if(ObsModel(0)==0 | ObsModel(0)==1 | ObsModel(0)==2 | ObsModel(0)==5) D_xct(x,c,t) = R1_xct(x,c,t) * R2_xct(x,c,t);
+    D_xct(x,c,t) = R1_xct(x,c,t) * R2_xct(x,c,t);
   }}}
   
   // Calculate indices
@@ -468,6 +494,8 @@ Type objective_function<Type>::operator() ()
   REPORT( eta2_xct );
   REPORT( eta1_vc );
   REPORT( eta2_vc );
+  REPORT( eta1_vf );
+  REPORT( eta2_vf );
   REPORT( zeta1_i );
   REPORT( zeta2_i );
   
@@ -479,8 +507,12 @@ Type objective_function<Type>::operator() ()
   REPORT( Index_xctl );
   REPORT( Omega1_sc );
   REPORT( Omega2_sc );
+  REPORT( Omegainput1_sf );
+  REPORT( Omegainput2_sf );
   REPORT( Epsilon1_sct );
   REPORT( Epsilon2_sct );
+  REPORT( Epsiloninput1_sft );
+  REPORT( Epsiloninput2_sft );
   REPORT( H );
   REPORT( Range_raw1 );
   REPORT( Range_raw2 );

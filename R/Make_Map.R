@@ -42,14 +42,23 @@ function( Version, TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Conf
   }
 
   # Measurement error models
-  if(TmbData[["ObsModel"]]%in%c(0,1,2)){
-    Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,NA) )
+  if(TmbData[["ObsModel"]][1]%in%c(0,1,2)){
+    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,NA) )
+    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==0) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,NA,NA) )
+    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==1) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,NA,2) )
   }
-  if(TmbData[["ObsModel"]]%in%c(5)){
-    Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,2) )
+  if(TmbData[["ObsModel"]][1]%in%c(5)){
+    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,2) )
+    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==0) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,2,NA) )
+    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==1) stop("ObsModel[2]=1 & ObsModel[1]=5 is a weird combination")
   }
-  if(TmbData[["ObsModel"]]%in%c(6)){
-    Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(NA,NA) )
+  if(TmbData[["ObsModel"]][1]%in%c(6)){
+    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(NA,NA) )
+    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==0) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(NA,NA,NA) )
+    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==1) stop("ObsModel[2]=1 & ObsModel[1]=6 is a weird combination")
+  }
+  if( length(TmbData[["ObsModel"]])==2 && TmbData[["ObsModel"]][2]==1 ){
+    Map[["beta2_ct"]] = factor( array(NA,dim=dim(TmbParams[["beta2_ct"]])) )
   }
   # Anisotropy
   if(TmbData[["Options_vec"]]["Aniso"]==0 | all(TmbData[["FieldConfig"]]<0)) Map[['ln_H_input']] = factor( rep(NA,2) )
