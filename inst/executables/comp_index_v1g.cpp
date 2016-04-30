@@ -429,18 +429,24 @@ Type objective_function<Type>::operator() ()
   // Calculate other derived summaries
   // Each is the weighted-average X_xl over polygons (x) with weights equal to abundance in each polygon and time (where abundance is from the first index)
   array<Type> mean_Z_ctm(n_c, n_t, n_m);
-  mean_Z_ctm.setZero();
-  int report_summary_TF = false;
-  for(int c=0; c<n_c; c++){
-  for(int t=0; t<n_t; t++){
-  for(int m=0; m<n_m; m++){
-    for(int x=0; x<n_x; x++){
-      if( Z_xm(x,m)!=0 ){
-        mean_Z_ctm(t,m) += Z_xm(x,m) * Index_xctl(x,c,t,0)/Index_ctl(c,t,0);
-        report_summary_TF = true;
+  if( Options(2)==1 ){
+    mean_Z_ctm.setZero();
+    int report_summary_TF = false;
+    for(int c=0; c<n_c; c++){
+    for(int t=0; t<n_t; t++){
+    for(int m=0; m<n_m; m++){
+      for(int x=0; x<n_x; x++){
+        if( Z_xm(x,m)!=0 ){
+          mean_Z_ctm(t,m) += Z_xm(x,m) * Index_xctl(x,c,t,0)/Index_ctl(c,t,0);
+          report_summary_TF = true;
+        }
       }
+    }}}
+    if( report_summary_TF==true ){
+      REPORT( mean_Z_tm );
+      ADREPORT( mean_Z_tm );
     }
-  }}}
+  }
 
   // Calculate average density, weighted.mean( x=Abundance/Area, w=Abundance )
   // Doesn't require Z_xm, because it only depends upon Index_tl

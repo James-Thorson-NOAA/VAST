@@ -1,11 +1,11 @@
-Package: SpatialCompData
+Package: VAST
 Type: Package
-Title: Package for conducting spatio-temporal analysis of compositional data
+Title: Vector-autoregressive spatio-temporal (VAST) model
 Version: 1.0
 Date: 2016-03-29
 Author: James Thorson
 Maintainer: James Thorson <James.Thorson@noaa.gov>
-Description: SpatialCompData is an R package for implementing a spatial delta-generalized linear mixed model (delta-GLMM) for use when standardizing compositional data from a fishery-independent index data 
+Description: VAST is an R package for conducting spatio-temporal analysis of data from multiple categories (species, sizes, etc.), and includes both spatial and spatio-temporal variation in density for each category, with either factor-analysis or autoregressive correlations among categories, with derived calculation of abundance indices, center-of-gravity, and area-occupied
 Depends: R (>= 3.1.0), maps, mapdata, mapproj, maptools, deldir, PBSmapping, RANN, stats, colorspace, RandomFields, rgeos, shape
 License: GPL-2
 LazyData: yes
