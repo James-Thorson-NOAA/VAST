@@ -437,14 +437,14 @@ Type objective_function<Type>::operator() ()
     for(int m=0; m<n_m; m++){
       for(int x=0; x<n_x; x++){
         if( Z_xm(x,m)!=0 ){
-          mean_Z_ctm(t,m) += Z_xm(x,m) * Index_xctl(x,c,t,0)/Index_ctl(c,t,0);
+          mean_Z_ctm(c,t,m) += Z_xm(x,m) * Index_xctl(x,c,t,0)/Index_ctl(c,t,0);
           report_summary_TF = true;
         }
       }
     }}}
     if( report_summary_TF==true ){
-      REPORT( mean_Z_tm );
-      ADREPORT( mean_Z_tm );
+      REPORT( mean_Z_ctm );
+      ADREPORT( mean_Z_ctm );
     }
   }
 

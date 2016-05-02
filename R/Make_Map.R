@@ -137,7 +137,7 @@ function( Version, TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Conf
     }
   }
   # fix AR across bins
-  if( TmbData$n_c==1 ){
+  if( TmbData$n_c==1 & ("rho_c1" %in% names(TmbParams)) ){
     Map[["rho_c1"]] = factor(NA)
     Map[["rho_c2"]] = factor(NA)
   }

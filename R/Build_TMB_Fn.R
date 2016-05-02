@@ -2,7 +2,7 @@ Build_TMB_Fn <-
 function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
   ConvergeTol=1, Use_REML=FALSE, loc_x=NULL, Parameters="generate", Random="generate", Map="generate",
-  DiagnosticDir=NULL, TmbDir=system.file("executables",package="SpatialCompData"), RunDir=getwd() ){
+  DiagnosticDir=NULL, TmbDir=system.file("executables",package="VAST"), RunDir=getwd() ){
                                             
   # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
@@ -36,6 +36,8 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
 
   # Which parameters are turned off
   if( length(Map)==1 && Map=="generate" ) Map = Make_Map( Version=Version, TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
+  Save = list("Map"=Map, "Data"=TmbData, "Parameters"=Parameters, "Random"=Random)
+  #save(Save, file=paste0(RunDir,"/Save.RData"))
 
   # Build object
   dyn.load( paste0(RunDir,"/",dynlib(Version)) ) # random=Random,
