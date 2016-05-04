@@ -36,7 +36,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
 
   # Which parameters are turned off
   if( length(Map)==1 && Map=="generate" ) Map = Make_Map( Version=Version, TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
-  Save = list("Map"=Map, "Data"=TmbData, "Parameters"=Parameters, "Random"=Random)
+  #Save = list("Map"=Map, "Data"=TmbData, "Parameters"=Parameters, "Random"=Random)
   #save(Save, file=paste0(RunDir,"/Save.RData"))
 
   # Build object
@@ -96,6 +96,10 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   Obj$env$inner.control$step.tol <- c(1e-8,1e-12,1e-15)[ConvergeTol] # Default : 1e-8  # Change in parameters limit inner optimization
   Obj$env$inner.control$tol10 <- c(1e-6,1e-8,1e-12)[ConvergeTol]  # Default : 1e-3     # Change in pen.like limit inner optimization
   Obj$env$inner.control$grad.tol <- c(1e-8,1e-12,1e-15)[ConvergeTol] # # Default : 1e-8  # Maximum gradient limit inner optimization
+
+  # Print number of parameters
+  message("Number of fixed and random effects:")
+  print( table(names(Obj$env$last.par)) )
 
   # Return stuff
   Return = list("Obj"=Obj, "Upper"=Bounds[,'Upper'], "Lower"=Bounds[,'Lower'], "Parameters"=Parameters, "Map"=Map, "Random"=Random)
