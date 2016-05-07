@@ -65,6 +65,16 @@ matrix<Type> overdispersion_by_category_nll( int n_f, int n_f_input, int n_c, in
   return eta_vc;
 }
 
+template<class Type>                                                                                        //
+matrix<Type> convert_upper_cov_to_cor( matrix<Type> cov ){
+  int nrow = cov.row(0).size();
+  for( int i=0; i<nrow; i++){
+  for( int j=i+1; j<nrow; j++){
+    cov(i,j) = cov(i,j) / pow(cov(i,i),0.5) / pow(cov(j,j),0.5);
+  }}
+  return cov;
+}
+
 // Input: L_omega1_z, Q1, Omegainput1_sf, n_f, n_s, n_c, FieldConfig(0)
 // Output: jnll_comp(0), Omega1_sc
 template<class Type>                                                                                        //
@@ -149,9 +159,10 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR(Options);    // Reporting options
   // Slot 0: DEPRECATED
   // Slot 1: DEPRECATED
-  // Slot 2: DEPRECATED
+  // Slot 2: Calculate mean_Z_ctm (i.e., center-of-gravity)
   // Slot 3: DEPRECATED
   // Slot 4: Calculate mean_D_tl and effective_area_tl
+  // Slot 5: Calculate standard errors for Covariance and Correlation among categories using factor-analysis parameterization
 
   // Data vectors
   DATA_VECTOR(b_i);       	// Response (biomass) for each observation
@@ -482,6 +493,38 @@ Type objective_function<Type>::operator() ()
   jnll = jnll_comp.sum();
   Type pred_jnll = -1 * ( LogProb1_i*PredTF_i + LogProb2_i*PredTF_i ).sum();
   REPORT( pred_jnll );
+
+  // Reporting
+  if( Options(5)==1 ){
+    if( FieldConfig(0)>0 ){
+      matrix<Type> L1_omega_cf = loadings_matrix( L_omega1_z, n_c, FieldConfig(0) );
+      matrix<Type> lowercov_uppercor_omega1 = L1_omega_cf * L1_omega_cf.transpose();
+      lowercov_uppercor_omega1 = convert_upper_cov_to_cor( lowercov_uppercor_omega1 );
+      REPORT( lowercov_uppercor_omega1 );
+      ADREPORT( lowercov_uppercor_omega1 );
+    }
+    if( FieldConfig(1)>0 ){
+      matrix<Type> L1_epsilon_cf = loadings_matrix( L_epsilon1_z, n_c, FieldConfig(1) );
+      matrix<Type> lowercov_uppercor_epsilon1 = L1_epsilon_cf * L1_epsilon_cf.transpose();
+      lowercov_uppercor_epsilon1 = convert_upper_cov_to_cor( lowercov_uppercor_epsilon1 );
+      REPORT( lowercov_uppercor_epsilon1 );
+      ADREPORT( lowercov_uppercor_epsilon1 );
+    }
+    if( FieldConfig(2)>0 ){
+      matrix<Type> L2_omega_cf = loadings_matrix( L_omega2_z, n_c, FieldConfig(2) );
+      matrix<Type> lowercov_uppercor_omega2 = L2_omega_cf * L2_omega_cf.transpose();
+      lowercov_uppercor_omega2 = convert_upper_cov_to_cor( lowercov_uppercor_omega2 );
+      REPORT( lowercov_uppercor_omega2 );
+      ADREPORT( lowercov_uppercor_omega2 );
+    }
+    if( FieldConfig(3)>0 ){
+      matrix<Type> L2_epsilon_cf = loadings_matrix( L_epsilon2_z, n_c, FieldConfig(3) );
+      matrix<Type> lowercov_uppercor_epsilon2 = L2_epsilon_cf * L2_epsilon_cf.transpose();
+      lowercov_uppercor_epsilon2 = convert_upper_cov_to_cor( lowercov_uppercor_epsilon2 );
+      REPORT( lowercov_uppercor_epsilon2 );
+      ADREPORT( lowercov_uppercor_epsilon2 );
+    }
+  }
 
   // Diagnostic output
   REPORT( P1_i );

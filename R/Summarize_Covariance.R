@@ -1,0 +1,87 @@
+
+
+Summarize_Covariance = function( report, tmbdata, parhat, sd_report=NULL, names_set=1:tmbData$n_c, figname=NULL, plotTF=c("Omega1"=TRUE,"Epsilon1"=TRUE,"Omega2"=TRUE,"Epsilon2"=TRUE), plot_cor=TRUE, mgp=c(2,0.5,0), tck=-0.02, oma=c(0,5,2,0)){
+
+  # Object to return
+  Return = list()
+
+  # Extract standard errors
+  if( !is.null(sd_report) ){
+    # Download package
+    if(!"ThorsonUtilities" %in% installed.packages()[,1]) devtools::install_github("james-thorson/utilities")
+
+    # Object to build
+    sd_summary = summary(sd_report)
+
+    # Extract
+    for(i in 1:4){
+      Par_name = c("omega1", "epsilon1", "omega2", "epsilon2")[i]
+      Slot_name = paste0("lowercov_uppercor_",Par_name)
+      if( Slot_name %in% rownames(sd_summary) ){
+        # Extract covariances
+        Cor = Cov = Mat = ThorsonUtilities::Extract_SE( SD=Sdreport, parname=Slot_name, columns=1:2, Dim=c(tmbdata$n_c,tmbdata$n_c) )
+        # Cor
+        Cor[,,1][lower.tri(Cor[,,1])] = t(Mat[,,1])[lower.tri(Mat[,,1])]
+        diag(Cor[,,1]) = 1
+        Cor[,,2][lower.tri(Cor[,,2])] = t(Mat[,,2])[lower.tri(Mat[,,2])]
+        diag(Cor[,,2]) = NA
+        # Cov
+        Cov[,,1][upper.tri(Cov[,,1])] = t(Mat[,,1])[upper.tri(Mat[,,1])]
+        Cov[,,2][upper.tri(Cov[,,2])] = t(Mat[,,2])[upper.tri(Mat[,,2])]
+        # Add to return
+        List = list( Cor, Cov )
+        names(List) = paste0( c("Cor_","Cov_"),Par_name)
+        Return = c( Return, List )
+      }
+    }
+  }
+
+  # Plot covariances
+  if( !is.null(figname) ){
+    # Work out dimensions
+    Dim = c(2,2)
+    if( sum(plotTF)==1 ) Dim = c(1,1)
+    if( all(plotTF==c(1,1,0,0)) | all(plotTF==c(0,0,1,1)) ) Dim=c(1,2)
+    if( all(plotTF==c(1,0,1,0)) | all(plotTF==c(0,1,0,1)) ) Dim=c(2,1)
+
+    # Conversion function
+    if(plot_cor==TRUE){
+      convert = function(Cov) ifelse(is.na(cov2cor(Cov)),0,cov2cor(Cov))
+    }else{
+      convert = function(Cov) ifelse(is.na(Cov),0,Cov)
+    }
+
+    # Plot analytic
+    save_fig( file=paste0(figname,"--Analytic"), width=Dim[2]*4+1, height=Dim[1]*4 )
+      par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
+      for(i in which(plotTF) ){
+        Cov_cc = calc_cov( L_z=parhat[c('L_omega1_z','L_epsilon1_z','L_omega2_z','L_epsilon2_z')][[i]], n_f=tmbdata$FieldConfig[i], n_c=tmbdata$n_c )
+        plot_cov( Cov=convert(Cov_cc), names=list(names_set,NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
+        if(i==1 | Dim[1]==1) mtext(side=3, text="Spatial", line=1.5, font=2)
+        if(i==2 | Dim[1]==1) mtext(side=3, text="Spatio-temporal", line=1.5, font=2)
+        if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text="Component #1", line=0.5, font=2)
+        if(i==4 | (Dim[2]==1&i==3)) mtext(side=4, text="Component #2", line=0.5, font=2)
+      }
+    dev.off()
+
+    # Plot sample
+    save_fig( file=paste0(figname,"--Sample"), width=Dim[2]*4+1, height=Dim[1]*4 )
+      par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
+      for(i in which(plotTF) ){
+        if(i==1) Cov_cc = cov(report$Omega1_sc)
+        if(i==2) Cov_cc = cov(apply(report$Epsilon1_sct,MARGIN=2,FUN=as.vector))
+        if(i==3) Cov_cc = cov(report$Omega2_sc)
+        if(i==4) Cov_cc = cov(apply(report$Epsilon2_sct,MARGIN=2,FUN=as.vector))
+        plot_cov( Cov=convert(Cov_cc), names=list(names_set,NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
+        if(i==1 | Dim[1]==1) mtext(side=3, text="Spatial", line=1.5, font=2)
+        if(i==2 | Dim[1]==1) mtext(side=3, text="Spatio-temporal", line=1.5, font=2)
+        if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text="Component #1", line=0.5, font=2)
+        if(i==4 | (Dim[2]==1&i==3)) mtext(side=4, text="Component #2", line=0.5, font=2)
+      }
+    dev.off()
+  }
+
+  # Return
+  return( invisible(Return) )
+}
+

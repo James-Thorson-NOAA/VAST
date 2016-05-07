@@ -21,13 +21,13 @@
 #' @param Q_ik OPTIONAL, matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i
 #' @param Aniso OPTIONAL, whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)
 #' @param RhoConfig OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals
-#' @param Options OPTIONAL, a vector of form c('SD_site_density'=0,'SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_evenness'=0,'Calculate_effective_area'=0), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied
+#' @param Options OPTIONAL, a vector of form c('SD_site_density'=0,'SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_evenness'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied
 #' @param CheckForErrors OPTIONAL, whether to check for errors in input (NOTE: when CheckForErrors=TRUE, the function will throw an error if it detects a problem with inputs.  However, failing to throw an error is no guaruntee that the inputs are all correct)
 
 #' @return Tagged list containing inputs to function Build_TMB_Fn()
 
 Data_Fn <-
-function( Version, FieldConfig, ObsModel=c("PosDist"=1,"Link"=0), b_i, a_i, c_i, s_i, t_i, a_xl, MeshList, v_i=rep(0,length(b_i)), PredTF_i=rep(0,length(b_i)), n_f="AR1", X_xj=NULL, X_xtp=NULL, Q_ik=NULL, Aniso=1, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Options=c('SD_site_density'=0,'SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_evenness'=0,'Calculate_effective_area'=0), CheckForErrors=TRUE ){
+function( Version, FieldConfig, ObsModel=c("PosDist"=1,"Link"=0), b_i, a_i, c_i, s_i, t_i, a_xl, MeshList, v_i=rep(0,length(b_i)), PredTF_i=rep(0,length(b_i)), n_f="AR1", X_xj=NULL, X_xtp=NULL, Q_ik=NULL, Aniso=1, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Options=c('SD_site_density'=0,'SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_evenness'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0), CheckForErrors=TRUE ){
 
   # Determine dimensions
   n_t = max(t_i) - min(t_i) + 1
