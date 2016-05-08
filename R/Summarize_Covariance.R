@@ -60,8 +60,8 @@ Summarize_Covariance = function( report, tmbdata, parhat, sd_report=NULL, names_
         plot_cov( Cov=convert(Cov_cc), names=list(names_set,NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
         if(i==1 | Dim[1]==1) mtext(side=3, text="Spatial", line=1.5, font=2)
         if(i==2 | Dim[1]==1) mtext(side=3, text="Spatio-temporal", line=1.5, font=2)
-        if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text="Component #1", line=0.5, font=2)
-        if(i==4 | (Dim[2]==1&i==3)) mtext(side=4, text="Component #2", line=0.5, font=2)
+        if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text=ifelse(length(tmbdata$ObsModel)==1||tmbdata$ObsModel[2]==0,"Encounter probability","Component #1"), line=0.5, font=2)
+        if(i==4 | (Dim[2]==1&i==3)) mtext(side=4, text=ifelse(length(tmbdata$ObsModel)==1||tmbdata$ObsModel[2]==0,"Positive catch rate","Component #2"), line=0.5, font=2)
       }
     dev.off()
 
@@ -76,8 +76,8 @@ Summarize_Covariance = function( report, tmbdata, parhat, sd_report=NULL, names_
         plot_cov( Cov=convert(Cov_cc), names=list(names_set,NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
         if(i==1 | Dim[1]==1) mtext(side=3, text="Spatial", line=1.5, font=2)
         if(i==2 | Dim[1]==1) mtext(side=3, text="Spatio-temporal", line=1.5, font=2)
-        if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text="Component #1", line=0.5, font=2)
-        if(i==4 | (Dim[2]==1&i==3)) mtext(side=4, text="Component #2", line=0.5, font=2)
+        if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text=ifelse(length(tmbdata$ObsModel)==1||tmbdata$ObsModel[2]==0,"Encounter probability","Component #1"), line=0.5, font=2)
+        if(i==4 | (Dim[2]==1&i==3)) mtext(side=4, text=ifelse(length(tmbdata$ObsModel)==1||tmbdata$ObsModel[2]==0,"Positive catch rate","Component #2"), line=0.5, font=2)
       }
     dev.off()
   }
