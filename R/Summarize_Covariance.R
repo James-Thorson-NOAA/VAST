@@ -20,6 +20,7 @@ Summarize_Covariance = function( report, tmbdata, parhat, sd_report=NULL, names_
       if( Slot_name %in% rownames(sd_summary) ){
         # Extract covariances
         Cor = Cov = Mat = ThorsonUtilities::Extract_SE( SD=Sdreport, parname=Slot_name, columns=1:2, Dim=c(tmbdata$n_c,tmbdata$n_c) )
+        dimnames(Cor) = dimnames(Cov) = list( names_set, names_set, c("Estimate","Std.Error") )
         # Cor
         Cor[,,1][lower.tri(Cor[,,1])] = t(Mat[,,1])[lower.tri(Mat[,,1])]
         diag(Cor[,,1]) = 1
