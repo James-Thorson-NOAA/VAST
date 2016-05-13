@@ -143,11 +143,21 @@ function( Version, TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Conf
   }
 
   # Overdispersion parameters
-  if( "n_v"%in%names(TmbData) && TmbData[["n_f_input"]]<0 ){
+  if( ("n_f_input"%in%names(TmbData)) && "n_v"%in%names(TmbData) && TmbData[["n_f_input"]]<0 ){
     Map[["L1_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
     Map[["eta1_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta1_vf"]])))
     Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
     Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
+  }
+  if( ("OverdispersionConfig"%in%names(TmbData)) && "n_v"%in%names(TmbData) ){
+    if( TmbData[["OverdispersionConfig"]][1] < 0 ){
+      Map[["L1_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
+      Map[["eta1_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta1_vf"]])))
+    }
+    if( TmbData[["OverdispersionConfig"]][2] < 0 ){
+      Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
+      Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
+    }
   }
 
   # Static covariates

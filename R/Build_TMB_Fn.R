@@ -50,7 +50,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   
   # Parameters
     # DataList=TmbData
-  if( length(Parameters)==1 && Parameters=="generate" ) Parameters = Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
+  if( length(Parameters)==1 && Parameters=="generate" ) Parameters = VAST::Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
 
   # Which are random
   if( length(Random)==1 && Random=="generate" ){
@@ -65,7 +65,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   }
 
   # Which parameters are turned off
-  if( length(Map)==1 && Map=="generate" ) Map = Make_Map( Version=Version, TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
+  if( length(Map)==1 && Map=="generate" ) Map = VAST::Make_Map( Version=Version, TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
   #Save = list("Map"=Map, "Data"=TmbData, "Parameters"=Parameters, "Random"=Random)
   #save(Save, file=paste0(RunDir,"/Save.RData"))
 
@@ -112,9 +112,13 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   Bounds = boundsifpresent_fn( par=Obj$par, name="Epsilon_rho2", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="rho_c1", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="rho_c2", lower=-0.99, upper=0.99, bounds=Bounds)
-  if( TmbData[["n_f_input"]]==0 ){
+  if( ("n_f_input"%in%names(TmbData)) && TmbData[["n_f_input"]]==0 ){
     Bounds = boundsifpresent_fn( par=Obj$par, name="L1_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
     Bounds = boundsifpresent_fn( par=Obj$par, name="L2_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
+  }
+  if( ("OverdispersionConfig"%in%names(TmbData)) ){
+    if( TmbData[["OverdispersionConfig"]][1]==0 ) Bounds = boundsifpresent_fn( par=Obj$par, name="L1_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
+    if( TmbData[["OverdispersionConfig"]][1]==0 ) Bounds = boundsifpresent_fn( par=Obj$par, name="L2_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
   }
   for(i in 1:4){
     if( TmbData[["FieldConfig"]][i]==0 ){
