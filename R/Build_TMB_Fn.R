@@ -27,7 +27,7 @@
 #'   \item{Random}{A character vector of random effects, for similar use as Parameters}
 #' }
 
-
+#' @export
 Build_TMB_Fn <-
 function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
@@ -70,8 +70,8 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   #save(Save, file=paste0(RunDir,"/Save.RData"))
 
   # Build object
-  dyn.load( paste0(RunDir,"/",dynlib(Version)) ) # random=Random,
-  Obj <- MakeADFun(data=TmbData, parameters=Parameters, hessian=FALSE, map=Map, random=Random, inner.method="newton", DLL=Version)  #
+  dyn.load( paste0(RunDir,"/",TMB::dynlib(Version)) ) # random=Random,
+  Obj <- TMB::MakeADFun(data=TmbData, parameters=Parameters, hessian=FALSE, map=Map, random=Random, inner.method="newton", DLL=Version)  #
   Obj$control <- list(trace=1, parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 
   # Diagnostic functions (optional)

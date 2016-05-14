@@ -11,7 +11,7 @@
 
 #' @return Everything is stored in record_dir
 
-# Loop through
+#' @export
 Crossvalidate_Fn = function(record_dir, parhat, original_data, group_i=NULL, kfold=10, ... ){
   # Lump observations into groups
   if( is.null(group_i) & length(group_i)==original_data$n_i ){
@@ -33,7 +33,7 @@ Crossvalidate_Fn = function(record_dir, parhat, original_data, group_i=NULL, kfo
     Data$PredTF_i = ifelse(Group_i==i,1,0)
 
     # Build new one
-    TmbList = Build_TMB_Fn("TmbData"=Data, "Parameters"=parhat, ...)#, "Random"=NULL)
+    TmbList = VAST::Build_TMB_Fn("TmbData"=Data, "Parameters"=parhat, ...)#, "Random"=NULL)
     #TmbList = Build_TMB_Fn("TmbData"=Data, "Parameters"=parhat, "RunDir"=TmbDir, "Version"=Version, "loc_x"=loc_x, "RhoConfig"=RhoConfig, "TmbDir"=TmbDir, "Use_REML"=Use_REML, "Map"=Save$Map)#, "Random"=NULL)
 
     # Extract objects

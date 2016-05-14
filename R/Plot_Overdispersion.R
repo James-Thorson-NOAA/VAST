@@ -1,8 +1,27 @@
 
-Plot_Overdispersion = function( filename1, filename2, Data, ParHat, Report, SD=NULL, Map=NULL, ControlList1=list("Width"=8, "Height"=4, "Res"=200, "Units"='in'), ControlList2=list("Width"=8, "Height"=8, "Res"=200, "Units"='in') ){
-  if( !("ThorsonUtilities" %in% installed.packages()[,1]) ){
-    devtools::install_github("james-thorson/utilities")
-  }
+#' Plot estimated overdispersion
+#'
+#' \code{Plot_Overdispersion} plots sample and analytic estimates of overdispersion
+#'
+#' @param filename1 filename (including absolute path) for overdispersion for component #1
+#' @param filename2 filename (including absolute path) for overdispersion for component #2
+#' @param Data tagged list of input data
+#' @param ParHat Tagged list of fitted data, e.g., from \code{ParHat <- obj$env$parList()}
+#' @param Report output report, e.g., from \code{Report <- obj$report()}
+#' @param SD standard deviation report, e.g., from \code{SD <- sdreport( obj )}
+#' @param Map tagged list of map inputs
+#' @param ControlList1 plotting size for component #1
+#' @param ControlIist2 plotting size for component #2 (default: ControlList2 <- ControlList1)
+
+#' @return Tagged list containing inputs to function Build_TMB_Fn()
+#' \describe{
+#'   \item{Cov1_cc}{Covariance for component #1 (typically probability of occurence)}
+#'   \item{Cov2_cc}{Covariance for component #2 (typically positive catch rates)}
+#' }
+
+#' @export
+Plot_Overdispersion = function( filename1, filename2, Data, ParHat, Report, SD=NULL, Map=NULL, ControlList1=list("Width"=8, "Height"=4, "Res"=200, "Units"='in'), ControlList2=ControlList1 ){
+  if( require(ThorsonUtilities)==FALSE ) devtools::install_github("james-thorson/utilities")
 
   Derived_Quants = NULL
   if( Data[["n_f_input"]]<0 ){
