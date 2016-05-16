@@ -28,8 +28,8 @@ Plot_Overdispersion = function( filename1, filename2, Data, ParHat, Report, SD=N
     message("No overdispersion in model")
   }
   if( Data[["n_f_input"]]>=0 ){
-    Cov1_cc = calc_cov( n_f=Data[["n_f_input"]], n_c=Data[["n_c"]], L_z=ParHat[["L1_z"]])
-    Cov2_cc = calc_cov( n_f=Data[["n_f_input"]], n_c=Data[["n_c"]], L_z=ParHat[["L2_z"]])
+    Cov1_cc = VAST:::calc_cov( n_f=Data[["n_f_input"]], n_c=Data[["n_c"]], L_z=ParHat[["L1_z"]])
+    Cov2_cc = VAST:::calc_cov( n_f=Data[["n_f_input"]], n_c=Data[["n_c"]], L_z=ParHat[["L2_z"]])
     Derived_Quants[["cov_eta1_vc"]] = cov( Report[["eta1_vc"]] )
     Derived_Quants[["cov_eta2_vc"]] = cov( Report[["eta2_vc"]] )
   }
@@ -40,7 +40,7 @@ Plot_Overdispersion = function( filename1, filename2, Data, ParHat, Report, SD=N
       par( mfrow=c(2,2), mar=c(0,2,3,0), mgp=c(2,0.5,0), tck=-0.02, oma=c(0,0,0,0))
       for(i in 1:4){
         Cov_cc = list(Cov1_cc, Cov2_cc, Derived_Quants[["cov_eta1_vc"]], Derived_Quants[["cov_eta2_vc"]])[[i]]
-        plot_cov( Cov=Cov_cc )
+        VAST:::plot_cov( Cov=Cov_cc )
         title( main=c("Encounter prob (pop.)","Positive catch rate (pop.)","Encounter prob (sample)","Positive catch rate (sample)")[i], line=2 )
       }
     dev.off()

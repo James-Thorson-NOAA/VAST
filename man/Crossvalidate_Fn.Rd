@@ -5,7 +5,7 @@
 \title{K-fold crossvalidation}
 \usage{
 Crossvalidate_Fn(record_dir, parhat, original_data, group_i = NULL,
-  kfold = 10, ...)
+  kfold = 10, skip_finished = FALSE, ...)
 }
 \arguments{
 \item{record_dir, }{a directory with writing privilege where the runs are stored}
@@ -17,9 +17,11 @@ Crossvalidate_Fn(record_dir, parhat, original_data, group_i = NULL,
 \item{group_i, }{a vector of positive integers, indicating the k-fold group for each observation (default=NULL, which generates a new group_i with even probability)}
 
 \item{kfold, }{the number of crossvalidation batches used (default=10)}
+
+\item{skip_finished}{boolean specifying whether to rerun (skip_finished==FALSE) or skip (skip_finished==TRUE) previously completed runs (Default=FALSE)}
 }
 \value{
-Everything is stored in record_dir
+Results a matrix with total predictive negative log-likelihood for each crossvalidation partition, and number of crossvalidation samples for that partition
 }
 \description{
 \code{Crossvalidate_Fn} runs a k-fold crossvalidation analysis on a fitted model object

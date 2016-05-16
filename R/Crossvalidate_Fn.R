@@ -8,19 +8,24 @@
 #' @param original_data, a tagged list of data for the VAST model
 #' @param group_i, a vector of positive integers, indicating the k-fold group for each observation (default=NULL, which generates a new group_i with even probability)
 #' @param kfold, the number of crossvalidation batches used (default=10)
+#' @param skip_finished boolean specifying whether to rerun (skip_finished==FALSE) or skip (skip_finished==TRUE) previously completed runs (Default=FALSE)
 
-#' @return Everything is stored in record_dir
+#' @return Results a matrix with total predictive negative log-likelihood for each crossvalidation partition, and number of crossvalidation samples for that partition
 
 #' @export
-Crossvalidate_Fn = function(record_dir, parhat, original_data, group_i=NULL, kfold=10, ... ){
+Crossvalidate_Fn = function(record_dir, parhat, original_data, group_i=NULL, kfold=10, skip_finished=FALSE, ... ){
   # Lump observations into groups
-  if( is.null(group_i) & length(group_i)==original_data$n_i ){
+  if( is.null(group_i) || length(group_i)!=original_data$n_i ){
     message( "Generating group_i" )
     Group_i = sample( x=1:kfold, size=original_data$n_i, replace=TRUE )
   }else{
+    message( "Using input group_i" )
     Group_i = group_i
   }
   save( Group_i, file=paste0(record_dir,"Group_i.RData"))
+
+  # Results
+  Results = array(NA, dim=c(kfold,3), dimnames=list(paste0("k=",1:kfold),c("predictive_negloglike","number_of_crossvalidation_samples","predictive_nll_per_sample")) )
 
   # Loop through
   for(i in 1:kfold){
@@ -28,31 +33,42 @@ Crossvalidate_Fn = function(record_dir, parhat, original_data, group_i=NULL, kfo
     CrossvalidationDir = paste0(record_dir,"k=",i,"/")
     dir.create( CrossvalidationDir )
 
-    # Modify data
-    Data = original_data
-    Data$PredTF_i = ifelse(Group_i==i,1,0)
+    # Run
+    if( "Save.RData"%in%list.files(CrossvalidationDir) & skip_finished==TRUE ){
+      load(file=paste0(CrossvalidationDir,"Save.RData"))
+    }else{
+      # Modify data
+      Data = original_data
+      Data$PredTF_i = ifelse(Group_i==i,1,0)
 
-    # Build new one
-    TmbList = VAST::Build_TMB_Fn("TmbData"=Data, "Parameters"=parhat, ...)#, "Random"=NULL)
-    #TmbList = Build_TMB_Fn("TmbData"=Data, "Parameters"=parhat, "RunDir"=TmbDir, "Version"=Version, "loc_x"=loc_x, "RhoConfig"=RhoConfig, "TmbDir"=TmbDir, "Use_REML"=Use_REML, "Map"=Save$Map)#, "Random"=NULL)
+      # Build new one
+      TmbList = VAST::Build_TMB_Fn("TmbData"=Data, "Parameters"=parhat, ...)#, "Random"=NULL)
+      #TmbList = VAST::Build_TMB_Fn("TmbData"=Data, "Parameters"=parhat, "RunDir"=TmbDir, "Version"=Version, "loc_x"=loc_x, "RhoConfig"=RhoConfig, "TmbDir"=TmbDir, "Use_REML"=Use_REML) #, "Map"=Save$Map, "Random"=NULL)
 
-    # Extract objects
-    Obj = TmbList[["Obj"]]
-    TmbList[["Upper"]][grep("logkappa",names(TmbList[["Upper"]]))] = Inf
-    Obj$gr(Obj$par)
+      # Extract objects
+      Obj = TmbList[["Obj"]]
+      TmbList[["Upper"]][grep("logkappa",names(TmbList[["Upper"]]))] = Inf
 
-    # Run model
-    for(i in 1:2) Opt = nlminb(start=Obj$env$last.par.best[-Obj$env$random], objective=Obj$fn, gradient=Obj$gr, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], control=list(eval.max=1e4, iter.max=1e4, trace=1))  # , rel.tol=1e-20
-    Opt[["final_diagnostics"]] = data.frame( "Name"=names(Opt$par), "Lwr"=TmbList[["Lower"]], "Est"=Opt$par, "Upr"=TmbList[["Upper"]], "Gradient"=Obj$gr(Opt$par) )
+      # Run model
+      for(i in 1:2) Opt = nlminb(start=Obj$env$last.par.best[-Obj$env$random], objective=Obj$fn, gradient=Obj$gr, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], control=list(eval.max=1e4, iter.max=1e4, trace=1))  # , rel.tol=1e-20
+      Opt[["final_diagnostics"]] = data.frame( "Name"=names(Opt$par), "Lwr"=TmbList[["Lower"]], "Est"=Opt$par, "Upr"=TmbList[["Upper"]], "Gradient"=Obj$gr(Opt$par) )
 
-    # Reports
-    Report = Obj$report( Obj$env$last.par.best )
-    ParHat = Obj$env$parList(Opt$par)
+      # Reports
+      Report = Obj$report( Obj$env$last.par.best )
+      ParHat = Obj$env$parList(Opt$par)
 
-    # Save stuff
-    Save = list("Opt"=Opt, "Report"=Report, "ParHat"=ParHat, "TmbData"=Data, "Map"=TmbList$Map)
-    save(Save, file=paste0(CrossvalidationDir,"Save.RData"))
-    capture.output( Opt, file=paste0(CrossvalidationDir,"Opt.txt"))
+      # Save stuff
+      Save = list("Opt"=Opt, "Report"=Report, "ParHat"=ParHat, "TmbData"=Data, "Map"=TmbList$Map)
+      save(Save, file=paste0(CrossvalidationDir,"Save.RData"))
+      capture.output( Opt, file=paste0(CrossvalidationDir,"Opt.txt"))
+    }
+
+    # Load results
+    Results[i,c("predictive_negloglike","number_of_crossvalidation_samples")] = c( Save$Report$pred_jnll, sum(Save$TmbData$PredTF_i))
+    Results[i,"predictive_nll_per_sample"] = Results[i,"predictive_negloglike"] / Results[i,"number_of_crossvalidation_samples"]
   }
+
+  # Return output
+  return( Results)
 }
 
