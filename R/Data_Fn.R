@@ -100,16 +100,16 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
 
   # Output tagged list
   Options_vec = c("Aniso"=Aniso, "R2_interpretation"=0, "Rho_betaTF"=ifelse(RhoConfig[["Beta1"]]|RhoConfig[["Beta2"]],1,0), "Alpha"=0, "AreaAbundanceCurveTF"=0, "CMP_xmax"=30, "CMP_breakpoint"=10 )
-  if(Version%in%c("comp_index_v1b","comp_index_v1a")){
+  if(Version%in%c("VAST_v1.1.0","VAST_v1.0.0")){
     Return = list( "n_i"=n_i, "n_s"=MeshList$spde$n.spde, "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "ObsModel"=ObsModel, "Options"=Options, "b_i"=b_i, "a_i"=a_i, "c_i"=c_i, "s_i"=s_i, "t_i"=t_i-min(t_i), "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
-  if(Version%in%c("comp_index_v1e","comp_index_v1d","comp_index_v1c")){
+  if(Version%in%c("VAST_v1.4.0","VAST_v1.3.0","VAST_v1.2.0")){
     Return = list( "n_i"=n_i, "n_s"=MeshList$spde$n.spde, "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_f_input"=OverdispersionConfig_input[1], "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "ObsModel"=ObsModel, "Options"=Options, "b_i"=b_i, "a_i"=a_i, "c_i"=c_i, "s_i"=s_i, "t_i"=t_i-min(t_i), "v_i"=match(v_i,sort(unique(v_i)))-1, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
-  if(Version%in%c("comp_index_v1g","comp_index_v1f")){
+  if(Version%in%c("VAST_v1.6.0","VAST_v1.5.0")){
     Return = list( "n_i"=n_i, "n_s"=MeshList$spde$n.spde, "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_f_input"=OverdispersionConfig_input[1], "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "ObsModel"=ObsModel, "Options"=Options, "b_i"=b_i, "a_i"=a_i, "c_i"=c_i, "s_i"=s_i, "t_i"=t_i-min(t_i), "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
-  if(Version%in%c("comp_index_v1h")){
+  if(Version%in%c("VAST_v1.7.0")){
     Return = list( "n_i"=n_i, "n_s"=MeshList$spde$n.spde, "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel, "Options"=Options, "b_i"=b_i, "a_i"=a_i, "c_i"=c_i, "s_i"=s_i, "t_i"=t_i-min(t_i), "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
   if( "spde" %in% names(Return) ) Return[['spde']] = INLA::inla.spde2.matern(MeshList$mesh)$param.inla[c("M0","M1","M2")]

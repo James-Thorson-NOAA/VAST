@@ -15,19 +15,19 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
     return( List )
   }
   #
-  if(Version%in%c("comp_index_v1a")){
+  if(Version%in%c("VAST_1.0.0")){
     Return = list("ln_H_input"=c(0,0), "beta1_ct"=NA, "gamma1_j"=rep(0,DataList$n_j), "gamma1_tp"=matrix(0,nrow=DataList$n_t,ncol=DataList$n_p), "lambda1_k"=rep(0,DataList$n_k), "logetaE1"=0, "logetaO1"=0, "logkappa1"=0, "Beta_mean1"=0, "logsigmaB1"=log(1), "Beta_rho1"=0, "Epsilon_rho1"=0, "rho_c1"=0, "Omegainput1_sc"=matrix(0,DataList$n_s,DataList$n_c), "Epsiloninput1_sct"=array(0,dim=c(DataList$n_s,DataList$n_c,DataList$n_t)), "beta2_ct"=NA, "gamma2_j"=rep(0,DataList$n_j), "gamma2_tp"=matrix(0,nrow=DataList$n_t,ncol=DataList$n_p), "lambda2_k"=rep(0,DataList$n_k), "logetaE2"=0, "logetaO2"=0, "logkappa2"=0, "Beta_mean2"=0, "logsigmaB2"=log(1), "Beta_rho2"=0, "Epsilon_rho2"=0, "rho_c2"=0, "logSigmaM"=c(log(5),log(2)), "Omegainput2_sc"=matrix(0,DataList$n_s,DataList$n_c), "Epsiloninput2_sct"=array(0,dim=c(DataList$n_s,DataList$n_c,DataList$n_t)) )
   }
-  if(Version%in%c("comp_index_v1b")){
+  if(Version%in%c("VAST_1.1.0")){
     Return = list("ln_H_input"=c(0,0), "beta1_ct"=NA, "gamma1_j"=rep(0,DataList$n_j), "gamma1_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda1_k"=rep(0,DataList$n_k), "logetaE1"=0, "logetaO1"=0, "logkappa1"=0, "Beta_mean1"=0, "logsigmaB1"=log(1), "Beta_rho1"=0, "Epsilon_rho1"=0, "rho_c1"=0, "Omegainput1_sc"=matrix(0,DataList$n_s,DataList$n_c), "Epsiloninput1_sct"=array(0,dim=c(DataList$n_s,DataList$n_c,DataList$n_t)), "beta2_ct"=NA, "gamma2_j"=rep(0,DataList$n_j), "gamma2_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda2_k"=rep(0,DataList$n_k), "logetaE2"=0, "logetaO2"=0, "logkappa2"=0, "Beta_mean2"=0, "logsigmaB2"=log(1), "Beta_rho2"=0, "Epsilon_rho2"=0, "rho_c2"=0, "logSigmaM"=c(log(5),log(2)), "Omegainput2_sc"=matrix(0,DataList$n_s,DataList$n_c), "Epsiloninput2_sct"=array(0,dim=c(DataList$n_s,DataList$n_c,DataList$n_t)) )
   }
-  if(Version%in%c("comp_index_v1d","comp_index_v1c")){
+  if(Version%in%c("VAST_1.3.0","VAST_1.2.0")){
     Return = list("ln_H_input"=c(0,0), "beta1_ct"=NA, "lambda1_k"=rep(0,DataList$n_k), "L1_z"=NA, "logetaE1"=0, "logetaO1"=0, "logkappa1"=0, "Beta_mean1"=0, "logsigmaB1"=log(1), "Beta_rho1"=0, "Epsilon_rho1"=0, "rho_c1"=0, "eta1_vf"=NA, "Omegainput1_sc"=matrix(0,DataList$n_s,DataList$n_c), "Epsiloninput1_sct"=array(0,dim=c(DataList$n_s,DataList$n_c,DataList$n_t)), "beta2_ct"=NA, "gamma2_j"=rep(0,DataList$n_j), "gamma2_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda2_k"=rep(0,DataList$n_k), "L2_z"=NA, "logetaE2"=0, "logetaO2"=0, "logkappa2"=0, "Beta_mean2"=0, "logsigmaB2"=log(1), "Beta_rho2"=0, "Epsilon_rho2"=0, "rho_c2"=0, "logSigmaM"=rep(1,DataList$n_c)%o%c(log(5),log(2)), "eta2_vf"=NA, "Omegainput2_sc"=matrix(0,DataList$n_s,DataList$n_c), "Epsiloninput2_sct"=array(0,dim=c(DataList$n_s,DataList$n_c,DataList$n_t)) )
   }
-  if(Version%in%c("comp_index_v1f","comp_index_v1e")){
+  if(Version%in%c("VAST_1.5.0","VAST_1.4.0")){
     Return = list("ln_H_input"=c(0,0), "beta1_ct"=NA, "gamma1_j"=rep(0,DataList$n_j), "gamma1_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda1_k"=rep(0,DataList$n_k), "L1_z"=NA, "L_omega1_z"=NA, "L_epsilon1_z"=NA, "logkappa1"=0, "Beta_mean1"=0, "logsigmaB1"=log(1), "Beta_rho1"=0, "Epsilon_rho1"=0, "eta1_vf"=NA, "Omegainput1_sf"=NA, "Epsiloninput1_sft"=NA, "beta2_ct"=NA, "gamma2_j"=rep(0,DataList$n_j), "gamma2_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda2_k"=rep(0,DataList$n_k), "L2_z"=NA, "L_omega2_z"=NA, "L_epsilon2_z"=NA, "logkappa2"=0, "Beta_mean2"=0, "logsigmaB2"=log(1), "Beta_rho2"=0, "Epsilon_rho2"=0, "logSigmaM"=rep(1,DataList$n_c)%o%c(log(5),log(2)), "eta2_vf"=NA, "Omegainput2_sf"=NA, "Epsiloninput2_sft"=NA )
   }
-  if(Version%in%c("comp_index_v1h","comp_index_v1g")){
+  if(Version%in%c("VAST_1.7.0","VAST_1.6.0")){
     Return = list("ln_H_input"=c(0,0), "beta1_ct"=NA, "gamma1_j"=rep(0,DataList$n_j), "gamma1_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda1_k"=rep(0,DataList$n_k), "L1_z"=NA, "L_omega1_z"=NA, "L_epsilon1_z"=NA, "logkappa1"=0, "Beta_mean1"=0, "logsigmaB1"=log(1), "Beta_rho1"=0, "Epsilon_rho1"=0, "eta1_vf"=NA, "Omegainput1_sf"=NA, "Epsiloninput1_sft"=NA, "beta2_ct"=NA, "gamma2_j"=rep(0,DataList$n_j), "gamma2_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda2_k"=rep(0,DataList$n_k), "L2_z"=NA, "L_omega2_z"=NA, "L_epsilon2_z"=NA, "logkappa2"=0, "Beta_mean2"=0, "logsigmaB2"=log(1), "Beta_rho2"=0, "Epsilon_rho2"=0, "logSigmaM"=rep(1,DataList$n_c)%o%c(log(5),log(2),log(5)), "eta2_vf"=NA, "Omegainput2_sf"=NA, "Epsiloninput2_sft"=NA )
   }
   # Overdispersion

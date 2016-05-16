@@ -1,5 +1,5 @@
 Make_Map <-
-function( Version, TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)){
+function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)){
   # Local functions
   fixval_fn <- function( fixvalTF ){
     vec = rep(0,length(fixvalTF))

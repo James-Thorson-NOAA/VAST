@@ -65,7 +65,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   }
 
   # Which parameters are turned off
-  if( length(Map)==1 && Map=="generate" ) Map = VAST:::Make_Map( Version=Version, TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
+  if( length(Map)==1 && Map=="generate" ) Map = VAST:::Make_Map( TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
   #Save = list("Map"=Map, "Data"=TmbData, "Parameters"=Parameters, "Random"=Random)
   #save(Save, file=paste0(RunDir,"/Save.RData"))
 
@@ -94,8 +94,6 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   Bounds = matrix( NA, ncol=2, nrow=length(Obj$par), dimnames=list(names(Obj$par),c("Lower","Upper")) )
   Bounds[,'Lower'] = rep(-50, length(Obj$par))
   Bounds[,'Upper'] = rep( 50, length(Obj$par))
-  Bounds[grep("logtau",names(Obj$par)),'Upper'] = 10   # Version < v2i
-  Bounds[grep("logeta",names(Obj$par)),'Upper'] = log(1/(1e-2*sqrt(4*pi))) # Version >= v2i: Lower bound on margSD = 1e-4
   Bounds[grep("SigmaM",names(Obj$par)),'Upper'] = 10 # ZINB can crash if it gets > 20
   if( !is.null(loc_x) ){
     Dist = dist(loc_x)
