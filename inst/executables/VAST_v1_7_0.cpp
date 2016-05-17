@@ -78,7 +78,8 @@ matrix<Type> convert_upper_cov_to_cor( matrix<Type> cov ){
 // Input: L_omega1_z, Q1, Omegainput1_sf, n_f, n_s, n_c, FieldConfig(0)
 // Output: jnll_comp(0), Omega1_sc
 template<class Type>                                                                                        //
-matrix<Type> gmrf_by_category_nll( int n_f, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, vector<Type> L_z, Eigen::SparseMatrix<Type> Q, Type &jnll_pointer){
+//matrix<Type> gmrf_by_category_nll( int n_f, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, vector<Type> L_z, Eigen::SparseMatrix<Type> Q, Type &jnll_pointer){
+matrix<Type> gmrf_by_category_nll( int n_f, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, vector<Type> L_z, density::GMRF_t<Type> gmrf_Q, Type &jnll_pointer){
   using namespace density;
   matrix<Type> gmrf_sc(n_s, n_c);
   Type logtau;
@@ -89,15 +90,17 @@ matrix<Type> gmrf_by_category_nll( int n_f, int n_s, int n_c, Type logkappa, arr
   // AR1 structure
   if(n_f==0){
     logtau = L_z(0) - logkappa;  //
-    jnll_pointer += SEPARABLE( AR1(L_z(1)), GMRF(Q) )(gmrf_input_sf);
+    jnll_pointer += SEPARABLE( AR1(L_z(1)), gmrf_Q )(gmrf_input_sf);
     gmrf_sc = gmrf_input_sf / exp(logtau);                                // Rescaling from comp_index_v1d.cpp
   }
   // Factor analysis structure
   if(n_f>0){
     logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
-    for( int f=0; f<n_f; f++ ) jnll_pointer += SCALE( GMRF(Q), exp(-logtau))(gmrf_input_sf.col(f));  // Rescaling from spatial_vam_v13.cpp
+    //for( int f=0; f<n_f; f++ ) jnll_pointer += SCALE( GMRF(Q), exp(-logtau))(gmrf_input_sf.col(f));  // Rescaling from spatial_vam_v13.cpp
+    //GMRF_t<Type> gmrf_temp = GMRF(Q);
+    for( int f=0; f<n_f; f++ ) jnll_pointer += gmrf_Q(gmrf_input_sf.col(f));  // Rescaling from spatial_vam_v13.cpp
     matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
-    gmrf_sc = gmrf_input_sf.matrix() * L_cf.transpose();
+    gmrf_sc = (gmrf_input_sf.matrix() * L_cf.transpose()) / exp(logtau);
   }
   return gmrf_sc;
 }
@@ -256,6 +259,7 @@ Type objective_function<Type>::operator() ()
   // Random field probability
   Eigen::SparseMatrix<Type> Q1;
   Eigen::SparseMatrix<Type> Q2;
+  GMRF_t<Type> gmrf_Q;
   if( Options_vec(0)==0 ){
     Q1 = Q_spde(spde, exp(logkappa1));
     Q2 = Q_spde(spde, exp(logkappa2));
@@ -265,24 +269,26 @@ Type objective_function<Type>::operator() ()
     Q2 = Q_spde(spde_aniso, exp(logkappa2), H);
   }
   // Probability of encounter
+  gmrf_Q = GMRF(Q1);
   array<Type> Omega1_sc(n_s, n_c);
-  Omega1_sc = gmrf_by_category_nll(FieldConfig(0), n_s, n_c, logkappa1, Omegainput1_sf, L_omega1_z, Q1, jnll_comp(0));
+  Omega1_sc = gmrf_by_category_nll(FieldConfig(0), n_s, n_c, logkappa1, Omegainput1_sf, L_omega1_z, gmrf_Q, jnll_comp(0));
   array<Type> Epsilon1_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
-    if(t==0) Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), L_epsilon1_z, Q1, jnll_comp(1));
+    if(t==0) Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), L_epsilon1_z, gmrf_Q, jnll_comp(1));
     if(t>=1){
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t)-Epsilon_rho1*Epsiloninput1_sft.col(t-1), L_epsilon1_z, Q1, jnll_comp(1));
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t)-Epsilon_rho1*Epsiloninput1_sft.col(t-1), L_epsilon1_z, gmrf_Q, jnll_comp(1));
       Epsilon1_sct.col(t) += Epsilon_rho1 * Epsilon1_sct.col(t-1);
     }
   }
   // Positive catch rate
+  gmrf_Q = GMRF(Q2);
   array<Type> Omega2_sc(n_s, n_c);
-  Omega2_sc = gmrf_by_category_nll(FieldConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, L_omega2_z, Q2, jnll_comp(2));
+  Omega2_sc = gmrf_by_category_nll(FieldConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, L_omega2_z, gmrf_Q, jnll_comp(2));
   array<Type> Epsilon2_sct(n_s, n_c, n_t);
   for(t=0;t<n_t;t++){
-    if(t==0) Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), L_epsilon2_z, Q2, jnll_comp(3));
+    if(t==0) Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), L_epsilon2_z, gmrf_Q, jnll_comp(3));
     if(t>=1){
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t)-Epsilon_rho2*Epsiloninput2_sft.col(t-1), L_epsilon2_z, Q2, jnll_comp(3));
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t)-Epsilon_rho2*Epsiloninput2_sft.col(t-1), L_epsilon2_z, gmrf_Q, jnll_comp(3));
       Epsilon2_sct.col(t) += Epsilon_rho2 * Epsilon2_sct.col(t-1);
     }
   }
