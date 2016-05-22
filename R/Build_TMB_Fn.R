@@ -49,8 +49,8 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   }
   
   # Parameters
-    # DataList=TmbData                                               # VAST:::
-  if( length(Parameters)==1 && Parameters=="generate" ) Parameters = Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
+    # DataList=TmbData
+  if( length(Parameters)==1 && Parameters=="generate" ) Parameters = VAST:::Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
 
   # Which parameters are turned off
   if( length(Map)==1 && Map=="generate" ) Map = VAST:::Make_Map( TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
@@ -102,7 +102,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   Bounds[,'Lower'] = rep(-50, length(Obj$par))
   Bounds[,'Upper'] = rep( 50, length(Obj$par))
   Bounds[grep("SigmaM",names(Obj$par)),'Upper'] = 10 # ZINB can crash if it gets > 20
-  if( !is.null(loc_x) & (is.na(TmbData$Options['Method']) || TmbData$Options['Method']==0) ){
+  if( !is.null(loc_x) && !is.na(TmbData$Options_vec['Method']) && TmbData$Options_vec['Method']==0 ){
     Dist = dist(loc_x)
     Bounds[grep("logkappa",names(Obj$par)),'Lower'] = log( sqrt(8)/max(Dist) ) # Range = nu*sqrt(8)/kappa
     Bounds[grep("logkappa",names(Obj$par)),'Upper'] = log( sqrt(8)/min(Dist) ) # Range = nu*sqrt(8)/kappa

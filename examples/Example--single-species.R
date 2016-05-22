@@ -195,7 +195,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_Grid/',sep='')
   TmbData = Data_Fn("Version"=Version, "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=ObsModel, "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(Data_Geostat[,'Vessel'])-1, "s_i"=Data_Geostat[,'knot_i']-1, "t_i"=Data_Geostat[,'Year'], "a_xl"=Spatial_List$a_xl, "MeshList"=Spatial_List$MeshList, "GridList"=Spatial_List$GridList, "Method"=Spatial_List$Method )
 
   # Make TMB object
-  dyn.unload( paste0(DateFile,"/",dynlib(TMB:::getUserDLL())) )
+  #dyn.unload( paste0(DateFile,"/",dynlib(TMB:::getUserDLL())) )
   TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x, "TmbDir"=paste0(getwd(),"/../../inst/executables/"))
   Obj = TmbList[["Obj"]]
 
