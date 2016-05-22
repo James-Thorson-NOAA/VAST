@@ -20,7 +20,7 @@ library(ThorsonUtilities)
 library(VAST)
 
 # This is where all runs will be located
-DateFile = paste(getwd(),'/',Sys.Date(),'/',sep='')
+DateFile = paste(getwd(),'/',Sys.Date(),'_Grid/',sep='')
   dir.create(DateFile)
 
 ###############
@@ -30,7 +30,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'/',sep='')
   Data_Set = c("Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Sim")[5]
   Sim_Settings = list("Species_Set"=1:100, "Nyears"=10, "Nsamp_per_year"=600, "Depth_km"=-1, "Depth_km2"=-1, "Dist_sqrtkm"=0, "SigmaO1"=0.5, "SigmaO2"=0.5, "SigmaE1"=0.5, "SigmaE2"=0.5, "SigmaVY1"=0.05, "Sigma_VY2"=0.05, "Range1"=1000, "Range2"=500, "SigmaM"=1)
   Version = "VAST_v1_8_0"
-  Method = c("Grid", "Mesh")[2]
+  Method = c("Grid", "Mesh")[1]
   n_x = c(100, 250, 500, 1000, 2000)[3] # Number of stations
   FieldConfig = c("Omega1"=1, "Epsilon1"=1, "Omega2"=1, "Epsilon2"=1) # 1=Presence-absence; 2=Density given presence; #Epsilon=Spatio-temporal; #Omega=Spatial
   RhoConfig = c("Beta1"=0, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0) # Structure for beta or epsilon over time: 0=None (default); 1=WhiteNoise; 2=RandomWalk; 3=Constant
@@ -181,7 +181,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'/',sep='')
   if( Region == "Gulf_of_St_Lawrence" ){
     Extrapolation_List = SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn( Region=Region, strata.limits=strata.limits )
   }
-
+                 #
   # Calculate spatial information for SPDE mesh, strata areas, and AR1 process
   Spatial_List = SpatialDeltaGLMM::Spatial_Information_Fn( Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, zone=Extrapolation_List[["zone"]], grid_size_km=50, n_x=n_x, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=DateFile )
   Data_Geostat = cbind( Data_Geostat, Spatial_List$loc_UTM, "knot_i"=Spatial_List$knot_i )
@@ -234,17 +234,17 @@ DateFile = paste(getwd(),'/',Sys.Date(),'/',sep='')
   # Plot surface
   Dim = c( "Nrow"=ceiling(sqrt(TmbData$n_t)), "Ncol"=ceiling(TmbData$n_t/ceiling(sqrt(TmbData$n_t))) )
   par( mfrow=Dim )
-  MapDetails_List = MapDetails_Fn( "Region"=Region, "NN_Extrap"=PolygonList$NN_Extrap, "Extrapolation_List"=Extrapolation_List )
-  PlotResultsOnMap_Fn(plot_set=1:3, MappingDetails=MapDetails_List[["MappingDetails"]], Report=Report, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=paste0(DateFile,"Field_"), Year_Set=sort(unique(Data_Geostat[,'Year'])), Rotate=MapDetails_List[["Rotate"]], mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), Cex=MapDetails_List[["Cex"]])
+  MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( "Region"=Region, "NN_Extrap"=Spatial_List$NN_Extrap, "Extrapolation_List"=Extrapolation_List )
+  SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set=3, MappingDetails=MapDetails_List[["MappingDetails"]], Report=list("D_xt"=Report$D_xct[,1,]), PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=paste0(DateFile,"Field_"), Year_Set=sort(unique(Data_Geostat[,'Year'])), Rotate=MapDetails_List[["Rotate"]], mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), Cex=MapDetails_List[["Cex"]])
                                                                                                                            
   # Plot index
-  PlotIndex_Fn( DirName=DateFile, TmbData=TmbData, Sdreport=Sdreport, Year_Set=sort(unique(Data_Geostat[,'Year'])), strata_names=strata.limits[,1], use_biascorr=TRUE )
+  SpatialDeltaGLMM::PlotIndex_Fn( DirName=DateFile, TmbData=TmbData, Sdreport=Sdreport, Year_Set=sort(unique(Data_Geostat[,'Year'])), strata_names=strata.limits[,1], use_biascorr=TRUE )
 
   # Positive catch rate Q-Q plot
-  Q = QQ_Fn( TmbData=TmbData, Report=Report, FileName_PP=paste0(DateFile,"Posterior_Predictive.jpg"), FileName_Phist=paste0(DateFile,"Posterior_Predictive-Histogram.jpg"), FileName_QQ=paste0(DateFile,"Q-Q_plot.jpg"), FileName_Qhist=paste0(DateFile,"Q-Q_hist.jpg"))
+  Q = SpatialDeltaGLMM::QQ_Fn( TmbData=TmbData, Report=Report, FileName_PP=paste0(DateFile,"Posterior_Predictive.jpg"), FileName_Phist=paste0(DateFile,"Posterior_Predictive-Histogram.jpg"), FileName_QQ=paste0(DateFile,"Q-Q_plot.jpg"), FileName_Qhist=paste0(DateFile,"Q-Q_hist.jpg"))
 
   # Plot center of gravity
-  Plot_range_shifts(Sdreport=Sdreport, Report=Report, TmbData=TmbData, Znames=colnames(TmbData$Z_xm), FileName_COG=paste0(DateFile,"center_of_gravity.png"))
+  SpatialDeltaGLMM::Plot_range_shifts(Sdreport=Sdreport, Report=Report, TmbData=TmbData, Znames=colnames(TmbData$Z_xm), FileName_COG=paste0(DateFile,"center_of_gravity.png"))
 
   # Vessel effects
   #Return = Vessel_Fn(TmbData=TmbData, Sdreport=Sdreport, FileName_VYplot=paste0(DateFile,"VY-effect.jpg"))
