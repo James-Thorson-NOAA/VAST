@@ -6,8 +6,8 @@
 \usage{
 Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
   ObsModel = c(PosDist = 1, Link = 0), b_i, a_i, c_i, s_i, t_i, a_xl,
-  MeshList, v_i = rep(0, length(b_i)), PredTF_i = rep(0, length(b_i)),
-  X_xj = NULL, X_xtp = NULL, Q_ik = NULL, Aniso = 1,
+  MeshList, GridList, Method, v_i = rep(0, length(b_i)), PredTF_i = rep(0,
+  length(b_i)), X_xj = NULL, X_xtp = NULL, Q_ik = NULL, Aniso = 1,
   RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
   Options = c(SD_site_density = 0, SD_site_logdensity = 0, Calculate_Range =
   0, Calculate_evenness = 0, Calculate_effective_area = 0, Calculate_Cov_SE =

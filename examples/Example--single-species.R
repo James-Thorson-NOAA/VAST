@@ -29,7 +29,8 @@ DateFile = paste(getwd(),'/',Sys.Date(),'/',sep='')
 
   Data_Set = c("Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Sim")[5]
   Sim_Settings = list("Species_Set"=1:100, "Nyears"=10, "Nsamp_per_year"=600, "Depth_km"=-1, "Depth_km2"=-1, "Dist_sqrtkm"=0, "SigmaO1"=0.5, "SigmaO2"=0.5, "SigmaE1"=0.5, "SigmaE2"=0.5, "SigmaVY1"=0.05, "Sigma_VY2"=0.05, "Range1"=1000, "Range2"=500, "SigmaM"=1)
-  Version = "VAST_v1_7_0"
+  Version = "VAST_v1_8_0"
+  Method = c("Grid", "Mesh")[2]
   n_x = c(100, 250, 500, 1000, 2000)[3] # Number of stations
   FieldConfig = c("Omega1"=1, "Epsilon1"=1, "Omega2"=1, "Epsilon2"=1) # 1=Presence-absence; 2=Density given presence; #Epsilon=Spatio-temporal; #Omega=Spatial
   RhoConfig = c("Beta1"=0, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0) # Structure for beta or epsilon over time: 0=None (default); 1=WhiteNoise; 2=RandomWalk; 3=Constant
@@ -87,7 +88,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'/',sep='')
   }
 
   # Save options for future records
-  Record = bundlelist( c("Data_Set","Sim_Settings","Version","n_x","FieldConfig","RhoConfig","VesselConfig","ObsModel","Kmeans_Config") )
+  Record = bundlelist( c("Data_Set","Sim_Settings","Version","Method","n_x","FieldConfig","RhoConfig","VesselConfig","ObsModel","Kmeans_Config") )
   capture.output( Record, file=paste0(DateFile,"Record.txt"))
 
 ################
@@ -181,21 +182,9 @@ DateFile = paste(getwd(),'/',Sys.Date(),'/',sep='')
     Extrapolation_List = SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn( Region=Region, strata.limits=strata.limits )
   }
 
-# Convert to an Eastings-Northings coordinate system
-  tmpUTM = SpatialDeltaGLMM::Convert_LL_to_UTM_Fn( Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], zone=Extrapolation_List[["zone"]] )                                                         #$
-  Data_Geostat = cbind( Data_Geostat, 'E_km'=tmpUTM[,'X'], 'N_km'=tmpUTM[,'Y'])
-
-# Calculate k-means centroids (but only once for all species)
-  Kmeans = SpatialDeltaGLMM::Calc_Kmeans(n_x=n_x, loc_orig=Data_Geostat[,c("E_km", "N_km")], randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=DateFile)
-  loc_x = Kmeans$centers
-  Data_Geostat = cbind( Data_Geostat, "knot_i"=Kmeans$cluster )
-
-# Calc design matrix and areas
-  PolygonList = SpatialDeltaGLMM::Calc_Polygon_Areas_and_Polygons_Fn( loc_x=loc_x, Data_Extrap=Extrapolation_List[["Data_Extrap"]], Covariates=c("none"), a_el=Extrapolation_List[["a_el"]])
-  a_xl = PolygonList[["a_xl"]]
-
-# Make mesh and info for anisotropy
-  MeshList = SpatialDeltaGLMM::Calc_Anisotropic_Mesh(loc_x=loc_x)
+  # Calculate spatial information for SPDE mesh, strata areas, and AR1 process
+  Spatial_List = SpatialDeltaGLMM::Spatial_Information_Fn( Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, zone=Extrapolation_List[["zone"]], grid_size_km=50, n_x=n_x, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=DateFile )
+  Data_Geostat = cbind( Data_Geostat, Spatial_List$loc_UTM, "knot_i"=Spatial_List$knot_i )
 
 ################
 # Make and Run TMB model
@@ -203,10 +192,11 @@ DateFile = paste(getwd(),'/',Sys.Date(),'/',sep='')
 ################
 
   # Make TMB data list
-  TmbData = Data_Fn("Version"=Version, "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=ObsModel, "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(Data_Geostat[,'Vessel'])-1, "s_i"=Data_Geostat[,'knot_i']-1, "t_i"=Data_Geostat[,'Year'], "a_xl"=a_xl, "MeshList"=MeshList )
+  TmbData = Data_Fn("Version"=Version, "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=ObsModel, "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(Data_Geostat[,'Vessel'])-1, "s_i"=Data_Geostat[,'knot_i']-1, "t_i"=Data_Geostat[,'Year'], "a_xl"=Spatial_List$a_xl, "MeshList"=Spatial_List$MeshList, "GridList"=Spatial_List$GridList, "Method"=Spatial_List$Method )
 
   # Make TMB object
-  TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=loc_x)
+  dyn.unload( paste0(DateFile,"/",dynlib(TMB:::getUserDLL())) )
+  TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x, "TmbDir"=paste0(getwd(),"/../../inst/executables/"))
   Obj = TmbList[["Obj"]]
 
   # Run first time -- marginal likelihood
