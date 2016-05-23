@@ -163,8 +163,8 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_Grid/',sep='')
   if( Region == "British_Columbia" ){
     Extrapolation_List = SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn( Region=Region, strata.limits=strata.limits, strata_to_use=c("HS","QCS") )
   }
-  if( Region == "Eastern_Bering_Sea" ){
-    Extrapolation_List = SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn( Region=Region, strata.limits=strata.limits )
+  if( Region == "Eastern_Bering_Sea" ){  # SpatialDeltaGLMM::
+    Extrapolation_List = Prepare_Extrapolation_Data_Fn( Region=Region, strata.limits=strata.limits )
   }
   if( Region == "Gulf_of_Alaska" ){
     Extrapolation_List = SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn( Region=Region, strata.limits=strata.limits )
@@ -181,9 +181,9 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_Grid/',sep='')
   if( Region == "Gulf_of_St_Lawrence" ){
     Extrapolation_List = SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn( Region=Region, strata.limits=strata.limits )
   }
-                 #
+                 # SpatialDeltaGLMM::
   # Calculate spatial information for SPDE mesh, strata areas, and AR1 process
-  Spatial_List = SpatialDeltaGLMM::Spatial_Information_Fn( Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, zone=Extrapolation_List[["zone"]], grid_size_km=50, n_x=n_x, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=DateFile )
+  Spatial_List = Spatial_Information_Fn( grid_size_km=25, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=DateFile )
   Data_Geostat = cbind( Data_Geostat, Spatial_List$loc_UTM, "knot_i"=Spatial_List$knot_i )
 
 ################
@@ -214,7 +214,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_Grid/',sep='')
     
   # Reports
   Report = Obj$report()                                      
-  Sdreport = sdreport(Obj, bias.correct=TRUE)
+  Sdreport = sdreport(Obj, bias.correct=FALSE)
   
   # Save stuff
   Save = list("Opt"=Opt, "Report"=Report, "Sdreport"=Sdreport, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
