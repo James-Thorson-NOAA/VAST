@@ -78,8 +78,7 @@ matrix<Type> convert_upper_cov_to_cor( matrix<Type> cov ){
 // Input: L_omega1_z, Q1, Omegainput1_sf, n_f, n_s, n_c, FieldConfig(0)
 // Output: jnll_comp(0), Omega1_sc
 template<class Type>                                                                                        //
-//matrix<Type> gmrf_by_category_nll( int n_f, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, vector<Type> L_z, Eigen::SparseMatrix<Type> Q, Type &jnll_pointer){
-matrix<Type> gmrf_by_category_nll( int n_f, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, vector<Type> L_z, density::GMRF_t<Type> gmrf_Q, Type &jnll_pointer){
+matrix<Type> gmrf_by_category_nll( int n_f, int method, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, vector<Type> L_z, density::GMRF_t<Type> gmrf_Q, Type &jnll_pointer){
   using namespace density;
   matrix<Type> gmrf_sc(n_s, n_c);
   Type logtau;
@@ -95,9 +94,8 @@ matrix<Type> gmrf_by_category_nll( int n_f, int n_s, int n_c, Type logkappa, arr
   }
   // Factor analysis structure
   if(n_f>0){
-    logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
-    //for( int f=0; f<n_f; f++ ) jnll_pointer += SCALE( GMRF(Q), exp(-logtau))(gmrf_input_sf.col(f));  // Rescaling from spatial_vam_v13.cpp
-    //GMRF_t<Type> gmrf_temp = GMRF(Q);
+    if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
+    if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
     for( int f=0; f<n_f; f++ ) jnll_pointer += gmrf_Q(gmrf_input_sf.col(f));  // Rescaling from spatial_vam_v13.cpp
     matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
     gmrf_sc = (gmrf_input_sf.matrix() * L_cf.transpose()) / exp(logtau);
@@ -252,8 +250,15 @@ Type objective_function<Type>::operator() ()
   Type jnll = 0;                
   
   // Derived parameters
-  Type Range_raw1 = sqrt(8) / exp( logkappa1 );   // Range = approx. distance @ 10% correlation
-  Type Range_raw2 = sqrt(8) / exp( logkappa2 );     // Range = approx. distance @ 10% correlation
+  Type Range_raw1, Range_raw2;
+  if( Options_vec(7)==0 ){
+    Range_raw1 = sqrt(8) / exp( logkappa1 );   // Range = approx. distance @ 10% correlation
+    Range_raw2 = sqrt(8) / exp( logkappa2 );     // Range = approx. distance @ 10% correlation
+  }
+  if( Options_vec(7)==1 ){
+    Range_raw1 = log(0.1) / logkappa1;   // Range = approx. distance @ 10% correlation
+    Range_raw2 = log(0.1) / logkappa2;     // Range = approx. distance @ 10% correlation
+  }
   array<Type> SigmaM( n_c, 3 );
   SigmaM = exp( logSigmaM );
 
@@ -277,30 +282,30 @@ Type objective_function<Type>::operator() ()
     Q2 = Q_spde(spde_aniso, exp(logkappa2), H);
   }
   if( Options_vec(7)==1 ){
-    Q1 = pow(1/(exp(logkappa1)*sqrt(4*M_PI)),2) * (M0*pow(1+exp(logkappa1*2),2) + M1*(1+exp(logkappa1*2))*(-exp(logkappa1)) + M2*exp(logkappa1*2));
-    Q2 = pow(1/(exp(logkappa2)*sqrt(4*M_PI)),2) * (M0*pow(1+exp(logkappa2*2),2) + M1*(1+exp(logkappa2*2))*(-exp(logkappa2)) + M2*exp(logkappa2*2));
+    Q1 = M0*pow(1+exp(logkappa1*2),2) + M1*(1+exp(logkappa1*2))*(-exp(logkappa1)) + M2*exp(logkappa1*2);
+    Q2 = M0*pow(1+exp(logkappa2*2),2) + M1*(1+exp(logkappa2*2))*(-exp(logkappa2)) + M2*exp(logkappa2*2);
   }
   // Probability of encounter
   gmrf_Q = GMRF(Q1);
   array<Type> Omega1_sc(n_s, n_c);
-  Omega1_sc = gmrf_by_category_nll(FieldConfig(0), n_s, n_c, logkappa1, Omegainput1_sf, L_omega1_z, gmrf_Q, jnll_comp(0));
+  Omega1_sc = gmrf_by_category_nll(FieldConfig(0), Options_vec(7), n_s, n_c, logkappa1, Omegainput1_sf, L_omega1_z, gmrf_Q, jnll_comp(0));
   array<Type> Epsilon1_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
-    if(t==0) Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), L_epsilon1_z, gmrf_Q, jnll_comp(1));
+    if(t==0) Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), L_epsilon1_z, gmrf_Q, jnll_comp(1));
     if(t>=1){
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t)-Epsilon_rho1*Epsiloninput1_sft.col(t-1), L_epsilon1_z, gmrf_Q, jnll_comp(1));
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t)-Epsilon_rho1*Epsiloninput1_sft.col(t-1), L_epsilon1_z, gmrf_Q, jnll_comp(1));
       Epsilon1_sct.col(t) += Epsilon_rho1 * Epsilon1_sct.col(t-1);
     }
   }
   // Positive catch rate
   gmrf_Q = GMRF(Q2);
   array<Type> Omega2_sc(n_s, n_c);
-  Omega2_sc = gmrf_by_category_nll(FieldConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, L_omega2_z, gmrf_Q, jnll_comp(2));
+  Omega2_sc = gmrf_by_category_nll(FieldConfig(2), Options_vec(7), n_s, n_c, logkappa2, Omegainput2_sf, L_omega2_z, gmrf_Q, jnll_comp(2));
   array<Type> Epsilon2_sct(n_s, n_c, n_t);
   for(t=0;t<n_t;t++){
-    if(t==0) Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), L_epsilon2_z, gmrf_Q, jnll_comp(3));
+    if(t==0) Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), L_epsilon2_z, gmrf_Q, jnll_comp(3));
     if(t>=1){
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t)-Epsilon_rho2*Epsiloninput2_sft.col(t-1), L_epsilon2_z, gmrf_Q, jnll_comp(3));
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t)-Epsilon_rho2*Epsiloninput2_sft.col(t-1), L_epsilon2_z, gmrf_Q, jnll_comp(3));
       Epsilon2_sct.col(t) += Epsilon_rho2 * Epsilon2_sct.col(t-1);
     }
   }

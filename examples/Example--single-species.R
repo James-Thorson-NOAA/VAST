@@ -20,7 +20,7 @@ library(ThorsonUtilities)
 library(VAST)
 
 # This is where all runs will be located
-DateFile = paste(getwd(),'/',Sys.Date(),'_Grid/',sep='')
+DateFile = paste(getwd(),'/',Sys.Date(),'_Mesh/',sep='')
   dir.create(DateFile)
 
 ###############
@@ -30,13 +30,13 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_Grid/',sep='')
   Data_Set = c("Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Sim")[5]
   Sim_Settings = list("Species_Set"=1:100, "Nyears"=10, "Nsamp_per_year"=600, "Depth_km"=-1, "Depth_km2"=-1, "Dist_sqrtkm"=0, "SigmaO1"=0.5, "SigmaO2"=0.5, "SigmaE1"=0.5, "SigmaE2"=0.5, "SigmaVY1"=0.05, "Sigma_VY2"=0.05, "Range1"=1000, "Range2"=500, "SigmaM"=1)
   Version = "VAST_v1_8_0"
-  Method = c("Grid", "Mesh")[1]
-  grid_size_km = 25
-  n_x = c(100, 250, 500, 1000, 2000)[3] # Number of stations
+  Method = c("Grid", "Mesh")[2]
+  grid_size_km = 50
+  n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
   FieldConfig = c("Omega1"=1, "Epsilon1"=1, "Omega2"=1, "Epsilon2"=1) # 1=Presence-absence; 2=Density given presence; #Epsilon=Spatio-temporal; #Omega=Spatial
   RhoConfig = c("Beta1"=0, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0) # Structure for beta or epsilon over time: 0=None (default); 1=WhiteNoise; 2=RandomWalk; 3=Constant
   VesselConfig = c("Vessel"=0, "VesselYear"=0)
-  ObsModel = c(1,0)  # 0=normal (log-link); 1=lognormal; 2=gamma; 4=ZANB; 5=ZINB; 11=lognormal-mixture; 12=gamma-mixture
+  ObsModel = c(2,0)  # 0=normal (log-link); 1=lognormal; 2=gamma; 4=ZANB; 5=ZINB; 11=lognormal-mixture; 12=gamma-mixture
   Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )     # Samples: Do K-means on trawl locs; Domain: Do K-means on extrapolation grid
 
   # Determine region
@@ -197,7 +197,8 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_Grid/',sep='')
 
   # Make TMB object
   #dyn.unload( paste0(DateFile,"/",dynlib(TMB:::getUserDLL())) )
-  TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x, "TmbDir"=paste0(getwd(),"/../../inst/executables/"))
+  TmbDir = "C:/Users/James.Thorson/Desktop/Project_git/VAST/inst/executables/"
+  TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x, "TmbDir"=TmbDir)
   Obj = TmbList[["Obj"]]
 
   # Run first time -- marginal likelihood
@@ -215,7 +216,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_Grid/',sep='')
     
   # Reports
   Report = Obj$report()                                      
-  Sdreport = sdreport(Obj, bias.correct=FALSE)
+  Sdreport = sdreport(Obj, bias.correct=TRUE)
   
   # Save stuff
   Save = list("Opt"=Opt, "Report"=Report, "Sdreport"=Sdreport, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
@@ -229,7 +230,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_Grid/',sep='')
 
   # Plot Anisotropy  
   if( TmbData$Options_vec['Aniso']==1 ){
-    PlotAniso_Fn( FileName=paste0(DateFile,"Aniso.png"), Report=Report )
+    SpatialDeltaGLMM::PlotAniso_Fn( FileName=paste0(DateFile,"Aniso.png"), Report=Report )
   }
 
   # Plot surface

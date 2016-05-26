@@ -107,6 +107,9 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
     Bounds[grep("logkappa",names(Obj$par)),'Lower'] = log( sqrt(8)/max(Dist) ) # Range = nu*sqrt(8)/kappa
     Bounds[grep("logkappa",names(Obj$par)),'Upper'] = log( sqrt(8)/min(Dist) ) # Range = nu*sqrt(8)/kappa
   }
+  if( !is.na(TmbData$Options_vec['Method']) && TmbData$Options_vec['Method']==1 ){
+    Bounds[grep("logkappa",names(Obj$par)),'Upper'] = log(0.9999) # Must be negative, so that Rho<1
+  }
   Bounds = boundsifpresent_fn( par=Obj$par, name="gamma1", lower=-20, upper=20, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="gamma2", lower=-20, upper=20, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="lambda1", lower=-20, upper=20, bounds=Bounds)
