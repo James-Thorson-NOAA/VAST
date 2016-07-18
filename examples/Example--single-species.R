@@ -15,7 +15,6 @@ devtools::install_github("james-thorson/utilities")
 
 # Load libraries
 library(TMB)
-library(INLA)
 library(ThorsonUtilities)
 library(VAST)
 
@@ -229,9 +228,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_Mesh/',sep='')
 ################
 
   # Plot Anisotropy  
-  if( TmbData$Options_vec['Aniso']==1 ){
-    SpatialDeltaGLMM::PlotAniso_Fn( FileName=paste0(DateFile,"Aniso.png"), Report=Report )
-  }
+  SpatialDeltaGLMM::PlotAniso_Fn( FileName=paste0(DateFile,"Aniso.png"), Report=Report, TmbData=TmbData )
 
   # Plot surface
   Dim = c( "Nrow"=ceiling(sqrt(TmbData$n_t)), "Ncol"=ceiling(TmbData$n_t/ceiling(sqrt(TmbData$n_t))) )

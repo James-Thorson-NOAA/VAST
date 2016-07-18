@@ -19,13 +19,22 @@ Imports:
     stats,
     colorspace,
     RandomFields,
-    rgeos,
-    shape
+    shape,
+    devtools,
+    sp,
+    TMB 
 Depends:
     R (>= 3.1.0),
     maps,
     mapdata,
+Suggests:
+    rgeos,
+    INLA
+Remotes: 
+    github::nwfsc-assess/geostatistical_delta-GLMM
 License: GPL-2
 LazyData: yes
 BuildVignettes: yes
 RoxygenNote: 5.0.1
+URL: http://github.com/James-Thorson/VAST
+BugReports: http://github.com/James-Thorson/VAST/issues
