@@ -21,8 +21,7 @@ Imports:
     RandomFields,
     shape,
     devtools,
-    sp,
-    TMB 
+    sp 
 Depends:
     R (>= 3.1.0),
     maps,
