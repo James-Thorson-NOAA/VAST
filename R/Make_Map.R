@@ -118,22 +118,21 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
   # fix betas and/or epsilons for missing years if betas are fixed-effects
   YearNotInData = !( (1:TmbData$n_t) %in% (unique(TmbData$t_i)+1) ) 
   if( sum(YearNotInData)>0 ){
-    stop("Haven't built missing years feature yet")
     # Beta1 -- Fixed
     if( RhoConfig["Beta1"]==0){
-      Map[["beta1_t"]] = fixval_fn( fixvalTF=YearNotInData )
+      Map[["beta1_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
     }
     # Beta1 -- White-noise
     if( RhoConfig["Beta1"]==1){
-      Map[["beta1_t"]] = fixval_fn( fixvalTF=YearNotInData )
+      Map[["beta1_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
     }
     # Beta2 -- Fixed
     if( RhoConfig["Beta2"]==0){
-      Map[["beta2_t"]] = fixval_fn( fixvalTF=YearNotInData ) 
+      Map[["beta2_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
     }
     # Beta2 -- White-noise
     if( RhoConfig["Beta2"]==1){
-      Map[["beta2_t"]] = fixval_fn( fixvalTF=YearNotInData ) 
+      Map[["beta2_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
     }
   }
   # fix AR across bins
