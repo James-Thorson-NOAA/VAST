@@ -43,18 +43,18 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
 
   # Measurement error models
   if(TmbData[["ObsModel"]][1]%in%c(0,1,2)){
-    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,NA) )
-    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==0) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,NA,NA) )
-    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==1) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,NA,2) )
+    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA) )
+    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==0) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA,NA) )
+    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==1) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA,TmbData$n_c+seq(1,TmbData$n_c)) )
   }
   if(TmbData[["ObsModel"]][1]%in%c(5)){
-    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,2) )
-    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==0) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(1,2,NA) )
+    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),TmbData$n_c+seq(1,TmbData$n_c)) )
+    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==0) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),TmbData$n_c+seq(1,TmbData$n_c),NA) )
     if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==1) stop("ObsModel[2]=1 & ObsModel[1]=5 is a weird combination")
   }
   if(TmbData[["ObsModel"]][1]%in%c(6)){
-    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(NA,NA) )
-    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==0) Map[["logSigmaM"]] = factor( rep(1,TmbData$n_c)%o%c(NA,NA,NA) )
+    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA) )
+    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==0) Map[["logSigmaM"]] = factor( matrix(NA,nrow=TmbData$n_c,ncol=3) )
     if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==1) stop("ObsModel[2]=1 & ObsModel[1]=6 is a weird combination")
   }
   if( length(TmbData[["ObsModel"]])==2 && TmbData[["ObsModel"]][2]==1 ){

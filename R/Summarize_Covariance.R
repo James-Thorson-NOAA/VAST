@@ -1,6 +1,11 @@
 
 #' @export
-Summarize_Covariance = function( report, tmbdata, parhat, sd_report=NULL, species_order=1:tmbdata$n_c, names_set=1:tmbdata$n_c, figname=NULL, plotTF=c("Omega1"=TRUE,"Epsilon1"=TRUE,"Omega2"=TRUE,"Epsilon2"=TRUE), plot_cor=TRUE, mgp=c(2,0.5,0), tck=-0.02, oma=c(0,5,2,0)){
+Summarize_Covariance = function( obj, sd_report=NULL, species_order=1:tmbdata$n_c, names_set=1:tmbdata$n_c, figname=NULL, plotTF=c("Omega1"=TRUE,"Epsilon1"=TRUE,"Omega2"=TRUE,"Epsilon2"=TRUE), plot_cor=TRUE, mgp=c(2,0.5,0), tck=-0.02, oma=c(0,5,2,0)){
+
+  # Extract stuff
+  report = obj$report()
+  tmbdata = obj$env$data
+  parhat = obj$env$parList()
 
   # Object to return
   Return = list()
@@ -35,6 +40,9 @@ Summarize_Covariance = function( report, tmbdata, parhat, sd_report=NULL, specie
         Return = c( Return, List )
       }
     }
+  }else{
+    Return = vector('list',length=8)
+    names(Return) = paste0( rep(c("Cor_","Cov_"),4), rep(c("omega1", "epsilon1", "omega2", "epsilon2"),each=2) )
   }
 
   # Plot covariances
@@ -53,20 +61,27 @@ Summarize_Covariance = function( report, tmbdata, parhat, sd_report=NULL, specie
     }
 
     # Plot analytic
-    save_fig( file=paste0(figname,"--Analytic"), width=Dim[2]*4+1, height=Dim[1]*4 )
+    ThorsonUtilities::save_fig( file=paste0(figname,"--Analytic"), width=Dim[2]*4+1, height=Dim[1]*4 )
       par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
-      for(i in which(plotTF) ){
-        Cov_cc = VAST:::calc_cov( L_z=parhat[c('L_omega1_z','L_epsilon1_z','L_omega2_z','L_epsilon2_z')][[i]], n_f=tmbdata$FieldConfig[i], n_c=tmbdata$n_c )
-        VAST:::plot_cov( Cov=convert(Cov_cc)[species_order,species_order], names=list(names_set[species_order],NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
-        if(i==1 | Dim[1]==1) mtext(side=3, text="Spatial", line=1.5, font=2)
-        if(i==2 | Dim[1]==1) mtext(side=3, text="Spatio-temporal", line=1.5, font=2)
-        if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text=ifelse(length(tmbdata$ObsModel)==1||tmbdata$ObsModel[2]==0,"Encounter probability","Component #1"), line=0.5, font=2)
-        if(i==4 | (Dim[2]==1&i==3)) mtext(side=4, text=ifelse(length(tmbdata$ObsModel)==1||tmbdata$ObsModel[2]==0,"Positive catch rate","Component #2"), line=0.5, font=2)
+      for(i in 1:4 ){
+        Cov_cc = NULL
+        if( i %in% which(plotTF) ){
+          Cov_cc = VAST:::calc_cov( L_z=parhat[c('L_omega1_z','L_epsilon1_z','L_omega2_z','L_epsilon2_z')][[i]], n_f=tmbdata$FieldConfig[i], n_c=tmbdata$n_c )
+          VAST:::plot_cov( Cov=convert(Cov_cc)[species_order,species_order], names=list(names_set[species_order],NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
+          if(i==1 | Dim[1]==1) mtext(side=3, text="Spatial", line=1.5, font=2)
+          if(i==2 | Dim[1]==1) mtext(side=3, text="Spatio-temporal", line=1.5, font=2)
+          if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text=ifelse(length(tmbdata$ObsModel)==1||tmbdata$ObsModel[2]==0,"Encounter probability","Component #1"), line=0.5, font=2)
+          if(i==4 | (Dim[2]==1&i==3)) mtext(side=4, text=ifelse(length(tmbdata$ObsModel)==1||tmbdata$ObsModel[2]==0,"Positive catch rate","Component #2"), line=0.5, font=2)
+        }
+        if( length(Return[[paste0( "Cov_", c("omega1", "epsilon1", "omega2", "epsilon2")[i])]])==0 ){
+          Return[[paste0( "Cov_", c("omega1", "epsilon1", "omega2", "epsilon2")[i])]] = Cov_cc
+          if( !is.null(Cov_cc)) Return[[paste0( "Cor_", c("omega1", "epsilon1", "omega2", "epsilon2")[i])]] = cov2cor(Cov_cc)
+        }
       }
     dev.off()
 
     # Plot sample
-    save_fig( file=paste0(figname,"--Sample"), width=Dim[2]*4+1, height=Dim[1]*4 )
+    ThorsonUtilities::save_fig( file=paste0(figname,"--Sample"), width=Dim[2]*4+1, height=Dim[1]*4 )
       par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
       for(i in which(plotTF) ){
         if(i==1) Cov_cc = cov(report$Omega1_sc)
