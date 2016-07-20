@@ -1,10 +1,6 @@
 
 #' @export
-Coherence = function( obj, year_set=NULL ){
-  # Extract stuff
-  report = obj$report()
-  tmbdata = obj$env$data
-
+Coherence = function( report, tmbdata, year_set=NULL ){
   # Determine defaults
   if( is.null(year_set)) year_set = 1:tmbdata$n_t
 
@@ -27,6 +23,6 @@ Coherence = function( obj, year_set=NULL ){
   psi = 2 * (mean(cumsum(L_c)/sum(L_c))-0.5)
 
   # Return stuff
-  Return = list("phi_x"=phi_x, "phi"=phi, "psi"=psi)
+  Return = list("phi_x"=phi_x, "phi"=phi, "psi"=psi, "L_c"=L_c)
   return( Return )
 }

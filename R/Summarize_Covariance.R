@@ -1,11 +1,6 @@
 
 #' @export
-Summarize_Covariance = function( obj, sd_report=NULL, species_order=1:tmbdata$n_c, names_set=1:tmbdata$n_c, figname=NULL, plotTF=c("Omega1"=TRUE,"Epsilon1"=TRUE,"Omega2"=TRUE,"Epsilon2"=TRUE), plot_cor=TRUE, mgp=c(2,0.5,0), tck=-0.02, oma=c(0,5,2,0)){
-
-  # Extract stuff
-  report = obj$report()
-  tmbdata = obj$env$data
-  parhat = obj$env$parList()
+Summarize_Covariance = function( report, tmbdata, parhat, sd_report=NULL, species_order=1:tmbdata$n_c, names_set=1:tmbdata$n_c, figname=NULL, plotTF=c("Omega1"=TRUE,"Epsilon1"=TRUE,"Omega2"=TRUE,"Epsilon2"=TRUE), plot_cor=TRUE, mgp=c(2,0.5,0), tck=-0.02, oma=c(0,5,2,0)){
 
   # Object to return
   Return = list()
