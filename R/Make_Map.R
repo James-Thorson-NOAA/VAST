@@ -127,12 +127,14 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
       Map[["beta1_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
     }
     # Beta2 -- Fixed
-    if( RhoConfig["Beta2"]==0){
-      Map[["beta2_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
-    }
-    # Beta2 -- White-noise
-    if( RhoConfig["Beta2"]==1){
-      Map[["beta2_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
+    if( !("beta2_ct" %in% names(Map)) ){
+      if( RhoConfig["Beta2"]==0){
+        Map[["beta2_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
+      }
+      # Beta2 -- White-noise
+      if( RhoConfig["Beta2"]==1){
+        Map[["beta2_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
+      }
     }
   }
   # fix AR across bins
