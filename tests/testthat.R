@@ -8,7 +8,8 @@ Version_VAST = "VAST_v1_8_0"
 # Use "extdata" in "inst" because its loaded with R packages
 example_path <- system.file("extdata", package="SpatialDeltaGLMM")
 
-# setwd(system.file("tests", package="SpatialDeltaGLMM"))
+# Run tests for VAST
+setwd(system.file("tests", package="VAST"))
 testthat::test_check("VAST")
 
 # Local testing
