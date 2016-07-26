@@ -8,7 +8,6 @@
 
 # Install geostatistical delta-GLMM package
 devtools::install_github("james-thorson/VAST", auth_token="550d63896f37bfef240ba2803f38b4a1387d5a86")
-devtools::install_github("nwfsc-assess/geostatistical_delta-GLMM") # This is the developement version.  Please check GitHub for the latest release number.
 devtools::install_github("james-thorson/utilities")
 
 # setwd("C:/Users/James.Thorson/Desktop/Project_git/VAST/examples/")
