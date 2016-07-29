@@ -1,0 +1,106 @@
+
+
+# Install TMB
+# Must be installed from: https://github.com/kaskr/adcomp
+
+# Install INLA
+# Must be installed from: http://www.r-inla.org/download
+
+# Install geostatistical delta-GLMM package
+if(!"VAST" %in% installed.packages()[,1]) devtools::install_github("james-thorson/VAST", auth_token="550d63896f37bfef240ba2803f38b4a1387d5a86")
+if(!"ThorsonUtilities" %in% installed.packages()[,1]) devtools::install_github("james-thorson/utilities")
+if(!"FishData" %in% installed.packages()[,1]) devtools::install_github("james-thorson/FishData")
+
+# setwd("C:/Users/James.Thorson/Desktop/Project_git/VAST/examples/")
+
+# Load libraries
+library(TMB)
+library(ThorsonUtilities)
+library(VAST)
+
+# This is where all runs will be located
+DateFile = paste(getwd(),'/',Sys.Date(),'_5species_EBS_Mesh/',sep='')
+  dir.create(DateFile)
+
+###############
+# Settings
+###############
+
+  Version = "VAST_v1_8_0"
+  Method = c("Grid", "Mesh")[2]
+  grid_size_km = 50
+  n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
+  FieldConfig = c("Omega1"=5, "Epsilon1"=5, "Omega2"=5, "Epsilon2"=5) # 1=Presence-absence; 2=Density given presence; #Epsilon=Spatio-temporal; #Omega=Spatial
+  RhoConfig = c("Beta1"=0, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0) # Structure for beta or epsilon over time: 0=None (default); 1=WhiteNoise; 2=RandomWalk; 3=Constant
+  VesselConfig = c("Vessel"=0, "VesselYear"=0)
+  ObsModel = c(2,0)  # 0=normal (log-link); 1=lognormal; 2=gamma; 4=ZANB; 5=ZINB; 11=lognormal-mixture; 12=gamma-mixture
+  Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )     # Samples: Do K-means on trawl locs; Domain: Do K-means on extrapolation grid
+  Restrict_NWA_to_Albatross_Polyvalent = TRUE
+  Catch_units = c("Mass", "Numbers")[1]
+  BiasCorr = FALSE
+
+  # Determine region
+  Region = "Eastern_Bering_Sea"
+
+# Decide on strata for use when calculating indices
+  strata.limits <- data.frame('STRATA'="All_areas")
+
+  # Save options for future records
+  Record = ThorsonUtilities::bundlelist( c("Version","Method","grid_size_km","n_x","FieldConfig","RhoConfig","VesselConfig","ObsModel","Kmeans_Config","Restrict_NWA_to_Albatross_Polyvalent","Catch_units","BiasCorr") )
+  capture.output( Record, file=paste0(DateFile,"Record.txt"))
+
+################
+# Prepare data
+# (THIS WILL VARY FOR DIFFERENT DATA SETS) 
+################
+
+  # Read or simulate trawl data
+  DF = FishData::scrape_data(region="Eastern_Bering_Sea", species_set=5)
+  Data_Geostat = cbind( "spp"=DF[,"Sci"], "Year"=DF[,"Year"], "Catch_KG"=DF[,"Wt"], "AreaSwept_km2"=0.01, "Vessel"=0, "Lat"=DF[,"Lat"], "Lon"=DF[,"Long"] )
+
+  # Get extrapolation data
+  Extrapolation_List = SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn( Region=Region, strata.limits=strata.limits )
+
+  # Calculate spatial information for SPDE mesh, strata areas, and AR1 process
+  Spatial_List = SpatialDeltaGLMM::Spatial_Information_Fn( grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=DateFile )
+  Data_Geostat = cbind( Data_Geostat, Spatial_List$loc_UTM, "knot_i"=Spatial_List$knot_i )
+
+################
+# Make and Run TMB model
+# (THIS WILL BE SIMILAR FOR EVERY DATA SET) 
+################
+
+  # Make TMB data list
+  TmbData = Data_Fn("Version"=Version, "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=ObsModel, "c_i"=as.numeric(Data_Geostat[,'spp'])-1, "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(Data_Geostat[,'Vessel'])-1, "s_i"=Data_Geostat[,'knot_i']-1, "t_i"=Data_Geostat[,'Year'], "a_xl"=Spatial_List$a_xl, "MeshList"=Spatial_List$MeshList, "GridList"=Spatial_List$GridList, "Method"=Spatial_List$Method )
+
+  # Make TMB object
+  #dyn.unload( paste0(DateFile,"/",dynlib(TMB:::getUserDLL())) )
+  TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x)
+  Obj = TmbList[["Obj"]]
+
+  # Run model
+  Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=BiasCorr )
+  Report = Obj$report()
+
+  # Save stuff
+  Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
+  save(Save, file=paste0(DateFile,"Save.RData"))
+
+################
+# Make diagnostic plots
+################
+
+  # Plot Anisotropy  
+  SpatialDeltaGLMM::PlotAniso_Fn( FileName=paste0(DateFile,"Aniso.png"), Report=Report, TmbData=TmbData )
+
+  # Plot covariances
+  Cov_List = Summarize_Covariance( report=Report, parhat=Save$ParHat, tmbdata=TmbData, sd_report=Opt$SD, plot_cor=FALSE, names_set=levels(DF[,'Sci']), figname=paste0(DateFile,"Spatio-temporal_covariances"), plotTF=c("Omega1"=TRUE,"Epsilon1"=TRUE,"Omega2"=TRUE,"Epsilon2"=TRUE), mgp=c(2,0.5,0), tck=-0.02, oma=c(0,5,2,2) )
+
+  # Plot overdispersion
+  Plot_Overdispersion( filename1=paste0(DateDir,"Overdispersion"), filename2=paste0(DateDir,"Overdispersion--panel"), Data=TmbData, ParHat=ParHat, Report=Report, ControlList1=list("Width"=5, "Height"=10, "Res"=200, "Units"='in'), ControlList2=list("Width"=TmbData$n_c, "Height"=TmbData$n_c, "Res"=200, "Units"='in') )
+
+  # Plot index
+  SpatialDeltaGLMM::PlotIndex_Fn( DirName=DateFile, TmbData=TmbData, Sdreport=Opt$SD, Year_Set=sort(unique(Data_Geostat[,'Year'])), strata_names=strata.limits[,1], category_names=levels(DF[,'Sci']), use_biascorr=TRUE )
+
+
+  

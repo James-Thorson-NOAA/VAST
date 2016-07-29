@@ -21,47 +21,40 @@
 
 #' @export
 Plot_Overdispersion = function( filename1, filename2, Data, ParHat, Report, SD=NULL, Map=NULL, ControlList1=list("Width"=8, "Height"=4, "Res"=200, "Units"='in'), ControlList2=ControlList1 ){
-  if( require(ThorsonUtilities)==FALSE ) devtools::install_github("james-thorson/utilities")
 
-  Derived_Quants = NULL
-  if( Data[["n_f_input"]]<0 ){
-    message("No overdispersion in model")
-  }
-  if( Data[["n_f_input"]]>=0 ){
-    Cov1_cc = VAST:::calc_cov( n_f=Data[["n_f_input"]], n_c=Data[["n_c"]], L_z=ParHat[["L1_z"]])
-    Cov2_cc = VAST:::calc_cov( n_f=Data[["n_f_input"]], n_c=Data[["n_c"]], L_z=ParHat[["L2_z"]])
-    Derived_Quants[["cov_eta1_vc"]] = cov( Report[["eta1_vc"]] )
-    Derived_Quants[["cov_eta2_vc"]] = cov( Report[["eta2_vc"]] )
-  }
+  # Loop through components
+  for(i in 1:2){
+    if( Data[["OverdispersionConfig"]][i]>=0 ){
 
-  if( Data[["n_f_input"]]>=0 ){
-    # Plot covariance
-    png( file=paste0(filename1,".png"), width=ControlList1$Width, height=ControlList1$Height, res=ControlList1$Res, units=ControlList1$Units )
-      par( mfrow=c(2,2), mar=c(0,2,3,0), mgp=c(2,0.5,0), tck=-0.02, oma=c(0,0,0,0))
-      for(i in 1:4){
-        Cov_cc = list(Cov1_cc, Cov2_cc, Derived_Quants[["cov_eta1_vc"]], Derived_Quants[["cov_eta2_vc"]])[[i]]
-        VAST:::plot_cov( Cov=Cov_cc )
-        title( main=c("Encounter prob (pop.)","Positive catch rate (pop.)","Encounter prob (sample)","Positive catch rate (sample)")[i], line=2 )
+      if(i==1){
+        Cov_cc = VAST:::calc_cov( n_f=Data[["OverdispersionConfig"]][i], n_c=Data[["n_c"]], L_z=ParHat[["L1_z"]])
+        cov_eta_vc = cov( Report[["eta1_vc"]] )
       }
-    dev.off()
+      if(i==2){
+        Cov_cc = VAST:::calc_cov( n_f=Data[["OverdispersionConfig"]][i], n_c=Data[["n_c"]], L_z=ParHat[["L2_z"]])
+        cov_eta_vc = cov( Report[["eta2_vc"]] )
+      }
 
-    # Plot distributions
-    for(i in 1:2){
+      # Plot covariance
+      png( file=paste0(filename1,"_",i,".png"), width=ControlList1$Width, height=ControlList1$Height, res=ControlList1$Res, units=ControlList1$Units )
+        par( mfrow=c(2,1), mar=c(0,2,3,0), mgp=c(2,0.5,0), tck=-0.02, oma=c(0,0,0,0))
+        for(j in 1:2){
+          Cov_cc = list(Cov_cc, cov_eta_vc)[[j]]
+          VAST:::plot_cov( Cov=Cov_cc )
+          title( main=c("Encounter prob (pop.)","Positive catch rate (pop.)","Encounter prob (sample)","Positive catch rate (sample)")[j*2-2+i], line=2 )
+        }
+      dev.off()
+
+      # Plot distributions
       png( file=paste0(filename2,"_",i,".png"), width=ControlList2$Width, height=ControlList2$Height, res=ControlList2$Res, units=ControlList2$Units )
         Mat = list( Report[["eta1_vc"]], Report[["eta2_vc"]] )[[i]]
         par( mfrow=rep(Data$n_c,2), mar=c(0,0,0,0), mgp=c(2,0.5,0), tck=-0.02, oma=c(0,0,0,0))
-        for(i in 1:2){
-          for(j1 in 1:Data$n_c){
-          for(j2 in 1:Data$n_c){
-            if(j1==j2) hist( Mat[,j1], xlab="", ylab="", xaxt="n", yaxt="n" )
-            if(j1!=j2) plot( x=Mat[,j1], y=Mat[,j2], xlab="", ylab="", xaxt="n", yaxt="n" )
-          }}
-        }
+        for(j1 in 1:Data$n_c){
+        for(j2 in 1:Data$n_c){
+          if(j1==j2) hist( Mat[,j1], xlab="", ylab="", xaxt="n", yaxt="n" )
+          if(j1!=j2) plot( x=Mat[,j1], y=Mat[,j2], xlab="", ylab="", xaxt="n", yaxt="n" )
+        }}
       dev.off()
     }
-
-    # Return
-    Return = list("Cov1_cc"=Cov1_cc, "Cov2_cc"=Cov2_cc)
-    return( invisible(Return) )
   }
 }

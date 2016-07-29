@@ -18,7 +18,7 @@ library(ThorsonUtilities)
 library(VAST)
 
 # This is where all runs will be located
-DateFile = paste(getwd(),'/',Sys.Date(),'_Mesh/',sep='')
+DateFile = paste(getwd(),'/',Sys.Date(),'_EBSpollock_Mesh_nx=250/',sep='')
   dir.create(DateFile)
 
 ###############
