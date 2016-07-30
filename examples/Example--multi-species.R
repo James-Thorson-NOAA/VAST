@@ -42,12 +42,13 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_5species_EBS_Mesh/',sep='')
   # Determine region
   Region = "Eastern_Bering_Sea"
 
-# Decide on strata for use when calculating indices
+  # Decide on strata for use when calculating indices
   strata.limits <- data.frame('STRATA'="All_areas")
 
   # Save options for future records
-  Record = ThorsonUtilities::bundlelist( c("Version","Method","grid_size_km","n_x","FieldConfig","RhoConfig","VesselConfig","ObsModel","Kmeans_Config","Restrict_NWA_to_Albatross_Polyvalent","Catch_units","BiasCorr") )
+  Record = ThorsonUtilities::bundlelist( c("Version","Method","grid_size_km","n_x","FieldConfig","RhoConfig","VesselConfig","ObsModel","Kmeans_Config","Restrict_NWA_to_Albatross_Polyvalent","Catch_units","BiasCorr","Region","strata.limits") )
   capture.output( Record, file=paste0(DateFile,"Record.txt"))
+  save(Record, file=paste0(DateFile,"Record.RData"))
 
 ################
 # Prepare data
@@ -57,6 +58,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_5species_EBS_Mesh/',sep='')
   # Read or simulate trawl data
   DF = FishData::scrape_data(region="Eastern_Bering_Sea", species_set=5)
   Data_Geostat = cbind( "spp"=DF[,"Sci"], "Year"=DF[,"Year"], "Catch_KG"=DF[,"Wt"], "AreaSwept_km2"=0.01, "Vessel"=0, "Lat"=DF[,"Lat"], "Lon"=DF[,"Long"] )
+  save(Data_Geostat, file=paste0(DateFile,"Data_Geostat.RData"))
 
   # Get extrapolation data
   Extrapolation_List = SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn( Region=Region, strata.limits=strata.limits )
