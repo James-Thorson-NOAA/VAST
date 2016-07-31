@@ -7,7 +7,7 @@
 # Must be installed from: http://www.r-inla.org/download
 
 # Install geostatistical delta-GLMM package
-devtools::install_github("james-thorson/VAST", auth_token="550d63896f37bfef240ba2803f38b4a1387d5a86")
+devtools::install_github("james-thorson/VAST")
 devtools::install_github("james-thorson/utilities")
 
 # setwd("C:/Users/James.Thorson/Desktop/Project_git/VAST/examples/")
