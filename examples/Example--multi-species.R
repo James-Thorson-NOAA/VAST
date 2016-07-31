@@ -7,7 +7,7 @@
 # Must be installed from: http://www.r-inla.org/download
 
 # Install geostatistical delta-GLMM package
-if(!"VAST" %in% installed.packages()[,1]) devtools::install_github("james-thorson/VAST", auth_token="550d63896f37bfef240ba2803f38b4a1387d5a86")
+if(!"VAST" %in% installed.packages()[,1]) devtools::install_github("james-thorson/VAST")
 if(!"ThorsonUtilities" %in% installed.packages()[,1]) devtools::install_github("james-thorson/utilities")
 if(!"FishData" %in% installed.packages()[,1]) devtools::install_github("james-thorson/FishData")
 
