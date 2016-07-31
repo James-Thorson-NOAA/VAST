@@ -3,6 +3,7 @@ Description
 
 VAST
 * Is an R package for implementing a spatial delta-generalized linear mixed model (delta-GLMM) for multiple categories (species, size, or age classes) when standardizing survey or fishery-dependent data.
+* Builds upon a previous R package `SpatialDeltaGLMM` (public available [here](https://github.com/nwfsc-assess/geostatistical_delta-GLMM)), and has unit-testing to automatically confirm that `VAST` and `SpatialDeltaGLMM` give identical results (to the 3rd decimal place for parameter estimates) for several varied real-world case-study examples
 * Has built in diagnostic functions and model-comparison tools
 * Is intended to improve analysis speed, replicability, peer-review, and interpretation of index standardization methods
 
