@@ -18,7 +18,7 @@ context("Testing examples")
 # Eastern Bering Sea pollcok
 test_that("Eastern Bering Sea pollock is working ", {
   # Prepping
-  test_path = file.path(example_path,"EBS_pollock")
+  test_path = file.path(singlespecies_example_path,"EBS_pollock")
   load( file.path(test_path,"opt.RData") )
   load( file.path(test_path,"Record.RData") )
   attach(Record)
@@ -42,7 +42,7 @@ test_that("Eastern Bering Sea pollock is working ", {
 # Chatham rise
 test_that("Chatham Rise hake is working ", {
   # Prepping
-  test_path = file.path(example_path,"chatham_rise_hake")
+  test_path = file.path(singlespecies_example_path,"chatham_rise_hake")
   load( file.path(test_path,"opt.RData") )
   load( file.path(test_path,"Record.RData") )
   attach(Record)
@@ -66,7 +66,7 @@ test_that("Chatham Rise hake is working ", {
 # California Current
 test_that("West Coast groundfish bottom trawl survey, canary rockfish is working ", {
   # Prepping
-  test_path = file.path(example_path,"WCGBTS_canary")
+  test_path = file.path(singlespecies_example_path,"WCGBTS_canary")
   load( file.path(test_path,"opt.RData") )
   load( file.path(test_path,"Record.RData") )
   attach(Record)
@@ -91,7 +91,7 @@ test_that("West Coast groundfish bottom trawl survey, canary rockfish is working
 # Test default + Random-walk on spatio-temporal variation
 test_that("Aleutian Islands groundfish bottom trawl survey, POP is working ", {
   # Prepping
-  test_path = file.path(example_path,"AI_POP")
+  test_path = file.path(singlespecies_example_path,"AI_POP")
   load( file.path(test_path,"opt.RData") )
   load( file.path(test_path,"Record.RData") )
   attach(Record)

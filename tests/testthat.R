@@ -6,7 +6,8 @@ library(TMB)
 Version_VAST = "VAST_v1_8_0"
 
 # Use "extdata" in "inst" because its loaded with R packages
-example_path <- system.file("extdata", package="VAST")
+singlespecies_example_path <- system.file("extdata", package="SpatialDeltaGLMM")
+multispecies_example_path <- system.file("extdata", package="VAST")
 
 # Run tests for VAST
 setwd(system.file("tests", package="VAST"))
