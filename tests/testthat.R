@@ -10,7 +10,7 @@ singlespecies_example_path <- system.file("extdata", package="SpatialDeltaGLMM")
 multispecies_example_path <- system.file("extdata", package="VAST")
 
 # Run tests for VAST
-setwd(system.file("tests", package="VAST"))
+#setwd(system.file("tests", package="VAST"))
 testthat::test_check("VAST")
 
 # Local testing

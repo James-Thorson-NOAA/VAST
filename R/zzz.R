@@ -19,4 +19,8 @@
     packageStartupMessage("Installing package: SpatialDeltaGLMM...")
     devtools::install_github("nwfsc-assess/geostatistical_delta-GLMM")
   }
+  if( !"ThorsonUtilities" %in% utils::installed.packages()[,1] ){
+    packageStartupMessage("Installing package: ThorsonUtilities...")
+    devtools::install_github("james-thorson/utilities")
+  }
 }

@@ -7,9 +7,6 @@ Summarize_Covariance = function( report, tmbdata, parhat, sd_report=NULL, specie
 
   # Extract standard errors
   if( !is.null(sd_report) ){
-    # Download package
-    if( require(ThorsonUtilities)==FALSE ) devtools::install_github("james-thorson/utilities")
-
     # Object to build
     sd_summary = summary(sd_report)
 
@@ -56,7 +53,7 @@ Summarize_Covariance = function( report, tmbdata, parhat, sd_report=NULL, specie
     }
 
     # Plot analytic
-    ThorsonUtilities::save_fig( file=paste0(figname,"--Analytic"), width=Dim[2]*4+1, height=Dim[1]*4 )
+    png( file=paste0(figname,"--Analytic.png"), width=Dim[2]*4+1, height=Dim[1]*4, units="in", res=200 )
       par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
       for(i in 1:4 ){
         Cov_cc = NULL
@@ -76,7 +73,7 @@ Summarize_Covariance = function( report, tmbdata, parhat, sd_report=NULL, specie
     dev.off()
 
     # Plot sample
-    ThorsonUtilities::save_fig( file=paste0(figname,"--Sample"), width=Dim[2]*4+1, height=Dim[1]*4 )
+    png( file=paste0(figname,"--Sample.png"), width=Dim[2]*4+1, height=Dim[1]*4, units="in", res=200 )
       par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
       for(i in which(plotTF) ){
         if(i==1) Cov_cc = cov(report$Omega1_sc)
