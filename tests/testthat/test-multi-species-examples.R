@@ -5,6 +5,7 @@ context("Testing multispecies examples")
 
 # Eastern Bering Sea pollcok
 test_that("Eastern Bering Sea 5-species is working ", {
+  skip_on_travis()
   # Prepping
   test_path = file.path(multispecies_example_path,"EBS_5species")
   load( file.path(test_path,"opt.RData") )

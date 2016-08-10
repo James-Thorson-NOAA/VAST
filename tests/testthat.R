@@ -14,9 +14,8 @@ setwd(system.file("tests", package="VAST"))
 testthat::test_check("VAST")
 
 # Local testing
-if(FALSE){
   # Use local path
-  example_path <- "C:/Users/James.Thorson/Desktop/Project_git/VAST/inst/extdata/"
+  #example_path <- "C:/Users/James.Thorson/Desktop/Project_git/VAST/inst/extdata/"
+
   # Run from local directory
-  testthat::test_dir( "C:/Users/James.Thorson/Desktop/Project_git/VAST/tests/testthat/", reporter="check" )
-}
+  #testthat::test_dir( "C:/Users/James.Thorson/Desktop/Project_git/VAST/tests/testthat/", reporter="check" )

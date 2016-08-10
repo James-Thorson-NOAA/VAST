@@ -25,7 +25,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_EBSpollock_Mesh_nx=250/',sep='')
 # Settings
 ###############
 
-  Data_Set = c("Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Aleutian_islands_POP", "Sim")[5]
+  Data_Set = c("Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Aleutian_islands_POP", "Sim")[2]
   Sim_Settings = list("Species_Set"=1:100, "Nyears"=10, "Nsamp_per_year"=600, "Depth_km"=-1, "Depth_km2"=-1, "Dist_sqrtkm"=0, "SigmaO1"=0.5, "SigmaO2"=0.5, "SigmaE1"=0.5, "SigmaE2"=0.5, "SigmaVY1"=0.05, "Sigma_VY2"=0.05, "Range1"=1000, "Range2"=500, "SigmaM"=1)
   Version = "VAST_v1_8_0"
   Method = c("Grid", "Mesh")[2]
@@ -177,12 +177,12 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_EBSpollock_Mesh_nx=250/',sep='')
 
   # Make TMB object
   #dyn.unload( paste0(DateFile,"/",dynlib(TMB:::getUserDLL())) )
-  TmbDir = "C:/Users/James.Thorson/Desktop/Project_git/VAST/inst/executables/"
-  TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x, "TmbDir"=TmbDir)
+  #TmbDir = "C:/Users/James.Thorson/Desktop/Project_git/VAST/inst/executables/"
+  TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x)
   Obj = TmbList[["Obj"]]
 
   # Run model
-  Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=TRUE )
+  Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=FALSE, savedir=DateFile, bias.correct=FALSE )
   Report = Obj$report()
 
   # Save stuff
@@ -205,7 +205,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_EBSpollock_Mesh_nx=250/',sep='')
   SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set=3, MappingDetails=MapDetails_List[["MappingDetails"]], Report=list("D_xt"=Report$D_xct[,1,]), PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=paste0(DateFile,"Field_"), Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), Cex=MapDetails_List[["Cex"]], cex=1.8)
 
   # Plot index
-  SpatialDeltaGLMM::PlotIndex_Fn( DirName=DateFile, TmbData=TmbData, Sdreport=Sdreport, Year_Set=sort(unique(Data_Geostat[,'Year'])), strata_names=strata.limits[,1], use_biascorr=TRUE )
+  SpatialDeltaGLMM::PlotIndex_Fn( DirName=DateFile, TmbData=TmbData, Sdreport=Opt$SD, Year_Set=sort(unique(Data_Geostat[,'Year'])), strata_names=strata.limits[,1], use_biascorr=TRUE )
 
   # Positive catch rate Q-Q plot
   Q = SpatialDeltaGLMM::QQ_Fn( TmbData=TmbData, Report=Report, FileName_PP=paste0(DateFile,"Posterior_Predictive.jpg"), FileName_Phist=paste0(DateFile,"Posterior_Predictive-Histogram.jpg"), FileName_QQ=paste0(DateFile,"Q-Q_plot.jpg"), FileName_Qhist=paste0(DateFile,"Q-Q_hist.jpg"))

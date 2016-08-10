@@ -9,8 +9,9 @@ Description: VAST is an R package for conducting spatio-temporal analysis
     of data from multiple categories (species, sizes, etc.), and includes both
     spatial and spatio-temporal variation in density for each category, with either
     factor-analysis or autoregressive correlations among categories, with derived
-    calculation of abundance indices, center-of-gravity, and area-occupied
+    calculation of abundance indices, center-of-gravity, and area-occupied.
 Imports:
+    utils,
     mapproj,
     maptools,
     deldir,
@@ -21,17 +22,17 @@ Imports:
     RandomFields,
     shape,
     devtools,
+    mixtools,
+    sp, 
     maps,
     mapdata,
-    sp 
+    TMB
 Depends:
     R (>= 3.1.0),
 Suggests:
     rgeos,
     INLA
-Remotes: 
-    github::nwfsc-assess/geostatistical_delta-GLMM
-    github::james-thorson/utilities
+    testthat
 License: GPL-2
 LazyData: yes
 BuildVignettes: yes

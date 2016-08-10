@@ -35,8 +35,6 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_5species_EBS_Mesh/',sep='')
   VesselConfig = c("Vessel"=0, "VesselYear"=0)
   ObsModel = c(2,0)  # 0=normal (log-link); 1=lognormal; 2=gamma; 4=ZANB; 5=ZINB; 11=lognormal-mixture; 12=gamma-mixture
   Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )     # Samples: Do K-means on trawl locs; Domain: Do K-means on extrapolation grid
-  Restrict_NWA_to_Albatross_Polyvalent = TRUE
-  Catch_units = c("Mass", "Numbers")[1]
   BiasCorr = FALSE
 
   # Determine region
