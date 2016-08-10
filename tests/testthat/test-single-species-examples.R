@@ -17,7 +17,7 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Eastern Bering Sea pollock is working ", {
-  skip_on_travis()
+  #skip_on_travis()
   # Prepping
   test_path = file.path(singlespecies_example_path,"EBS_pollock")
   load( file.path(test_path,"opt.RData") )
@@ -42,7 +42,7 @@ test_that("Eastern Bering Sea pollock is working ", {
 
 # Chatham rise
 test_that("Chatham Rise hake is working ", {
-  skip_on_travis()
+  #skip_on_travis()
   # Prepping
   test_path = file.path(singlespecies_example_path,"chatham_rise_hake")
   load( file.path(test_path,"opt.RData") )
@@ -67,7 +67,7 @@ test_that("Chatham Rise hake is working ", {
 
 # California Current
 test_that("West Coast groundfish bottom trawl survey, canary rockfish is working ", {
-  skip_on_travis()
+  #skip_on_travis()
   # Prepping
   test_path = file.path(singlespecies_example_path,"WCGBTS_canary")
   load( file.path(test_path,"opt.RData") )
