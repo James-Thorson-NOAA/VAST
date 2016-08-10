@@ -7,18 +7,23 @@ VAST
 * Has built in diagnostic functions and model-comparison tools
 * Is intended to improve analysis speed, replicability, peer-review, and interpretation of index standardization methods
 
-Regions available in the [example script](https://github.com/james-thorson/VAST/blob/master/examples/Example--simple.R): 
-![alt text](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/raw/master/examples/global_coverage.png "Global data coverage")
-and see [FishViz.org](http://www.FishViz.org) for visualization of results for regions with a public API for their data.
-
 Background
 * This tool is designed to estimate spatial variation in density using spatially referenced data, with the goal of habitat associations (correlations among species and with habitat) and estimating total abundance for a target species in one or more years.  
 * The model builds upon spatio-temporal delta-generalized linear mixed modelling techniques (Thorson Shelton Ward Skaug 2015 ICESJMS), which separately models the proportion of tows that catch at least one individual ("encounter probability") and catch rates for tows with at least one individual ("positive catch rates").  
 * Submodels for encounter probability and positive catch rates by default incorporate variation in density among years (as a fixed effect), and can incorporate variation among sampling vessels (as a random effect, Thorson and Ward 2014) which may be correlated among categories (Thorson Fonner Haltuch Ono Winker In press).  
 * Spatial and spatiotemporal variation are approximated as Gaussian Markov random fields (Thorson Skaug Kristensen Shelton Ward Harms Banante 2014 Ecology), which imply that correlations in spatial variation decay as a function of distance.  
 
+Database
+=============
+
+Regions available in the [example script](https://github.com/james-thorson/VAST/blob/master/examples/Example--simple.R): 
+![alt text](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/raw/master/examples/global_coverage.png "Global data coverage")
+and see [FishViz.org](http://www.FishViz.org) for visualization of results for regions with a public API for their data.
+
 Installation Instructions
 =============
+[![Build Status](https://travis-ci.org/James-Thorson/VAST.svg?branch=master)](https://travis-ci.org/James-Thorson/VAST)
+
 This function depends on R version >=3.1.1 and a variety of other tools.
 
 First, install the "devtools" package from CRAN
@@ -100,6 +105,8 @@ Funding and support for the tool
 =============
 * Ongoing:  Support from Fisheries Resource Analysis and Monitoring Division (FRAM), Northwest Fisheries Science Center, National Marine Fisheries Service, NOAA
 * Ongoing:  Support from Danish Technical University (in particular Kasper Kristensen) for  development of Template Model Builder software, URL: https://www.jstatsoft.org/article/view/v070i05
+* Generous support from people knowledgeable about each region and survey! Specific contributions are listed [here](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/blob/master/shiny/Acknowledgements_for_regional_inputs.csv).  
+* 2015.  Thorson, J., Ianelli, J., and O’Brien, L.  Distribution and application of a new geostatistical index standardization and habitat modeling tool for stock assessments and essential fish habitat designation in Alaska and Northwest Atlantic regions.  Habitat Assessment Improvement Plan 2014 RFP.  URL: https://www.st.nmfs.noaa.gov/ecosystems/habitat/funding/projects/project15-027
 
 
 
