@@ -54,7 +54,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_5species_EBS_Mesh/',sep='')
 ################
 
   # Read or simulate trawl data
-  DF = FishData::scrape_data(region="Eastern_Bering_Sea", species_set=5)
+  DF = FishData::download_catch_rates(survey="Eastern_Bering_Sea", species_set=5)
   Data_Geostat = cbind( "spp"=DF[,"Sci"], "Year"=DF[,"Year"], "Catch_KG"=DF[,"Wt"], "AreaSwept_km2"=0.01, "Vessel"=0, "Lat"=DF[,"Lat"], "Lon"=DF[,"Long"] )
   save(Data_Geostat, file=paste0(DateFile,"Data_Geostat.RData"))
 
