@@ -11,6 +11,7 @@ Description: VAST is an R package for conducting spatio-temporal analysis
     factor-analysis or autoregressive correlations among categories, with derived
     calculation of abundance indices, center-of-gravity, and area-occupied.
 Imports:
+    graphics,
     utils,
     mapproj,
     maptools,

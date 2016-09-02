@@ -15,7 +15,8 @@ testthat::test_check("VAST")
 
 # Local testing
   # Use local path
-  #example_path <- "C:/Users/James.Thorson/Desktop/Project_git/VAST/inst/extdata/"
+  #multispecies_example_path <- "C:/Users/James.Thorson/Desktop/Project_git/VAST/inst/extdata/"
 
   # Run from local directory
   #testthat::test_dir( "C:/Users/James.Thorson/Desktop/Project_git/VAST/tests/testthat/", reporter="check" )
+  #testthat::test_dir( "/media/sf_c/Users/jim/Desktop/Project_git/VAST/tests/testthat/", reporter="check" )
