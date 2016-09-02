@@ -5,7 +5,7 @@ context("Testing multispecies examples")
 
 # Eastern Bering Sea -- 3 species (50 knots)
 test_that("Eastern Bering Sea 3-species is working ", {
-  #skip_on_travis()
+  skip_on_travis()
   # Prepping
   test_path = file.path(multispecies_example_path,"EBS_3species")
   load( file.path(test_path,"opt.RData") )
