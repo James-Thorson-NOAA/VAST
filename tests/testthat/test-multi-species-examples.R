@@ -3,7 +3,7 @@
 # And example see: https://github.com/ss3sim/ss3sim/tree/master/tests/testthat
 context("Testing multispecies examples")
 
-# Eastern Bering Sea -- 3 species
+# Eastern Bering Sea -- 3 species (50 knots)
 test_that("Eastern Bering Sea 3-species is working ", {
   #skip_on_travis()
   # Prepping
@@ -27,7 +27,7 @@ test_that("Eastern Bering Sea 3-species is working ", {
   expect_equal( Opt$objective, opt$objective, tolerance=1e-3 )
 })
 
-# Eastern Bering Sea -- 3 species
+# Eastern Bering Sea -- 3 species (100 knots)
 test_that("Eastern Bering Sea 5-species is working ", {
   skip_on_travis()
   # Prepping
