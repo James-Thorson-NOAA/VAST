@@ -17,7 +17,7 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Eastern Bering Sea pollock is working ", {
-  #skip_on_travis()
+  skip_on_travis()
   # Prepping
   test_path = file.path(singlespecies_example_path,"EBS_pollock")
   load( file.path(test_path,"opt.RData") )
