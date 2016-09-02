@@ -15,7 +15,7 @@
   #  packageStartupMessage("Installing package: TMB...")
   #  devtools::install_github("kaskr/adcomp/TMB")
   #}
-  if( !"SpatialDeltaGLMM"%in%utils::installed.packages()[,1] || packageVersion("SpatialDeltaGLMM")<3.40 ){
+  if( !"SpatialDeltaGLMM"%in%utils::installed.packages()[,1] || utils::packageVersion("SpatialDeltaGLMM")<3.40 ){
     packageStartupMessage("Installing package: SpatialDeltaGLMM...")
     devtools::install_github("nwfsc-assess/geostatistical_delta-GLMM")
   }
