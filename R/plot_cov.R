@@ -9,4 +9,5 @@ plot_cov = function( Cov, zlim=NULL, names=1:nrow(Cov), names2=names, ncolors=21
   for(j in 1:nrow(Cov)){
     text( y=seq(1,0,length=nrow(Cov))[i], x=seq(0,1,length=nrow(Cov))[j], labels=formatC(Cov[i,j],digits=digits,format="f"), ...)
   }}
+  box()
 }
