@@ -1,4 +1,5 @@
 
+#' @export
 plot_cov = function( Cov, zlim=NULL, names=1:nrow(Cov), names2=names, ncolors=21, digits=2, ... ){
   Col = colorRampPalette(colors=c("blue","white","red"))
   if(is.null(zlim) ) zlim = c(-1,1)*max(abs(Cov))
