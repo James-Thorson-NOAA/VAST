@@ -19,7 +19,7 @@ library(ThorsonUtilities)
 library(VAST)
 
 # This is where all runs will be located
-DateFile = paste(getwd(),'/',Sys.Date(),'_5species_EBS_Mesh/',sep='')
+DateFile = paste(getwd(),'/',Sys.Date(),'_3species_EBS_Mesh/',sep='')
   dir.create(DateFile)
 
 ###############
@@ -29,8 +29,8 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_5species_EBS_Mesh/',sep='')
   Version = "VAST_v1_8_0"
   Method = c("Grid", "Mesh")[2]
   grid_size_km = 50
-  n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
-  FieldConfig = c("Omega1"=5, "Epsilon1"=5, "Omega2"=5, "Epsilon2"=5) # 1=Presence-absence; 2=Density given presence; #Epsilon=Spatio-temporal; #Omega=Spatial
+  n_x = c(50, 100, 250, 500, 1000, 2000)[1] # Number of stations
+  FieldConfig = c("Omega1"=3, "Epsilon1"=3, "Omega2"=3, "Epsilon2"=3) # 1=Presence-absence; 2=Density given presence; #Epsilon=Spatio-temporal; #Omega=Spatial
   RhoConfig = c("Beta1"=0, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0) # Structure for beta or epsilon over time: 0=None (default); 1=WhiteNoise; 2=RandomWalk; 3=Constant
   VesselConfig = c("Vessel"=0, "VesselYear"=0)
   ObsModel = c(2,0)  # 0=normal (log-link); 1=lognormal; 2=gamma; 4=ZANB; 5=ZINB; 11=lognormal-mixture; 12=gamma-mixture
@@ -44,7 +44,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_5species_EBS_Mesh/',sep='')
   strata.limits <- data.frame('STRATA'="All_areas")
 
   # Save options for future records
-  Record = ThorsonUtilities::bundlelist( c("Version","Method","grid_size_km","n_x","FieldConfig","RhoConfig","VesselConfig","ObsModel","Kmeans_Config","Restrict_NWA_to_Albatross_Polyvalent","Catch_units","BiasCorr","Region","strata.limits") )
+  Record = ThorsonUtilities::bundlelist( c("Version","Method","grid_size_km","n_x","FieldConfig","RhoConfig","VesselConfig","ObsModel","Kmeans_Config","BiasCorr","Region","strata.limits") )
   capture.output( Record, file=paste0(DateFile,"Record.txt"))
   save(Record, file=paste0(DateFile,"Record.RData"))
 
@@ -54,7 +54,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_5species_EBS_Mesh/',sep='')
 ################
 
   # Read or simulate trawl data
-  DF = FishData::download_catch_rates(survey="Eastern_Bering_Sea", species_set=5)
+  DF = FishData::download_catch_rates(survey="Eastern_Bering_Sea", species_set=3)
   Data_Geostat = cbind( "spp"=DF[,"Sci"], "Year"=DF[,"Year"], "Catch_KG"=DF[,"Wt"], "AreaSwept_km2"=0.01, "Vessel"=0, "Lat"=DF[,"Lat"], "Lon"=DF[,"Long"] )
   save(Data_Geostat, file=paste0(DateFile,"Data_Geostat.RData"))
 
@@ -82,10 +82,6 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_5species_EBS_Mesh/',sep='')
   Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=BiasCorr )
   Report = Obj$report()
 
-  # Save stuff
-  Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
-  save(Save, file=paste0(DateFile,"Save.RData"))
-
 ################
 # Make diagnostic plots
 ################
@@ -102,5 +98,12 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_5species_EBS_Mesh/',sep='')
   # Plot index
   SpatialDeltaGLMM::PlotIndex_Fn( DirName=DateFile, TmbData=TmbData, Sdreport=Opt$SD, Year_Set=sort(unique(Data_Geostat[,'Year'])), strata_names=strata.limits[,1], category_names=levels(DF[,'Sci']), use_biascorr=TRUE )
 
+  # Plot surface
+  Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
+  Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
+  Dim = c( "Nrow"=ceiling(sqrt(length(Years2Include))), "Ncol"=ceiling(length(Years2Include)/ceiling(sqrt(length(Years2Include)))) )
+  MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( "Region"=Region, "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap, "Extrapolation_List"=Extrapolation_List )
+  SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set=1:3, MappingDetails=MapDetails_List[["MappingDetails"]], Report=Report, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=paste0(DateFile,"Field_"), Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], category_names=levels(DF[,'Sci']), mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), Cex=MapDetails_List[["Cex"]], cex=1.8, Legend=MapDetails_List[["Legend"]])
+    #
 
   
