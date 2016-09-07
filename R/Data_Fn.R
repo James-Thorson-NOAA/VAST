@@ -88,6 +88,12 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     if( !is.matrix(a_xl) | !is.matrix(X_xj) | !is.matrix(Q_ik) ) stop("a_xl, X_xj, and Q_ik should be matrices")
     if( (max(s_i)-1)>n_x | min(s_i)<0 ) stop("s_i exceeds bounds in MeshList")
     if( any(a_i<=0) ) stop("a_i must be greater than zero for all observations, and at least one value of a_i is not")
+    # Warnings about all positive or zero
+    Prop_nonzero = tapply( b_i, INDEX=list(t_i,c_i), FUN=function(vec){mean(vec>0)} )
+    if( any(Prop_nonzero==0|Prop_nonzero==1) & ObsModel[2]==0 ){
+      print( Prop_nonzero )
+      stop("Some years and/or categories have either all or no encounters, and this is not permissible when ObsModel['Link']=0")
+    }
   }
 
   # Check for bad data entry
