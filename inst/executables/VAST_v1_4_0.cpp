@@ -135,8 +135,8 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR(FieldConfig);  // Input settings
   DATA_IVECTOR(ObsModel);    // Observation model
   DATA_IVECTOR(Options);    // Reporting options
-  // Slot 0: DEPRECATED
-  // Slot 1: DEPRECATED
+  // Slot 0: Calculate SD for Index_xctl
+  // Slot 1: Calculate SD for log(Index_xctl)
   // Slot 2: DEPRECATED
   // Slot 3: DEPRECATED
   // Slot 4: Calculate mean_D_tl and effective_area_tl
@@ -494,6 +494,14 @@ Type objective_function<Type>::operator() ()
   ADREPORT( Index_ctl );
   ADREPORT( ln_Index_ctl);
   ADREPORT( SigmaM );
+
+  // Additional miscellaneous outputs
+  if( Options(0)==1 ){
+    ADREPORT( Index_xctl );
+  }
+  if( Options(1)==1 ){
+    ADREPORT( log(Index_xctl) );
+  }
 
   return jnll;
   
