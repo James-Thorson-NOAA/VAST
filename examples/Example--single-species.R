@@ -18,19 +18,19 @@ library(ThorsonUtilities)
 library(VAST)
 
 # This is where all runs will be located
-DateFile = paste(getwd(),'/',Sys.Date(),'_EBSpollock_Mesh_nx=250/',sep='')
+DateFile = paste(getwd(),'/',Sys.Date(),'_EBSpollock_Mesh_nx=100/',sep='')
   dir.create(DateFile)
 
 ###############
 # Settings
 ###############
 
-  Data_Set = c("Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Aleutian_islands_POP", "Sim")[2]
+  Data_Set = c("Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Aleutian_islands_POP", "Sim")[6]
   Sim_Settings = list("Species_Set"=1:100, "Nyears"=10, "Nsamp_per_year"=600, "Depth_km"=-1, "Depth_km2"=-1, "Dist_sqrtkm"=0, "SigmaO1"=0.5, "SigmaO2"=0.5, "SigmaE1"=0.5, "SigmaE2"=0.5, "SigmaVY1"=0.05, "Sigma_VY2"=0.05, "Range1"=1000, "Range2"=500, "SigmaM"=1)
   Version = "VAST_v1_8_0"
   Method = c("Grid", "Mesh")[2]
   grid_size_km = 50
-  n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
+  n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
   FieldConfig = c("Omega1"=1, "Epsilon1"=1, "Omega2"=1, "Epsilon2"=1) # 1=Presence-absence; 2=Density given presence; #Epsilon=Spatio-temporal; #Omega=Spatial
   RhoConfig = c("Beta1"=0, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0) # Structure for beta or epsilon over time: 0=None (default); 1=WhiteNoise; 2=RandomWalk; 3=Constant
   VesselConfig = c("Vessel"=0, "VesselYear"=0)
@@ -173,16 +173,14 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_EBSpollock_Mesh_nx=250/',sep='')
 ################
 
   # Make TMB data list
-  TmbData = Data_Fn("Version"=Version, "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=ObsModel, "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(Data_Geostat[,'Vessel'])-1, "s_i"=Data_Geostat[,'knot_i']-1, "t_i"=Data_Geostat[,'Year'], "a_xl"=Spatial_List$a_xl, "MeshList"=Spatial_List$MeshList, "GridList"=Spatial_List$GridList, "Method"=Spatial_List$Method )
+  TmbData = Data_Fn("Version"=Version, "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=ObsModel, "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(Data_Geostat[,'Vessel'])-1, "s_i"=Data_Geostat[,'knot_i']-1, "t_i"=Data_Geostat[,'Year'], "a_xl"=Spatial_List$a_xl, "MeshList"=Spatial_List$MeshList, "GridList"=Spatial_List$GridList, "Method"=Spatial_List$Method, "Options"=c(SD_site_density=0, SD_site_logdensity=1, Calculate_Range=0, Calculate_evenness=0, Calculate_effective_area=0, Calculate_Cov_SE=0) )
 
   # Make TMB object
-  #dyn.unload( paste0(DateFile,"/",dynlib(TMB:::getUserDLL())) )
-  #TmbDir = "C:/Users/James.Thorson/Desktop/Project_git/VAST/inst/executables/"
   TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x)
   Obj = TmbList[["Obj"]]
 
   # Run model
-  Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=FALSE, savedir=DateFile, bias.correct=FALSE )
+  Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=FALSE )
   Report = Obj$report()
 
   # Save stuff
@@ -193,16 +191,16 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_EBSpollock_Mesh_nx=250/',sep='')
 # Make diagnostic plots
 ################
 
+  # Plot settings
+  Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
+  Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
+
   # Plot Anisotropy  
   SpatialDeltaGLMM::PlotAniso_Fn( FileName=paste0(DateFile,"Aniso.png"), Report=Report, TmbData=TmbData )
 
   # Plot surface
-  Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
-  Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
   Dim = c( "Nrow"=ceiling(sqrt(length(Years2Include))), "Ncol"=ceiling(length(Years2Include)/ceiling(sqrt(length(Years2Include)))) )
-  par( mfrow=Dim )
   MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( "Region"=Region, "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap, "Extrapolation_List"=Extrapolation_List )
-  SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set=3, MappingDetails=MapDetails_List[["MappingDetails"]], Report=list("D_xt"=Report$D_xct[,1,]), PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=paste0(DateFile,"Field_"), Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), Cex=MapDetails_List[["Cex"]], cex=1.8)
 
   # Plot index
   SpatialDeltaGLMM::PlotIndex_Fn( DirName=DateFile, TmbData=TmbData, Sdreport=Opt$SD, Year_Set=sort(unique(Data_Geostat[,'Year'])), strata_names=strata.limits[,1], use_biascorr=TRUE )
