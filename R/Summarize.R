@@ -1,7 +1,7 @@
 
 #' Summarize and explain results
 #'
-#' \code{Summary} is intended to help document results, by providing explanation for outputs from \code{obj$report()}
+#' \code{Summarize} is intended to help document results, by providing explanation for outputs from \code{obj$report()}
 #'
 #' @param obj the TMB object after it has been previously optimized
 
@@ -15,7 +15,7 @@
 #' Please post on the GitHub issue tracker if you'd like for another specific output to be added and documented here
 
 #' @export
-Summary = function( obj ){
+Summarize = function( obj ){
 
   # extract elements
   report = obj$report()

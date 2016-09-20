@@ -86,6 +86,10 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_3species_EBS_Mesh/',sep='')
 # Make diagnostic plots
 ################
 
+  # Settings
+  Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
+  Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
+
   # Plot Anisotropy  
   SpatialDeltaGLMM::PlotAniso_Fn( FileName=paste0(DateFile,"Aniso.png"), Report=Report, TmbData=TmbData )
 
@@ -99,11 +103,8 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_3species_EBS_Mesh/',sep='')
   SpatialDeltaGLMM::PlotIndex_Fn( DirName=DateFile, TmbData=TmbData, Sdreport=Opt$SD, Year_Set=sort(unique(Data_Geostat[,'Year'])), strata_names=strata.limits[,1], category_names=levels(DF[,'Sci']), use_biascorr=TRUE )
 
   # Plot surface
-  Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
-  Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
-  Dim = c( "Nrow"=ceiling(sqrt(length(Years2Include))), "Ncol"=ceiling(length(Years2Include)/ceiling(sqrt(length(Years2Include)))) )
   MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( "Region"=Region, "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap, "Extrapolation_List"=Extrapolation_List )
-  SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set=1:3, MappingDetails=MapDetails_List[["MappingDetails"]], Report=Report, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=paste0(DateFile,"Field_"), Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], category_names=levels(DF[,'Sci']), mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), Cex=MapDetails_List[["Cex"]], cex=1.8, Legend=MapDetails_List[["Legend"]])
+  SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set=1:3, MappingDetails=MapDetails_List[["MappingDetails"]], Report=Report, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=paste0(DateFile,"Field_"), Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], category_names=levels(DF[,'Sci']), mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), Cex=MapDetails_List[["Cex"]], cex=1.8, Legend=MapDetails_List[["Legend"]], zone=MapDetails_List[["Zone"]])
     #
 
   
