@@ -55,6 +55,8 @@ Plot_Overdispersion = function( filename1, filename2, Data, ParHat, Report, SD=N
           if(j1!=j2) plot( x=Mat[,j1], y=Mat[,j2], xlab="", ylab="", xaxt="n", yaxt="n" )
         }}
       dev.off()
+    }else{
+      message( "No overdispersion for ", c("presence/absence","positive catch rates")[i], " component so not generating output...")
     }
   }
 }

@@ -94,6 +94,8 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
       print( Prop_nonzero )
       stop("Some years and/or categories have either all or no encounters, and this is not permissible when ObsModel['Link']=0")
     }
+    if( length(OverdispersionConfig)!=2 ) stop("length(OverdispersionConfig)!=2")
+    if( length(ObsModel)!=2 ) stop("length(ObsModel)!=2")
   }
 
   # Check for bad data entry

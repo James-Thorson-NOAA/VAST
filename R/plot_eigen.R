@@ -2,6 +2,7 @@
 #' @export
 plot_eigen = function( Cov, which2plot=1:min(3,ncol(Cov)), names=1:nrow(Cov), digits=2, las=2, add=FALSE, ... ){
   Eigen = eigen(Cov)
+  rownames( Eigen$vectors ) = names
   if(add==FALSE) par( mfrow=par()$mfrow, oma=par()$oma, mar=par()$mar, tck=par()$tck )
   for( cI in which2plot ){
     plot( 1, type="n", xlim=c(0.5,ncol(Cov)+0.5), ylim=c(-1,1.2), xlab="", ylab="", xaxt="n", ... )

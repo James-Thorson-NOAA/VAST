@@ -33,7 +33,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_EBSpollock_Mesh_nx=100/',sep='')
   n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
   FieldConfig = c("Omega1"=1, "Epsilon1"=1, "Omega2"=1, "Epsilon2"=1) # 1=Presence-absence; 2=Density given presence; #Epsilon=Spatio-temporal; #Omega=Spatial
   RhoConfig = c("Beta1"=0, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0) # Structure for beta or epsilon over time: 0=None (default); 1=WhiteNoise; 2=RandomWalk; 3=Constant
-  VesselConfig = c("Vessel"=0, "VesselYear"=0)
+  OverdispersionConfig = c("Vessel"=0, "VesselYear"=0)
   ObsModel = c(2,0)  # 0=normal (log-link); 1=lognormal; 2=gamma; 4=ZANB; 5=ZINB; 11=lognormal-mixture; 12=gamma-mixture
   Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )     # Samples: Do K-means on trawl locs; Domain: Do K-means on extrapolation grid
 
@@ -70,7 +70,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_EBSpollock_Mesh_nx=100/',sep='')
   }
 
   # Save options for future records
-  Record = ThorsonUtilities::bundlelist( c("Data_Set","Sim_Settings","Version","Method","grid_size_km","n_x","FieldConfig","RhoConfig","VesselConfig","ObsModel","Kmeans_Config") )
+  Record = ThorsonUtilities::bundlelist( c("Data_Set","Sim_Settings","Version","Method","grid_size_km","n_x","FieldConfig","RhoConfig","OverdispersionConfig","ObsModel","Kmeans_Config") )
   capture.output( Record, file=paste0(DateFile,"Record.txt"))
 
 ################
@@ -173,7 +173,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_EBSpollock_Mesh_nx=100/',sep='')
 ################
 
   # Make TMB data list
-  TmbData = Data_Fn("Version"=Version, "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=ObsModel, "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(Data_Geostat[,'Vessel'])-1, "s_i"=Data_Geostat[,'knot_i']-1, "t_i"=Data_Geostat[,'Year'], "a_xl"=Spatial_List$a_xl, "MeshList"=Spatial_List$MeshList, "GridList"=Spatial_List$GridList, "Method"=Spatial_List$Method, "Options"=c(SD_site_density=0, SD_site_logdensity=1, Calculate_Range=0, Calculate_evenness=0, Calculate_effective_area=0, Calculate_Cov_SE=0) )
+  TmbData = Data_Fn("Version"=Version, "FieldConfig"=FieldConfig, "OverdispersionConfig"=OverdispersionConfig, "RhoConfig"=RhoConfig, "ObsModel"=ObsModel, "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(Data_Geostat[,'Vessel'])-1, "s_i"=Data_Geostat[,'knot_i']-1, "t_i"=Data_Geostat[,'Year'], "a_xl"=Spatial_List$a_xl, "MeshList"=Spatial_List$MeshList, "GridList"=Spatial_List$GridList, "Method"=Spatial_List$Method, "Options"=c(SD_site_density=0, SD_site_logdensity=1, Calculate_Range=0, Calculate_evenness=0, Calculate_effective_area=0, Calculate_Cov_SE=0) )
 
   # Make TMB object
   TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x)
