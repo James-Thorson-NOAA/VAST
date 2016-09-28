@@ -5,8 +5,8 @@
 \title{Plot factor-decomposition of covariance}
 \usage{
 Plot_factors(Report, ParHat, Data, SD, Year_Set = 1:dim(Report$D_xct)[3],
-  category_names = 1:dim(Report$D_xct)[2], Dim_year = NULL,
-  Dim_species = NULL, plotdir = paste0(getwd(), "/"))
+  category_names = 1:dim(Report$D_xct)[2], mapdetails_list = NULL,
+  Dim_year = NULL, Dim_species = NULL, plotdir = paste0(getwd(), "/"))
 }
 \arguments{
 \item{Report}{output report, e.g., from \code{Report <- obj$report()}}
@@ -21,11 +21,15 @@ Plot_factors(Report, ParHat, Data, SD, Year_Set = 1:dim(Report$D_xct)[3],
 
 \item{category_names}{character-vector listing name for each category}
 
+\item{mapdetails_list}{output from \code{SpatialDeltaGLMM::MapDetails_Fn}}
+
 \item{Dim_year}{Plotting dimension (row,column) for plot of years (default: square with sufficient size for number of years)}
 
 \item{Dim_species}{Plotting dimension (row,column) for plot of categories (default: square with sufficient size for number of categories)}
 
 \item{plotdir}{directory (absolute path) for plots}
+
+\item{Dim_species}{Plotting dimension (row,column) for plot of categories (default: square with sufficient size for number of categories)}
 }
 \description{
 \code{Plot_factors} plots factor loadings, average spatial factors, and spatio-temporal factors
