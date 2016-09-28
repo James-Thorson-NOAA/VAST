@@ -13,6 +13,9 @@ calc_cov = function( L_z, n_f, n_c ){
     return( L_rc)
   }
 
+  if( n_f<0 ){
+    stop("No covariance when n_f<0, i.e., when a component is turned off")
+  }
   if( n_f==0 ){
     if( length(L_z)!=2 ) stop("Problem with length of L_z given that n_f=0")
     Dist_cc = outer( 1:n_c, 1:n_c, FUN=function(a,b){abs(a-b)})

@@ -28,29 +28,31 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=1:dim(Report$D_xct)[
     # Variable names
     Par_name = c("Omega1", "Epsilon1", "Omega2", "Epsilon2")[i]
     if(Par_name %in% c("Epsilon1","Epsilon2")) Var_name = paste0(Par_name,"_sct")
-    if(Par_name %in% c("Omega1","Omega2")) Var_name = paste0(Par_name,"_st")
+    if(Par_name %in% c("Omega1","Omega2")) Var_name = paste0(Par_name,"_sc")
 
     # Continue if component is included
-    if( FieldConfig[[Par_name]]>0 ){
-      # Get covariance
+    if( TmbData[["FieldConfig"]][[Par_name]]>0 ){
+      # Get covariance #
       # Cov_jj=Cov_List[[paste0("Cov_",tolower(Par_name))]][,,1]; Psi=Report[[Var_name]]; RotationMethod="PCA"; testcutoff=1e-4
-      Var_rot = SpatialDFA::Rotate_Fn( Cov_jj=Cov_List[[paste0("Cov_",tolower(Par_name))]][,,1], Psi=Report[[Var_name]], RotationMethod="PCA", testcutoff=1e-4 )
-
-      # Plot factors by year
-      if( Par_name %in% c("Epsilon1","Epsilon2")){
-        SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set=c(NA,6,NA,7)[i], MappingDetails=mapdetails_list[["MappingDetails"]], Report=list("D_xct"=Report$D_xct,"Epsilon1_sct"=Var_rot$Psi_rot,"Epsilon2_sct"=Var_rot$Psi_rot), PlotDF=mapdetails_list[["PlotDF"]], MapSizeRatio=mapdetails_list[["MapSizeRatio"]], Xlim=mapdetails_list[["Xlim"]], Ylim=mapdetails_list[["Ylim"]], FileName=plotdir, Year_Set=Year_Set, Rotate=mapdetails_list[["Rotate"]], category_names=paste0("Factor_",1:length(category_names)), mar=c(0,0,2,0), oma=c(1.5,1.5,0,0), Cex=mapdetails_list[["Cex"]], cex=1.8, mfrow=Dim_year, cex.main=1.0, Legend=mapdetails_list[["Legend"]], zone=mapdetails_list[["Zone"]], plot_legend_fig=FALSE)
-      }  #
+      Var_rot = SpatialDFA::Rotate_Fn( Cov_jj=Cov_List[[paste0("Cov_",tolower(Par_name))]][,,'Estimate'], Psi=Report[[Var_name]], RotationMethod="PCA", testcutoff=1e-4 )
 
       # Plot loadings
       png( file=paste0(plotdir,"Factor_loadings--",Par_name,".png"), width=Dim_species[2]*2.5, height=Dim_species[1]*2.5, units="in", res=200 )
         par( mfrow=Dim_species, mar=c(0,2,2,0) )
-        for( cI in 1:length(Species_Set)) SpatialDFA::PlotLoadings( Var_rot$L_pj_rot, whichfactor=cI )
+        for( cI in 1:length(category_names)) SpatialDFA::PlotLoadings( Var_rot$L_pj_rot, whichfactor=cI )
       dev.off()
 
-      # Plot loadings
-      if(Par_name %in% c("Epsilon1","Epsilon2")) Mat_sc = apply(Var_rot$Psi_rot, MARGIN=1:2, FUN=mean)
-      if(Par_name %in% c("Omega1","Omega2")) Mat_sc = Var_rot$Psi_rot
-      SpatialDeltaGLMM:::PlotMap_Fn( MappingDetails=mapdetails_list[["MappingDetails"]], Mat=Mat_sc, PlotDF=mapdetails_list[["PlotDF"]], MapSizeRatio=mapdetails_list[["MapSizeRatio"]], Xlim=mapdetails_list[["Xlim"]], Ylim=mapdetails_list[["Ylim"]], FileName=paste0(plotdir,"Factor_maps--",Par_name), Year_Set=paste0("Factor_",1:length(Species_Set)), Rotate=mapdetails_list[["Rotate"]], zone=mapdetails_list[["Zone"]], mar=c(0,0,2,0), oma=c(2.5,2.5,0,0), Cex=0.01, mfrow=Dim_species, pch=20, Legend=list(use=TRUE, x=c(65,75), y=c(35,65)), plot_legend_fig=FALSE)
+      # Plot factors
+      if( !is.null(mapdetails_list) ){
+        # Plot factors by year
+        if( Par_name %in% c("Epsilon1","Epsilon2")){
+          SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set=c(NA,6,NA,7)[i], MappingDetails=mapdetails_list[["MappingDetails"]], Report=list("D_xct"=Report$D_xct,"Epsilon1_sct"=Var_rot$Psi_rot,"Epsilon2_sct"=Var_rot$Psi_rot), PlotDF=mapdetails_list[["PlotDF"]], MapSizeRatio=mapdetails_list[["MapSizeRatio"]], Xlim=mapdetails_list[["Xlim"]], Ylim=mapdetails_list[["Ylim"]], FileName=plotdir, Year_Set=Year_Set, Rotate=mapdetails_list[["Rotate"]], category_names=paste0("Factor_",1:length(category_names)), mar=c(0,0,2,0), oma=c(1.5,1.5,0,0), Cex=mapdetails_list[["Cex"]], cex=1.8, mfrow=Dim_year, cex.main=1.0, Legend=mapdetails_list[["Legend"]], zone=mapdetails_list[["Zone"]], plot_legend_fig=FALSE)
+        }  #
+
+        # Plot average factors across years
+        Mat_sc = apply(Var_rot$Psi_rot, MARGIN=1:2, FUN=mean)
+        SpatialDeltaGLMM:::PlotMap_Fn( MappingDetails=mapdetails_list[["MappingDetails"]], Mat=Mat_sc, PlotDF=mapdetails_list[["PlotDF"]], MapSizeRatio=mapdetails_list[["MapSizeRatio"]], Xlim=mapdetails_list[["Xlim"]], Ylim=mapdetails_list[["Ylim"]], FileName=paste0(plotdir,"Factor_maps--",Par_name), Year_Set=paste0("Factor_",1:length(category_names)), Rotate=mapdetails_list[["Rotate"]], zone=mapdetails_list[["Zone"]], mar=c(0,0,2,0), oma=c(2.5,2.5,0,0), Cex=0.01, mfrow=Dim_species, pch=20, Legend=list(use=TRUE, x=c(65,75), y=c(35,65)), plot_legend_fig=FALSE)
+      }
     }  #
   }
 }

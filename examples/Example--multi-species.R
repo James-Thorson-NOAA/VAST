@@ -89,12 +89,13 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_3species_EBS_Mesh/',sep='')
   # Settings
   Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
   Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
+  MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( "Region"=Region, "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap, "Extrapolation_List"=Extrapolation_List )
 
   # Plot Anisotropy  
   SpatialDeltaGLMM::PlotAniso_Fn( FileName=paste0(DateFile,"Aniso.png"), Report=Report, TmbData=TmbData )
 
   # Plot covariances
-  Cov_List = Summarize_Covariance( report=Report, parhat=Obj$env$parList(), tmbdata=TmbData, sd_report=Opt$SD, plot_cor=FALSE, names_set=levels(DF[,'Sci']), figname=paste0(DateFile,"Spatio-temporal_covariances"), plotTF=c("Omega1"=TRUE,"Epsilon1"=TRUE,"Omega2"=TRUE,"Epsilon2"=TRUE), mgp=c(2,0.5,0), tck=-0.02, oma=c(0,5,2,2) )
+  Cov_List = Summarize_Covariance( Report=Report, ParHat=Obj$env$parList(), Data=TmbData, SD=Opt$SD, plot_cor=FALSE, category_names=levels(DF[,'Sci']), plotdir=DateFile, plotTF=FieldConfig, mgp=c(2,0.5,0), tck=-0.02, oma=c(0,5,2,2) )
 
   # Plot overdispersion
   Plot_Overdispersion( filename1=paste0(DateDir,"Overdispersion"), filename2=paste0(DateDir,"Overdispersion--panel"), Data=TmbData, ParHat=ParHat, Report=Report, ControlList1=list("Width"=5, "Height"=10, "Res"=200, "Units"='in'), ControlList2=list("Width"=TmbData$n_c, "Height"=TmbData$n_c, "Res"=200, "Units"='in') )
@@ -106,7 +107,10 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_3species_EBS_Mesh/',sep='')
   SpatialDeltaGLMM::Plot_range_shifts( PlotDir=DateFile, TmbData=TmbData, Sdreport=Opt$SD, Report=Report, Znames=colnames(TmbData$Z_xm), category_names=levels(DF[,'Sci']))
 
   # Plot surface
-  MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( "Region"=Region, "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap, "Extrapolation_List"=Extrapolation_List )
   SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set=3, MappingDetails=MapDetails_List[["MappingDetails"]], Report=Report, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=paste0(DateFile,"Field_"), Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], category_names=levels(DF[,'Sci']), mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), Cex=MapDetails_List[["Cex"]], cex=1.8, Legend=MapDetails_List[["Legend"]], zone=MapDetails_List[["Zone"]])
 
+  # Plot factors
+  # Year_Set=1:dim(Report$D_xct)[3]; Dim_year=NULL; Dim_species=NULL
+  # Report=Report; ParHat=Obj$env$parList(); Data=TmbData; SD=Opt$SD; mapdetails_list=MapDetails_List; category_names=levels(DF[,'Sci']); plotdir=DateFile
+  Plot_factors( Report=Report, ParHat=Obj$env$parList(), Data=TmbData, SD=Opt$SD, mapdetails_list=MapDetails_List, Year_Set=Year_Set, category_names=levels(DF[,'Sci']), plotdir=DateFile )
   
