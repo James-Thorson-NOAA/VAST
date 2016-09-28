@@ -20,7 +20,8 @@
 #' }
 
 #' @export
-Plot_Overdispersion = function( filename1, filename2, Data, ParHat, Report, SD=NULL, Map=NULL, ControlList1=list("Width"=8, "Height"=4, "Res"=200, "Units"='in'), ControlList2=ControlList1 ){
+Plot_Overdispersion = function( filename1, filename2, Data, ParHat, Report, SD=NULL, Map=NULL,
+  ControlList1=list("Width"=8, "Height"=4, "Res"=200, "Units"='in'), ControlList2=ControlList1 ){
 
   # Loop through components
   for(i in 1:2){
