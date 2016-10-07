@@ -13,11 +13,12 @@
 #' @param mgp passed to \code{par}
 #' @param tck passed to \code{par}
 #' @param oma passed to \code{par}
+#' @param ... passed to \code{ThorsonUtilities::save_fig}
 
 #' @export
 Summarize_Covariance = function( Report, Data, ParHat, SD=NULL, category_order=1:Data$n_c, category_names=1:Data$n_c,
   plotdir=paste0(getwd(),"/"), figname="Cov", plotTF=c("Omega1"=TRUE,"Epsilon1"=TRUE,"Omega2"=TRUE,"Epsilon2"=TRUE), plot_cor=TRUE,
-  mgp=c(2,0.5,0), tck=-0.02, oma=c(0,5,2,0)){
+  mgp=c(2,0.5,0), tck=-0.02, oma=c(0,5,2,0), ...){
 
   # Object to return
   Return = list()
@@ -78,12 +79,12 @@ Summarize_Covariance = function( Report, Data, ParHat, SD=NULL, category_order=1
     }
 
     # Plot analytic
-    png( file=paste0(plotdir,figname,"--Analytic.png"), width=Dim[2]*4+1, height=Dim[1]*4, units="in", res=200 )
+    ThorsonUtilities::save_fig( file=paste0(plotdir,figname,"--Analytic.png"), width=Dim[2]*4+1, height=Dim[1]*4, ... )
       par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
       for(i in 1:4 ){      #
         if( i %in% which(plotTF>0) ){
           Cov_cc = VAST:::calc_cov( L_z=ParHat[c('L_omega1_z','L_epsilon1_z','L_omega2_z','L_epsilon2_z')][[i]], n_f=Data$FieldConfig[i], n_c=Data$n_c )
-          VAST:::plot_cov( Cov=convert(Cov_cc)[category_order,category_order], names=list(category_names[category_order],NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
+          plot_cov( Cov=convert(Cov_cc)[category_order,category_order], names=list(category_names[category_order],NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
           if(i==1 | Dim[1]==1) mtext(side=3, text="Spatial", line=1.5, font=2)
           if(i==2 | Dim[1]==1) mtext(side=3, text="Spatio-temporal", line=1.5, font=2)
           if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text=ifelse(length(Data$ObsModel)==1||Data$ObsModel[2]==0,"Encounter probability","Component #1"), line=0.5, font=2)
@@ -97,14 +98,14 @@ Summarize_Covariance = function( Report, Data, ParHat, SD=NULL, category_order=1
     dev.off()
 
     # Plot sample
-    png( file=paste0(plotdir,figname,"--Sample.png"), width=Dim[2]*4+1, height=Dim[1]*4, units="in", res=200 )
+    ThorsonUtilities::save_fig( file=paste0(plotdir,figname,"--Sample.png"), width=Dim[2]*4+1, height=Dim[1]*4, ... )
       par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
       for(i in which(plotTF>0) ){
         if(i==1) Cov_cc = cov(Report$Omega1_sc)
         if(i==2) Cov_cc = cov(apply(Report$Epsilon1_sct,MARGIN=2,FUN=as.vector))
         if(i==3) Cov_cc = cov(Report$Omega2_sc)
         if(i==4) Cov_cc = cov(apply(Report$Epsilon2_sct,MARGIN=2,FUN=as.vector))
-        VAST:::plot_cov( Cov=convert(Cov_cc)[category_order,category_order], names=list(category_names[category_order],NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
+        plot_cov( Cov=convert(Cov_cc)[category_order,category_order], names=list(category_names[category_order],NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
         if(i==1 | Dim[1]==1) mtext(side=3, text="Spatial", line=1.5, font=2)
         if(i==2 | Dim[1]==1) mtext(side=3, text="Spatio-temporal", line=1.5, font=2)
         if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text=ifelse(length(Data$ObsModel)==1||Data$ObsModel[2]==0,"Encounter probability","Component #1"), line=0.5, font=2)
