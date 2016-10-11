@@ -48,6 +48,8 @@ Summarize_Covariance = function( Report, Data, ParHat, SD=NULL, category_order=1
       }else{
         Cov = Cor = NULL
       }
+    }else{
+      Cov = Cor = NULL
     }
 
     # Extract estimates
