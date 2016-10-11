@@ -27,9 +27,7 @@ Plot_factors(Report, ParHat, Data, SD, Year_Set = 1:dim(Report$D_xct)[3],
 
 \item{Dim_species}{Plotting dimension (row,column) for plot of categories (default: square with sufficient size for number of categories)}
 
-\item{plotdir}{directory (absolute path) for plots}
-
-\item{Dim_species}{Plotting dimension (row,column) for plot of categories (default: square with sufficient size for number of categories)}
+\item{plotdir}{directory for saving plots}
 }
 \description{
 \code{Plot_factors} plots factor loadings, average spatial factors, and spatio-temporal factors
