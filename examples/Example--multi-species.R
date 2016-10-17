@@ -26,7 +26,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_3species_EBS_Mesh/',sep='')
 # Settings
 ###############
 
-  Version = "VAST_v1_8_0"
+  Version = "VAST_v1_9_0"
   Method = c("Grid", "Mesh")[2]
   grid_size_km = 50
   n_x = c(50, 100, 250, 500, 1000, 2000)[1] # Number of stations
@@ -36,7 +36,7 @@ DateFile = paste(getwd(),'/',Sys.Date(),'_3species_EBS_Mesh/',sep='')
   ObsModel = c(2,0)  # 0=normal (log-link); 1=lognormal; 2=gamma; 4=ZANB; 5=ZINB; 11=lognormal-mixture; 12=gamma-mixture
   Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )     # Samples: Do K-means on trawl locs; Domain: Do K-means on extrapolation grid
   BiasCorr = FALSE
-  Options =  c("SD_site_density"=0, "SD_site_logdensity"=0, "Calculate_Range"=1, "Calculate_evenness"=0, "Calculate_effective_area"=1, "Calculate_Cov_SE"=0)
+  Options =  c("SD_site_density"=0, "SD_site_logdensity"=0, "Calculate_Range"=1, "Calculate_evenness"=0, "Calculate_effective_area"=1, "Calculate_Cov_SE"=0, 'Calculate_Synchrony'=0, 'Calculate_Coherence'=0)
 
   # Determine region
   Region = "Eastern_Bering_Sea"
