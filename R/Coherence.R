@@ -60,7 +60,7 @@ Coherence = function( Report, Data, covhat=NULL, yearbounds_zz=matrix(c(1,Data$n
   for( xI in 1:Data$n_x){
     # Variance for each category
     for( cI in 1:Data$n_c ){
-      for( tI in 1:Data$n_t ) temp_xt[xI,tI] = D_xct[xI,cI,tI]
+      for( tI in 1:Data$n_t ) temp_xt[xI,tI] = Report$D_xct[xI,cI,tI]
       varD_xcz[xI,cI,zI] = var(temp_xt[xI,][yearbounds_zz[zI,1]:yearbounds_zz[zI,2]])
     }
     # Variance for combined across categories
