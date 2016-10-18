@@ -631,7 +631,8 @@ Type objective_function<Type>::operator() ()
     // Eigendecomposition see: https://github.com/kaskr/adcomp/issues/144#issuecomment-228426834
     using namespace Eigen;
     // Spatio-temporal covariance (summation only works when ObsModel[1]=1)
-    Matrix<Type,Dynamic,Dynamic> CovHat( n_c, n_c );
+    //Matrix<Type,Dynamic,Dynamic> CovHat( n_c, n_c );
+    matrix<Type> CovHat( n_c, n_c );
     CovHat.setZero();
     if( FieldConfig(1)>0 ) CovHat += loadings_matrix(L_epsilon1_z, n_c, FieldConfig(1)) * loadings_matrix(L_epsilon1_z, n_c, FieldConfig(1)).transpose();
     if( FieldConfig(3)>0 ) CovHat += loadings_matrix(L_epsilon2_z, n_c, FieldConfig(3)) * loadings_matrix(L_epsilon2_z, n_c, FieldConfig(3)).transpose();
@@ -649,15 +650,14 @@ Type objective_function<Type>::operator() ()
     Type log_totalvar_CovHat = log(totalvar_CovHat);
     log_diag_CovHat = log(diag_CovHat);
     // Reporting
-    //REPORT( CovHat );
-    REPORT( eigenvalues_c );
+    REPORT( CovHat );
     REPORT( psi );
-    REPORT( diag_CovHat );
     ADREPORT( psi );
     ADREPORT( diag_CovHat );
     ADREPORT( totalvar_CovHat );
     ADREPORT( log_totalvar_CovHat );
     ADREPORT( log_diag_CovHat );
+    ADREPORT( eigenvalues_c );
   }
 
   // Diagnostic output

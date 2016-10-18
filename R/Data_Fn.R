@@ -103,6 +103,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     if( length(ObsModel)!=2 ) stop("length(ObsModel)!=2")
     if( ncol(yearbounds_zz)!=2 ) stop("yearbounds_zz must have two columns")
     if( Options['Calculate_Coherence']==1 & ObsModel[2]==0 ) stop("Calculating coherence only makes sense when 'ObsModel[2]=1'")
+    if( any(yearbounds_zz)<0 | any(yearbounds_zz)>=max(n_t) ) stop("yearbounds_zz exceeds bounds for modeled years")
   }
 
   # Check for bad data entry
