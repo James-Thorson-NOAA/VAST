@@ -633,7 +633,8 @@ Type objective_function<Type>::operator() ()
     // Spatio-temporal covariance (summation only works when ObsModel[1]=1)
     //Matrix<Type,Dynamic,Dynamic> CovHat( n_c, n_c );
     matrix<Type> CovHat( n_c, n_c );
-    CovHat.setZero();
+    CovHat.setIdentity();
+    CovHat *= 0.00000001;      // SD = 1e-4
     if( FieldConfig(1)>0 ) CovHat += loadings_matrix(L_epsilon1_z, n_c, FieldConfig(1)) * loadings_matrix(L_epsilon1_z, n_c, FieldConfig(1)).transpose();
     if( FieldConfig(3)>0 ) CovHat += loadings_matrix(L_epsilon2_z, n_c, FieldConfig(3)) * loadings_matrix(L_epsilon2_z, n_c, FieldConfig(3)).transpose();
     // Coherence ranges from 0 (all factors are equal) to 1 (first factor explains all variance)
