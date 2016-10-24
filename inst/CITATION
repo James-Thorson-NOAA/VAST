@@ -1,0 +1,82 @@
+citHeader("Please cite 2016 (ICES J. Mar. Sci. J. Cons.) if using the package; 
+2016 (Glob. Ecol. Biogeogr) if exploring factor decomposition of spatio-temporal variation;
+2015 (ICES J. Mar. Sci. J. Cons.) if calculating an index of abundance; 
+2016 (Methods Ecol. Evol.) if using the center-of-gravity metric;
+2016 (Fish. Res.) if using the bias-correction feature;
+2016 (Proc R Soc B) if using the effective-area-occupied metric.")
+
+citEntry(entry = "Article",
+ title = "Geostatistical delta-generalized linear mixed models improve precision for estimated abundance indices for West Coast groundfishes",
+ journal = "ICES J. Mar. Sci. J. Cons",
+ year = "2016",
+ author = "J.T. Thorson, L.A.K. Barnett",
+ textVersion = "Thorson, J.T., and Barnett, L.A.K. In press. Comparing estimates of abundance trends and distribution shifts using single- and multispecies models of fishes and biogenic habitat. ICES J. Mar. Sci. J. Cons" 
+)
+
+citEntry(entry = "Article",
+ title = "Joint dynamic species distribution models: a tool for community ordination and spatiotemporal monitoring",
+ journal = "Glob. Ecol. Biogeogr",
+ volume =  "25",
+ number = "9",
+ pages = "1144-1158",
+ year = "2016",
+ doi = "10.1111/geb.12464",
+ url = "http://onlinelibrary.wiley.com/doi/10.1111/geb.12464/abstract",
+ author = "J.T. Thorson, J.N Ianelli, E. Larsen, L. Ries, M.D. Scheuerell, C. Szuwalski, and E. Zipkin",
+ textVersion = "Thorson, J.T., Ianelli, J.N., Larsen, E., Ries, L., Scheuerell, M.D., Szuwalski, C., and Zipkin, E. 2016. Joint dynamic species distribution models: a tool for community ordination and spatiotemporal monitoring. Glob. Ecol. Biogeogr. 25(9): 1144-1158. doi:10.1111/geb.12464. url: http://onlinelibrary.wiley.com/doi/10.1111/geb.12464/abstract" 
+)
+
+citEntry(entry = "Article",
+ title = "Geostatistical delta-generalized linear mixed models improve precision for estimated abundance indices for West Coast groundfishes",
+ journal = "ICES J. Mar. Sci. J. Cons",
+ volume =  "72",
+ number = "5",
+ pages = "1297-1310",
+ year = "2015",
+ doi = "10.1093/icesjms/fsu243",
+ url = "http://icesjms.oxfordjournals.org/content/72/5/1297",
+ author = "J.T. Thorson, A.O. Shelton, E.J. Ward, H.J. Skaug",
+ textVersion = "Thorson, J.T., Shelton, A.O., Ward, E.J., Skaug, H.J., 2015. Geostatistical delta-generalized linear mixed models improve precision for estimated abundance indices for West Coast groundfishes. ICES J. Mar. Sci. J. Cons. 72(5), 1297-1310. doi:10.1093/icesjms/fsu243. URL: http://icesjms.oxfordjournals.org/content/72/5/1297" 
+)
+
+citEntry(
+ entry = "Article",
+ title = "Implementing a generic method for bias correction in statistical models using random effects, with spatial and population dynamics examples",
+ journal = "Fish. Res.",
+ volume =  "175",
+ pages = "66-74",
+ year = "2016",
+ doi = "10.1016/j.fishres.2015.11.016",
+ url = "http://www.sciencedirect.com/science/article/pii/S0165783615301399",
+ author = "J.T. Thorson, K. Kristensen",
+ textVersion = "Thorson, J.T., and Kristensen, K. 2016. Implementing a generic method for bias correction in statistical models using random effects, with spatial and population dynamics examples. Fish. Res. 175: 66-74. doi:10.1016/j.fishres.2015.11.016. url: http://www.sciencedirect.com/science/article/pii/S0165783615301399" 
+)
+
+citEntry(
+ entry = "Article",
+ title = "Model-based inference for estimating shifts in species distribution, area occupied, and center of gravity",
+ journal = "Methods Ecol. Evol.",
+ volume =  "7",
+ number = "8",
+ pages = "990-1008",
+ year = "2016",
+ doi = "10.1111/2041-210X.12567",
+ url = "http://onlinelibrary.wiley.com/doi/10.1111/2041-210X.12567/full",
+ author = "J.T. Thorson, M.L. Pinksy, E.J. Ward",
+ textVersion = "Thorson, J.T., Pinsky, M.L., Ward, E.J., 2016. Model-based inference for estimating shifts in species distribution, area occupied, and center of gravity. Methods Ecol. Evol. 7(8), 990-1008.  doi:10.1111/2041-210X.12567.  URL: http://onlinelibrary.wiley.com/doi/10.1111/2041-210X.12567/full"
+)
+
+
+citEntry(
+ entry = "Article",
+ title = "Density-dependent changes in effective area occupied for sea-bottom-associated marine fishes",
+ journal = "Proc R Soc B",
+ volume =  "283",
+ number = "1840",
+ year = "2016",
+ doi = "10.1098/rspb.2016.1853",
+ url = "http://rspb.royalsocietypublishing.org/content/283/1840/20161853",
+ author = "J.T. Thorson, A. Rindorf, J. Gao, D.H. Hanselman, H. Winker",
+ textVersion = "Thorson, J.T., Rindorf, A., Gao, J., Hanselman, D.H., and Winker, H. 2016. Density-dependent changes in effective area occupied for sea-bottom-associated marine fishes. Proc R Soc B 283(1840): 20161853. doi:10.1098/rspb.2016.1853. URL: http://rspb.royalsocietypublishing.org/content/283/1840/20161853."
+)
+
