@@ -57,8 +57,8 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
     # DataList=TmbData                                              # VAST:::
   if( length(Parameters)==1 && Parameters=="generate" ) Parameters = Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
 
-  # Which parameters are turned off                # VAST:::
-  if( length(Map)==1 && Map=="generate" ) Map = Make_Map( TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
+  # Which parameters are turned off                #
+  if( length(Map)==1 && Map=="generate" ) Map = VAST:::Make_Map( TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
 
   # Which are random
   if( length(Random)==1 && Random=="generate" ){

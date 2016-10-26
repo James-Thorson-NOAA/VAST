@@ -4,7 +4,8 @@
 \alias{Coherence}
 \title{Calculate stability metrics}
 \usage{
-Coherence(Report, Data, covhat = NULL, year_set = NULL)
+Coherence(Report, Data, covhat = NULL, yearbounds_zz = matrix(c(1,
+  Data$n_t), nrow = 1))
 }
 \arguments{
 \item{Report}{output report, e.g., from \code{Report <- obj$report()}}
@@ -12,14 +13,12 @@ Coherence(Report, Data, covhat = NULL, year_set = NULL)
 \item{Data}{tagged list of input data}
 
 \item{covhat}{estimated covariance used for calculating coherence}
-
-\item{year_set}{subset of year-indices used when calculating buffering}
 }
 \value{
 Tagged list containing measures of synchrony
 \describe{
-  \item{phi_x}{Synchrony index for each site}
-  \item{phi}{weighted-average of \code{phi_x} weighted by community-abundance at each site}
+  \item{phi_xz}{Synchrony index for each site (x) and each period (row of \code{yearbounds_zz})}
+  \item{phi_z}{weighted-average of \code{phi_xz} for each period, weighted by average community-abundance at each site in that period}
   \item{psi}{Measure of proportion of variance explained by leading eigen-vectors}
   \item{L_c}{Cholesky decomposition of \code{covhat}}
 }
