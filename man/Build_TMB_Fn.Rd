@@ -20,7 +20,7 @@ Build_TMB_Fn(TmbData, Version, Q_Config = TRUE, CovConfig = TRUE,
 
 \item{CovConfig,}{a boolean whether to estimate density covariates (X_xj and X_xtp in the TmbData input) or not}
 
-\item{RhoConfig}{OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals}
+\item{RhoConfig}{OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)}
 
 \item{ConvergeTol,}{OPTIONAL override for TMB convergence criteria}
 
