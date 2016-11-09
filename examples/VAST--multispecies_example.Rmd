@@ -16,10 +16,11 @@ html_document:
 ---
 
 
-```{r set_options, echo=FALSE}
+```{r set_options, echo=FALSE, message=FALSE, warning=FALSE}
 # Width should apply to tidy
 # digits hopefully affects number of digits when using print
 options(width=50, width.cutoff=50, digits = 3) 
+install.packages("pander", repos="http://cran.us.r-project.org")
 ```
 
 ```{r wrap-hook, echo=FALSE}
@@ -45,7 +46,7 @@ This tutorial will walk through a simple example of how to use `VAST` for estima
 
 # Getting started
 
-First, we install VAST.  We also have to install TMB as appropriate for the operating system (see directions elsewhere).
+To install TMB on a windows machine, we need to first install [Rtools](https://cran.r-project.org/bin/windows/Rtools/).  During the installation, please select the option to have Rtools included in your system path.  On other operating systems, it is not necessary to install Rtools.  We then install `VAST`.  
 ```{r load_packages, message=FALSE}
 devtools::install_github("james-thorson/VAST") 
 ```
@@ -63,7 +64,7 @@ library(VAST)
 
 ## Further information
 
-If you have further questions after reading this tutorial, please explore the [GitHub repo](https://github.com/james-thorson/VAST/#description) mainpage, wiki, and glossary.  Also please explore the R help files, e.g., `?PlotIndex_Fn`.  
+If you have further questions after reading this tutorial, please explore the [GitHub repo](https://github.com/james-thorson/VAST/#description) mainpage, wiki, and glossary.  Also please explore the R help files, e.g., e.g., `?Data_Fn` for explanation of data inputs, or `?Param_Fn` for explanation of parameters.
 
 ## Related tools
 
@@ -133,7 +134,7 @@ DateFile = paste0(getwd(),'/VAST_output/')
 
 I also like to save all settings for later reference, although this is not necessary.
 ```{r, tidy=TRUE, linewidth=50}
-Record = ThorsonUtilities::bundlelist( c("Version","Method","grid_size_km","n_x","FieldConfig","RhoConfig","OverdispersionConfig","ObsModel","Kmeans_Config","Region","Species_set","strata.limits") )
+Record = list("Version"=Version,"Method"=Method,"grid_size_km"=grid_size_km,"n_x"=n_x,"FieldConfig"=FieldConfig,"RhoConfig"=RhoConfig,"OverdispersionConfig"=OverdispersionConfig,"ObsModel"=ObsModel,"Kmeans_Config"=Kmeans_Config,"Region"=Region,"Species_set"=Species_set,"strata.limits"=strata.limits)
 save( Record, file=file.path(DateFile,"Record.RData"))
 capture.output( Record, file=paste0(DateFile,"Record.txt"))
 ```

@@ -21,7 +21,6 @@ plot_cov = function( Cov, zlim=NULL, names=1:nrow(Cov), names2=names, ncolors=21
   for(i in 1:nrow(Cov)){
   for(j in 1:nrow(Cov)){
     Label = formatC(Cov[i,j],digits=digits,format="f")
-    #Label = paste0( ifelse(substr(Label,start=1,stop=1)=="-","\u2013",""),  gsub(pattern="-",replacement="",x=Label) )
     Label = ThorsonUtilities::convert_to_unicode( Label, pattern="-", replacement="\u2013" )
     text( y=seq(1,0,length=nrow(Cov))[i], x=seq(0,1,length=nrow(Cov))[j], labels=Label, ...)
   }}

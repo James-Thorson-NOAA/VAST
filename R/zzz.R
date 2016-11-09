@@ -11,10 +11,6 @@
     packageStartupMessage("Installing package: INLA...")
     utils::install.packages("INLA", repos="https://www.math.ntnu.no/inla/R/stable")
   }
-  #if( !"TMB" %in% utils::installed.packages()[,1] ){
-  #  packageStartupMessage("Installing package: TMB...")
-  #  devtools::install_github("kaskr/adcomp/TMB")
-  #}
   if( !"SpatialDeltaGLMM"%in%utils::installed.packages()[,1] || utils::packageVersion("SpatialDeltaGLMM")<3.40 ){
     packageStartupMessage("Installing package: SpatialDeltaGLMM...")
     devtools::install_github("nwfsc-assess/geostatistical_delta-GLMM")

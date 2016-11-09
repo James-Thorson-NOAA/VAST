@@ -187,7 +187,7 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR(s_i);          // Station for each observation
   DATA_IVECTOR(t_i);          // Year for each observation
   DATA_IVECTOR(v_i);          // tows/vessels for each observation (level of factor representing overdispersion)
-  DATA_VECTOR(PredTF_i);          // tows/vessels for each observation (level of factor representing overdispersion)
+  DATA_VECTOR(PredTF_i);          // vector indicating whether an observatino is predictive (1=used for model evaluation) or fitted (0=used for parameter estimation)
   DATA_MATRIX(a_xl);		     // Area for each "real" stratum(km^2) in each stratum
   DATA_MATRIX(X_xj);		    // Covariate design matrix (strata x covariate)
   DATA_ARRAY(X_xtp);		    // Covariate design matrix (strata x covariate)
