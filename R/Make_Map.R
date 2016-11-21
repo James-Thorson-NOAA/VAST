@@ -8,7 +8,8 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
     vec = factor( vec ) 
     return( vec )
   }
-  
+  seq_pos <- function( length.out, from=1 ) seq(from=from, to=length.out, length.out=max(length.out,0))
+
   # Create tagged-list in TMB format for fixing parameters
   Map = list()
   # Configurations of spatial and spatiotemporal error
@@ -137,6 +138,34 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
   if( TmbData$n_c==1 & ("rho_c1" %in% names(TmbParams)) ){
     Map[["rho_c1"]] = factor(NA)
     Map[["rho_c2"]] = factor(NA)
+  }
+
+  # fix variance-ratio for columns of t_iz
+  if( "log_sigmaratio1_z" %in% names(TmbParams) ){
+    Map[["log_sigmaratio1_z"]] = factor( c(NA, seq_pos(length(TmbParams[["log_sigmaratio1_z"]])-1)) )
+  }
+  if( "log_sigmaratio2_z" %in% names(TmbParams) ){
+    Map[["log_sigmaratio2_z"]] = factor( c(NA, seq_pos(length(TmbParams[["log_sigmaratio2_z"]])-1)) )
+  }
+
+  # fix first level of 2nd and higher columns of t_iz
+  if( "t_iz"%in%names(TmbData) && ncol(TmbData$t_iz)>=2 ){
+    # (Re)start map for intercepts
+    if( !("beta1_ct" %in% names(Map)) ){
+      Map[["beta1_ct"]] = 1:prod(dim(TmbParams[["beta1_ct"]]))
+    }else{ Map[["beta1_ct"]] = as.numeric(Map[["beta1_ct"]]) }
+    if( !("beta2_ct" %in% names(Map)) ){
+      Map[["beta2_ct"]] = 1:prod(dim(TmbParams[["beta2_ct"]]))
+    }else{ Map[["beta2_ct"]] = as.numeric(Map[["beta2_ct"]]) }
+    # Add fixed values for lowest value of 2nd and higher columns
+    for( zI in 2:ncol(TmbData$t_iz) ){
+      Which2Fix = min( TmbData$t_iz[,zI] )
+      Map[["beta1_ct"]][Which2Fix+1] = NA
+      Map[["beta2_ct"]][Which2Fix+1] = NA
+    }
+    # Remake as factor
+    Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
+    Map[["beta2_ct"]] = factor(Map[["beta2_ct"]])
   }
 
   # Overdispersion parameters
