@@ -192,6 +192,7 @@ Type objective_function<Type>::operator() ()
   DATA_MATRIX(X_xj);		    // Covariate design matrix (strata x covariate)
   DATA_ARRAY(X_xtp);		    // Covariate design matrix (strata x covariate)
   DATA_MATRIX(Q_ik);        // Catchability matrix (observations x variable)
+  DATA_IMATRIX(t_yz);        // Matrix for time-indices of calculating outputs (abundance index and "derived-quantity")
   DATA_MATRIX(Z_xm);        // Derived quantity matrix
 
   // SPDE objects
@@ -247,7 +248,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_ARRAY(Epsiloninput2_sft);   // Annual variation
 
   // Indices -- i=Observation; j=Covariate; v=Vessel; t=Year; s=Stratum
-  int i,j,v,t,s,c;
+  int i,j,v,t,s,c,y,z;
   
   // Objective function
   vector<Type> jnll_comp(13);
@@ -283,6 +284,10 @@ Type objective_function<Type>::operator() ()
   H(1,0) = ln_H_input(1);
   H(0,1) = ln_H_input(1);
   H(1,1) = (1+ln_H_input(1)*ln_H_input(1)) / exp(ln_H_input(0));
+
+  ////////////////////////
+  // Calculate joint likelihood
+  ////////////////////////
 
   // Random field probability
   Eigen::SparseMatrix<Type> Q1;
@@ -384,7 +389,7 @@ Type objective_function<Type>::operator() ()
     P1_i(i) = Omega1_sc(s_i(i),c_i(i)) + eta1_x(s_i(i)) + zeta1_i(i) + eta1_vc(v_i(i),c_i(i));
     P2_i(i) = Omega2_sc(s_i(i),c_i(i)) + eta2_x(s_i(i)) + zeta2_i(i) + eta2_vc(v_i(i),c_i(i));
     for( int z=0; z<t_iz.row(0).size(); z++ ){
-      if( !isNA(t_iz(i,z)) ){
+      if( t_iz(i,z)>=0 & t_iz(i,z)<n_t ){  // isNA doesn't seem to work for IMATRIX type
         P1_i(i) += beta1_ct(c_i(i),t_iz(i,z)) + Epsilon1_sct(s_i(i),c_i(i),t_iz(i,z))*exp(log_sigmaratio1_z(z)) + eta1_xct(s_i(i),c_i(i),t_iz(i,z));
         P2_i(i) += beta2_ct(c_i(i),t_iz(i,z)) + Epsilon2_sct(s_i(i),c_i(i),t_iz(i,z))*exp(log_sigmaratio2_z(z)) + eta2_xct(s_i(i),c_i(i),t_iz(i,z));
       }
@@ -436,103 +441,118 @@ Type objective_function<Type>::operator() ()
     }
   }
 
+  // Joint likelihood
+  jnll_comp(10) = -1 * (LogProb1_i * (Type(1.0)-PredTF_i)).sum();
+  jnll_comp(11) = -1 * (LogProb2_i * (Type(1.0)-PredTF_i)).sum();
+  jnll = jnll_comp.sum();
+  Type pred_jnll = -1 * ( LogProb1_i*PredTF_i + LogProb2_i*PredTF_i ).sum();
+  REPORT( pred_jnll );
+
+  ////////////////////////
+  // Calculate outputs
+  ////////////////////////
+
+  // Number of outputs
+  int n_y = t_yz.col(0).size();
+
   // Predictive distribution -- ObsModel(4) isn't implemented (it had a bug previously)
   Type a_average = a_i.sum()/a_i.size();
-  array<Type> P1_xct(n_x, n_c, n_t);
-  array<Type> R1_xct(n_x, n_c, n_t);
-  array<Type> P2_xct(n_x, n_c, n_t);
-  array<Type> R2_xct(n_x, n_c, n_t);
-  array<Type> D_xct(n_x, n_c, n_t);
+  array<Type> P1_xcy(n_x, n_c, n_y);
+  array<Type> R1_xcy(n_x, n_c, n_y);
+  array<Type> P2_xcy(n_x, n_c, n_y);
+  array<Type> R2_xcy(n_x, n_c, n_y);
+  array<Type> D_xcy(n_x, n_c, n_y);
   for(int c=0; c<n_c; c++){
-  for(int t=0; t<n_t; t++){
+  for(int y=0; y<n_y; y++){
   for(int x=0; x<n_x; x++){
-    P1_xct(x,c,t) = beta1_ct(c,t) + Omega1_sc(x,c) + Epsilon1_sct(x,c,t) + eta1_x(x) + eta1_xct(x,c,t);
-    P2_xct(x,c,t) =  beta2_ct(c,t) + Omega2_sc(x,c) + Epsilon2_sct(x,c,t) + eta2_x(x) + eta2_xct(x,c,t);
+    // Calculate linear predictors
+    P1_xcy(x,c,y) = Omega1_sc(x,c) + eta1_x(x);
+    P2_xcy(x,c,y) =  Omega2_sc(x,c) + eta2_x(x);
+    for( int z=0; z<t_yz.row(0).size(); z++ ){
+      if( t_yz(y,z)>=0 & t_yz(y,z)<n_t ){    // isNA doesn't seem to work for IMATRIX type
+        P1_xcy(x,c,y) += beta1_ct(c,t_yz(y,z)) + Epsilon1_sct(x,c,t_yz(y,z))*exp(log_sigmaratio1_z(z)) + eta1_xct(x,c,t_yz(y,z));
+        P2_xcy(x,c,y) += beta2_ct(c,t_yz(y,z)) + Epsilon2_sct(x,c,t_yz(y,z))*exp(log_sigmaratio2_z(z)) + eta2_xct(x,c,t_yz(y,z));
+      }
+    }
+    // Calculate predictors in link-space
     if( ObsModel(1)==0 ){
-      R1_xct(x,c,t) = invlogit( P1_xct(x,c,t) );
-      R2_xct(x,c,t) = exp( P2_xct(x,c,t) );
+      R1_xcy(x,c,y) = invlogit( P1_xcy(x,c,y) );
+      R2_xcy(x,c,y) = exp( P2_xcy(x,c,y) );
     }
     if( ObsModel(1)==1 ){
-      R1_xct(x,c,t) = Type(1.0) - exp( -SigmaM(c,2)*exp(P1_xct(x,c,t)) );
-      R2_xct(x,c,t) = exp(P1_xct(x,c,t)) / R1_xct(x,c,t) * exp( P2_xct(x,c,t) );
+      R1_xcy(x,c,y) = Type(1.0) - exp( -SigmaM(c,2)*exp(P1_xcy(x,c,y)) );
+      R2_xcy(x,c,y) = exp(P1_xcy(x,c,y)) / R1_xcy(x,c,y) * exp( P2_xcy(x,c,y) );
     }
     // Expected value for predictive distribution in a grid cell
-    D_xct(x,c,t) = R1_xct(x,c,t) * R2_xct(x,c,t);
+    D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
   }}}
-  
+
   // Calculate indices
-  array<Type> Index_xctl(n_x, n_c, n_t, n_l);
-  array<Type> Index_ctl(n_c, n_t, n_l);
-  array<Type> ln_Index_ctl(n_c, n_t, n_l);
-  Index_ctl.setZero();
+  array<Type> Index_xcyl(n_x, n_c, n_y, n_l);
+  array<Type> Index_cyl(n_c, n_y, n_l);
+  array<Type> ln_Index_cyl(n_c, n_y, n_l);
+  Index_cyl.setZero();
   for(int c=0; c<n_c; c++){
-  for(int t=0; t<n_t; t++){
+  for(int y=0; y<n_y; y++){
   for(int l=0; l<n_l; l++){
     for(int x=0; x<n_x; x++){
-      Index_xctl(x,c,t,l) = D_xct(x,c,t) * a_xl(x,l) / 1000;  // Convert from kg to metric tonnes
-      Index_ctl(c,t,l) += Index_xctl(x,c,t,l);
+      Index_xcyl(x,c,y,l) = D_xcy(x,c,y) * a_xl(x,l) / 1000;  // Convert from kg to metric tonnes
+      Index_cyl(c,y,l) += Index_xcyl(x,c,y,l);
     }
   }}}
-  ln_Index_ctl = log( Index_ctl );
+  ln_Index_cyl = log( Index_cyl );
 
   // Calculate other derived summaries
   // Each is the weighted-average X_xl over polygons (x) with weights equal to abundance in each polygon and time (where abundance is from the first index)
-  array<Type> mean_Z_ctm(n_c, n_t, n_m);
+  array<Type> mean_Z_cym(n_c, n_y, n_m);
   if( Options(2)==1 ){
-    mean_Z_ctm.setZero();
+    mean_Z_cym.setZero();
     int report_summary_TF = false;
     for(int c=0; c<n_c; c++){
-    for(int t=0; t<n_t; t++){
+    for(int y=0; y<n_y; y++){
     for(int m=0; m<n_m; m++){
       for(int x=0; x<n_x; x++){
         if( Z_xm(x,m)!=0 ){
-          mean_Z_ctm(c,t,m) += Z_xm(x,m) * Index_xctl(x,c,t,0)/Index_ctl(c,t,0);
+          mean_Z_cym(c,y,m) += Z_xm(x,m) * Index_xcyl(x,c,y,0)/Index_cyl(c,y,0);
           report_summary_TF = true;
         }
       }
     }}}
     if( report_summary_TF==true ){
-      REPORT( mean_Z_ctm );
-      ADREPORT( mean_Z_ctm );
+      REPORT( mean_Z_cym );
+      ADREPORT( mean_Z_cym );
     }
   }
 
   // Calculate average density, weighted.mean( x=Abundance/Area, w=Abundance )
   // Doesn't require Z_xm, because it only depends upon Index_tl
   if( Options(4)==1 ){
-    array<Type> mean_D_ctl(n_c, n_t, n_l);
-    array<Type> log_mean_D_ctl(n_c, n_t, n_l);
-    mean_D_ctl.setZero();
+    array<Type> mean_D_cyl(n_c, n_y, n_l);
+    array<Type> log_mean_D_cyl(n_c, n_y, n_l);
+    mean_D_cyl.setZero();
     for(int c=0; c<n_c; c++){
-    for(int t=0; t<n_t; t++){
+    for(int y=0; y<n_y; y++){
     for(int l=0; l<n_l; l++){
       for(int x=0; x<n_x; x++){
-        mean_D_ctl(c,t,l) += D_xct(x,c,t) * Index_xctl(x,c,t,l)/Index_ctl(c,t,l);
+        mean_D_cyl(c,y,l) += D_xcy(x,c,y) * Index_xcyl(x,c,y,l)/Index_cyl(c,y,l);
       }
     }}}
-    REPORT( mean_D_ctl );
-    ADREPORT( mean_D_ctl );
-    log_mean_D_ctl = log( log_mean_D_ctl );
-    ADREPORT( log_mean_D_ctl );
+    REPORT( mean_D_cyl );
+    ADREPORT( mean_D_cyl );
+    log_mean_D_cyl = log( log_mean_D_cyl );
+    ADREPORT( log_mean_D_cyl );
 
     // Calculate effective area = Index / average density
-    array<Type> effective_area_ctl(n_c, n_t, n_l);
-    array<Type> log_effective_area_ctl(n_c, n_t, n_l);
-    effective_area_ctl = Index_ctl / (mean_D_ctl/1000);  // Correct for different units of Index and density
-    log_effective_area_ctl = log( effective_area_ctl );
-    REPORT( effective_area_ctl );
-    ADREPORT( effective_area_ctl );
-    ADREPORT( log_effective_area_ctl );
+    array<Type> effective_area_cyl(n_c, n_y, n_l);
+    array<Type> log_effective_area_cyl(n_c, n_y, n_l);
+    effective_area_cyl = Index_cyl / (mean_D_cyl/1000);  // Correct for different units of Index and density
+    log_effective_area_cyl = log( effective_area_cyl );
+    REPORT( effective_area_cyl );
+    ADREPORT( effective_area_cyl );
+    ADREPORT( log_effective_area_cyl );
   }
 
-  // Joint likelihood
-  jnll_comp(10) = -1 * (LogProb1_i*(Type(1.0)-PredTF_i)).sum();
-  jnll_comp(11) = -1 * (LogProb2_i*(Type(1.0)-PredTF_i)).sum();
-  jnll = jnll_comp.sum();
-  Type pred_jnll = -1 * ( LogProb1_i*PredTF_i + LogProb2_i*PredTF_i ).sum();
-  REPORT( pred_jnll );
-
-  // Reporting
+  // Reporting and standard-errors for covariance and correlation matrices
   if( Options(5)==1 ){
     if( FieldConfig(0)>0 ){
       matrix<Type> L1_omega_cf = loadings_matrix( L_omega1_z, n_c, FieldConfig(0) );
@@ -571,15 +591,15 @@ Type objective_function<Type>::operator() ()
     array<Type> varD_xcz( n_x, n_c, n_z );
     varD_xcz.setZero();
     // Community density ("C") summing across categories
-    matrix<Type> C_xt( n_x, n_t );
-    C_xt.setZero();
+    matrix<Type> C_xy( n_x, n_y );
+    C_xy.setZero();
     matrix<Type> varC_xz( n_x, n_z );
     varC_xz.setZero();
     // Area-weighted total biomass ("B") for each category
-    matrix<Type> B_ct( n_c, n_t );
-    vector<Type> B_t( n_t );
-    B_t.setZero();
-    B_ct.setZero();
+    matrix<Type> B_cy( n_c, n_y );
+    vector<Type> B_y( n_y );
+    B_y.setZero();
+    B_cy.setZero();
     //Proportion of total biomass ("P") for each station
     matrix<Type> P_xz( n_x, n_z );
     P_xz.setZero();
@@ -591,13 +611,13 @@ Type objective_function<Type>::operator() ()
     vector<Type> temp_c( n_c );
     Type temp_mean;
     // Derived quantities
-    for( int t=0; t<n_t; t++ ){
+    for( int y=0; y<n_y; y++ ){
       for( int c=0; c<n_c; c++ ){
         for( int x=0; x<n_x; x++ ){
-          C_xt(x,t) += D_xct(x,c,t);
-          B_ct(c,t) += D_xct(x,c,t) * a_xl(x,0);
+          C_xy(x,y) += D_xcy(x,c,y);
+          B_cy(c,y) += D_xcy(x,c,y) * a_xl(x,0);
         }
-        B_t(t) += B_ct(c,t);
+        B_y(y) += B_cy(c,y);
       }
     }
     // Loop through periods (only using operations available in TMB, i.e., var, mean, row, col, segment)
@@ -606,20 +626,20 @@ Type objective_function<Type>::operator() ()
       // Variance for each category
       for( int c=0; c<n_c; c++ ){
         temp_mean = 0;
-        for( int t=yearbounds_zz(z,0); t<=yearbounds_zz(z,1); t++ ) temp_mean += D_xct(x,c,t) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
-        for( int t=yearbounds_zz(z,0); t<=yearbounds_zz(z,1); t++ ){
-          varD_xcz(x,c,z) += pow(D_xct(x,c,t)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+        for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) temp_mean += D_xcy(x,c,y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+        for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ){
+          varD_xcz(x,c,z) += pow(D_xcy(x,c,y)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
         }
       }
       // Variance for combined across categories
       temp_mean = 0;
-      for( int t=yearbounds_zz(z,0); t<=yearbounds_zz(z,1); t++ ) temp_mean += C_xt(x,t) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
-      for( int t=yearbounds_zz(z,0); t<=yearbounds_zz(z,1); t++ ){
-        varC_xz(x,z) += pow(C_xt(x,t)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+      for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) temp_mean += C_xy(x,y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+      for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) {
+        varC_xz(x,z) += pow(C_xy(x,y)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
       }
       // Proportion in each category
-      for( int t=yearbounds_zz(z,0); t<=yearbounds_zz(z,1); t++ ){
-        P_xz(x,z) += a_xl(x,0) * C_xt(x,t) / B_t(t) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+      for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) {
+        P_xz(x,z) += a_xl(x,0) * C_xy(x,y) / B_y(y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
       }
       // Synchrony index
       for( int c=0; c<n_c; c++ ) temp_c(c) = pow(varD_xcz(x,c,z), 0.5);
@@ -634,7 +654,7 @@ Type objective_function<Type>::operator() ()
     ADREPORT( phi_z );
   }
 
-  // Coherence and variance
+  // Calculate coherence and variance and covariance matrices
   if( Options(7)==1 ){
     // Eigendecomposition see: https://github.com/kaskr/adcomp/issues/144#issuecomment-228426834
     using namespace Eigen;
@@ -642,7 +662,7 @@ Type objective_function<Type>::operator() ()
     //Matrix<Type,Dynamic,Dynamic> CovHat( n_c, n_c );
     matrix<Type> CovHat( n_c, n_c );
     CovHat.setIdentity();
-    CovHat *= 0.00000001;      // SD = 1e-4
+    CovHat *= pow(0.0001, 2);
     if( FieldConfig(1)>0 ) CovHat += loadings_matrix(L_epsilon1_z, n_c, FieldConfig(1)) * loadings_matrix(L_epsilon1_z, n_c, FieldConfig(1)).transpose();
     if( FieldConfig(3)>0 ) CovHat += loadings_matrix(L_epsilon2_z, n_c, FieldConfig(3)) * loadings_matrix(L_epsilon2_z, n_c, FieldConfig(3)).transpose();
     // Coherence ranges from 0 (all factors are equal) to 1 (first factor explains all variance)
@@ -676,8 +696,8 @@ Type objective_function<Type>::operator() ()
   REPORT( P2_i );
   REPORT( R1_i );
   REPORT( R2_i );
-  REPORT( P1_xct );
-  REPORT( P2_xct );
+  REPORT( P1_xcy );
+  REPORT( P2_xcy );
   REPORT( var_i );
   REPORT( LogProb1_i );
   REPORT( LogProb2_i );
@@ -692,13 +712,13 @@ Type objective_function<Type>::operator() ()
   REPORT( eta2_vf );
   REPORT( zeta1_i );
   REPORT( zeta2_i );
-  
+
   REPORT( SigmaM );
-  REPORT( Index_ctl );
-  REPORT( D_xct );
-  REPORT( R1_xct );
-  REPORT( R2_xct );
-  REPORT( Index_xctl );
+  REPORT( Index_cyl );
+  REPORT( D_xcy );
+  REPORT( R1_xcy );
+  REPORT( R2_xcy );
+  REPORT( Index_xcyl );
   REPORT( Omega1_sc );
   REPORT( Omega2_sc );
   REPORT( Omegainput1_sf );
@@ -717,16 +737,16 @@ Type objective_function<Type>::operator() ()
 
   ADREPORT( Range_raw1 );
   ADREPORT( Range_raw2 );
-  ADREPORT( Index_ctl );
-  ADREPORT( ln_Index_ctl);
+  ADREPORT( Index_cyl );
+  ADREPORT( ln_Index_cyl );
   ADREPORT( SigmaM );
 
   // Additional miscellaneous outputs
   if( Options(0)==1 ){
-    ADREPORT( Index_xctl );
+    ADREPORT( Index_xcyl );
   }
   if( Options(1)==1 ){
-    ADREPORT( log(Index_xctl) );
+    ADREPORT( log(Index_xcyl) );
   }
 
   return jnll;

@@ -5,14 +5,14 @@
 \title{Build data input for VAST model}
 \usage{
 Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
-  ObsModel = c(PosDist = 1, Link = 0), b_i, a_i, c_i, s_i, t_i, a_xl,
+  ObsModel = c(PosDist = 1, Link = 0), b_i, a_i, c_i, s_i, t_iz, a_xl,
   MeshList, GridList, Method, v_i = rep(0, length(b_i)), PredTF_i = rep(0,
   length(b_i)), X_xj = NULL, X_xtp = NULL, Q_ik = NULL, Aniso = 1,
   RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
-  CheckForErrors = TRUE, yearbounds_zz = NULL, Options = c(SD_site_density
-  = 0, SD_site_logdensity = 0, Calculate_Range = 0, Calculate_evenness = 0,
-  Calculate_effective_area = 0, Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
-  Calculate_Coherence = 0))
+  t_yz = NULL, CheckForErrors = TRUE, yearbounds_zz = NULL,
+  Options = c(SD_site_density = 0, SD_site_logdensity = 0, Calculate_Range =
+  0, Calculate_evenness = 0, Calculate_effective_area = 0, Calculate_Cov_SE = 0,
+  Calculate_Synchrony = 0, Calculate_Coherence = 0))
 }
 \arguments{
 \item{Version}{a version number (see example for current default).}
@@ -31,7 +31,7 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
 
 \item{s_i}{Spatial knot (e.g., grid cell) for each observation i}
 
-\item{t_i}{Time interval (e.g., year) for each observation i}
+\item{t_iz}{Matrix where each row species the time for each observation i (if t_iz is a vector, it is coerced to a matrix with one column; if it is a matrix with two or more columns, it specifies multiple times for each observation, e.g., both year and season)}
 
 \item{a_xl}{Area associated with each knot}
 
@@ -54,6 +54,8 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
 \item{Aniso}{OPTIONAL, whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)}
 
 \item{RhoConfig}{OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)}
+
+\item{t_yz}{OPTIONAL, matrix specifying combination of levels of \code{t_iz} to use when calculating different indices of abundance or range shifts}
 
 \item{CheckForErrors}{OPTIONAL, whether to check for errors in input (NOTE: when CheckForErrors=TRUE, the function will throw an error if it detects a problem with inputs.  However, failing to throw an error is no guaruntee that the inputs are all correct)}
 

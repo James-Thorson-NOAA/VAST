@@ -4,6 +4,7 @@
 #' \code{Coherence} calculates buffering (`phi`) and coherence (`psi`)
 #'
 #' @inheritParams Plot_Overdispersion
+#' @inheritParams Data_Fn
 #' @param covhat estimated covariance used for calculating coherence
 
 #' @return Tagged list containing measures of synchrony

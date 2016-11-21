@@ -19,6 +19,8 @@ Crossvalidate_Fn(record_dir, parhat, original_data, group_i = NULL,
 \item{kfold,}{the number of crossvalidation batches used (default=10)}
 
 \item{skip_finished}{boolean specifying whether to rerun (skip_finished==FALSE) or skip (skip_finished==TRUE) previously completed runs (Default=FALSE)}
+
+\item{...}{Additional arguments to pass to \code{VAST::Build_TMB_Fn}}
 }
 \value{
 Results a matrix with total predictive negative log-likelihood for each crossvalidation partition, and number of crossvalidation samples for that partition

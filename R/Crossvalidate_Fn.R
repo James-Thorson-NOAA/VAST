@@ -9,6 +9,7 @@
 #' @param group_i, a vector of positive integers, indicating the k-fold group for each observation (default=NULL, which generates a new group_i with even probability)
 #' @param kfold, the number of crossvalidation batches used (default=10)
 #' @param skip_finished boolean specifying whether to rerun (skip_finished==FALSE) or skip (skip_finished==TRUE) previously completed runs (Default=FALSE)
+#' @param ... Additional arguments to pass to \code{VAST::Build_TMB_Fn}
 
 #' @return Results a matrix with total predictive negative log-likelihood for each crossvalidation partition, and number of crossvalidation samples for that partition
 
