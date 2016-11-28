@@ -35,9 +35,9 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
 
 \item{a_xl}{Area associated with each knot}
 
-\item{MeshList,}{tagged list representing location information for the SPDE mesh hyperdistribution}
+\item{MeshList,}{tagged list representing location information for the SPDE mesh hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}}
 
-\item{GridList,}{tagged list representing location information for the 2D AR1 grid hyperdistribution}
+\item{GridList,}{tagged list representing location information for the 2D AR1 grid hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}}
 
 \item{Method,}{character (either "Mesh" or "Grid") specifying hyperdistribution (Default="Mesh")}
 
@@ -64,7 +64,7 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
 \item{Options}{OPTIONAL, a vector of form c('SD_site_density'=0,'SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_evenness'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_Coherence'=0), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied}
 }
 \value{
-Tagged list containing inputs to function Build_TMB_Fn()
+Tagged list containing inputs to function \code{VAST::Build_TMB_Fn()}
 }
 \description{
 \code{Data_Fn} builds a tagged list of data inputs used by TMB for running the model

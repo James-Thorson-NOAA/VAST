@@ -78,12 +78,12 @@ Related tools for spatio-temporal fisheries analysis are currently housed at [ww
 citation("VAST")
 ```
 
-and also browse the [GitHub list](https://github.com/james-thorson/VAST/#description-of-package) of packages.
+and also browse the [GitHub list](https://github.com/james-thorson/VAST/#description-of-package) of papers.
 
 # Settings
 We use latest version for CPP code
 ```{r}
-Version = "VAST_v1_9_0"
+Version = "VAST_v2_0_0"
 ```
 
 ## Spatial settings

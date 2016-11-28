@@ -13,8 +13,8 @@
 #' @param s_i Spatial knot (e.g., grid cell) for each observation i
 #' @param t_iz Matrix where each row species the time for each observation i (if t_iz is a vector, it is coerced to a matrix with one column; if it is a matrix with two or more columns, it specifies multiple times for each observation, e.g., both year and season)
 #' @param a_xl Area associated with each knot
-#' @param MeshList, tagged list representing location information for the SPDE mesh hyperdistribution
-#' @param GridList, tagged list representing location information for the 2D AR1 grid hyperdistribution
+#' @param MeshList, tagged list representing location information for the SPDE mesh hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}
+#' @param GridList, tagged list representing location information for the 2D AR1 grid hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}
 #' @param Method, character (either "Mesh" or "Grid") specifying hyperdistribution (Default="Mesh")
 #' @param v_i OPTIONAL, sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
 #' @param PredTF_i OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)
@@ -28,7 +28,7 @@
 #' @param yearbounds_zz OPTIONAL, matrix with two columns, giving first and last years for defining one or more periods (rows) used to calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})
 #' @param CheckForErrors OPTIONAL, whether to check for errors in input (NOTE: when CheckForErrors=TRUE, the function will throw an error if it detects a problem with inputs.  However, failing to throw an error is no guaruntee that the inputs are all correct)
 
-#' @return Tagged list containing inputs to function Build_TMB_Fn()
+#' @return Tagged list containing inputs to function \code{VAST::Build_TMB_Fn()}
 
 #' @export
 Data_Fn <-

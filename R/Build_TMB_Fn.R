@@ -80,7 +80,6 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   #on.exit( return(Save) )
   #save(Save, file=paste0(RunDir,"/Save.RData"))
 
-
   # Build object
   dyn.load( paste0(RunDir,"/",TMB::dynlib(Version)) ) # random=Random,
   Obj <- MakeADFun(data=TmbData, parameters=Parameters, hessian=FALSE, map=Map, random=Random, inner.method="newton", DLL=Version)  #
