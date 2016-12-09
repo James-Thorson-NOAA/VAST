@@ -6,7 +6,8 @@
 \usage{
 Plot_factors(Report, ParHat, Data, SD, Year_Set = 1:dim(Report$D_xct)[3],
   category_names = 1:dim(Report$D_xct)[2], mapdetails_list = NULL,
-  Dim_year = NULL, Dim_species = NULL, plotdir = paste0(getwd(), "/"))
+  Dim_year = NULL, Dim_species = NULL, plotdir = paste0(getwd(), "/"),
+  land_color = "grey")
 }
 \arguments{
 \item{Report}{output report, e.g., from \code{Report <- obj$report()}}
@@ -28,6 +29,8 @@ Plot_factors(Report, ParHat, Data, SD, Year_Set = 1:dim(Report$D_xct)[3],
 \item{Dim_species}{Plotting dimension (row,column) for plot of categories (default: square with sufficient size for number of categories)}
 
 \item{plotdir}{directory for saving plots}
+
+\item{land_color}{color for filling in land (use \code{land_color=rgb(0,0,0,alpha=0)} for transparent land)}
 }
 \description{
 \code{Plot_factors} plots factor loadings, average spatial factors, and spatio-temporal factors
