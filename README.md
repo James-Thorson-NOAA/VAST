@@ -56,8 +56,7 @@ none
 
 Example code
 =============
-Please see examples folder for an example of how to run the model:
-https://github.com/james-thorson/VAST/blob/master/examples/Example--simple.R
+Please see examples folder for single-species and multi-species examples of how to run the model.
 
 This code illustrates how to loop through different default model configurations,
 plot diagnostics for each model, and obtain the AIC for each model.
