@@ -655,6 +655,7 @@ Type objective_function<Type>::operator() ()
   }
 
   // Calculate coherence and variance and covariance matrices
+  // psi: "Coherence" = degree to which covariance is explained by one or many factors (1/n_c, 1), 1=Single factor; 1/n_c=even factors
   if( Options(7)==1 ){
     // Eigendecomposition see: https://github.com/kaskr/adcomp/issues/144#issuecomment-228426834
     using namespace Eigen;
@@ -681,6 +682,7 @@ Type objective_function<Type>::operator() ()
     // Reporting
     REPORT( CovHat );
     REPORT( psi );
+    REPORT( eigenvalues_c );
     ADREPORT( psi );
     ADREPORT( diag_CovHat );
     ADREPORT( totalvar_CovHat );
