@@ -90,7 +90,7 @@ Version = "VAST_v2_0_0"
 ## Spatial settings
 The following settings define the spatial resolution for the model, and whether to use a grid or mesh approximation
 ```{r}
-Method = c("Grid", "Mesh")[2]
+Method = c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km = 25
 n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
 Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )    
@@ -276,7 +276,7 @@ And we finally generate the information used for conducting spatio-temporal para
 ```{r spatial_information, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=60}
 Spatial_List = SpatialDeltaGLMM::Spatial_Information_Fn( grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=DateFile, Save_Results=FALSE )
 # Add knots to Data_Geostat
-Data_Geostat = cbind( Data_Geostat, Spatial_List$loc_UTM, "knot_i"=Spatial_List$knot_i )
+Data_Geostat = cbind( Data_Geostat, "knot_i"=Spatial_List$knot_i )
 ```
 
 # Build and run model
@@ -290,7 +290,7 @@ TmbData = Data_Fn("Version"=Version, "FieldConfig"=FieldConfig, "OverdispersionC
 
 We then build the TMB object.
 ```{r build_object, message=FALSE, results="hide", tidy=TRUE}
-TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x)
+TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x, "Method"=Method)
 Obj = TmbList[["Obj"]]
 ```
 

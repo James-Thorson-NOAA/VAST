@@ -13,8 +13,19 @@
 #' @param land_color color for filling in land (use \code{land_color=rgb(0,0,0,alpha=0)} for transparent land)
 
 #' @export
-Plot_factors = function( Report, ParHat, Data, SD, Year_Set=1:dim(Report$D_xct)[3], category_names=1:dim(Report$D_xct)[2],
+Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names=NULL,
   mapdetails_list=NULL, Dim_year=NULL, Dim_species=NULL, plotdir=paste0(getwd(),"/"), land_color="grey" ){
+
+  # Fill in missing inputs
+  if( "D_xct" %in% names(Report) ){
+    if( is.null(Year_Set) ) Year_Set = 1:dim(Report$D_xct)[3]
+    if( is.null(category_names) ) category_names = 1:dim(Report$D_xct)[2]
+  }
+  if( "D_xcy" %in% names(Report) ){
+    if( is.null(Year_Set) ) Year_Set = 1:dim(Report$D_xcy)[3]
+    if( is.null(category_names) ) category_names = 1:dim(Report$D_xcy)[2]
+    Report[["D_xct"]] = Report[["D_xcy"]]
+  }
 
   # Dimensions for plotting
   Dim = function( num ) c(ceiling(sqrt(num)), ceiling(num/ceiling(sqrt(num))) )
