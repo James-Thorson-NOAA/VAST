@@ -587,70 +587,148 @@ Type objective_function<Type>::operator() ()
   // Synchrony
   if( Options(6)==1 ){
     int n_z = yearbounds_zz.col(0).size();
-    // Category-specific density ("D"), mean and variance
-    array<Type> varD_xcz( n_x, n_c, n_z );
-    varD_xcz.setZero();
-    // Community density ("C") summing across categories
-    matrix<Type> C_xy( n_x, n_y );
-    C_xy.setZero();
-    matrix<Type> varC_xz( n_x, n_z );
-    varC_xz.setZero();
-    // Area-weighted total biomass ("B") for each category
+    // Density ("D") or area-expanded total biomass ("B") for each category (use B when summing across sites)
+    matrix<Type> D_xy( n_x, n_y );
     matrix<Type> B_cy( n_c, n_y );
     vector<Type> B_y( n_y );
-    B_y.setZero();
+    D_xy.setZero();
     B_cy.setZero();
-    //Proportion of total biomass ("P") for each station
-    matrix<Type> P_xz( n_x, n_z );
-    P_xz.setZero();
+    B_y.setZero();
+    // Sample variance in category-specific density ("D") and biomass ("B")
+    array<Type> varD_xcz( n_x, n_c, n_z );
+    array<Type> varD_xz( n_x, n_z );
+    array<Type> varB_cz( n_c, n_z );
+    vector<Type> varB_z( n_z );
+    vector<Type> varB_xbar_z( n_z );
+    vector<Type> varB_cbar_z( n_z );
+    array<Type> maxsdD_xz( n_x, n_z );
+    array<Type> maxsdB_cz( n_c, n_z );
+    vector<Type> maxsdB_z( n_z );
+    varD_xcz.setZero();
+    varD_xz.setZero();
+    varB_cz.setZero();
+    varB_z.setZero();
+    varB_xbar_z.setZero();
+    varB_cbar_z.setZero();
+    maxsdD_xz.setZero();
+    maxsdB_cz.setZero();
+    maxsdB_z.setZero();
+    // Proportion of total biomass ("P") for each location or each category
+    matrix<Type> propB_xz( n_x, n_z );
+    matrix<Type> propB_cz( n_c, n_z );
+    propB_xz.setZero();
+    propB_cz.setZero();
     // Synchrony indices
     matrix<Type> phi_xz( n_x, n_z );
+    matrix<Type> phi_cz( n_c, n_z );
+    vector<Type> phi_xbar_z( n_z );
+    vector<Type> phi_cbar_z( n_z );
     vector<Type> phi_z( n_z );
+    phi_xbar_z.setZero();
+    phi_cbar_z.setZero();
     phi_z.setZero();
-    // Temporary variables
-    vector<Type> temp_c( n_c );
-    Type temp_mean;
-    // Derived quantities
+    // Calculate total biomass for different categories
     for( int y=0; y<n_y; y++ ){
       for( int c=0; c<n_c; c++ ){
         for( int x=0; x<n_x; x++ ){
-          C_xy(x,y) += D_xcy(x,c,y);
+          D_xy(x,y) += D_xcy(x,c,y);
           B_cy(c,y) += D_xcy(x,c,y) * a_xl(x,0);
+          B_y(y) += D_xcy(x,c,y) * a_xl(x,0);
         }
-        B_y(y) += B_cy(c,y);
       }
     }
     // Loop through periods (only using operations available in TMB, i.e., var, mean, row, col, segment)
+    Type temp_mean;
     for( int z=0; z<n_z; z++ ){
-    for( int x=0; x<n_x; x++ ){
-      // Variance for each category
-      for( int c=0; c<n_c; c++ ){
+      for( int x=0; x<n_x; x++ ){
+        // Variance for biomass in each category
+        for( int c=0; c<n_c; c++ ){
+          temp_mean = 0;
+          for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) temp_mean += D_xcy(x,c,y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+          for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ){
+            varD_xcz(x,c,z) += pow(D_xcy(x,c,y)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+          }
+        }
+        // Variance for combined biomass across categories
         temp_mean = 0;
-        for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) temp_mean += D_xcy(x,c,y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
-        for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ){
-          varD_xcz(x,c,z) += pow(D_xcy(x,c,y)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+        for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) temp_mean += D_xy(x,y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+        for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) {
+          varD_xz(x,z) += pow(D_xy(x,y)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
         }
       }
-      // Variance for combined across categories
+      for( int c=0; c<n_c; c++ ){
+        // Variance for combined biomass across sites
+        temp_mean = 0;
+        for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) temp_mean += B_cy(c,y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+        for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) {
+          varB_cz(c,z) += pow(B_cy(c,y)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+        }
+      }
+      // Variance for combined biomass across sites and categories
       temp_mean = 0;
-      for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) temp_mean += C_xy(x,y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+      for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) temp_mean += B_y(y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
       for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) {
-        varC_xz(x,z) += pow(C_xy(x,y)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+        varB_z(z) += pow(B_y(y)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
       }
       // Proportion in each site
-      for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) {
-        P_xz(x,z) += a_xl(x,0) * C_xy(x,y) / B_y(y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+      for( int x=0; x<n_x; x++ ){
+        for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) {
+          propB_xz(x,z) += a_xl(x,0) * D_xy(x,y) / B_y(y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+        }
       }
-      // Synchrony index
-      for( int c=0; c<n_c; c++ ) temp_c(c) = pow(varD_xcz(x,c,z), 0.5);
-      phi_xz(x,z) = varC_xz(x,z) / pow( temp_c.sum(), 2);
-      phi_z(z) += phi_xz(x,z) * P_xz(x,z);
-    }}
-    REPORT( phi_z );
+      // Proportion in each category
+      for( int c=0; c<n_c; c++ ){
+        for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) {
+          propB_cz(c,z) += B_cy(c,y) / B_y(y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+        }
+      }
+      // Species-buffering index (calculate in Density so that areas with zero area are OK)
+      for( int x=0; x<n_x; x++ ){
+        for( int c=0; c<n_c; c++ ){
+          maxsdD_xz(x,z) += pow(varD_xcz(x,c,z), 0.5);
+        }
+        phi_xz(x,z) = varD_xz(x,z) / pow( maxsdD_xz(x,z), 2);
+        varB_xbar_z(z) += pow(a_xl(x,0),2) * varD_xz(x,z) * propB_xz(x,z);
+        phi_xbar_z(z) += phi_xz(x,z) * propB_xz(x,z);
+      }
+      // Spatial-buffering index
+      for( int c=0; c<n_c; c++ ){
+        for( int x=0; x<n_x; x++ ){
+          maxsdB_cz(c,z) += a_xl(x,0) * pow(varD_xcz(x,c,z), 0.5);
+        }
+        phi_cz(c,z) = varB_cz(c,z) / pow( maxsdB_cz(c,z), 2);
+        varB_cbar_z(z) += varB_cz(c,z) * propB_cz(c,z);
+        phi_cbar_z(z) += phi_cz(c,z) * propB_cz(c,z);
+      }
+      // Spatial and species-buffering index
+      for( int c=0; c<n_c; c++ ){
+        for( int x=0; x<n_x; x++ ){
+          maxsdB_z(z) += a_xl(x,0) * pow(varD_xcz(x,c,z), 0.5);
+        }
+      }
+      phi_z(z) = varB_z(z) / pow( maxsdB_z(z), 2);
+    }
+    REPORT( B_y );
+    REPORT( D_xy );
+    REPORT( B_cy );
     REPORT( phi_xz );
-    REPORT( P_xz );
+    REPORT( phi_xbar_z );
+    REPORT( phi_cz );
+    REPORT( phi_cbar_z );
+    REPORT( phi_z );
+    REPORT( propB_xz );
+    REPORT( propB_cz );
     REPORT( varD_xcz );
-    REPORT( varC_xz );
+    REPORT( varD_xz );
+    REPORT( varB_cz );
+    REPORT( varB_z );
+    REPORT( varB_xbar_z );
+    REPORT( varB_cbar_z );
+    REPORT( maxsdB_z );
+    REPORT( maxsdD_xz );
+    REPORT( maxsdB_cz );
+    ADREPORT( phi_xbar_z );
+    ADREPORT( phi_cbar_z );
     ADREPORT( phi_z );
   }
 

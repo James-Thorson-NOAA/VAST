@@ -53,7 +53,7 @@ devtools::install_github("james-thorson/utilities")
 ```
 
 Next load libraries.
-```{r load_libraries, message=FALSE}
+```{r load_libraries, message=FALSE, warning=FALSE}
 library(TMB)               # Can instead load library(TMBdebug)
 library(VAST)
 ```
