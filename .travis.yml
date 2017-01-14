@@ -45,6 +45,9 @@ r_packages:
   - mapdata
   - TMB
 
+env:
+  - _R_CHECK_FORCE_SUGGESTS_=false
+
 r_github_packages:
   - kaskr/TMB_contrib_R/TMBhelper
   - nwfsc-assess/geostatistical_delta-GLMM
