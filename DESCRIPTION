@@ -28,7 +28,8 @@ Imports:
     sp, 
     maps,
     mapdata,
-    TMB
+    TMB,
+    MatrixModels  
 Depends:
     R (>= 3.1.0),
 Suggests:
