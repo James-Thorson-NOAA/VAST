@@ -75,12 +75,12 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
     Map[["Beta_mean1"]] = factor( NA )
     Map[["Beta_rho1"]] = factor( NA )
   }
-  # Beta1 -- Constant
+  # Beta1 -- Constant over time for each category
   if( RhoConfig["Beta1"]==3){
     Map[["Beta_mean1"]] = factor( NA )
     Map[["Beta_rho1"]] = factor( NA )
     Map[["logsigmaB1"]] = factor( NA )
-    Map[["beta1_ct"]] = factor( array(1,dim=c(TmbData$n_c,TmbData$n_t)) )
+    Map[["beta1_ct"]] = factor( 1:TmbData$n_c %o% rep(1,TmbData$n_t) )
   }
   # Beta2 -- Fixed
   if( RhoConfig["Beta2"]==0){
@@ -97,12 +97,12 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
     Map[["Beta_mean2"]] = factor( NA )
     Map[["Beta_rho2"]] = factor( NA )
   }
-  # Beta2 -- Constant
+  # Beta2 -- Constant over time for each category
   if( RhoConfig["Beta2"]==3){
     Map[["Beta_mean2"]] = factor( NA )
     Map[["Beta_rho2"]] = factor( NA )
     Map[["logsigmaB2"]] = factor( NA )
-    Map[["beta2_ct"]] = factor( array(1,dim=c(TmbData$n_c,TmbData$n_t)) )
+    Map[["beta2_ct"]] = factor( 1:TmbData$n_c %o% rep(1,TmbData$n_t) )
   }
   # Epsilon1 -- Fixed OR White-noise OR Random walk
   if( RhoConfig["Epsilon1"] %in% c(0,1,2)){
