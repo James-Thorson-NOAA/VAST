@@ -4,10 +4,9 @@
 \alias{Plot_factors}
 \title{Plot factor-decomposition of covariance}
 \usage{
-Plot_factors(Report, ParHat, Data, SD, Year_Set = 1:dim(Report$D_xct)[3],
-  category_names = 1:dim(Report$D_xct)[2], mapdetails_list = NULL,
-  Dim_year = NULL, Dim_species = NULL, plotdir = paste0(getwd(), "/"),
-  land_color = "grey")
+Plot_factors(Report, ParHat, Data, SD, Year_Set = NULL,
+  category_names = NULL, mapdetails_list = NULL, Dim_year = NULL,
+  Dim_species = NULL, plotdir = paste0(getwd(), "/"), land_color = "grey")
 }
 \arguments{
 \item{Report}{output report, e.g., from \code{Report <- obj$report()}}

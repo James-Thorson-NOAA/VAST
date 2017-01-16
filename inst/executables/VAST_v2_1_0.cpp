@@ -144,7 +144,7 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(n_i);         // Number of observations (stacked across all years)
   DATA_INTEGER(n_s);         // Number of "strata" (i.e., vectices in SPDE mesh) 
   DATA_INTEGER(n_x);         // Number of real "strata" (i.e., k-means locations) 
-  DATA_INTEGER(n_t);         // Number of years
+  DATA_INTEGER(n_t);         // Number of time-indices
   DATA_INTEGER(n_c);         // Number of categories (e.g., length bins)
   DATA_INTEGER(n_j);         // Number of static covariates
   DATA_INTEGER(n_p);         // Number of dynamic covariates
@@ -264,7 +264,7 @@ Type objective_function<Type>::operator() ()
   // Slot 11 -- likelihood of data, positive catch
   jnll_comp.setZero();
   Type jnll = 0;                
-  
+
   // Derived parameters
   Type Range_raw1, Range_raw2;
   if( Options_vec(7)==0 ){
@@ -425,9 +425,9 @@ Type objective_function<Type>::operator() ()
       }
     }
     // Likelihood for models with discrete support 
-    if(ObsModel(0)==4 | ObsModel(0)==5 | ObsModel(0)==6){
-      var_i(i) = R2_i(i)*a_i(i)*(1.0+SigmaM(c_i(i),0)) + pow(R2_i(i)*a_i(i),2.0)*SigmaM(c_i(i),1);
+    if(ObsModel(0)==4 | ObsModel(0)==5 | ObsModel(0)==6 | ObsModel(0)==7){
       if(ObsModel(0)==5){
+        var_i(i) = R2_i(i)*a_i(i)*(1.0+SigmaM(c_i(i),0)) + pow(R2_i(i)*a_i(i),2.0)*SigmaM(c_i(i),1);
         if( b_i(i)==0 ){
           LogProb2_i(i) = log( (1-R1_i(i)) + dnbinom2(Type(0.0), R2_i(i)*a_i(i), var_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
         }else{
@@ -436,6 +436,13 @@ Type objective_function<Type>::operator() ()
       }
       if(ObsModel(0)==6){
         LogProb2_i(i) = dCMP(b_i(i), R2_i(i)*a_i(i), exp(P1_i(i)), true, Options_vec(5));
+      }
+      if(ObsModel(0)==7){
+        if( b_i(i)==0 ){
+          LogProb2_i(i) = log( (1-R1_i(i)) + dpois(Type(0.0), R2_i(i)*a_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+        }else{
+          LogProb2_i(i) = dpois(b_i(i), R2_i(i)*a_i(i), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
+        }
       }
       LogProb1_i(i) = 0;
     }
@@ -452,7 +459,7 @@ Type objective_function<Type>::operator() ()
   // Calculate outputs
   ////////////////////////
 
-  // Number of outputs
+  // Number of output-years
   int n_y = t_yz.col(0).size();
 
   // Predictive distribution -- ObsModel(4) isn't implemented (it had a bug previously)
@@ -601,6 +608,9 @@ Type objective_function<Type>::operator() ()
     vector<Type> varB_z( n_z );
     vector<Type> varB_xbar_z( n_z );
     vector<Type> varB_cbar_z( n_z );
+    vector<Type> ln_varB_z( n_z );
+    vector<Type> ln_varB_xbar_z( n_z );
+    vector<Type> ln_varB_cbar_z( n_z );
     array<Type> maxsdD_xz( n_x, n_z );
     array<Type> maxsdB_cz( n_c, n_z );
     vector<Type> maxsdB_z( n_z );
@@ -641,34 +651,34 @@ Type objective_function<Type>::operator() ()
     Type temp_mean;
     for( int z=0; z<n_z; z++ ){
       for( int x=0; x<n_x; x++ ){
-        // Variance for biomass in each category
+        // Variance for biomass in each category, use sum(diff^2)/(length(diff)-1) where -1 in denominator is the sample-variance Bessel correction
         for( int c=0; c<n_c; c++ ){
           temp_mean = 0;
           for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) temp_mean += D_xcy(x,c,y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
           for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ){
-            varD_xcz(x,c,z) += pow(D_xcy(x,c,y)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+            varD_xcz(x,c,z) += pow(D_xcy(x,c,y)-temp_mean,2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0));
           }
         }
-        // Variance for combined biomass across categories
+        // Variance for combined biomass across categories, use sum(diff^2)/(length(diff)-1) where -1 in denominator is the sample-variance Bessel correction
         temp_mean = 0;
         for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) temp_mean += D_xy(x,y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
         for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) {
-          varD_xz(x,z) += pow(D_xy(x,y)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+          varD_xz(x,z) += pow(D_xy(x,y)-temp_mean,2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0));
         }
       }
       for( int c=0; c<n_c; c++ ){
-        // Variance for combined biomass across sites
+        // Variance for combined biomass across sites, use sum(diff^2)/(length(diff)-1) where -1 in denominator is the sample-variance Bessel correction
         temp_mean = 0;
         for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) temp_mean += B_cy(c,y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
         for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) {
-          varB_cz(c,z) += pow(B_cy(c,y)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+          varB_cz(c,z) += pow(B_cy(c,y)-temp_mean,2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0));
         }
       }
-      // Variance for combined biomass across sites and categories
+      // Variance for combined biomass across sites and categories, use sum(diff^2)/(length(diff)-1) where -1 in denominator is the sample-variance Bessel correction
       temp_mean = 0;
       for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) temp_mean += B_y(y) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
       for( int y=yearbounds_zz(z,0); y<=yearbounds_zz(z,1); y++ ) {
-        varB_z(z) += pow(B_y(y)-temp_mean, 2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
+        varB_z(z) += pow(B_y(y)-temp_mean,2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0));
       }
       // Proportion in each site
       for( int x=0; x<n_x; x++ ){
@@ -708,6 +718,9 @@ Type objective_function<Type>::operator() ()
       }
       phi_z(z) = varB_z(z) / pow( maxsdB_z(z), 2);
     }
+    ln_varB_xbar_z = log( varB_xbar_z );
+    ln_varB_cbar_z = log( varB_cbar_z );
+    ln_varB_z = log( varB_z );
     REPORT( B_y );
     REPORT( D_xy );
     REPORT( B_cy );
@@ -727,6 +740,12 @@ Type objective_function<Type>::operator() ()
     REPORT( maxsdB_z );
     REPORT( maxsdD_xz );
     REPORT( maxsdB_cz );
+    ADREPORT( varB_xbar_z );
+    ADREPORT( varB_cbar_z );
+    ADREPORT( varB_z );
+    ADREPORT( ln_varB_xbar_z );
+    ADREPORT( ln_varB_cbar_z );
+    ADREPORT( ln_varB_z );
     ADREPORT( phi_xbar_z );
     ADREPORT( phi_cbar_z );
     ADREPORT( phi_z );

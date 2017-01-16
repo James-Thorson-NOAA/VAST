@@ -6,7 +6,7 @@
 \usage{
 Build_TMB_Fn(TmbData, Version, Q_Config = TRUE, CovConfig = TRUE,
   RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
-  ConvergeTol = 1, Use_REML = FALSE, loc_x = NULL,
+  Method = "Mesh", ConvergeTol = 1, Use_REML = FALSE, loc_x = NULL,
   Parameters = "generate", Random = "generate", Map = "generate",
   DiagnosticDir = NULL, TmbDir = system.file("executables", package =
   "VAST"), RunDir = getwd())
@@ -21,6 +21,8 @@ Build_TMB_Fn(TmbData, Version, Q_Config = TRUE, CovConfig = TRUE,
 \item{CovConfig,}{a boolean whether to estimate density covariates (X_xj and X_xtp in the TmbData input) or not}
 
 \item{RhoConfig}{OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)}
+
+\item{Method}{Spatial method used for estimation (determines bounds for logkappa)}
 
 \item{ConvergeTol,}{OPTIONAL override for TMB convergence criteria}
 

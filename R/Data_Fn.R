@@ -6,7 +6,15 @@
 #' @param Version a version number (see example for current default).
 #' @param FieldConfig a vector of format c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10), where Omega refers to spatial variation, Epsilon refers to spatio-temporal variation, Omega1 refers to variation in encounter probability, and Omega2 refers to variation in positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance
 #' @param OverdispersionConfig OPTIONAL, a vector of format c("eta1"=0, "eta2"="AR1") governing any correlated overdispersion among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance
-#' @param ObsModel an optimal vector of format c("PosDist"=1,"Link"=0), where PosDist specifies the distribution for positive catch rates (0 is normal, 1 is lognormal, 2 is gamma), and Link is the functional form for encounter probabilities (0 is conventional logit-link, 1 is a novel parameterization involving density)
+#' @param ObsModel an optimal vector of format c("PosDist"=1,"Link"=0), where PosDist specifies the distribution for positive catch rates, and Link is the functional form for encounter probabilities (0 is conventional logit-link, 1 is a novel parameterization involving density)
+#' \describe{
+#'   \item{ObsModel["PosDist"]=0}{Normal}
+#'   \item{ObsModel["PosDist"]=1}{Lognormal}
+#'   \item{ObsModel["PosDist"]=2}{Gamma}
+#'   \item{ObsModel["PosDist"]=5}{Negative binomial}
+#'   \item{ObsModel["PosDist"]=6}{Conway-Maxwell-Poisson}
+#'   \item{ObsModel["PosDist"]=7}{Poisson (more numerically stable than negative-binomial)}
+#' }
 #' @param b_i Sampled biomass for each observation i
 #' @param a_i Sampled area for each observation i
 #' @param c_i Category (e.g., species, length-bin) for each observation i
