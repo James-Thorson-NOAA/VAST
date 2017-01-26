@@ -68,7 +68,7 @@ become apparent.
 Description of package
 =============
 ### Please cite if using the software
-* Thorson, J.T., and Barnett, L.A.K. In press. Comparing estimates of abundance trends and distribution shifts using single- and multispecies models of fishes and biogenic habitat. ICES J. Mar. Sci.
+* Thorson, J.T., and Barnett, L.A.K. In press. Comparing estimates of abundance trends and distribution shifts using single- and multispecies models of fishes and biogenic habitat. ICES J. Mar. Sci. URL: https://academic.oup.com/icesjms/article-abstract/2907795/Comparing-estimates-of-abundance-trends-and
 
 Description of individual features
 =============
