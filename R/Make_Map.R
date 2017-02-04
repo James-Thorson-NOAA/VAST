@@ -1,3 +1,4 @@
+#' @export
 Make_Map <-
 function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)){
   # Local functions
@@ -49,18 +50,18 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
   }
   if(TmbData[["ObsModel"]][1]%in%c(5)){
     if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),TmbData$n_c+seq(1,TmbData$n_c)) )
-    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==0) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),TmbData$n_c+seq(1,TmbData$n_c),NA) )
-    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==1) stop("ObsModel[2]=1 & ObsModel[1]=5 is a weird combination")
+    if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),TmbData$n_c+seq(1,TmbData$n_c),NA) )
+    if(TmbData[["ObsModel"]][2]!=0) stop("ObsModel[1]=5 should use ObsModel[2]=0")
   }
-  if(TmbData[["ObsModel"]][1]%in%c(6)){
-    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA) )
-    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==0) Map[["logSigmaM"]] = factor( matrix(NA,nrow=TmbData$n_c,ncol=3) )
-    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==1) stop("ObsModel[2]=1 & ObsModel[1]=6 is a weird combination")
-  }
-  if(TmbData[["ObsModel"]][1]%in%c(7)){
+  if(TmbData[["ObsModel"]][1]%in%c(6,7)){
     if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( matrix(NA,nrow=TmbData$n_c,ncol=2) )
-    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==0) Map[["logSigmaM"]] = factor( matrix(NA,nrow=TmbData$n_c,ncol=3) )
-    if(ncol(TmbParams[["logSigmaM"]])==3 && TmbData[["ObsModel"]][2]==1) stop("ObsModel[2]=1 & ObsModel[1]=7 is a weird combination")
+    if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( matrix(NA,nrow=TmbData$n_c,ncol=3) )
+    if(TmbData[["ObsModel"]][2]!=0) stop("ObsModel[1]=6 or 7 should use ObsModel[2]=0")
+  }
+  if(TmbData[["ObsModel"]][1]%in%c(8)){
+    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA) )
+    if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA,NA) )
+    if(TmbData[["ObsModel"]][2]!=2) stop("ObsModel[1]=8 should use ObsModel[2]=2")
   }
   # Anisotropy
   if(TmbData[["Options_vec"]]["Aniso"]==0 | all(TmbData[["FieldConfig"]]<0)) Map[['ln_H_input']] = factor( rep(NA,2) )
