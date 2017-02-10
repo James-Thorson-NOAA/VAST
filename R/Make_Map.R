@@ -248,13 +248,14 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
           Map[["gamma2_ctp"]][,t,p] = NA
         }
       }}
-      # By default, assume constant coefficient for all years of each variable
+      # By default, assume constant coefficient for all years of each variable and category
+      for(cI in 1:TmbData$n_c){
       for(p in 1:ncol(Var_tp)){
         if( all(Var_tp[,p]>0) ){
-          Map[["gamma1_ctp"]][,,p] = rep( Map[["gamma1_ctp"]][1,1,p], TmbData$n_t )
-          Map[["gamma2_ctp"]][,,p] = rep( Map[["gamma2_ctp"]][1,1,p], TmbData$n_t )
+          Map[["gamma1_ctp"]][cI,,p] = rep( Map[["gamma1_ctp"]][cI,1,p], TmbData$n_t )
+          Map[["gamma2_ctp"]][cI,,p] = rep( Map[["gamma2_ctp"]][cI,1,p], TmbData$n_t )
         }
-      }
+      }}
       Map[["gamma1_ctp"]] = factor(Map[["gamma1_ctp"]])
       Map[["gamma2_ctp"]] = factor(Map[["gamma2_ctp"]])
     }
