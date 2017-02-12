@@ -55,7 +55,7 @@ Summarize_Covariance = function( Report, Data, ParHat, SD=NULL, category_order=1
     # Extract estimates
     if( is.null(Cov) | is.null(Cor) ){
       Cov = Cor = array( NA, dim=c(Data$n_c,Data$n_c,2), dimnames=list(category_names,category_names,c("Estimate","Std.Error") ) )
-      Cov[,,'Estimate'] = VAST:::calc_cov( L_z=ParHat[[L_name]], n_f=Data$FieldConfig[i], n_c=Data$n_c )
+      Cov[,,'Estimate'] = calc_cov( L_z=ParHat[[L_name]], n_f=Data$FieldConfig[i], n_c=Data$n_c )
       Cor[,,'Estimate'] = cov2cor( Cov[,,'Estimate'] )
     }                       #
 
