@@ -58,7 +58,7 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
       # Cov_jj=Cov_List[[paste0("Cov_",tolower(Par_name))]][,,'Estimate']; Psi=Report[[Var_name]]; RotationMethod="PCA"; testcutoff=1e-4
       #Var_rot = Rotate_Fn( Cov_jj=Cov_List[[paste0("Cov_",tolower(Par_name))]][,,'Estimate'], Psi=Report[[Var_name]], RotationMethod="PCA", testcutoff=1e-4 )
       # L_pj=L_list[[i]]; Psi=Report[[Var_name]]; RotationMethod="PCA"; testcutoff=1e-4
-      Var_rot = Rotate_Fn( L_pj=L_list[[i]], Psi=Report[[Var_name]], RotationMethod="PCA", testcutoff=1e-4 )
+      Var_rot = SpatialDFA::Rotate_Fn( L_pj=L_list[[i]], Psi=Report[[Var_name]], RotationMethod="PCA", testcutoff=1e-4 )
 
       # Plot loadings
       Dim_factor = Dim(Data[["FieldConfig"]][[Par_name]])
