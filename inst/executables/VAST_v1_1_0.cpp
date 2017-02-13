@@ -359,7 +359,7 @@ Type objective_function<Type>::operator() ()
     }}}
     REPORT( mean_D_ctl );
     ADREPORT( mean_D_ctl );
-    log_mean_D_ctl = log( log_mean_D_ctl );
+    log_mean_D_ctl = log( mean_D_ctl );
     ADREPORT( log_mean_D_ctl );
 
     // Calculate effective area = Index / average density
