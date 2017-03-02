@@ -218,19 +218,18 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
 
   # Dynamic covariates
   if( "X_xtp" %in% names(TmbData) ){
+    Var_p = apply( TmbData[["X_xtp"]], MARGIN=3, FUN=function(array){var(as.vector(array))})
+    Var_tp = apply( TmbData[["X_xtp"]], MARGIN=2:3, FUN=var )
     if( "gamma1_tp" %in% names(TmbParams) ){
-      Var_tp = apply( TmbData[["X_xtp"]], MARGIN=2:3, FUN=var )
       Map[["gamma1_tp"]] = Map[["gamma2_tp"]] = matrix( 1:(TmbData$n_t*TmbData$n_p), nrow=TmbData$n_t, ncol=TmbData$n_p )
-      for(t in 1:nrow(Var_tp)){
-      for(p in 1:ncol(Var_tp)){
-        if( Var_tp[t,p]==0 || sum(DynCovConfig)==0 ){
-          Map[["gamma1_tp"]][t,p] = NA
-          Map[["gamma2_tp"]][t,p] = NA
-        }
-      }}
-      # By default, assume constant coefficient for all years of each variable
-      for(p in 1:ncol(Var_tp)){
-        if( all(Var_tp[,p]>0) ){
+      # By default:
+      #  1.  turn off coefficient associated with variable having no variance across space and time
+      #  2.  assume constant coefficient for all years of each variable and category
+      for(p in 1:length(Var_p)){
+        if( Var_p[p]==0 || sum(DynCovConfig)==0 ){
+          Map[["gamma1_tp"]][,p] = NA
+          Map[["gamma2_tp"]][,p] = NA
+        }else{
           Map[["gamma1_tp"]][,p] = rep( Map[["gamma1_tp"]][1,p], TmbData$n_t )
           Map[["gamma2_tp"]][,p] = rep( Map[["gamma2_tp"]][1,p], TmbData$n_t )
         }
@@ -239,23 +238,21 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
       Map[["gamma2_tp"]] = factor(Map[["gamma2_tp"]])
     }
     if( "gamma1_ctp" %in% names(TmbParams) ){
-      Var_tp = apply( TmbData[["X_xtp"]], MARGIN=2:3, FUN=var )
       Map[["gamma1_ctp"]] = Map[["gamma2_ctp"]] = array( 1:(TmbData$n_c*TmbData$n_t*TmbData$n_p), dim=c(TmbData$n_c,TmbData$n_t,TmbData$n_p) )
-      for(t in 1:nrow(Var_tp)){
-      for(p in 1:ncol(Var_tp)){
-        if( Var_tp[t,p]==0 || sum(DynCovConfig)==0 ){
-          Map[["gamma1_ctp"]][,t,p] = NA
-          Map[["gamma2_ctp"]][,t,p] = NA
+      # By default:
+      #  1.  turn off coefficient associated with variable having no variance across space and time
+      #  2.  assume constant coefficient for all years of each variable and category
+      for(p in 1:length(Var_p)){
+        if( Var_p[p]==0 || sum(DynCovConfig)==0 ){
+          Map[["gamma1_ctp"]][,,p] = NA
+          Map[["gamma2_ctp"]][,,p] = NA
+        }else{
+          for(cI in 1:TmbData$n_c){
+            Map[["gamma1_ctp"]][cI,,p] = rep( Map[["gamma1_ctp"]][cI,1,p], TmbData$n_t )
+            Map[["gamma2_ctp"]][cI,,p] = rep( Map[["gamma2_ctp"]][cI,1,p], TmbData$n_t )
+          }
         }
-      }}
-      # By default, assume constant coefficient for all years of each variable and category
-      for(cI in 1:TmbData$n_c){
-      for(p in 1:ncol(Var_tp)){
-        if( all(Var_tp[,p]>0) ){
-          Map[["gamma1_ctp"]][cI,,p] = rep( Map[["gamma1_ctp"]][cI,1,p], TmbData$n_t )
-          Map[["gamma2_ctp"]][cI,,p] = rep( Map[["gamma2_ctp"]][cI,1,p], TmbData$n_t )
-        }
-      }}
+      }
       Map[["gamma1_ctp"]] = factor(Map[["gamma1_ctp"]])
       Map[["gamma2_ctp"]] = factor(Map[["gamma2_ctp"]])
     }
