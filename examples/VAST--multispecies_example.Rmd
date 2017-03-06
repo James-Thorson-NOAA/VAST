@@ -100,7 +100,7 @@ The following settings define whether to include spatial and spatio-temporal var
 ```{r, tidy=TRUE}
 FieldConfig = c("Omega1"=3, "Epsilon1"=3, "Omega2"=3, "Epsilon2"=3) 
 RhoConfig = c("Beta1"=0, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0) 
-OverdispersionConfig = c("Vessel"=0, "VesselYear"=0)
+OverdispersionConfig = c("Delta1"=0, "Delta2"=0)
 ObsModel = c(2,0)   
 ```
 
