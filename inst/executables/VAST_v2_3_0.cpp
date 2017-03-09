@@ -478,7 +478,7 @@ Type objective_function<Type>::operator() ()
       // Positive density likelihood -- models with continuous positive support
       if( b_i(i) > 0 ){    // 1e-500 causes overflow on laptop
         if(ObsModel(0)==0) LogProb2_i(i) = dnorm(b_i(i), R2_i(i), SigmaM(c_i(i),0), true);
-        if(ObsModel(0)==1) LogProb2_i(i) = dlnorm(b_i(i), log(R2_i(i)-pow(SigmaM(c_i(i),0),2)/2, SigmaM(c_i(i),0), true); // log-space
+        if(ObsModel(0)==1) LogProb2_i(i) = dlnorm(b_i(i), log(R2_i(i)-pow(SigmaM(c_i(i),0),2))/2, SigmaM(c_i(i),0), true); // log-space
         if(ObsModel(0)==2) LogProb2_i(i) = dgamma(b_i(i), 1/pow(SigmaM(c_i(i),0),2), R2_i(i)*pow(SigmaM(c_i(i),0),2), true); // shape = 1/CV^2, scale = mean*CV^2
       }else{
         LogProb2_i(i) = 0;
