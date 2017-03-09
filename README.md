@@ -23,6 +23,7 @@ and see [FishViz.org](http://www.FishViz.org) for visualization of results for r
 Installation Instructions
 =============
 [![Build Status](https://travis-ci.org/James-Thorson/VAST.svg?branch=master)](https://travis-ci.org/James-Thorson/VAST)
+[![DOI](https://zenodo.org/badge/55002718.svg)](https://zenodo.org/badge/55002718.svg)
 
 This function depends on R version >=3.1.1 and a variety of other tools.
 
@@ -56,7 +57,7 @@ none
 
 Example code
 =============
-Please see examples folder for single-species and multi-species examples of how to run the model.
+Please see examples folder for single-species and multi-species examples of how to run the model.  This folder also contains a [User Manual](https://github.com/James-Thorson/VAST/blob/master/examples/VAST_user_manual.pdf)
 
 This code illustrates how to loop through different default model configurations,
 plot diagnostics for each model, and obtain the AIC for each model.
