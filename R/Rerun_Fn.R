@@ -22,7 +22,7 @@
 
 #' @export
 Rerun_Fn = function( parhat0, turnoff_pars, loc_x, calculate_COG=TRUE, figname=NULL, Map="generate", MapDetails_List=NULL,
-  year_set=1:ncol(parhat_mod[["beta1_ct"]]), c_set=1:nrow(parhat_mod[["beta1_ct"]]), ... ){
+  year_set=1:ncol(parhat0[["beta1_ct"]]), c_set=1:nrow(parhat0[["beta1_ct"]]), ... ){
 
   # Local function -- calculate center of gravity
   Calc_COG = function( z_x, B_xt ){
@@ -79,19 +79,21 @@ Rerun_Fn = function( parhat0, turnoff_pars, loc_x, calculate_COG=TRUE, figname=N
   # Rebuild
   NewBuild_List = Build_TMB_Fn( "Parameters"=parhat_mod, Map=Map, ... )
   Obj = NewBuild_List[["Obj"]]
-  Report = Obj$report( Obj$par )
+  Report = Obj$report( )
   Return = list("Report"=Report, "NewBuild_List"=NewBuild_List)
 
   # calculate COG
   if( calculate_COG==TRUE ){
-    require(abind)
+    # Figure out column names to use
+    ColNames = c('E_km','N_km')
+    if( all(c('Lon','Lat') %in% colnames(loc_x)) ) ColNames = c(ColNames,c('Lon','Lat'))
     # Total
-    B_xt = apply(Report$Index_xcyl[,,,1], MARGIN=c(1,3), FUN=sum )
-    Return[["COG_t"]] = Calc_COG( z_x=loc_x[,c('E_km','N_km','Lon','Lat')], B_xt=B_xt )
+    B_xt = apply(Report$Index_xcyl[,,,1,drop=FALSE], MARGIN=c(1,3), FUN=sum )
+    Return[["COG_t"]] = Calc_COG( z_x=loc_x[,ColNames], B_xt=B_xt )
     # By category
     Return[["COG_ct"]] = NULL
     for( cI in 1:dim(Report$Index_xcyl)[2] ){
-      Return[["COG_ct"]] = abind::abind( Return[["COG_ct"]], Calc_COG(z_x=loc_x[,c('E_km','N_km','Lon','Lat')], B_xt=Report$Index_xcyl[,cI,,1]), along=3)
+      Return[["COG_ct"]] = abind::abind( Return[["COG_ct"]], Calc_COG(z_x=loc_x[,ColNames], B_xt=Report$Index_xcyl[,cI,,1]), along=3)
     }
     Return[["COG_ct"]] = aperm(Return[["COG_ct"]], c(3,1,2))
   }

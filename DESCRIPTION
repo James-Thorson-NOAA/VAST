@@ -29,6 +29,7 @@ Imports:
     maps,
     mapdata,
     TMB,
+    abind,
     MatrixModels  
 Depends:
     R (>= 3.1.0),
