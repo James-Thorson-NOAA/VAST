@@ -79,12 +79,12 @@ and also browse the [GitHub list](https://github.com/james-thorson/VAST/#descrip
 # Settings
 First chose an example data set for this script, as archived with package
 ```{r, tidy=TRUE, linewidth=60}
-Data_Set = c("Chatham_rise_hake", "Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Aleutian_islands_POP")[12]
+Data_Set = c("Chatham_rise_hake", "Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Aleutian_islands_POP")[3]
 ```
 
 Next use latest version for CPP code
 ```{r}
-Version = "VAST_v2_0_0"
+Version = "VAST_v2_4_0"
 ```
 
 ## Spatial settings
@@ -130,7 +130,7 @@ if( Data_Set %in% c("WCGBTS_canary","Sim")){
     'deep_border' = c(1280, 1280, 1280, 1280)
   )
   # Override default settings for vessels
-  VesselConfig = c("Vessel"=0, "VesselYear"=1)
+  OverdispersionConfig = c("Delta1"=1, "Delta2"=1)
 }
 if( Data_Set %in% c("GOA_Pcod","GOA_pollock")){
   # In this case, will calculating an unrestricted index and a separate index restricted to west of -140W
@@ -194,7 +194,7 @@ Depending upon the `Data_Set` chosen, we load archived data sets that are distri
 if(Data_Set=="WCGBTS_canary"){
   data( WCGBTS_Canary_example, package="SpatialDeltaGLMM" )
   Year = as.numeric(sapply(WCGBTS_Canary_example[,'PROJECT_CYCLE'], FUN=function(Char){strsplit(as.character(Char)," ")[[1]][2]}))
-  Data_Geostat = data.frame( "Catch_KG"=WCGBTS_Canary_example[,'HAUL_WT_KG'], "Year"=Year, "Vessel"=WCGBTS_Canary_example[,"VESSEL"], "AreaSwept_km2"=WCGBTS_Canary_example[,"AREA_SWEPT_HA"]/1e2, "Lat"=WCGBTS_Canary_example[,'BEST_LAT_DD'], "Lon"=WCGBTS_Canary_example[,'BEST_LON_DD'], "Pass"=WCGBTS_Canary_example[,'PASS']-1.5)
+  Data_Geostat = data.frame( "Catch_KG"=WCGBTS_Canary_example[,'HAUL_WT_KG'], "Year"=Year, "Vessel"=paste(WCGBTS_Canary_example[,"VESSEL"],Year,sep="_"), "AreaSwept_km2"=WCGBTS_Canary_example[,"AREA_SWEPT_HA"]/1e2, "Lat"=WCGBTS_Canary_example[,'BEST_LAT_DD'], "Lon"=WCGBTS_Canary_example[,'BEST_LON_DD'], "Pass"=WCGBTS_Canary_example[,'PASS']-1.5)
 }
 if( Data_Set %in% c("BC_pacific_cod")){
   data( BC_pacific_cod_example, package="SpatialDeltaGLMM" )
@@ -341,6 +341,7 @@ Enc_prob = SpatialDeltaGLMM::Check_encounter_prob( Report=Report, Data_Geostat=D
 
 We can visualize fit to residuals of catch-rates given encounters using a Q-Q plot.  A good Q-Q plot will have residuals along the one-to-one line.  
 ```{r plot_QQ, eval=TRUE, tidy=TRUE, linewidth=50, message=FALSE, warning=FALSE}
+#TmbData=TmbData; Report=Report; FileName_PP=paste0(DateFile,"Posterior_Predictive.jpg"); FileName_Phist=paste0(DateFile,"Posterior_Predictive-Histogram.jpg"); FileName_QQ=paste0(DateFile,"Q-Q_plot.jpg"); FileName_Qhist=paste0(DateFile,"Q-Q_hist.jpg")
 Q = SpatialDeltaGLMM::QQ_Fn( TmbData=TmbData, Report=Report, FileName_PP=paste0(DateFile,"Posterior_Predictive.jpg"), FileName_Phist=paste0(DateFile,"Posterior_Predictive-Histogram.jpg"), FileName_QQ=paste0(DateFile,"Q-Q_plot.jpg"), FileName_Qhist=paste0(DateFile,"Q-Q_hist.jpg")) # SpatialDeltaGLMM::
 ```
 ![Quantile-quantile plot indicating residuals for "positive catch rate" component](VAST_output/Q-Q_plot.jpg) 
