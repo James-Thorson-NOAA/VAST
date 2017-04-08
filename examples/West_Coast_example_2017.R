@@ -25,7 +25,7 @@ require(TMB)
 require(VAST)
 
 # Lingcod
-Data_Set <- JRWToolBox::WCGBTS_Combo_Catch_Wt(Species = "Ophiodon elongatus", YearRange = c(2003, 20015))
+Data_Set <- JRWToolBox::WCGBTS_Combo_Catch_Wt(Species = "Ophiodon elongatus", YearRange = c(2003, 2015))
 
 # Look at the data by year and pass - showing 'NA's if any via JRWToolBox::Table function.
 JRWToolBox::Table(Data_Set$Year, Data_Set$Pass)
@@ -41,7 +41,7 @@ list.files(R.home(file.path("library", "VAST", "executables")))
 #do not modify Kmeans set up
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km = 25     # Value only matters if Method="Grid"
-n_x = c(50, 100, 250, 500, 1000, 2000)[1] # Number of "knots" used when Method="Mesh"
+n_x = 250  # Number of "knots" used when Method="Mesh"
 Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )   # Controls K-means algorithm to define location of knots when Method="Mesh"
 
 # Model settings
@@ -93,8 +93,9 @@ dir.create(DateFile)
 #set up data frame from data set
 #creates data geostat...need this data format
 # Vessel has a unique value for each boat-licence and calendar year (i.e., its a "Vessel-Year" effect)
-Data_Geostat = data.frame(Catch_KG = Data_Set$Wt_kg, Year = Data_Set$Year, Vessel = paste(Data_Set$Vessel,Data_Set$Year,sep="_"), AreaSwept_km2 = Data_Set$Area_Swept_ha/100, Lat =Data_Set$Latitude_dd,
-                          Lon = Data_Set$Longitude_dd, Pass = Data_Set$Pass - 1.5)
+Data_Geostat = data.frame(Catch_KG = Data_Set$Wt_kg, Year = Data_Set$Year, Vessel = paste(Data_Set$Vessel,Data_Set$Year,sep="_"),
+             AreaSwept_km2 = Data_Set$Area_Swept_ha/100, Lat =Data_Set$Latitude_dd,
+             Lon = Data_Set$Longitude_dd, Pass = Data_Set$Pass - 1.5)
 
 #see data format
 head(Data_Geostat)
@@ -141,12 +142,14 @@ TmbList = VAST::Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Ver
 Obj = TmbList[["Obj"]]
 
 # Run optimizer with Newton steps to improve convergence
-Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, newtonsteps=3, savedir=DateFile, bias.correct=TRUE )
+Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE,
+    newtonsteps=2, savedir=DateFile, bias.correct=TRUE )
 
 # Create the report
 Report = Obj$report()
 
-# Save everything in object "Save" so that if you load it again, you can attach Save or not, and know you haven't polluted your workspace
+# Save everything in object "Save" so that if you load it again, you can attach Save or not,
+  # and know you haven't polluted your workspace
 Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
 save(Save, file=paste0(DateFile,"Save.RData"))
 
@@ -164,6 +167,7 @@ setwd(HomeDir)
 # Decide which years to plot
 Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
 Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
+#Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))[-c(3:5)]
 
 # Get region-specific settings for plots
 MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( Region = Region, NN_Extrap = Spatial_List$PolygonList$NN_Extrap,  Extrapolation_List = Extrapolation_List )
