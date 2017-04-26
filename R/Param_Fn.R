@@ -52,8 +52,12 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
       List[[which(names(List)==list_names[1])]] = rnorm(n_f*n_c - n_f*(n_f-1)/2)
       List[[which(names(List)==list_names[2])]] = rarray(dim=as.vector(na.omit(c(n_i,n_f,n_t))), sd=sd)
     }
-    if( n_f<=0 ){
+    if( n_f==0 ){
       List[[which(names(List)==list_names[1])]] = c(1,0.5) # Pointwise SD / Correlation
+      List[[which(names(List)==list_names[2])]] = rarray(dim=as.vector(na.omit(c(n_i,n_c,n_t))), sd=sd)
+    }
+    if( n_f== -1 ){
+      List[[which(names(List)==list_names[1])]] = 1  # Turn off SD when zero factors, i.e., n_f = -1
       List[[which(names(List)==list_names[2])]] = rarray(dim=as.vector(na.omit(c(n_i,n_c,n_t))), sd=sd)
     }
     return( List )
