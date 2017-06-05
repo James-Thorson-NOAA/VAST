@@ -63,6 +63,10 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
     if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA,NA) )
     if(TmbData[["ObsModel"]][2]!=2) stop("ObsModel[1]=8 should use ObsModel[2]=2")
   }
+  if(TmbData[["ObsModel"]][1]%in%c(9)){
+    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( matrix(NA, nrow=TmbData$n_c, ncol=2) )
+    if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( matrix(NA, nrow=TmbData$n_c, ncol=3) )
+  }
   # Anisotropy
   if(TmbData[["Options_vec"]]["Aniso"]==0 | all(TmbData[["FieldConfig"]]<0)) Map[['ln_H_input']] = factor( rep(NA,2) )
   
