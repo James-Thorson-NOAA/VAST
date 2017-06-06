@@ -126,7 +126,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     if( ncol(t_yz)!=ncol(t_iz) ) stop("t_yz and t_iz must have same number of columns")
     if( n_c!=length(unique(c_i)) ) stop("n_c doesn't equal the number of levels in c_i")
     if( any(X_xj!=0) ) stop("X_xj is deprecated, please use X_xtp to specify static or dynamic density covariates (which by default have constant effect among years but differ among categories)")
-    if( PbsModel[1]==9 & !all(b_i%in%0:3) ) stop("If using 'ObsModel[1]=9', all 'b_i' must be in {0,1,2,3}")
+    if( ObsModel[1]==9 & !all(b_i%in%0:3) ) stop("If using 'ObsModel[1]=9', all 'b_i' must be in {0,1,2,3}")
   }
 
   # Check for bad data entry
