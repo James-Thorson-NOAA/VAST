@@ -6,16 +6,20 @@
 #' @param Version a version number (see example for current default).
 #' @param FieldConfig a vector of format c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10), where Omega refers to spatial variation, Epsilon refers to spatio-temporal variation, Omega1 refers to variation in encounter probability, and Omega2 refers to variation in positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance
 #' @param OverdispersionConfig OPTIONAL, a vector of format c("eta1"=0, "eta2"="AR1") governing any correlated overdispersion among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance
-#' @param ObsModel an optimal vector of format c("PosDist"=1,"Link"=0), where PosDist specifies the distribution for positive catch rates, and Link is the functional form for encounter probabilities (0 is conventional logit-link, 1 is a novel parameterization involving density, 2 is a log-link which is only used for the Tweedie)
+#' @param ObsModel an optional vector of format c(1,0), where first element specifies the distribution for positive catch rates, and second element specifies the functional form for encounter probabilities
 #' \describe{
-#'   \item{ObsModel["PosDist"]=0}{Normal}
-#'   \item{ObsModel["PosDist"]=1}{Lognormal}
-#'   \item{ObsModel["PosDist"]=2}{Gamma}
-#'   \item{ObsModel["PosDist"]=5}{Negative binomial}
-#'   \item{ObsModel["PosDist"]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
-#'   \item{ObsModel["PosDist"]=7}{Poisson (more numerically stable than negative-binomial)}
-#'   \item{ObsModel["PosDist"]=8}{Tweedie (likely to be very slow)}
-#'   \item{ObsModel["PosDist"]=9}{Binned-Poisson (for use with REEF data, where 0=0 individual; 1=1 individual; 2=2:10 individuals; 3=>10 individuals)}
+#'   \item{ObsModel[1]=0}{Normal}
+#'   \item{ObsModel[1]=1}{Lognormal}
+#'   \item{ObsModel[1]=2}{Gamma}
+#'   \item{ObsModel[1]=5}{Negative binomial}
+#'   \item{ObsModel[1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
+#'   \item{ObsModel[1]=7}{Poisson (more numerically stable than negative-binomial)}
+#'   \item{ObsModel[1]=8}{Tweedie (likely to be very slow)}
+#'   \item{ObsModel[1]=9}{Binned-Poisson (for use with REEF data, where 0=0 individual; 1=1 individual; 2=2:10 individuals; 3=>10 individuals)}
+#'   \item{ObsModel[2]=0}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
+#'   \item{ObsModel[2]=1}{Alternative delta-model using log-link for numbers-density and log-link for biomass per number}
+#'   \item{ObsModel[2]=2}{Link function for Tweedie distribution}
+#'   \item{ObsModel[2]=3}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
 #' }
 #' @param b_i Sampled biomass for each observation i
 #' @param a_i Sampled area for each observation i

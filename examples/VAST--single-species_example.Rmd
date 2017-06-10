@@ -79,12 +79,12 @@ and also browse the [GitHub list](https://github.com/james-thorson/VAST/#descrip
 # Settings
 First chose an example data set for this script, as archived with package
 ```{r, tidy=TRUE, linewidth=60}
-Data_Set = c("Chatham_rise_hake", "Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Aleutian_islands_POP")[6]
+Data_Set = c("Chatham_rise_hake", "Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Aleutian_islands_POP")[2]
 ```
 
 Next use latest version for CPP code
 ```{r}
-Version = "VAST_v2_4_0"
+Version = "VAST_v2_5_0"
 ```
 
 ## Spatial settings
@@ -148,7 +148,6 @@ if( Data_Set %in% c("Iceland_cod")){
   strata.limits = data.frame( 'STRATA'="All_areas" )
   # Turn off all spatial, temporal, and spatio-temporal variation in probability of occurrence, because they occur almost everywhere
   FieldConfig = c("Omega1"=0, "Epsilon1"=0, "Omega2"=1, "Epsilon2"=1)
-  RhoConfig = c("Beta1"=3, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0) 
 }
 ```
 
@@ -298,7 +297,7 @@ Obj = TmbList[["Obj"]]
 
 Next, we use a gradient-based nonlinear minimizer to identify maximum likelihood estimates for fixed-effects
 ```{r estimate_parameters, results="hide", tidy=TRUE}
-Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=FALSE )
+Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=FALSE, newtonsteps=1 )
 ```
 
 Finally, we bundle and save output

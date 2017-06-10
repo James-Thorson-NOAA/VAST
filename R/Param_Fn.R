@@ -96,13 +96,17 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   if( "L_omega2_z" %in% names(Return)) Return = Add_factor( List=Return, n_c=DataList$n_c, n_f=DataList$FieldConfig[3], n_i=DataList$n_s, list_names=c("L_omega2_z","Omegainput2_sf"), sd=0 )
   if( "L_epsilon2_z" %in% names(Return)) Return = Add_factor( List=Return, n_c=DataList$n_c, n_f=DataList$FieldConfig[4], n_i=DataList$n_s, n_t=DataList$n_t, list_names=c("L_epsilon2_z","Epsiloninput2_sft"), sd=0 )
   # Initial values
-  if( length(DataList$ObsModel)==1 || DataList$ObsModel[2]==0 ){
+  if( length(DataList$ObsModel)==1 || DataList$ObsModel[2]%in%c(0,3) ){
     Return[["beta1_ct"]] = qlogis(0.01*0.99*tapply(ifelse(DataList$b_i>0,1,0),INDEX=factor(DataList$c_i,levels=sort(unique(DataList$c_i))),FUN=mean)) %o% rep(1,DataList$n_t)
     Return[["beta2_ct"]] = log(tapply(ifelse(DataList$b_i>0,DataList$b_i/DataList$a_i,NA),INDEX=factor(DataList$c_i,levels=sort(unique(DataList$c_i))),FUN=mean,na.rm=TRUE)) %o% rep(1,DataList$n_t)
   }
   if( length(DataList$ObsModel)==2 && DataList$ObsModel[2]%in%c(1,2) ){
     Return[["beta1_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
     Return[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
+  }
+  if( length(DataList$ObsModel)==2 && DataList$ObsModel[2]%in%c(3) ){
+    Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_i,levels=sort(unique(DataList$c_i))),DataList$t_i), FUN=mean)
+    Return[["beta1_ct"]][which(Tmp_ct==1)] = 20
   }
 
   # If either beta or epsilon is a random-walk process, fix starting value at 1

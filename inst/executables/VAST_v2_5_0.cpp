@@ -459,7 +459,7 @@ Type objective_function<Type>::operator() ()
       }
     }
     // Responses
-    if( ObsModel(1)==0 ){
+    if( ObsModel(1)==0 | ObsModel(1)==3 ){
       // Log and logit-link, where area-swept only affects positive catch rate exp(P2_i(i))
       // P1_i: Logit-Probability of occurrence;  R1_i:  Probability of occurrence
       // P2_i: Log-Positive density prediction;  R2_i:  Positive density prediction
