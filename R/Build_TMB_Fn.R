@@ -64,8 +64,8 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   # Which are random
   if( length(Random)==1 && Random=="generate" ){
     Random = c("Epsiloninput1_sct", "Omegainput1_sc", "Epsiloninput1_sft", "Omegainput1_sf", "eta1_vf", "Epsiloninput2_sct", "Omegainput2_sc", "Epsiloninput2_sft", "Omegainput2_sf", "eta2_vf")
-    if( RhoConfig[["Beta1"]]!=0 ) Random = c(Random, "beta1_ct")
-    if( RhoConfig[["Beta2"]]!=0 ) Random = c(Random, "beta2_ct")
+    if( RhoConfig[["Beta1"]]%in%c(1,2,4) ) Random = c(Random, "beta1_ct")
+    if( RhoConfig[["Beta2"]]%in%c(1,2,4) ) Random = c(Random, "beta2_ct")
     if( Use_REML==TRUE ){
       Random = union(Random, c("beta1_ct","gamma1_j","gamma1_tp","gamma1_ctp","lambda1_k","beta2_ct","gamma2_j","gamma2_tp","gamma2_ctp","lambda2_k"))
       Random = Random[which(Random %in% names(Parameters))]
