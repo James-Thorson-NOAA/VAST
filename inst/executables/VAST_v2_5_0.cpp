@@ -537,10 +537,10 @@ Type objective_function<Type>::operator() ()
           dBinPois(2) += dpois(Type(j), R2_i(i), false) * R1_i(i);
         }
         dBinPois(3) = Type(1.0) - dBinPois(0) - dBinPois(1) - dBinPois(2);
-        if( b_i(i)==0 ) LogProb2_i(i) = dBinPois(0);
-        if( b_i(i)==1 ) LogProb2_i(i) = dBinPois(1);
-        if( b_i(i)==2 ) LogProb2_i(i) = dBinPois(2);
-        if( b_i(i)==3 ) LogProb2_i(i) = dBinPois(3);
+        if( b_i(i)==0 ) LogProb2_i(i) = log(dBinPois(0));
+        if( b_i(i)==1 ) LogProb2_i(i) = log(dBinPois(1));
+        if( b_i(i)==2 ) LogProb2_i(i) = log(dBinPois(2));
+        if( b_i(i)==3 ) LogProb2_i(i) = log(dBinPois(3));
       }
       LogProb1_i(i) = 0;
     }
