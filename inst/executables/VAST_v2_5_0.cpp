@@ -14,6 +14,13 @@ Type posfun(Type x, Type lowerlimit, Type &pen){
   return CppAD::CondExpGe(x,lowerlimit,x,lowerlimit/(Type(2)-x/lowerlimit));
 }
 
+// Function for taking two log-values, adding them in natural space, and returning its log
+template<class Type>
+Type logsum( Type x, Type y ){
+  Type mid = (x+y)/2;
+  return log(exp( x-mid ) + exp( y-mid )) + mid;
+}
+
 // Variance
 template<class Type>
 Type var( array<Type> vec ){
@@ -529,18 +536,18 @@ Type objective_function<Type>::operator() ()
       }
       if(ObsModel(0)==9){
         // Binned Poisson (for REEF data: 0=none; 1=1; 2=2-10; 3=>11)
-        vector<Type> dBinPois(4);
-        dBinPois(0) = (1-R1_i(i)) + dpois(Type(0.0), R2_i(i), false)*R1_i(i); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-        dBinPois(1) = dpois(Type(1.0), R2_i(i), false) * R1_i(i);
-        dBinPois(2) = 0;
+        vector<Type> logdBinPois(4);
+        logdBinPois(0) = logsum( (1-R1_i(i)), dpois(Type(0.0), R2_i(i), true) + log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+        logdBinPois(1) = dpois(Type(1.0), R2_i(i), true) + log(R1_i(i));
+        logdBinPois(2) = 0;
         for(int j=2; j<=10; j++){
-          dBinPois(2) += dpois(Type(j), R2_i(i), false) * R1_i(i);
+          logdBinPois(2) += logsum( logdBinPois(2), dpois(Type(j), R2_i(i), true) + log(R1_i(i)) );
         }
-        dBinPois(3) = Type(1.0) - dBinPois(0) - dBinPois(1) - dBinPois(2);
-        if( b_i(i)==0 ) LogProb2_i(i) = log(dBinPois(0));
-        if( b_i(i)==1 ) LogProb2_i(i) = log(dBinPois(1));
-        if( b_i(i)==2 ) LogProb2_i(i) = log(dBinPois(2));
-        if( b_i(i)==3 ) LogProb2_i(i) = log(dBinPois(3));
+        logdBinPois(3) = Type(1.0) - exp(logdBinPois(0)) - exp(logdBinPois(1)) - exp(logdBinPois(2));
+        if( b_i(i)==0 ) LogProb2_i(i) = logdBinPois(0);
+        if( b_i(i)==1 ) LogProb2_i(i) = logdBinPois(1);
+        if( b_i(i)==2 ) LogProb2_i(i) = logdBinPois(2);
+        if( b_i(i)==3 ) LogProb2_i(i) = logdBinPois(3);
       }
       LogProb1_i(i) = 0;
     }
