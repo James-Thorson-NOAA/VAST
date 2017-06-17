@@ -14,13 +14,6 @@ Type posfun(Type x, Type lowerlimit, Type &pen){
   return CppAD::CondExpGe(x,lowerlimit,x,lowerlimit/(Type(2)-x/lowerlimit));
 }
 
-// Function for taking two log-values, adding them in natural space, and returning its log
-template<class Type>
-Type logsum( Type x, Type y ){
-  Type mid = (x+y)/2;
-  return log(exp( x-mid ) + exp( y-mid )) + mid;
-}
-
 // Variance
 template<class Type>
 Type var( array<Type> vec ){
@@ -536,14 +529,17 @@ Type objective_function<Type>::operator() ()
       }
       if(ObsModel(0)==9){
         // Binned Poisson (for REEF data: 0=none; 1=1; 2=2-10; 3=>11)
+        /// Doesn't appear stable given spatial or spatio-temporal variation
         vector<Type> logdBinPois(4);
-        logdBinPois(0) = logsum( (1-R1_i(i)), dpois(Type(0.0), R2_i(i), true) + log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-        logdBinPois(1) = dpois(Type(1.0), R2_i(i), true) + log(R1_i(i));
-        logdBinPois(2) = 0;
-        for(int j=2; j<=10; j++){
-          logdBinPois(2) += logsum( logdBinPois(2), dpois(Type(j), R2_i(i), true) + log(R1_i(i)) );
+        logdBinPois(0) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0), R2_i(i), true) + log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+        logdBinPois(1) = dpois(Type(1.0), R2_i(i), true) + log(R1_i(i));                                 //  Pr[X | X>0] = Pois(X)*phi
+        logdBinPois(2) = dpois(Type(2.0), R2_i(i), true) + log(R1_i(i));                                 // SUM_J( Pr[X|X>0] ) = phi * SUM_J( Pois(J) )
+        for(int j=3; j<=10; j++){
+          logdBinPois(2) += logspace_add( logdBinPois(2), dpois(Type(j), R2_i(i), true) + log(R1_i(i)) );
         }
-        logdBinPois(3) = Type(1.0) - exp(logdBinPois(0)) - exp(logdBinPois(1)) - exp(logdBinPois(2));
+        logdBinPois(3) = logspace_sub( log(Type(1.0)), logdBinPois(0) );
+        logdBinPois(3) = logspace_sub( logdBinPois(3), logdBinPois(1) );
+        logdBinPois(3) = logspace_sub( logdBinPois(3), logdBinPois(2) );
         if( b_i(i)==0 ) LogProb2_i(i) = logdBinPois(0);
         if( b_i(i)==1 ) LogProb2_i(i) = logdBinPois(1);
         if( b_i(i)==2 ) LogProb2_i(i) = logdBinPois(2);
