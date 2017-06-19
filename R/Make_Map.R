@@ -70,7 +70,7 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
   if( length(TmbData[["ObsModel"]])==2 && TmbData[["ObsModel"]][2]%in%c(3) ){
     Tmp_ct = tapply(ifelse(TmbData$b_i>0,1,0), INDEX=list(factor(TmbData$c_i,levels=sort(unique(TmbData$c_i))),TmbData$t_i), FUN=mean)
     Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
-    Map[["beta1_ct"]][which(Tmp_ct==1)] = NA
+    Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
     Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
   }
   # Anisotropy

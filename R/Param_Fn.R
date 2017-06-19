@@ -58,7 +58,7 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
     }
     if( n_f== -1 ){
       List[[which(names(List)==list_names[1])]] = 1  # Turn off SD when zero factors, i.e., n_f = -1
-      List[[which(names(List)==list_names[2])]] = rarray(dim=as.vector(na.omit(c(n_i,n_c,n_t))), sd=sd)
+      List[[which(names(List)==list_names[2])]] = rarray(dim=as.vector(na.omit(c(n_i,abs(n_f),n_t))), sd=sd)
     }
     return( List )
   }
@@ -106,7 +106,7 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   }
   if( length(DataList$ObsModel)==2 && DataList$ObsModel[2]%in%c(3) ){
     Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_i,levels=sort(unique(DataList$c_i))),DataList$t_i), FUN=mean)
-    Return[["beta1_ct"]][which(Tmp_ct==1)] = 20
+    Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
   }
 
   # If either beta or epsilon is a random-walk process, fix starting value at 1
