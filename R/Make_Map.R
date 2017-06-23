@@ -58,10 +58,10 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
     if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( matrix(NA,nrow=TmbData$n_c,ncol=3) )
     if(TmbData[["ObsModel"]][2]!=0) stop("ObsModel[1]=6 or 7 should use ObsModel[2]=0")
   }
-  if(TmbData[["ObsModel"]][1]%in%c(8)){
+  if(TmbData[["ObsModel"]][1]%in%c(8,10)){
     if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA) )
     if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA,NA) )
-    if(TmbData[["ObsModel"]][2]!=2) stop("ObsModel[1]=8 should use ObsModel[2]=2")
+    if(TmbData[["ObsModel"]][2]!=2) stop("ObsModel[1]=8 and ObsModel[1]=10 should use ObsModel[2]=2")
   }
   if(TmbData[["ObsModel"]][1]%in%c(9)){
     if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( matrix(NA, nrow=TmbData$n_c, ncol=2) )

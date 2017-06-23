@@ -14,11 +14,12 @@
 #'   \item{ObsModel[1]=5}{Negative binomial}
 #'   \item{ObsModel[1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
 #'   \item{ObsModel[1]=7}{Poisson (more numerically stable than negative-binomial)}
-#'   \item{ObsModel[1]=8}{Tweedie (likely to be very slow)}
+#'   \item{ObsModel[1]=8}{Compound-Poisson-Gamma, where the expected number of individuals is the 1st-component, the expected biomass per individual is the 2nd-component, and SigmaM is the variance in positive catches (likely to be very slow)}
 #'   \item{ObsModel[1]=9}{Binned-Poisson (for use with REEF data, where 0=0 individual; 1=1 individual; 2=2:10 individuals; 3=>10 individuals)}
+#'   \item{ObsModel[1]=10}{Tweedie distribution, where epected biomass (lambda) is the product of 1st-component and 2nd-component, variance scalar (phi) is the 1st component, and logis-SigmaM is the power}
 #'   \item{ObsModel[2]=0}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
 #'   \item{ObsModel[2]=1}{Alternative delta-model using log-link for numbers-density and log-link for biomass per number}
-#'   \item{ObsModel[2]=2}{Link function for Tweedie distribution}
+#'   \item{ObsModel[2]=2}{Link function for Tweedie distribution, necessary for \code{ObsModel[1]=8} or \code{ObsModel[1]=10}}
 #'   \item{ObsModel[2]=3}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
 #' }
 #' @param b_i Sampled biomass for each observation i

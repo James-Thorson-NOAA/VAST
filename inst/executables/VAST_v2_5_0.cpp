@@ -500,11 +500,18 @@ Type objective_function<Type>::operator() ()
     // Likelihood for Tweedie model with continuous positive support
     if(ObsModel(0)==8){
       LogProb1_i(i) = 0;
-      // dPoisGam( Type x, Type shape, Type scale, Type intensity, Type &max_log_w_j, int maxsum=50, int minsum=1, int give_log=0 )
+      //dPoisGam( Type x, Type shape, Type scale, Type intensity, Type &max_log_w_j, int maxsum=50, int minsum=1, int give_log=0 )
       LogProb2_i(i) = dPoisGam( b_i(i), SigmaM(c_i(i),0), R1_i(i), R2_i(i), diag_z, Options_vec(5), Options_vec(6), true );
       diag_iz.row(i) = diag_z;
     }
-    // Likelihood for models with discrete support 
+    if(ObsModel(0)==10){
+      // Packaged code
+      LogProb1_i(i) = 0;
+      // dtweedie( Type y, Type mu, Type phi, Type p, int give_log=0 )
+      // R1*R2 = mean
+      LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(SigmaM(c_i(i),0))+1.0, true );
+    }
+    // Likelihood for models with discrete support
     if(ObsModel(0)==4 | ObsModel(0)==5 | ObsModel(0)==6 | ObsModel(0)==7 | ObsModel(0)==9){
       if(ObsModel(0)==5){
         // Zero-inflated negative binomial (not numerically stable!)
