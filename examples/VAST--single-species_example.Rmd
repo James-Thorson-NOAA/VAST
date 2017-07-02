@@ -79,7 +79,7 @@ and also browse the [GitHub list](https://github.com/james-thorson/VAST/#descrip
 # Settings
 First chose an example data set for this script, as archived with package
 ```{r, tidy=TRUE, linewidth=60}
-Data_Set = c("Chatham_rise_hake", "Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Aleutian_islands_POP")[2]
+Data_Set = c("Chatham_rise_hake", "Iceland_cod", "WCGBTS_canary", "GSL_american_plaice", "BC_pacific_cod", "EBS_pollock", "GOA_Pcod", "GOA_pollock", "GB_spring_haddock", "GB_fall_haddock", "SAWC_jacopever", "Aleutian_islands_POP")[6]
 ```
 
 Next use latest version for CPP code
@@ -189,7 +189,7 @@ capture.output( Record, file=paste0(DateFile,"Record.txt"))
 ## Data-frame for catch-rate data
 
 Depending upon the `Data_Set` chosen, we load archived data sets that are distributed with the package. Each archived data set is then reformatted to create a data-frame `Data_Geostat` with a standardized set of columns. For a new data set, the user is responsible for formatting `Data_Geostat` appropriately to match this format.  We show the first six rows of `Data_Geostat` given that Data_Set = `Data_Set`.  
-```{r load_data, echo=FALSE, message=FALSE}
+```{r load_data, message=FALSE, tidy=TRUE, linewidth=50}
 if(Data_Set=="WCGBTS_canary"){
   data( WCGBTS_Canary_example, package="SpatialDeltaGLMM" )
   Year = as.numeric(sapply(WCGBTS_Canary_example[,'PROJECT_CYCLE'], FUN=function(Char){strsplit(as.character(Char)," ")[[1]][2]}))
