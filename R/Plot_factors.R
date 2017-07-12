@@ -13,7 +13,7 @@
 #' @param land_color color for filling in land (use \code{land_color=rgb(0,0,0,alpha=0)} for transparent land)
 
 #' @export
-Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names=NULL,
+Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names=NULL, RotationMethod="PCA",
   mapdetails_list=NULL, Dim_year=NULL, Dim_species=NULL, plotdir=paste0(getwd(),"/"), land_color="grey" ){
 
   # Fill in missing inputs
@@ -58,7 +58,7 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
       # Cov_jj=Cov_List[[paste0("Cov_",tolower(Par_name))]][,,'Estimate']; Psi=Report[[Var_name]]; RotationMethod="PCA"; testcutoff=1e-4
       #Var_rot = Rotate_Fn( Cov_jj=Cov_List[[paste0("Cov_",tolower(Par_name))]][,,'Estimate'], Psi=Report[[Var_name]], RotationMethod="PCA", testcutoff=1e-4 )
       # L_pj=L_list[[i]]; Psi=Report[[Var_name]]; RotationMethod="PCA"; testcutoff=1e-4
-      Var_rot = SpatialDFA::Rotate_Fn( L_pj=L_list[[i]], Psi=Report[[Var_name]], RotationMethod="PCA", testcutoff=1e-4 )
+      Var_rot = SpatialDFA::Rotate_Fn( L_pj=L_list[[i]], Psi=Report[[Var_name]], RotationMethod=RotationMethod, testcutoff=1e-4 )
 
       # Plot loadings
       Dim_factor = Dim(Data[["FieldConfig"]][[Par_name]])
