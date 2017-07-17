@@ -19,12 +19,8 @@
     packageStartupMessage("Installing package: SpatialDFA...")
     devtools::install_github("james-thorson/spatial_DFA")
   }
-  if( !"ThorsonUtilities" %in% utils::installed.packages()[,1] ){
-    packageStartupMessage("Installing package: ThorsonUtilities...")
-    devtools::install_github("james-thorson/utilities")
-  }
-  if( !"TMBhelper" %in% utils::installed.packages()[,1] ){
-    packageStartupMessage("Installing package: TMBhelper...")
-    devtools::install_github("kaskr/TMB_contrib_R/TMBhelper")
-  }
+  packageStartupMessage("Installing package: ThorsonUtilities...")
+  devtools::install_github("james-thorson/utilities")
+  packageStartupMessage("Installing package: TMBhelper...")
+  devtools::install_github("kaskr/TMB_contrib_R/TMBhelper")
 }
