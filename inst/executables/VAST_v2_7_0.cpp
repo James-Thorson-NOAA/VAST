@@ -933,7 +933,7 @@ Type objective_function<Type>::operator() ()
         PropIndex_cyl(c,y,l) = Index_cyl(c,y,l) / sumtemp;
       }
     }}
-    ln_Index_cyl = log( Index_cyl );
+    ln_PropIndex_cyl = log( PropIndex_cyl );
     REPORT( PropIndex_cyl );
     REPORT( ln_PropIndex_cyl );
     ADREPORT( PropIndex_cyl );
