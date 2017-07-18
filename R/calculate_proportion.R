@@ -1,7 +1,22 @@
 
 
+#' Calculate the compositional-expansion
+#'
+#' \code{calculate_proportion} takes output from a VAST run and calculates the proportion of biomass in different categories
+#'
+#' @param Index output from \code{SpatialDeltaGLMM::PlotIndex_Fn}
+#' @inheritParams SpatialDeltaGLMM::PlotIndex_Fn
+#' @param ... list of settings to pass to \code{sdreport}
+#'
+#' @return Tagged list of output
+#' \describe{
+#'   \item{Prop_ctl}{Proportion of biomass for each category c, time t, and stratum l}
+#'   \item{Neff_tl}{Effective sample size (median across categories) for each time t and stratum l}
+#' }
+#'
+#' @export
 calculate_proportion = function( TmbData, Index, Year_Set=NULL, Years2Include=NULL, strata_names=NULL, category_names=NULL, plot_legend=TRUE,
-  DirName=paste0(getwd(),"/"), PlotName="Proportion.png", interval_width=1, width=4, height=4, ... ){
+  DirName=paste0(getwd(),"/"), PlotName="Proportion.png", interval_width=1, width=6, height=6, ... ){
 
   # Warnings and errors
   if( !all(TmbData[['FieldConfig']] %in% c(-2,-1)) ){
