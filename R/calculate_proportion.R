@@ -28,7 +28,7 @@ calculate_proportion = function( TmbData, Index, Year_Set=NULL, Years2Include=NU
   # Calculate proportions, and total biomass
   Prop_ctl = Index_ctl / outer(rep(1,TmbData$n_c),apply(Index_ctl,MARGIN=2:3,FUN=sum))
   Index_tl = apply(Index_ctl,MARGIN=2:3,FUN=sum)
-  SE_Index_tl = apply(SE_Index_ctl,MARGIN=2:3,FUN=sum)
+  SE_Index_tl = sqrt(apply(SE_Index_ctl^2,MARGIN=2:3,FUN=sum))
 
   # Approximate variance for proportions, and effective sample size
   Neff_ctl = var_Prop_ctl = array(NA,dim=dim(Prop_ctl))
@@ -49,20 +49,20 @@ calculate_proportion = function( TmbData, Index, Year_Set=NULL, Years2Include=NU
   if( is.null(category_names) ) category_names = 1:TmbData$n_c
 
   # Plot
-  Par = list( mar=c(2,2,1,0), mgp=c(2,0.5,0), tck=-0.02, yaxs="i", oma=c(1,1,0,0), mfrow=c(ceiling(sqrt(TmbData$n_t)),ceiling(TmbData$n_t/ceiling(sqrt(TmbData$n_t)))), ... )
+  Par = list( mar=c(2,2,1,0), mgp=c(2,0.5,0), tck=-0.02, yaxs="i", oma=c(2,2,0,0), mfrow=c(ceiling(sqrt(TmbData$n_t)),ceiling(TmbData$n_t/ceiling(sqrt(TmbData$n_t)))), ... )
   png( file=paste0(DirName,"/",PlotName), width=width, height=height, res=200, units="in")
     par( Par )
     for( tI in 1:TmbData$n_t ){
       # Calculate y-axis limits
       Ylim = c(0, max(Prop_ctl[,tI,]%o%c(1,1) + sqrt(var_Prop_ctl[,tI,])%o%c(-interval_width,interval_width)))
       # Plot stuff
-      plot(1, type="n", xlim=range(category_names), ylim=1.05*Ylim, xlab="", ylab="", main=ifelse(TmbData$n_t>1,Year_Set[tI],"") )
+      plot(1, type="n", xlim=range(category_names), ylim=1.05*Ylim, xlab="", ylab="", main=ifelse(TmbData$n_t>1,paste0("Year ",Year_Set[tI]),"") )
       for(l in 1:TmbData$n_l){
         SpatialDeltaGLMM:::Plot_Points_and_Bounds_Fn( y=Prop_ctl[,tI,l], x=1:TmbData$n_c+seq(-0.1,0.1,length=TmbData$n_l)[l], ybounds=Prop_ctl[,tI,]%o%c(1,1) + sqrt(var_Prop_ctl[,tI,])%o%c(-interval_width,interval_width), type="b", col=rainbow(TmbData[['n_l']])[l], col_bounds=rainbow(TmbData[['n_l']])[l], ylim=Ylim)
       }
       if(plot_legend==TRUE) legend( "top", bty="n", fill=rainbow(TmbData[['n_l']]), legend=as.character(strata_names), ncol=2 )
     }
-    mtext( side=1:2, text=c("Year","Proportion of biomass"), outer=TRUE, line=c(0,0) )
+    mtext( side=1:2, text=c("Age","Proportion of biomass"), outer=TRUE, line=c(0,0) )
   dev.off()
 
   # Return stuff
