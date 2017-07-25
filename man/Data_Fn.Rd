@@ -10,9 +10,9 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
   length(b_i)), X_xj = NULL, X_xtp = NULL, Q_ik = NULL, Aniso = 1,
   RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
   t_yz = NULL, CheckForErrors = TRUE, yearbounds_zz = NULL,
-  Options = c(SD_site_density = 0, SD_site_logdensity = 0, Calculate_Range =
-  0, Calculate_evenness = 0, Calculate_effective_area = 0, Calculate_Cov_SE = 0,
-  Calculate_Synchrony = 0, Calculate_Coherence = 0))
+  Options = c(SD_site_logdensity = 0, Calculate_Range = 0,
+  Calculate_effective_area = 0, Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
+  Calculate_proportion = 0))
 }
 \arguments{
 \item{Version}{a version number (see example for current default).}
@@ -76,7 +76,7 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
 
 \item{yearbounds_zz}{OPTIONAL, matrix with two columns, giving first and last years for defining one or more periods (rows) used to calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})}
 
-\item{Options}{OPTIONAL, a vector of form c('SD_site_density'=0,'SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_evenness'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_Coherence'=0), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied}
+\item{Options}{OPTIONAL, a vector of form c('SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_proportion'=0), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied}
 }
 \value{
 Tagged list containing inputs to function \code{VAST::Build_TMB_Fn()}
