@@ -63,7 +63,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
 
   # Which are random
   if( length(Random)==1 && Random=="generate" ){
-    Random = c("Epsiloninput1_sct", "Omegainput1_sc", "Epsiloninput1_sft", "Omegainput1_sf", "eta1_vf", "Epsiloninput2_sct", "Omegainput2_sc", "Epsiloninput2_sft", "Omegainput2_sf", "eta2_vf")
+    Random = c("Epsiloninput1_sct", "Omegainput1_sc", "Epsiloninput1_sft", "Omegainput1_sf", "eta1_vf", "Epsiloninput2_sct", "Omegainput2_sc", "Epsiloninput2_sft", "Omegainput2_sf", "eta2_vf", "delta_i")
     if( RhoConfig[["Beta1"]]%in%c(1,2,4) ) Random = c(Random, "beta1_ct")
     if( RhoConfig[["Beta2"]]%in%c(1,2,4) ) Random = c(Random, "beta2_ct")
     if( Use_REML==TRUE ){
