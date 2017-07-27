@@ -475,121 +475,123 @@ Type objective_function<Type>::operator() ()
 
   // Likelihood contribution from observations
   for(int i=0; i<n_i; i++){
-    // Linear predictors
-    P1_i(i) = Omega1_sc(s_i(i),c_i(i)) + eta1_x(s_i(i)) + zeta1_i(i) + eta1_vc(v_i(i),c_i(i));
-    P2_i(i) = Omega2_sc(s_i(i),c_i(i)) + eta2_x(s_i(i)) + zeta2_i(i) + eta2_vc(v_i(i),c_i(i));
-    for( int z=0; z<t_iz.row(0).size(); z++ ){
-      if( t_iz(i,z)>=0 & t_iz(i,z)<n_t ){  // isNA doesn't seem to work for IMATRIX type
-        P1_i(i) += beta1_ct(c_i(i),t_iz(i,z)) + Epsilon1_sct(s_i(i),c_i(i),t_iz(i,z))*exp(log_sigmaratio1_z(z)) + eta1_xct(s_i(i),c_i(i),t_iz(i,z));
-        P2_i(i) += beta2_ct(c_i(i),t_iz(i,z)) + Epsilon2_sct(s_i(i),c_i(i),t_iz(i,z))*exp(log_sigmaratio2_z(z)) + eta2_xct(s_i(i),c_i(i),t_iz(i,z));
+    if( !isNA(b_i(i)) ){
+      // Linear predictors
+      P1_i(i) = Omega1_sc(s_i(i),c_i(i)) + eta1_x(s_i(i)) + zeta1_i(i) + eta1_vc(v_i(i),c_i(i));
+      P2_i(i) = Omega2_sc(s_i(i),c_i(i)) + eta2_x(s_i(i)) + zeta2_i(i) + eta2_vc(v_i(i),c_i(i));
+      for( int z=0; z<t_iz.row(0).size(); z++ ){
+        if( t_iz(i,z)>=0 & t_iz(i,z)<n_t ){  // isNA doesn't seem to work for IMATRIX type
+          P1_i(i) += beta1_ct(c_i(i),t_iz(i,z)) + Epsilon1_sct(s_i(i),c_i(i),t_iz(i,z))*exp(log_sigmaratio1_z(z)) + eta1_xct(s_i(i),c_i(i),t_iz(i,z));
+          P2_i(i) += beta2_ct(c_i(i),t_iz(i,z)) + Epsilon2_sct(s_i(i),c_i(i),t_iz(i,z))*exp(log_sigmaratio2_z(z)) + eta2_xct(s_i(i),c_i(i),t_iz(i,z));
+        }
       }
-    }
-    // Responses
-    if( ObsModel(1)==0 | ObsModel(1)==3 ){
-      // Log and logit-link, where area-swept only affects positive catch rate exp(P2_i(i))
-      // P1_i: Logit-Probability of occurrence;  R1_i:  Probability of occurrence
-      // P2_i: Log-Positive density prediction;  R2_i:  Positive density prediction
-      R1_i(i) = invlogit( P1_i(i) );
-      R2_i(i) = a_i(i) * exp( P2_i(i) );
-    }
-    if( ObsModel(1)==1 ){
-      // Poisson-process link, where area-swept affects numbers density exp(P1_i(i))
-      // P1_i: Log-numbers density;  R1_i:  Probability of occurrence
-      // P2_i: Log-average weight;  R2_i:  Positive density prediction
-      R1_i(i) = Type(1.0) - exp( -1*SigmaM(c_i(i),2)*a_i(i)*exp(P1_i(i)) );
-      R2_i(i) = a_i(i)*exp(P1_i(i)) / R1_i(i) * exp( P2_i(i) );
-    }
-    if( ObsModel(1)==2 ){
-      // Tweedie link, where area-swept affects numbers density exp(P1_i(i))
-      // P1_i: Log-numbers density;  R1_i:  Expected numbers
-      // P2_i: Log-average weight;  R2_i:  Expected average weight
-      R1_i(i) = a_i(i) * exp( P1_i(i) );
-      R2_i(i) = exp( P2_i(i) );
-    }
-    // Likelihood for delta-models with continuous positive support
-    if(ObsModel(0)==0 | ObsModel(0)==1 | ObsModel(0)==2){
-      // Presence-absence likelihood
-      if( b_i(i) > 0 ){
-        LogProb1_i(i) = log( R1_i(i) );
-      }else{
-        LogProb1_i(i) = log( 1-R1_i(i) );
+      // Responses
+      if( ObsModel(1)==0 | ObsModel(1)==3 ){
+        // Log and logit-link, where area-swept only affects positive catch rate exp(P2_i(i))
+        // P1_i: Logit-Probability of occurrence;  R1_i:  Probability of occurrence
+        // P2_i: Log-Positive density prediction;  R2_i:  Positive density prediction
+        R1_i(i) = invlogit( P1_i(i) );
+        R2_i(i) = a_i(i) * exp( P2_i(i) );
       }
-      // Positive density likelihood -- models with continuous positive support
-      if( b_i(i) > 0 ){    // 1e-500 causes overflow on laptop
-        if(ObsModel(0)==0) LogProb2_i(i) = dnorm(b_i(i), R2_i(i), SigmaM(c_i(i),0), true);
-        if(ObsModel(0)==1) LogProb2_i(i) = dlnorm(b_i(i), log(R2_i(i))-pow(SigmaM(c_i(i),0),2)/2, SigmaM(c_i(i),0), true); // log-space
-        if(ObsModel(0)==2) LogProb2_i(i) = dgamma(b_i(i), 1/pow(SigmaM(c_i(i),0),2), R2_i(i)*pow(SigmaM(c_i(i),0),2), true); // shape = 1/CV^2, scale = mean*CV^2
-      }else{
-        LogProb2_i(i) = 0;
+      if( ObsModel(1)==1 ){
+        // Poisson-process link, where area-swept affects numbers density exp(P1_i(i))
+        // P1_i: Log-numbers density;  R1_i:  Probability of occurrence
+        // P2_i: Log-average weight;  R2_i:  Positive density prediction
+        R1_i(i) = Type(1.0) - exp( -1*SigmaM(c_i(i),2)*a_i(i)*exp(P1_i(i)) );
+        R2_i(i) = a_i(i)*exp(P1_i(i)) / R1_i(i) * exp( P2_i(i) );
       }
-    }
-    // Likelihood for Tweedie model with continuous positive support
-    if(ObsModel(0)==8){
-      LogProb1_i(i) = 0;
-      //dPoisGam( Type x, Type shape, Type scale, Type intensity, Type &max_log_w_j, int maxsum=50, int minsum=1, int give_log=0 )
-      LogProb2_i(i) = dPoisGam( b_i(i), SigmaM(c_i(i),0), R2_i(i), R1_i(i), diag_z, Options_vec(5), Options_vec(6), true );
-      diag_iz.row(i) = diag_z;
-    }
-    if(ObsModel(0)==10){
-      // Packaged code
-      LogProb1_i(i) = 0;
-      // dtweedie( Type y, Type mu, Type phi, Type p, int give_log=0 )
-      // R1*R2 = mean
-      LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(SigmaM(c_i(i),0))+1.0, true );
-    }
-    // Likelihood for models with discrete support
-    if(ObsModel(0)==4 | ObsModel(0)==5 | ObsModel(0)==6 | ObsModel(0)==7 | ObsModel(0)==9 | ObsModel(0)==11){
-      if(ObsModel(0)==5){
-        // Zero-inflated negative binomial (not numerically stable!)
-        var_i(i) = R2_i(i)*(1.0+SigmaM(c_i(i),0)) + pow(R2_i(i),2.0)*SigmaM(c_i(i),1);
-        if( b_i(i)==0 ){
-          //LogProb2_i(i) = log( (1-R1_i(i)) + dnbinom2(Type(0.0), R2_i(i), var_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
-          LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dnbinom2(Type(0.0),R2_i(i),var_i(i),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
+      if( ObsModel(1)==2 ){
+        // Tweedie link, where area-swept affects numbers density exp(P1_i(i))
+        // P1_i: Log-numbers density;  R1_i:  Expected numbers
+        // P2_i: Log-average weight;  R2_i:  Expected average weight
+        R1_i(i) = a_i(i) * exp( P1_i(i) );
+        R2_i(i) = exp( P2_i(i) );
+      }
+      // Likelihood for delta-models with continuous positive support
+      if(ObsModel(0)==0 | ObsModel(0)==1 | ObsModel(0)==2){
+        // Presence-absence likelihood
+        if( b_i(i) > 0 ){
+          LogProb1_i(i) = log( R1_i(i) );
         }else{
-          LogProb2_i(i) = dnbinom2(b_i(i), R2_i(i), var_i(i), true) + log(R1_i(i)); // Pr[X=x] = NB(X=x)*phi
+          LogProb1_i(i) = log( 1-R1_i(i) );
         }
-      }
-      if(ObsModel(0)==6){
-        // Conway-Maxwell-Poisson
-        LogProb2_i(i) = dCMP(b_i(i), R2_i(i), exp(P1_i(i)), true, Options_vec(5));
-      }
-      if(ObsModel(0)==7){
-        // Zero-inflated Poisson
-        if( b_i(i)==0 ){
-          //LogProb2_i(i) = log( (1-R1_i(i)) + dpois(Type(0.0), R2_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-          LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+        // Positive density likelihood -- models with continuous positive support
+        if( b_i(i) > 0 ){    // 1e-500 causes overflow on laptop
+          if(ObsModel(0)==0) LogProb2_i(i) = dnorm(b_i(i), R2_i(i), SigmaM(c_i(i),0), true);
+          if(ObsModel(0)==1) LogProb2_i(i) = dlnorm(b_i(i), log(R2_i(i))-pow(SigmaM(c_i(i),0),2)/2, SigmaM(c_i(i),0), true); // log-space
+          if(ObsModel(0)==2) LogProb2_i(i) = dgamma(b_i(i), 1/pow(SigmaM(c_i(i),0),2), R2_i(i)*pow(SigmaM(c_i(i),0),2), true); // shape = 1/CV^2, scale = mean*CV^2
         }else{
-          LogProb2_i(i) = dpois(b_i(i), R2_i(i), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
+          LogProb2_i(i) = 0;
         }
       }
-      if(ObsModel(0)==9){
-        // Binned Poisson (for REEF data: 0=none; 1=1; 2=2-10; 3=>11)
-        /// Doesn't appear stable given spatial or spatio-temporal variation
-        vector<Type> logdBinPois(4);
-        logdBinPois(0) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0), R2_i(i), true) + log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-        logdBinPois(1) = dpois(Type(1.0), R2_i(i), true) + log(R1_i(i));                                 //  Pr[X | X>0] = Pois(X)*phi
-        logdBinPois(2) = dpois(Type(2.0), R2_i(i), true) + log(R1_i(i));                                 // SUM_J( Pr[X|X>0] ) = phi * SUM_J( Pois(J) )
-        for(int j=3; j<=10; j++){
-          logdBinPois(2) += logspace_add( logdBinPois(2), dpois(Type(j), R2_i(i), true) + log(R1_i(i)) );
-        }
-        logdBinPois(3) = logspace_sub( log(Type(1.0)), logdBinPois(0) );
-        logdBinPois(3) = logspace_sub( logdBinPois(3), logdBinPois(1) );
-        logdBinPois(3) = logspace_sub( logdBinPois(3), logdBinPois(2) );
-        if( b_i(i)==0 ) LogProb2_i(i) = logdBinPois(0);
-        if( b_i(i)==1 ) LogProb2_i(i) = logdBinPois(1);
-        if( b_i(i)==2 ) LogProb2_i(i) = logdBinPois(2);
-        if( b_i(i)==3 ) LogProb2_i(i) = logdBinPois(3);
+      // Likelihood for Tweedie model with continuous positive support
+      if(ObsModel(0)==8){
+        LogProb1_i(i) = 0;
+        //dPoisGam( Type x, Type shape, Type scale, Type intensity, Type &max_log_w_j, int maxsum=50, int minsum=1, int give_log=0 )
+        LogProb2_i(i) = dPoisGam( b_i(i), SigmaM(c_i(i),0), R2_i(i), R1_i(i), diag_z, Options_vec(5), Options_vec(6), true );
+        diag_iz.row(i) = diag_z;
       }
-      if(ObsModel(0)==11){
-        // Zero-inflated Poisson
-        if( b_i(i)==0 ){
-          //LogProb2_i(i) = log( (1-R1_i(i)) + dpois(Type(0.0), R2_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-          LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i)*exp(SigmaM(c_i(i),0)*delta_i(i)-pow(SigmaM(c_i(i),0),2)/2),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-        }else{
-          LogProb2_i(i) = dpois(b_i(i), R2_i(i)*exp(SigmaM(c_i(i),0)*delta_i(i)-pow(SigmaM(c_i(i),0),2)/2), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
-        }
+      if(ObsModel(0)==10){
+        // Packaged code
+        LogProb1_i(i) = 0;
+        // dtweedie( Type y, Type mu, Type phi, Type p, int give_log=0 )
+        // R1*R2 = mean
+        LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(SigmaM(c_i(i),0))+1.0, true );
       }
-      LogProb1_i(i) = 0;
+      // Likelihood for models with discrete support
+      if(ObsModel(0)==4 | ObsModel(0)==5 | ObsModel(0)==6 | ObsModel(0)==7 | ObsModel(0)==9 | ObsModel(0)==11){
+        if(ObsModel(0)==5){
+          // Zero-inflated negative binomial (not numerically stable!)
+          var_i(i) = R2_i(i)*(1.0+SigmaM(c_i(i),0)) + pow(R2_i(i),2.0)*SigmaM(c_i(i),1);
+          if( b_i(i)==0 ){
+            //LogProb2_i(i) = log( (1-R1_i(i)) + dnbinom2(Type(0.0), R2_i(i), var_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
+            LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dnbinom2(Type(0.0),R2_i(i),var_i(i),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
+          }else{
+            LogProb2_i(i) = dnbinom2(b_i(i), R2_i(i), var_i(i), true) + log(R1_i(i)); // Pr[X=x] = NB(X=x)*phi
+          }
+        }
+        if(ObsModel(0)==6){
+          // Conway-Maxwell-Poisson
+          LogProb2_i(i) = dCMP(b_i(i), R2_i(i), exp(P1_i(i)), true, Options_vec(5));
+        }
+        if(ObsModel(0)==7){
+          // Zero-inflated Poisson
+          if( b_i(i)==0 ){
+            //LogProb2_i(i) = log( (1-R1_i(i)) + dpois(Type(0.0), R2_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+            LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+          }else{
+            LogProb2_i(i) = dpois(b_i(i), R2_i(i), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
+          }
+        }
+        if(ObsModel(0)==9){
+          // Binned Poisson (for REEF data: 0=none; 1=1; 2=2-10; 3=>11)
+          /// Doesn't appear stable given spatial or spatio-temporal variation
+          vector<Type> logdBinPois(4);
+          logdBinPois(0) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0), R2_i(i), true) + log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+          logdBinPois(1) = dpois(Type(1.0), R2_i(i), true) + log(R1_i(i));                                 //  Pr[X | X>0] = Pois(X)*phi
+          logdBinPois(2) = dpois(Type(2.0), R2_i(i), true) + log(R1_i(i));                                 // SUM_J( Pr[X|X>0] ) = phi * SUM_J( Pois(J) )
+          for(int j=3; j<=10; j++){
+            logdBinPois(2) += logspace_add( logdBinPois(2), dpois(Type(j), R2_i(i), true) + log(R1_i(i)) );
+          }
+          logdBinPois(3) = logspace_sub( log(Type(1.0)), logdBinPois(0) );
+          logdBinPois(3) = logspace_sub( logdBinPois(3), logdBinPois(1) );
+          logdBinPois(3) = logspace_sub( logdBinPois(3), logdBinPois(2) );
+          if( b_i(i)==0 ) LogProb2_i(i) = logdBinPois(0);
+          if( b_i(i)==1 ) LogProb2_i(i) = logdBinPois(1);
+          if( b_i(i)==2 ) LogProb2_i(i) = logdBinPois(2);
+          if( b_i(i)==3 ) LogProb2_i(i) = logdBinPois(3);
+        }
+        if(ObsModel(0)==11){
+          // Zero-inflated Poisson
+          if( b_i(i)==0 ){
+            //LogProb2_i(i) = log( (1-R1_i(i)) + dpois(Type(0.0), R2_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+            LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i)*exp(SigmaM(c_i(i),0)*delta_i(i)-pow(SigmaM(c_i(i),0),2)/2),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+          }else{
+            LogProb2_i(i) = dpois(b_i(i), R2_i(i)*exp(SigmaM(c_i(i),0)*delta_i(i)-pow(SigmaM(c_i(i),0),2)/2), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
+          }
+        }
+        LogProb1_i(i) = 0;
+      }
     }
   }
   REPORT( diag_iz );
