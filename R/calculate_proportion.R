@@ -28,7 +28,7 @@ calculate_proportion = function( TmbData, Index, Year_Set=NULL, Years2Include=NU
   # Calculate proportions, and total biomass
   Prop_ctl = Index_ctl / outer(rep(1,TmbData$n_c),apply(Index_ctl,MARGIN=2:3,FUN=sum))
   Index_tl = apply(Index_ctl,MARGIN=2:3,FUN=sum)
-  SE_Index_tl = sqrt(apply(SE_Index_ctl^2,MARGIN=2:3,FUN=sum))
+  SE_Index_tl = sqrt(apply(SE_Index_ctl^2,MARGIN=2:3,FUN=sum,na.rm=TRUE))
 
   # Approximate variance for proportions, and effective sample size
   Neff_ctl = var_Prop_ctl = array(NA,dim=dim(Prop_ctl))
@@ -40,7 +40,7 @@ calculate_proportion = function( TmbData, Index, Year_Set=NULL, Years2Include=NU
   }}}
 
   # Median effective sample size across categories
-  Neff_tl = apply(Neff_ctl, MARGIN=2:3, FUN=median)
+  Neff_tl = apply(Neff_ctl, MARGIN=2:3, FUN=median, na.rm=TRUE)
 
   # Fill in missing
   if( is.null(Year_Set) ) Year_Set = 1:TmbData$n_t
@@ -54,7 +54,7 @@ calculate_proportion = function( TmbData, Index, Year_Set=NULL, Years2Include=NU
     par( Par )
     for( tI in 1:TmbData$n_t ){
       # Calculate y-axis limits
-      Ylim = c(0, max(Prop_ctl[,tI,]%o%c(1,1) + sqrt(var_Prop_ctl[,tI,])%o%c(-interval_width,interval_width)))
+      Ylim = c(0, max(Prop_ctl[,tI,]%o%c(1,1) + sqrt(var_Prop_ctl[,tI,])%o%c(-interval_width,interval_width),na.rm=TRUE))
       # Plot stuff
       plot(1, type="n", xlim=range(category_names), ylim=1.05*Ylim, xlab="", ylab="", main=ifelse(TmbData$n_t>1,paste0("Year ",Year_Set[tI]),"") )
       for(l in 1:TmbData$n_l){
