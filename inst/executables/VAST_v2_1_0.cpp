@@ -485,13 +485,13 @@ Type objective_function<Type>::operator() ()
     if( ObsModel(1)==0 ){
       R1_xcy(x,c,y) = invlogit( P1_xcy(x,c,y) );
       R2_xcy(x,c,y) = exp( P2_xcy(x,c,y) );
+      D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
     }
     if( ObsModel(1)==1 ){
       R1_xcy(x,c,y) = Type(1.0) - exp( -SigmaM(c,2)*exp(P1_xcy(x,c,y)) );
       R2_xcy(x,c,y) = exp(P1_xcy(x,c,y)) / R1_xcy(x,c,y) * exp( P2_xcy(x,c,y) );
+      D_xcy(x,c,y) = exp(P1_xcy(x,c,y)) * exp( P2_xcy(x,c,y) );  // Use this line to prevent numerical over/underflow
     }
-    // Expected value for predictive distribution in a grid cell
-    D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
   }}}
 
   // Calculate indices

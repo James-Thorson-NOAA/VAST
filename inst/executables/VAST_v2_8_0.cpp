@@ -633,17 +633,18 @@ Type objective_function<Type>::operator() ()
     if( ObsModel(1)==0 ){
       R1_xcy(x,c,y) = invlogit( P1_xcy(x,c,y) );
       R2_xcy(x,c,y) = exp( P2_xcy(x,c,y) );
+      D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
     }
     if( ObsModel(1)==1 ){
       R1_xcy(x,c,y) = Type(1.0) - exp( -SigmaM(c,2)*exp(P1_xcy(x,c,y)) );
       R2_xcy(x,c,y) = exp(P1_xcy(x,c,y)) / R1_xcy(x,c,y) * exp( P2_xcy(x,c,y) );
+      D_xcy(x,c,y) = exp( P1_xcy(x,c,y) ) * exp( P2_xcy(x,c,y) );        // Use this line to prevent numerical over/underflow
     }
     if( ObsModel(1)==2 ){
       R1_xcy(x,c,y) = exp( P1_xcy(x,c,y) );
       R2_xcy(x,c,y) = exp( P2_xcy(x,c,y) );
+      D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
     }
-    // Expected value for predictive distribution in a grid cell
-    D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
   }}}
 
   // Calculate indices
@@ -895,6 +896,7 @@ Type objective_function<Type>::operator() ()
     ADREPORT( varB_xbar_z );
     ADREPORT( varB_cbar_z );
     ADREPORT( varB_z );
+    ADREPORT( B_y );
     ADREPORT( ln_varB_xbar_z );
     ADREPORT( ln_varB_cbar_z );
     ADREPORT( ln_varB_z );
