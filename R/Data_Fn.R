@@ -67,7 +67,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   if( !is.matrix(t_iz) ) t_iz = matrix(t_iz,ncol=1)
 
   # Determine dimensions
-  n_t = max(t_iz) - min(t_iz) + 1
+  n_t = length(unique(t_iz[,1])) #max(t_iz) - min(t_iz) + 1
   n_c = max(c_i) + 1
   n_v = length(unique(v_i))   # If n_v=1, then turn off overdispersion later
   n_i = length(b_i)
@@ -80,7 +80,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   if( is.null(Q_ik) ) Q_ik = matrix(0, nrow=n_i, ncol=1)
   if( is.null(yearbounds_zz)) yearbounds_zz = matrix(c(0,n_t-1),nrow=1)
   if( is.null(t_yz) ){
-    t_yz = matrix(0:(max(t_iz[,1])-min(t_iz[,1])), ncol=1)
+    t_yz = matrix(0:(length(unique(t_iz[,1])) - 1), ncol=1)
     for( cI in seq(2,ncol(t_iz),length=ncol(t_iz)-1)) t_yz = cbind(t_yz, min(t_iz[,cI],na.rm=TRUE)-min(t_iz[,1]))
   }
   n_j = ncol(X_xj)

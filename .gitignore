@@ -1,3 +1,6 @@
 *.o
 *.dll
 *.so
+.Rproj.user
+*.Rproj
+examples/VAST_output/
