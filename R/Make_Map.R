@@ -67,6 +67,14 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
     if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( matrix(NA, nrow=TmbData$n_c, ncol=2) )
     if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( matrix(NA, nrow=TmbData$n_c, ncol=3) )
   }
+  if(TmbData[["ObsModel"]][1]%in%c(11)){
+    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA) )
+    if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA,NA) )
+  }else{
+    if( "delta_i" %in% names(TmbParams) ){
+      Map[["delta_i"]] = factor( rep(NA,length(TmbParams[["delta_i"]])) )
+    }
+  }
   if( length(TmbData[["ObsModel"]])==2 && TmbData[["ObsModel"]][2]%in%c(3) ){
     Tmp_ct = tapply(ifelse(TmbData$b_i>0,1,0), INDEX=list(factor(TmbData$c_i,levels=sort(unique(TmbData$c_i))),TmbData$t_i), FUN=mean)
     Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
@@ -129,24 +137,27 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
     Map[["Epsilon_rho2"]] = factor( NA )
   }
   # fix betas and/or epsilons for missing years if betas are fixed-effects
-  YearNotInData = !( (1:TmbData$n_t) %in% (unique(TmbData$t_i)+1) ) 
-  if( sum(YearNotInData)>0 ){
+  #YearNotInData = !( (1:TmbData$n_t) %in% (unique(TmbData$t_i)+1) )
+  Num_ct = tapply( TmbData$b_i, INDEX=list(factor(TmbData$c_i,levels=1:TmbData$n_c-1),factor(TmbData$t_i[,1],levels=1:TmbData$n_t-1)), FUN=function(vec){sum(!is.na(vec))} )
+  if( sum(Num_ct)>0 ){
     # Beta1 -- Fixed
     if( RhoConfig["Beta1"]==0){
-      Map[["beta1_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
+      Map[["beta1_ct"]] = fixval_fn( fixvalTF=(Num_ct==0) )
     }
     # Beta1 -- White-noise
     if( RhoConfig["Beta1"]==1){
-      Map[["beta1_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
+      # Don't fix because it would affect estimates of variance
+      #Map[["beta1_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
     }
     # Beta2 -- Fixed
     if( !("beta2_ct" %in% names(Map)) ){
       if( RhoConfig["Beta2"]==0){
-        Map[["beta2_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
+        Map[["beta2_ct"]] = fixval_fn( fixvalTF=(Num_ct==0) )
       }
       # Beta2 -- White-noise
       if( RhoConfig["Beta2"]==1){
-        Map[["beta2_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
+        # Don't fix because it would affect estimates of variance
+        #Map[["beta2_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=TmbData$n_c) )
       }
     }
   }
