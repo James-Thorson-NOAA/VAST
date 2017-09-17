@@ -35,10 +35,14 @@ Depends:
     R (>= 3.1.0),
 Suggests:
     INLA,
-    testthat
+    testthat,
+    knitr,
+    rmarkdown,
+    R.rsp
 License: GPL-3
 LazyData: yes
 BuildVignettes: yes
 RoxygenNote: 5.0.1
 URL: http://github.com/James-Thorson/VAST
 BugReports: http://github.com/James-Thorson/VAST/issues
+VignetteBuilder: R.rsp
