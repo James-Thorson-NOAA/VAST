@@ -34,8 +34,7 @@ Imports:
     ThorsonUtilities,
     TMBhelper,
     SpatialDFA,
-    SpatialDeltaGLMM,
-    INLA
+    SpatialDeltaGLMM
 Depends:
     R (>= 3.1.0),
 Suggests:
@@ -47,8 +46,7 @@ Remotes:
     nwfsc-assess/geostatistical_delta-GLMM,
     james-thorson/spatial_DFA,
     james-thorson/utilities,
-    kaskr/TMB_contrib_R/TMBhelper,
-    url::https://www.math.ntnu.no/inla/R/stable
+    kaskr/TMB_contrib_R/TMBhelper
 License: GPL-3
 LazyData: yes
 BuildVignettes: yes
