@@ -56,208 +56,481 @@ code > span.er { color: #ff0000; font-weight: bold; }
 
 
 
-<p>Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The <code>html_vignette</code> output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The <code>html_vignette</code> format:</p>
-<ul>
-<li>Never uses retina figures</li>
-<li>Has a smaller default figure size</li>
-<li>Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style</li>
-</ul>
-<div id="vignette-info" class="section level2">
-<h2>Vignette Info</h2>
-<p>Note the various macros within the <code>vignette</code> section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the <code>title</code> field and the <code>\VignetteIndexEntry</code> to match the title of your vignette.</p>
+<div id="tutorial-using-vast-for-single-species-analysis" class="section level1">
+<h1>Tutorial using VAST for single-species analysis</h1>
+<pre><code>## package 'pander' successfully unpacked and MD5 sums checked
+## 
+## The downloaded binary packages are in
+##  C:\Users\James.Thorson\AppData\Local\Temp\Rtmp6PQLr0\downloaded_packages</code></pre>
 </div>
-<div id="styles" class="section level2">
-<h2>Styles</h2>
-<p>The <code>html_vignette</code> template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:</p>
-<pre><code>output: 
-  rmarkdown::html_vignette:
-    css: mystyles.css</code></pre>
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>This tutorial will walk through a simple example of how to use <code>VAST</code> for estimating single-species abundance indices, distribution shifts, and range expansion.</p>
 </div>
-<div id="figures" class="section level2">
-<h2>Figures</h2>
-<p>The figure sizes have been customised so that you can easily put two images side-by-side.</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(<span class="dv">1</span>:<span class="dv">10</span>)
-<span class="kw">plot</span>(<span class="dv">10</span>:<span class="dv">1</span>)</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASAAAAEgCAMAAAAjXV6yAAAAWlBMVEUAAAAAADoAAGYAOjoAOpAAZrY6AAA6ADo6AGY6kNtmAABmADpmZmZmtrZmtv+QOgCQZgCQkGaQ2/+2ZgC2/7a2///bkDrb/9vb////tmb/25D//7b//9v////Y4K3VAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAGlUlEQVR4nO2dDXebNhRASZZ0i7fVXWhZqe3//zdnEM7HbHTBCFDie89JTpsoT/a1eBLwgOIgUYq1X0DuKAhQEKAgQEGAggAFAQoCFAQoCFAQoCBAQYCCAAUBCgIUBCgIUBCgIEBBgIIABQEKAhQEKAhQEKAgQEGAggAFAQoCFAQoCFAQoCBAQYCCAAUBCgIUBCgIUBCgIEBBgIIABQEKAhQEKAhQEKAgQEGAggAFAQoCFAQoCFAQoCBAQYCCAAUBCgIUBCgIUBCgIEBBgIIABQEKAhQEKAhQEKAgQEFAYkHFh2EtQWnDzUDnRkE9FG++Bv9B4v5zpjh9X1jQ+E17JdYSNFe45CiIMAcRzmLDUBCgIEBBgIIABXX0rV0VFOhd8iiopXjz/dJvBodIhoKWDTcVBRHmIMJZ7EoUBCgIUBAwk6CyKB7322Pi+5okXHKGHxSfR1D18PPo6PFw2G2eEoRLzohjqbMI2m+PWuq750NQNTVccvqXhX1tUzY8NOPmuGXV9z8Op++vUbI47bO6IEcQ8ZKDWlWTwyVn7RzkLDadW18HLR1uPhQEKAhQEHAbgiYsTG9C0Kgylgt/m7bhKuEG9HVljwoa9McpG64SbkBfCop3tlgOavewjrw/jDFfv0lYcBarim73vC569tMT97s2IwW9OXzRd6Qncb9rM1JQe6wwUE/ayD6rIEcQNaxOh8DiOag8Dq9fX4qiPew6qd8rSHrEe/QsttuEWSw6flo/vz+/2ySv7Hc8Uyb1y9HSNjx0Z8PKx+afyx+0n7Qs7AuXsuEhjJsuWy1/2ucjCGpHT+UI6me3uf/x5uTY1HDjWDUHnVI07mzUoc3j5H6vYNVZbL+duBM2tt+1uWJntXdUzNLv2ozPQXXv2dJZ+l2bmzgeNAUFAZ9A0LzFRh9fUNplz8Xw4xqeyg6rPI4HJV4498RP2XDhcAoaFEhB8UhZ5aCF+x0QKqdZbPDOarJ+18adVcCdVcCdVWDWJP3rS6/L6wUtfBnDTAftMZVPKiZYvnYmZcOG7qziDCNo7nVhT4cpG7bsNs3ZjHNBk0/7fBZBh0N59+wIilIVT3Mk6c+Rg1p+ffnNWSzKftu/ZHIdtGy4+VAQoCBAQUDugla/b3DmgpZe9Vx+BWkbpgy3+Lq57yWkbJgynIIGtVJQvJk5KNrOWSxzFAQoCFAQMJOg6nRnnL4qop5wq+fkM+YRVN09H3ab5hTsOEHrz+pnzCIoXMiy3z78HCcog3XhGTOdOAyHWsuHn9WYq31uRtDLhZvloyPoIictu824U8+3koNeL23tLSe68Vls8XDzoSBAQYCCgFUF5ZeSz1lTUIaT+jkrCspxWXiOggAFAeYgwFkMcB0ErCbow7CSoAndcJMkQca+YwWlbX4tCprejYImN1HQEkEUlKDJhObXoqDp3dy2oI+LggAFAQoCFAQoCFAQoCBAQYCCAAUBCgIUBCwgqH2uEj8xqIw/8aR5nAfcRezlOoDeGH+0lZV15MEgZ8wvaL89vpqK3tzxVUcF1cffhiL/XprrAKI3GmtuyX8IN+TvvSn/GfMLCveKoVvE7jZRQaFEOxok3Kau7HdYh/tmhVCRdu9ZKgfRR1Y9fIsJap8HE4cE1cVT+zSQYR/YC0sJKuMv6CggmoPq++8bSmS4iYXHpQTXgx+CtZAgeK5bM+yjgqpm66B7PWLyba2EsTw4CS0jqIYc3T7IPirojj/28Oiq2AeRrSB6LmA76uOCWjWRe4MNyi25bmIVrYKqriSl/+2H9xNN1QNGRqZJuhp2E9ToCAqXqkU/9vDGo03qLKf5eFp4Jb6SbrLUmwcNXgwwLAdlt1Dsth98RbCrUfP+SklNuuFV5bWr8cFREKAgQEGAggAFAQoCFAQoCFAQoCBAQYCCAAUBCgIUBCgIUBCgIEBBgIIABQEKAhQEKAhQEKAgID9BZ3UFwwsN5kBBgIKALAXtNn9vQr1ZU6nyTyOoCqUtTWHYbjOs4CgNmQpqivOPX01NVF10/2mKo5oaqipeSJSYTAU9tSV1oaqu7H7Q1j/V99//XHSLy1TQ17Ys8aVkLqSh1leJV32kJWtB1Yug1zLYeC19erIW9L8R1LDf/jW0gDcNWQvqSpq7H7RUD//Ga11Tk7Wg7vqUbhYL2frr8CL5JOQt6P066CimbMull0zT+QnKDAUBCgIUBCgIUBCgIEBBgIIABQEKAhQEKAhQEKAgQEGAggAFAQoCFAQoCFAQoCBAQcB/NqcfBF4zHjcAAAAASUVORK5CYII=" /><img src="data:image/png;base64,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" /></p>
-<p>You can enable figure captions by <code>fig_caption: yes</code> in YAML:</p>
-<pre><code>output:
-  rmarkdown::html_vignette:
-    fig_caption: yes</code></pre>
-<p>Then you can use the chunk option <code>fig.cap = &quot;Your figure caption.&quot;</code> in <strong>knitr</strong>.</p>
+<div id="getting-started" class="section level1">
+<h1>Getting started</h1>
+<p>To install TMB on a windows machine, we need to first install <a href="https://cran.r-project.org/bin/windows/Rtools/">Rtools</a>. During the installation, please select the option to have Rtools included in your system path. On other operating systems, it is not necessary to install Rtools. We then install <code>VAST</code></p>
+<pre class="sourceCode r"><code class="sourceCode r">devtools::<span class="kw">install_github</span>(<span class="st">&quot;james-thorson/VAST&quot;</span>) 
+devtools::<span class="kw">install_github</span>(<span class="st">&quot;james-thorson/utilities&quot;</span>)</code></pre>
+<p>Next load libraries.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(TMB)               <span class="co"># Can instead load library(TMBdebug)</span>
+<span class="kw">library</span>(VAST)</code></pre>
+<div id="further-information" class="section level2">
+<h2>Further information</h2>
+<p>If you have further questions after reading this tutorial, please explore the <a href="https://github.com/james-thorson/VAST/#description">GitHub repo</a> mainpage, wiki, and glossary. Also please explore the R help files, e.g., <code>?Data_Fn</code> for explanation of data inputs, or <code>?Param_Fn</code> for explanation of parameters.</p>
 </div>
-<div id="more-examples" class="section level2">
-<h2>More Examples</h2>
-<p>You can write math expressions, e.g. <span class="math">\(Y = X\beta + \epsilon\)</span>, footnotes<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>, and tables, e.g. using <code>knitr::kable()</code>.</p>
+<div id="related-tools" class="section level2">
+<h2>Related tools</h2>
+<p>Related tools for spatio-temporal fisheries analysis are currently housed at <a href="http://www.FishStats.org">www.FishStats.org</a>. These include <a href="https://github.com/nwfsc-assess/geostatistical_delta-GLMM/#description">SpatialDeltaGLMM</a>, a single-species antecedent of VAST, and <a href="http://www.FishViz.org">www.FishViz.org</a>, a tool for visualizing single-species results using worldwide. <code>VAST</code> and <code>SpatialDeltaGLMM</code> both use continuous integration to confirm that they give identical estimates when applied to single-species data.</p>
+</div>
+<div id="how-to-cite-vast" class="section level2">
+<h2>How to cite VAST</h2>
+<p><code>VAST</code> has involved many publications for developing individual features. If using <code>VAST</code>, please read and cite:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">citation</span>(<span class="st">&quot;VAST&quot;</span>)</code></pre>
+<pre><code>## 
+## Please cite 2016 (ICES J. Mar. Sci. J.
+## Cons.) if using the package; 2016 (Glob.
+## Ecol. Biogeogr) if exploring factor
+## decomposition of spatio-temporal variation;
+## 2015 (ICES J. Mar. Sci. J. Cons.) if
+## calculating an index of abundance; 2016
+## (Methods Ecol. Evol.) if using the
+## center-of-gravity metric; 2016 (Fish. Res.)
+## if using the bias-correction feature; 2016
+## (Proc R Soc B) if using the
+## effective-area-occupied metric.
+## 
+##   Thorson, J.T., and Barnett, L.A.K. In
+##   press. Comparing estimates of abundance
+##   trends and distribution shifts using
+##   single- and multispecies models of fishes
+##   and biogenic habitat. ICES J. Mar. Sci. J.
+##   Cons
+## 
+##   Thorson, J.T., Ianelli, J.N., Larsen, E.,
+##   Ries, L., Scheuerell, M.D., Szuwalski, C.,
+##   and Zipkin, E. 2016. Joint dynamic species
+##   distribution models: a tool for community
+##   ordination and spatiotemporal monitoring.
+##   Glob. Ecol. Biogeogr. 25(9): 1144-1158.
+##   doi:10.1111/geb.12464. url:
+##   http://onlinelibrary.wiley.com/doi/10.1111/geb.12464/abstract
+## 
+##   Thorson, J.T., Shelton, A.O., Ward, E.J.,
+##   Skaug, H.J., 2015. Geostatistical
+##   delta-generalized linear mixed models
+##   improve precision for estimated abundance
+##   indices for West Coast groundfishes. ICES
+##   J. Mar. Sci. J. Cons. 72(5), 1297-1310.
+##   doi:10.1093/icesjms/fsu243. URL:
+##   http://icesjms.oxfordjournals.org/content/72/5/1297
+## 
+##   Thorson, J.T., and Kristensen, K. 2016.
+##   Implementing a generic method for bias
+##   correction in statistical models using
+##   random effects, with spatial and
+##   population dynamics examples. Fish. Res.
+##   175: 66-74.
+##   doi:10.1016/j.fishres.2015.11.016. url:
+##   http://www.sciencedirect.com/science/article/pii/S0165783615301399
+## 
+##   Thorson, J.T., Pinsky, M.L., Ward, E.J.,
+##   2016. Model-based inference for estimating
+##   shifts in species distribution, area
+##   occupied, and center of gravity. Methods
+##   Ecol. Evol. 7(8), 990-1008.
+##   doi:10.1111/2041-210X.12567.  URL:
+##   http://onlinelibrary.wiley.com/doi/10.1111/2041-210X.12567/full
+## 
+##   Thorson, J.T., Rindorf, A., Gao, J.,
+##   Hanselman, D.H., and Winker, H. 2016.
+##   Density-dependent changes in effective
+##   area occupied for sea-bottom-associated
+##   marine fishes. Proc R Soc B 283(1840):
+##   20161853. doi:10.1098/rspb.2016.1853. URL:
+##   http://rspb.royalsocietypublishing.org/content/283/1840/20161853.</code></pre>
+<p>and also browse the <a href="https://github.com/james-thorson/VAST/#description-of-package">GitHub list</a> of papers</p>
+</div>
+</div>
+<div id="settings" class="section level1">
+<h1>Settings</h1>
+<p>First chose an example data set for this script, as archived with package</p>
+<pre class="sourceCode r"><code class="sourceCode r">Data_Set =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Chatham_rise_hake&quot;</span>, <span class="st">&quot;Iceland_cod&quot;</span>, <span class="st">&quot;WCGBTS_canary&quot;</span>, 
+    <span class="st">&quot;GSL_american_plaice&quot;</span>, <span class="st">&quot;BC_pacific_cod&quot;</span>, <span class="st">&quot;EBS_pollock&quot;</span>, 
+    <span class="st">&quot;GOA_Pcod&quot;</span>, <span class="st">&quot;GOA_pollock&quot;</span>, <span class="st">&quot;GB_spring_haddock&quot;</span>, 
+    <span class="st">&quot;GB_fall_haddock&quot;</span>, <span class="st">&quot;SAWC_jacopever&quot;</span>, <span class="st">&quot;Aleutian_islands_POP&quot;</span>)[<span class="dv">6</span>]</code></pre>
+<p>Next use latest version for CPP code</p>
+<pre class="sourceCode r"><code class="sourceCode r">Version =<span class="st"> &quot;VAST_v2_5_0&quot;</span></code></pre>
+<div id="spatial-settings" class="section level2">
+<h2>Spatial settings</h2>
+<p>The following settings define the spatial resolution for the model, and whether to use a grid or mesh approximation</p>
+<pre class="sourceCode r"><code class="sourceCode r">Method =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Grid&quot;</span>, <span class="st">&quot;Mesh&quot;</span>, <span class="st">&quot;Spherical_mesh&quot;</span>)[<span class="dv">2</span>]
+grid_size_km =<span class="st"> </span><span class="dv">25</span>
+n_x =<span class="st"> </span><span class="kw">c</span>(<span class="dv">100</span>, <span class="dv">250</span>, <span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">2000</span>)[<span class="dv">1</span>] <span class="co"># Number of stations</span>
+Kmeans_Config =<span class="st"> </span><span class="kw">list</span>( <span class="st">&quot;randomseed&quot;</span>=<span class="dv">1</span>, <span class="st">&quot;nstart&quot;</span>=<span class="dv">100</span>, <span class="st">&quot;iter.max&quot;</span>=<span class="fl">1e3</span> )    </code></pre>
+</div>
+<div id="model-settings" class="section level2">
+<h2>Model settings</h2>
+<p>The following settings define whether to include spatial and spatio-temporal variation, whether its autocorrelated, and whether there’s overdispersion</p>
+<pre class="sourceCode r"><code class="sourceCode r">FieldConfig =<span class="st"> </span><span class="kw">c</span>(<span class="dt">Omega1 =</span> <span class="dv">1</span>, <span class="dt">Epsilon1 =</span> <span class="dv">1</span>, <span class="dt">Omega2 =</span> <span class="dv">1</span>, 
+    <span class="dt">Epsilon2 =</span> <span class="dv">1</span>)
+RhoConfig =<span class="st"> </span><span class="kw">c</span>(<span class="dt">Beta1 =</span> <span class="dv">0</span>, <span class="dt">Beta2 =</span> <span class="dv">0</span>, <span class="dt">Epsilon1 =</span> <span class="dv">0</span>, <span class="dt">Epsilon2 =</span> <span class="dv">0</span>)
+OverdispersionConfig =<span class="st"> </span><span class="kw">c</span>(<span class="dt">Delta1 =</span> <span class="dv">0</span>, <span class="dt">Delta2 =</span> <span class="dv">0</span>)
+ObsModel =<span class="st"> </span><span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">0</span>)</code></pre>
+</div>
+<div id="potential-outputs" class="section level2">
+<h2>Potential outputs</h2>
+<p>The following settings define what types of output we want to calculate</p>
+<pre class="sourceCode r"><code class="sourceCode r">Options =<span class="st"> </span><span class="kw">c</span>(<span class="dt">SD_site_density =</span> <span class="dv">0</span>, <span class="dt">SD_site_logdensity =</span> <span class="dv">0</span>, 
+    <span class="dt">Calculate_Range =</span> <span class="dv">1</span>, <span class="dt">Calculate_evenness =</span> <span class="dv">0</span>, <span class="dt">Calculate_effective_area =</span> <span class="dv">1</span>, 
+    <span class="dt">Calculate_Cov_SE =</span> <span class="dv">0</span>, <span class="dt">Calculate_Synchrony =</span> <span class="dv">0</span>, 
+    <span class="dt">Calculate_Coherence =</span> <span class="dv">0</span>)</code></pre>
+</div>
+<div id="stratification-for-results" class="section level2">
+<h2>Stratification for results</h2>
+<p>We also define any potential stratification of results, and settings specific to any case-study data set</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Default</span>
+if (Data_Set %in%<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;GSL_american_plaice&quot;</span>, <span class="st">&quot;BC_pacific_cod&quot;</span>, 
+    <span class="st">&quot;EBS_pollock&quot;</span>, <span class="st">&quot;SAWC_jacopever&quot;</span>, <span class="st">&quot;Chatham_rise_hake&quot;</span>, 
+    <span class="st">&quot;Aleutian_islands_POP&quot;</span>)) {
+    strata.limits &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">STRATA =</span> <span class="st">&quot;All_areas&quot;</span>)
+}
+<span class="co"># Specific (useful as examples)</span>
+if (Data_Set %in%<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;WCGBTS_canary&quot;</span>, <span class="st">&quot;Sim&quot;</span>)) {
+    <span class="co"># In this case, it will calculate a coastwide</span>
+    <span class="co"># index, and also a separate index for each state</span>
+    <span class="co"># (although the state lines are approximate)</span>
+    strata.limits &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">STRATA =</span> <span class="kw">c</span>(<span class="st">&quot;Coastwide&quot;</span>, 
+        <span class="st">&quot;CA&quot;</span>, <span class="st">&quot;OR&quot;</span>, <span class="st">&quot;WA&quot;</span>), <span class="dt">north_border =</span> <span class="kw">c</span>(<span class="dv">49</span>, <span class="dv">42</span>, 
+        <span class="dv">46</span>, <span class="dv">49</span>), <span class="dt">south_border =</span> <span class="kw">c</span>(<span class="dv">32</span>, <span class="dv">32</span>, <span class="dv">42</span>, <span class="dv">46</span>), 
+        <span class="dt">shallow_border =</span> <span class="kw">c</span>(<span class="dv">55</span>, <span class="dv">55</span>, <span class="dv">55</span>, <span class="dv">55</span>), <span class="dt">deep_border =</span> <span class="kw">c</span>(<span class="dv">1280</span>, 
+            <span class="dv">1280</span>, <span class="dv">1280</span>, <span class="dv">1280</span>))
+    <span class="co"># Override default settings for vessels</span>
+    OverdispersionConfig =<span class="st"> </span><span class="kw">c</span>(<span class="dt">Delta1 =</span> <span class="dv">1</span>, <span class="dt">Delta2 =</span> <span class="dv">1</span>)
+}
+if (Data_Set %in%<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;GOA_Pcod&quot;</span>, <span class="st">&quot;GOA_pollock&quot;</span>)) {
+    <span class="co"># In this case, will calculating an unrestricted</span>
+    <span class="co"># index and a separate index restricted to west of</span>
+    <span class="co"># -140W</span>
+    strata.limits &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">STRATA =</span> <span class="kw">c</span>(<span class="st">&quot;All_areas&quot;</span>, 
+        <span class="st">&quot;west_of_140W&quot;</span>), <span class="dt">west_border =</span> <span class="kw">c</span>(-<span class="ot">Inf</span>, -<span class="ot">Inf</span>), 
+        <span class="dt">east_border =</span> <span class="kw">c</span>(<span class="ot">Inf</span>, -<span class="dv">140</span>))
+}
+if (Data_Set %in%<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;GB_spring_haddock&quot;</span>, <span class="st">&quot;GB_fall_haddock&quot;</span>)) {
+    <span class="co"># For NEFSC indices, strata must be specified as a</span>
+    <span class="co"># named list of area codes</span>
+    strata.limits =<span class="st"> </span><span class="kw">list</span>(<span class="dt">Georges_Bank =</span> <span class="kw">c</span>(<span class="dv">1130</span>, <span class="dv">1140</span>, 
+        <span class="dv">1150</span>, <span class="dv">1160</span>, <span class="dv">1170</span>, <span class="dv">1180</span>, <span class="dv">1190</span>, <span class="dv">1200</span>, <span class="dv">1210</span>, <span class="dv">1220</span>, 
+        <span class="dv">1230</span>, <span class="dv">1240</span>, <span class="dv">1250</span>, <span class="dv">1290</span>, <span class="dv">1300</span>))
+}
+if (Data_Set %in%<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Iceland_cod&quot;</span>)) {
+    strata.limits =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">STRATA =</span> <span class="st">&quot;All_areas&quot;</span>)
+    <span class="co"># Turn off all spatial, temporal, and</span>
+    <span class="co"># spatio-temporal variation in probability of</span>
+    <span class="co"># occurrence, because they occur almost everywhere</span>
+    FieldConfig =<span class="st"> </span><span class="kw">c</span>(<span class="dt">Omega1 =</span> <span class="dv">0</span>, <span class="dt">Epsilon1 =</span> <span class="dv">0</span>, <span class="dt">Omega2 =</span> <span class="dv">1</span>, 
+        <span class="dt">Epsilon2 =</span> <span class="dv">1</span>)
+}</code></pre>
+</div>
+<div id="derived-objects" class="section level2">
+<h2>Derived objects</h2>
+<p>Depending on the case study, we define a <code>Region</code> used when extrapolating or plotting density estimates. If its a different data set, it will define <code>Region=&quot;Other&quot;</code>, and this is a recognized level for all uses of <code>Region</code> (which attempts to define reasonable settings based on the location of sampling). For example <code>Data_Set=&quot;Iceland_cod&quot;</code> has no associated meta-data for the region, so it uses <code>Region=&quot;Other&quot;</code> by default.</p>
+<pre class="sourceCode r"><code class="sourceCode r">Region =<span class="st"> </span>switch( Data_Set, <span class="st">&quot;Chatham_rise_hake&quot;</span>=<span class="st">&quot;New_Zealand&quot;</span>, 
+                 <span class="st">&quot;WCGBTS_canary&quot;</span>=<span class="st">&quot;California_current&quot;</span>, 
+                 <span class="st">&quot;GSL_american_plaice&quot;</span>=<span class="st">&quot;Gulf_of_St_Lawrence&quot;</span>, 
+                 <span class="st">&quot;BC_pacific_cod&quot;</span>=<span class="st">&quot;British_Columbia&quot;</span>, 
+                 <span class="st">&quot;EBS_pollock&quot;</span>=<span class="st">&quot;Eastern_Bering_Sea&quot;</span>, 
+                 <span class="st">&quot;GOA_Pcod&quot;</span>=<span class="st">&quot;Gulf_of_Alaska&quot;</span>, 
+                 <span class="st">&quot;GOA_pollock&quot;</span>=<span class="st">&quot;Gulf_of_Alaska&quot;</span>, 
+                 <span class="st">&quot;GB_spring_haddock&quot;</span>=<span class="st">&quot;Northwest_Atlantic&quot;</span>, 
+                 <span class="st">&quot;GB_fall_haddock&quot;</span>=<span class="st">&quot;Northwest_Atlantic&quot;</span>, 
+                 <span class="st">&quot;SAWC_jacopever&quot;</span>=<span class="st">&quot;South_Africa&quot;</span>, 
+                 <span class="st">&quot;Aleutian_islands_POP&quot;</span>=<span class="st">&quot;Aleutian_Islands&quot;</span>,
+                 <span class="st">&quot;Other&quot;</span>)</code></pre>
+</div>
+<div id="save-settings" class="section level2">
+<h2>Save settings</h2>
+<p>We then set the location for saving files.</p>
+<pre class="sourceCode r"><code class="sourceCode r">DateFile =<span class="st"> </span><span class="kw">paste0</span>(<span class="kw">getwd</span>(),<span class="st">'/VAST_output/'</span>)
+  <span class="kw">dir.create</span>(DateFile)</code></pre>
+<p>I also like to save all settings for later reference, although this is not necessary.</p>
+<pre class="sourceCode r"><code class="sourceCode r">Record =<span class="st"> </span>ThorsonUtilities::<span class="kw">bundlelist</span>(<span class="kw">c</span>(<span class="st">&quot;Data_Set&quot;</span>, 
+    <span class="st">&quot;Version&quot;</span>, <span class="st">&quot;Method&quot;</span>, <span class="st">&quot;grid_size_km&quot;</span>, <span class="st">&quot;n_x&quot;</span>, <span class="st">&quot;FieldConfig&quot;</span>, 
+    <span class="st">&quot;RhoConfig&quot;</span>, <span class="st">&quot;OverdispersionConfig&quot;</span>, <span class="st">&quot;ObsModel&quot;</span>, 
+    <span class="st">&quot;Kmeans_Config&quot;</span>))
+<span class="kw">save</span>(Record, <span class="dt">file =</span> <span class="kw">file.path</span>(DateFile, <span class="st">&quot;Record.RData&quot;</span>))
+<span class="kw">capture.output</span>(Record, <span class="dt">file =</span> <span class="kw">paste0</span>(DateFile, <span class="st">&quot;Record.txt&quot;</span>))</code></pre>
+</div>
+</div>
+<div id="prepare-the-data" class="section level1">
+<h1>Prepare the data</h1>
+<div id="data-frame-for-catch-rate-data" class="section level2">
+<h2>Data-frame for catch-rate data</h2>
+<p>Depending upon the <code>Data_Set</code> chosen, we load archived data sets that are distributed with the package. Each archived data set is then reformatted to create a data-frame <code>Data_Geostat</code> with a standardized set of columns. For a new data set, the user is responsible for formatting <code>Data_Geostat</code> appropriately to match this format. We show the first six rows of <code>Data_Geostat</code> given that Data_Set = <code>Data_Set</code>.</p>
+<pre class="sourceCode r"><code class="sourceCode r">if (Data_Set ==<span class="st"> &quot;WCGBTS_canary&quot;</span>) {
+    <span class="kw">data</span>(WCGBTS_Canary_example, <span class="dt">package =</span> <span class="st">&quot;SpatialDeltaGLMM&quot;</span>)
+    Year =<span class="st"> </span><span class="kw">as.numeric</span>(<span class="kw">sapply</span>(WCGBTS_Canary_example[, 
+        <span class="st">&quot;PROJECT_CYCLE&quot;</span>], <span class="dt">FUN =</span> function(Char) {
+        <span class="kw">strsplit</span>(<span class="kw">as.character</span>(Char), <span class="st">&quot; &quot;</span>)[[<span class="dv">1</span>]][<span class="dv">2</span>]
+    }))
+    Data_Geostat =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Catch_KG =</span> WCGBTS_Canary_example[, 
+        <span class="st">&quot;HAUL_WT_KG&quot;</span>], <span class="dt">Year =</span> Year, <span class="dt">Vessel =</span> <span class="kw">paste</span>(WCGBTS_Canary_example[, 
+        <span class="st">&quot;VESSEL&quot;</span>], Year, <span class="dt">sep =</span> <span class="st">&quot;_&quot;</span>), <span class="dt">AreaSwept_km2 =</span> WCGBTS_Canary_example[, 
+        <span class="st">&quot;AREA_SWEPT_HA&quot;</span>]/<span class="dv">100</span>, <span class="dt">Lat =</span> WCGBTS_Canary_example[, 
+        <span class="st">&quot;BEST_LAT_DD&quot;</span>], <span class="dt">Lon =</span> WCGBTS_Canary_example[, 
+        <span class="st">&quot;BEST_LON_DD&quot;</span>], <span class="dt">Pass =</span> WCGBTS_Canary_example[, 
+        <span class="st">&quot;PASS&quot;</span>] -<span class="st"> </span><span class="fl">1.5</span>)
+}
+if (Data_Set %in%<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;BC_pacific_cod&quot;</span>)) {
+    <span class="kw">data</span>(BC_pacific_cod_example, <span class="dt">package =</span> <span class="st">&quot;SpatialDeltaGLMM&quot;</span>)
+    Data_Geostat =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Catch_KG =</span> BC_pacific_cod_example[, 
+        <span class="st">&quot;PCOD_WEIGHT&quot;</span>], <span class="dt">Year =</span> BC_pacific_cod_example[, 
+        <span class="st">&quot;Year&quot;</span>], <span class="dt">Vessel =</span> <span class="st">&quot;missing&quot;</span>, <span class="dt">AreaSwept_km2 =</span> BC_pacific_cod_example[, 
+        <span class="st">&quot;TOW.LENGTH..KM.&quot;</span>]/<span class="dv">100</span>, <span class="dt">Lat =</span> BC_pacific_cod_example[, 
+        <span class="st">&quot;LAT&quot;</span>], <span class="dt">Lon =</span> BC_pacific_cod_example[, <span class="st">&quot;LON&quot;</span>], 
+        <span class="dt">Pass =</span> <span class="dv">0</span>)
+}
+if (Data_Set %in%<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;GSL_american_plaice&quot;</span>)) {
+    <span class="kw">data</span>(GSL_american_plaice, <span class="dt">package =</span> <span class="st">&quot;SpatialDeltaGLMM&quot;</span>)
+    SpatialDeltaGLMM::<span class="kw">Print_Message</span>(<span class="st">&quot;GSL_american_plaice&quot;</span>)
+    Data_Geostat =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Year =</span> GSL_american_plaice[, 
+        <span class="st">&quot;year&quot;</span>], <span class="dt">Lat =</span> GSL_american_plaice[, <span class="st">&quot;latitude&quot;</span>], 
+        <span class="dt">Lon =</span> GSL_american_plaice[, <span class="st">&quot;longitude&quot;</span>], <span class="dt">Vessel =</span> <span class="st">&quot;missing&quot;</span>, 
+        <span class="dt">AreaSwept_km2 =</span> GSL_american_plaice[, <span class="st">&quot;swept&quot;</span>], 
+        <span class="dt">Catch_KG =</span> GSL_american_plaice[, <span class="st">&quot;biomass&quot;</span>] *<span class="st"> </span>
+<span class="st">            </span>GSL_american_plaice[, <span class="st">&quot;vstd&quot;</span>])
+}
+if (Data_Set ==<span class="st"> &quot;EBS_pollock&quot;</span>) {
+    <span class="kw">data</span>(EBS_pollock_data, <span class="dt">package =</span> <span class="st">&quot;SpatialDeltaGLMM&quot;</span>)
+    Data_Geostat =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Catch_KG =</span> EBS_pollock_data[, 
+        <span class="st">&quot;catch&quot;</span>], <span class="dt">Year =</span> EBS_pollock_data[, <span class="st">&quot;year&quot;</span>], 
+        <span class="dt">Vessel =</span> <span class="st">&quot;missing&quot;</span>, <span class="dt">AreaSwept_km2 =</span> <span class="fl">0.01</span>, <span class="dt">Lat =</span> EBS_pollock_data[, 
+            <span class="st">&quot;lat&quot;</span>], <span class="dt">Lon =</span> EBS_pollock_data[, <span class="st">&quot;long&quot;</span>], 
+        <span class="dt">Pass =</span> <span class="dv">0</span>)
+}
+if (Data_Set ==<span class="st"> &quot;GOA_Pcod&quot;</span>) {
+    <span class="kw">data</span>(GOA_pacific_cod, <span class="dt">package =</span> <span class="st">&quot;SpatialDeltaGLMM&quot;</span>)
+    Data_Geostat =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Catch_KG =</span> GOA_pacific_cod[, 
+        <span class="st">&quot;catch&quot;</span>], <span class="dt">Year =</span> GOA_pacific_cod[, <span class="st">&quot;year&quot;</span>], 
+        <span class="dt">Vessel =</span> <span class="st">&quot;missing&quot;</span>, <span class="dt">AreaSwept_km2 =</span> <span class="fl">0.01</span>, <span class="dt">Lat =</span> GOA_pacific_cod[, 
+            <span class="st">&quot;lat&quot;</span>], <span class="dt">Lon =</span> GOA_pacific_cod[, <span class="st">&quot;lon&quot;</span>], 
+        <span class="dt">Pass =</span> <span class="dv">0</span>)
+}
+if (Data_Set ==<span class="st"> &quot;GOA_pollock&quot;</span>) {
+    <span class="kw">data</span>(GOA_walleye_pollock, <span class="dt">package =</span> <span class="st">&quot;SpatialDeltaGLMM&quot;</span>)
+    Data_Geostat =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Catch_KG =</span> GOA_walleye_pollock[, 
+        <span class="st">&quot;catch&quot;</span>], <span class="dt">Year =</span> GOA_walleye_pollock[, <span class="st">&quot;year&quot;</span>], 
+        <span class="dt">Vessel =</span> <span class="st">&quot;missing&quot;</span>, <span class="dt">AreaSwept_km2 =</span> <span class="fl">0.01</span>, <span class="dt">Lat =</span> GOA_walleye_pollock[, 
+            <span class="st">&quot;lat&quot;</span>], <span class="dt">Lon =</span> GOA_walleye_pollock[, <span class="st">&quot;lon&quot;</span>], 
+        <span class="dt">Pass =</span> <span class="dv">0</span>)
+}
+if (Data_Set ==<span class="st"> &quot;Aleutian_islands_POP&quot;</span>) {
+    <span class="kw">data</span>(AI_pacific_ocean_perch, <span class="dt">package =</span> <span class="st">&quot;SpatialDeltaGLMM&quot;</span>)
+    Data_Geostat =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Catch_KG =</span> AI_pacific_ocean_perch[, 
+        <span class="st">&quot;cpue..kg.km.2.&quot;</span>], <span class="dt">Year =</span> AI_pacific_ocean_perch[, 
+        <span class="st">&quot;year&quot;</span>], <span class="dt">Vessel =</span> <span class="st">&quot;missing&quot;</span>, <span class="dt">AreaSwept_km2 =</span> <span class="dv">1</span>, 
+        <span class="dt">Lat =</span> AI_pacific_ocean_perch[, <span class="st">&quot;start.latitude&quot;</span>], 
+        <span class="dt">Lon =</span> AI_pacific_ocean_perch[, <span class="st">&quot;start.longitude&quot;</span>], 
+        <span class="dt">Pass =</span> <span class="dv">0</span>)
+}
+if (Data_Set ==<span class="st"> &quot;GB_spring_haddock&quot;</span>) {
+    <span class="kw">data</span>(georges_bank_haddock_spring, <span class="dt">package =</span> <span class="st">&quot;SpatialDeltaGLMM&quot;</span>)
+    SpatialDeltaGLMM::<span class="kw">Print_Message</span>(<span class="st">&quot;GB_haddock&quot;</span>)
+    Data_Geostat =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Catch_KG =</span> georges_bank_haddock_spring[, 
+        <span class="st">&quot;CATCH_WT_CAL&quot;</span>], <span class="dt">Year =</span> georges_bank_haddock_spring[, 
+        <span class="st">&quot;YEAR&quot;</span>], <span class="dt">Vessel =</span> <span class="st">&quot;missing&quot;</span>, <span class="dt">AreaSwept_km2 =</span> <span class="fl">0.0112</span> *<span class="st"> </span>
+<span class="st">        </span><span class="fl">1.852</span>^<span class="dv">2</span>, <span class="dt">Lat =</span> georges_bank_haddock_spring[, 
+        <span class="st">&quot;LATITUDE&quot;</span>], <span class="dt">Lon =</span> georges_bank_haddock_spring[, 
+        <span class="st">&quot;LONGITUDE&quot;</span>])
+}
+if (Data_Set ==<span class="st"> &quot;GB_fall_haddock&quot;</span>) {
+    <span class="kw">data</span>(georges_bank_haddock_fall, <span class="dt">package =</span> <span class="st">&quot;SpatialDeltaGLMM&quot;</span>)
+    SpatialDeltaGLMM::<span class="kw">Print_Message</span>(<span class="st">&quot;GB_haddock&quot;</span>)
+    Data_Geostat =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Catch_KG =</span> georges_bank_haddock_fall[, 
+        <span class="st">&quot;CATCH_WT_CAL&quot;</span>], <span class="dt">Year =</span> georges_bank_haddock_fall[, 
+        <span class="st">&quot;YEAR&quot;</span>], <span class="dt">Vessel =</span> <span class="st">&quot;missing&quot;</span>, <span class="dt">AreaSwept_km2 =</span> <span class="fl">0.0112</span> *<span class="st"> </span>
+<span class="st">        </span><span class="fl">1.852</span>^<span class="dv">2</span>, <span class="dt">Lat =</span> georges_bank_haddock_fall[, 
+        <span class="st">&quot;LATITUDE&quot;</span>], <span class="dt">Lon =</span> georges_bank_haddock_fall[, 
+        <span class="st">&quot;LONGITUDE&quot;</span>])
+}
+if (Data_Set ==<span class="st"> &quot;SAWC_jacopever&quot;</span>) {
+    <span class="kw">data</span>(south_africa_westcoast_jacopever, <span class="dt">package =</span> <span class="st">&quot;SpatialDeltaGLMM&quot;</span>)
+    Data_Geostat =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Catch_KG =</span> south_africa_westcoast_jacopever[, 
+        <span class="st">&quot;HELDAC&quot;</span>], <span class="dt">Year =</span> south_africa_westcoast_jacopever[, 
+        <span class="st">&quot;Year&quot;</span>], <span class="dt">Vessel =</span> <span class="st">&quot;missing&quot;</span>, <span class="dt">AreaSwept_km2 =</span> south_africa_westcoast_jacopever[, 
+        <span class="st">&quot;area_swept_nm2&quot;</span>] *<span class="st"> </span><span class="fl">1.852</span>^<span class="dv">2</span>, <span class="dt">Lat =</span> south_africa_westcoast_jacopever[, 
+        <span class="st">&quot;cen_lat&quot;</span>], <span class="dt">Lon =</span> south_africa_westcoast_jacopever[, 
+        <span class="st">&quot;cen_long&quot;</span>])
+}
+if (Data_Set %in%<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Iceland_cod&quot;</span>)) {
+    <span class="co"># WARNING: This data set has not undergone much</span>
+    <span class="co"># evaluation for spatio-temporal analysis</span>
+    <span class="kw">data</span>(iceland_cod, <span class="dt">package =</span> <span class="st">&quot;SpatialDeltaGLMM&quot;</span>)
+    Data_Geostat =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Catch_KG =</span> iceland_cod[, 
+        <span class="st">&quot;Catch_b&quot;</span>], <span class="dt">Year =</span> iceland_cod[, <span class="st">&quot;year&quot;</span>], <span class="dt">Vessel =</span> <span class="dv">1</span>, 
+        <span class="dt">AreaSwept_km2 =</span> iceland_cod[, <span class="st">&quot;towlength&quot;</span>], 
+        <span class="dt">Lat =</span> iceland_cod[, <span class="st">&quot;lat1&quot;</span>], <span class="dt">Lon =</span> iceland_cod[, 
+            <span class="st">&quot;lon1&quot;</span>])
+}
+if (Data_Set %in%<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Chatham_rise_hake&quot;</span>)) {
+    <span class="kw">data</span>(chatham_rise_hake, <span class="dt">package =</span> <span class="st">&quot;SpatialDeltaGLMM&quot;</span>)
+    Data_Geostat =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Catch_KG =</span> chatham_rise_hake[, 
+        <span class="st">&quot;Hake_kg_per_km2&quot;</span>], <span class="dt">Year =</span> chatham_rise_hake[, 
+        <span class="st">&quot;Year&quot;</span>], <span class="dt">Vessel =</span> <span class="dv">1</span>, <span class="dt">AreaSwept_km2 =</span> <span class="dv">1</span>, <span class="dt">Lat =</span> chatham_rise_hake[, 
+        <span class="st">&quot;Lat&quot;</span>], <span class="dt">Lon =</span> chatham_rise_hake[, <span class="st">&quot;Lon&quot;</span>])
+}
+Data_Geostat =<span class="st"> </span><span class="kw">na.omit</span>(Data_Geostat)</code></pre>
 <table>
+<colgroup>
+<col width="15%"></col>
+<col width="9%"></col>
+<col width="13%"></col>
+<col width="22%"></col>
+<col width="9%"></col>
+<col width="9%"></col>
+<col width="9%"></col>
+</colgroup>
 <thead>
 <tr class="header">
-<th align="left"></th>
-<th align="right">mpg</th>
-<th align="right">cyl</th>
-<th align="right">disp</th>
-<th align="right">hp</th>
-<th align="right">drat</th>
-<th align="right">wt</th>
-<th align="right">qsec</th>
-<th align="right">vs</th>
-<th align="right">am</th>
-<th align="right">gear</th>
-<th align="right">carb</th>
+<th align="center">Catch_KG</th>
+<th align="center">Year</th>
+<th align="center">Vessel</th>
+<th align="center">AreaSwept_km2</th>
+<th align="center">Lat</th>
+<th align="center">Lon</th>
+<th align="center">Pass</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">Mazda RX4</td>
-<td align="right">21.0</td>
-<td align="right">6</td>
-<td align="right">160.0</td>
-<td align="right">110</td>
-<td align="right">3.90</td>
-<td align="right">2.620</td>
-<td align="right">16.46</td>
-<td align="right">0</td>
-<td align="right">1</td>
-<td align="right">4</td>
-<td align="right">4</td>
+<td align="center">22.2</td>
+<td align="center">1982</td>
+<td align="center">missing</td>
+<td align="center">0.01</td>
+<td align="center">55.3</td>
+<td align="center">-165</td>
+<td align="center">0</td>
 </tr>
 <tr class="even">
-<td align="left">Mazda RX4 Wag</td>
-<td align="right">21.0</td>
-<td align="right">6</td>
-<td align="right">160.0</td>
-<td align="right">110</td>
-<td align="right">3.90</td>
-<td align="right">2.875</td>
-<td align="right">17.02</td>
-<td align="right">0</td>
-<td align="right">1</td>
-<td align="right">4</td>
-<td align="right">4</td>
+<td align="center">26.3</td>
+<td align="center">1982</td>
+<td align="center">missing</td>
+<td align="center">0.01</td>
+<td align="center">55.3</td>
+<td align="center">-167</td>
+<td align="center">0</td>
 </tr>
 <tr class="odd">
-<td align="left">Datsun 710</td>
-<td align="right">22.8</td>
-<td align="right">4</td>
-<td align="right">108.0</td>
-<td align="right">93</td>
-<td align="right">3.85</td>
-<td align="right">2.320</td>
-<td align="right">18.61</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">4</td>
-<td align="right">1</td>
+<td align="center">132</td>
+<td align="center">1982</td>
+<td align="center">missing</td>
+<td align="center">0.01</td>
+<td align="center">55.3</td>
+<td align="center">-164</td>
+<td align="center">0</td>
 </tr>
 <tr class="even">
-<td align="left">Hornet 4 Drive</td>
-<td align="right">21.4</td>
-<td align="right">6</td>
-<td align="right">258.0</td>
-<td align="right">110</td>
-<td align="right">3.08</td>
-<td align="right">3.215</td>
-<td align="right">19.44</td>
-<td align="right">1</td>
-<td align="right">0</td>
-<td align="right">3</td>
-<td align="right">1</td>
+<td align="center">11.2</td>
+<td align="center">1982</td>
+<td align="center">missing</td>
+<td align="center">0.01</td>
+<td align="center">55.3</td>
+<td align="center">-166</td>
+<td align="center">0</td>
 </tr>
 <tr class="odd">
-<td align="left">Hornet Sportabout</td>
-<td align="right">18.7</td>
-<td align="right">8</td>
-<td align="right">360.0</td>
-<td align="right">175</td>
-<td align="right">3.15</td>
-<td align="right">3.440</td>
-<td align="right">17.02</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">3</td>
-<td align="right">2</td>
+<td align="center">52.3</td>
+<td align="center">1982</td>
+<td align="center">missing</td>
+<td align="center">0.01</td>
+<td align="center">55.3</td>
+<td align="center">-165</td>
+<td align="center">0</td>
 </tr>
 <tr class="even">
-<td align="left">Valiant</td>
-<td align="right">18.1</td>
-<td align="right">6</td>
-<td align="right">225.0</td>
-<td align="right">105</td>
-<td align="right">2.76</td>
-<td align="right">3.460</td>
-<td align="right">20.22</td>
-<td align="right">1</td>
-<td align="right">0</td>
-<td align="right">3</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="left">Duster 360</td>
-<td align="right">14.3</td>
-<td align="right">8</td>
-<td align="right">360.0</td>
-<td align="right">245</td>
-<td align="right">3.21</td>
-<td align="right">3.570</td>
-<td align="right">15.84</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">3</td>
-<td align="right">4</td>
-</tr>
-<tr class="even">
-<td align="left">Merc 240D</td>
-<td align="right">24.4</td>
-<td align="right">4</td>
-<td align="right">146.7</td>
-<td align="right">62</td>
-<td align="right">3.69</td>
-<td align="right">3.190</td>
-<td align="right">20.00</td>
-<td align="right">1</td>
-<td align="right">0</td>
-<td align="right">4</td>
-<td align="right">2</td>
-</tr>
-<tr class="odd">
-<td align="left">Merc 230</td>
-<td align="right">22.8</td>
-<td align="right">4</td>
-<td align="right">140.8</td>
-<td align="right">95</td>
-<td align="right">3.92</td>
-<td align="right">3.150</td>
-<td align="right">22.90</td>
-<td align="right">1</td>
-<td align="right">0</td>
-<td align="right">4</td>
-<td align="right">2</td>
-</tr>
-<tr class="even">
-<td align="left">Merc 280</td>
-<td align="right">19.2</td>
-<td align="right">6</td>
-<td align="right">167.6</td>
-<td align="right">123</td>
-<td align="right">3.92</td>
-<td align="right">3.440</td>
-<td align="right">18.30</td>
-<td align="right">1</td>
-<td align="right">0</td>
-<td align="right">4</td>
-<td align="right">4</td>
+<td align="center">9.24</td>
+<td align="center">1982</td>
+<td align="center">missing</td>
+<td align="center">0.01</td>
+<td align="center">55.4</td>
+<td align="center">-163</td>
+<td align="center">0</td>
 </tr>
 </tbody>
 </table>
-<p>Also a quote using <code>&gt;</code>:</p>
-<blockquote>
-<p>“He who gives up [code] safety for [code] speed deserves neither.” (<a href="https://twitter.com/hadleywickham/status/504368538874703872">via</a>)</p>
-</blockquote>
 </div>
-<div class="footnotes">
-<hr />
-<ol>
-<li id="fn1"><p>A footnote here.<a href="#fnref1">↩</a></p></li>
-</ol>
+<div id="extrapolation-grid" class="section level2">
+<h2>Extrapolation grid</h2>
+<p>We also generate the extrapolation grid appropriate for a given region. For new regions, we use <code>Region=&quot;Other&quot;</code>.</p>
+<pre class="sourceCode r"><code class="sourceCode r">if (Region %in%<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;California_current&quot;</span>, <span class="st">&quot;Eastern_Bering_Sea&quot;</span>, 
+    <span class="st">&quot;Gulf_of_Alaska&quot;</span>, <span class="st">&quot;Aleutian_Islands&quot;</span>, <span class="st">&quot;Northwest_Atlantic&quot;</span>, 
+    <span class="st">&quot;Gulf_of_St_Lawrence&quot;</span>, <span class="st">&quot;New_Zealand&quot;</span>)) {
+    Extrapolation_List =<span class="st"> </span>SpatialDeltaGLMM::<span class="kw">Prepare_Extrapolation_Data_Fn</span>(<span class="dt">Region =</span> Region, 
+        <span class="dt">strata.limits =</span> strata.limits)
+}
+if (Region ==<span class="st"> &quot;British_Columbia&quot;</span>) {
+    Extrapolation_List =<span class="st"> </span>SpatialDeltaGLMM::<span class="kw">Prepare_Extrapolation_Data_Fn</span>(<span class="dt">Region =</span> Region, 
+        <span class="dt">strata.limits =</span> strata.limits, <span class="dt">strata_to_use =</span> <span class="kw">c</span>(<span class="st">&quot;HS&quot;</span>, 
+            <span class="st">&quot;QCS&quot;</span>))
+}
+if (Region ==<span class="st"> &quot;South_Africa&quot;</span>) {
+    Extrapolation_List =<span class="st"> </span>SpatialDeltaGLMM::<span class="kw">Prepare_Extrapolation_Data_Fn</span>(<span class="dt">Region =</span> Region, 
+        <span class="dt">strata.limits =</span> strata.limits, <span class="dt">region =</span> <span class="st">&quot;west_coast&quot;</span>)
+}
+if (Region ==<span class="st"> &quot;Other&quot;</span>) {
+    Extrapolation_List =<span class="st"> </span>SpatialDeltaGLMM::<span class="kw">Prepare_Extrapolation_Data_Fn</span>(<span class="dt">Region =</span> Region, 
+        <span class="dt">strata.limits =</span> strata.limits, <span class="dt">observations_LL =</span> Data_Geostat[, 
+            <span class="kw">c</span>(<span class="st">&quot;Lat&quot;</span>, <span class="st">&quot;Lon&quot;</span>)], <span class="dt">maximum_distance_from_sample =</span> <span class="dv">15</span>)
+}</code></pre>
+</div>
+<div id="derived-objects-for-spatio-temporal-estimation" class="section level2">
+<h2>Derived objects for spatio-temporal estimation</h2>
+<p>And we finally generate the information used for conducting spatio-temporal parameter estimation, bundled in list <code>Spatial_List</code></p>
+<pre class="sourceCode r"><code class="sourceCode r">Spatial_List =<span class="st"> </span>SpatialDeltaGLMM::<span class="kw">Spatial_Information_Fn</span>(<span class="dt">grid_size_km =</span> grid_size_km, 
+    <span class="dt">n_x =</span> n_x, <span class="dt">Method =</span> Method, <span class="dt">Lon =</span> Data_Geostat[, 
+        <span class="st">&quot;Lon&quot;</span>], <span class="dt">Lat =</span> Data_Geostat[, <span class="st">&quot;Lat&quot;</span>], <span class="dt">Extrapolation_List =</span> Extrapolation_List, 
+    <span class="dt">randomseed =</span> Kmeans_Config[[<span class="st">&quot;randomseed&quot;</span>]], <span class="dt">nstart =</span> Kmeans_Config[[<span class="st">&quot;nstart&quot;</span>]], 
+    <span class="dt">iter.max =</span> Kmeans_Config[[<span class="st">&quot;iter.max&quot;</span>]], <span class="dt">DirPath =</span> DateFile, 
+    <span class="dt">Save_Results =</span> <span class="ot">FALSE</span>)
+<span class="co"># Add knots to Data_Geostat</span>
+Data_Geostat =<span class="st"> </span><span class="kw">cbind</span>(Data_Geostat, <span class="dt">knot_i =</span> Spatial_List$knot_i)</code></pre>
+</div>
+</div>
+<div id="build-and-run-model" class="section level1">
+<h1>Build and run model</h1>
+<div id="build-model" class="section level2">
+<h2>Build model</h2>
+<p>To estimate parameters, we first build a list of data-inputs used for parameter estimation. <code>Data_Fn</code> has some simple checks for buggy inputs, but also please read the help file <code>?Data_Fn</code>.</p>
+<pre class="sourceCode r"><code class="sourceCode r">TmbData =<span class="st"> </span><span class="kw">Data_Fn</span>(<span class="dt">Version =</span> Version, <span class="dt">FieldConfig =</span> FieldConfig, 
+    <span class="dt">OverdispersionConfig =</span> OverdispersionConfig, <span class="dt">RhoConfig =</span> RhoConfig, 
+    <span class="dt">ObsModel =</span> ObsModel, <span class="dt">c_i =</span> <span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">nrow</span>(Data_Geostat)), 
+    <span class="dt">b_i =</span> Data_Geostat[, <span class="st">&quot;Catch_KG&quot;</span>], <span class="dt">a_i =</span> Data_Geostat[, 
+        <span class="st">&quot;AreaSwept_km2&quot;</span>], <span class="dt">v_i =</span> <span class="kw">as.numeric</span>(Data_Geostat[, 
+        <span class="st">&quot;Vessel&quot;</span>]) -<span class="st"> </span><span class="dv">1</span>, <span class="dt">s_i =</span> Data_Geostat[, <span class="st">&quot;knot_i&quot;</span>] -<span class="st"> </span>
+<span class="st">        </span><span class="dv">1</span>, <span class="dt">t_i =</span> Data_Geostat[, <span class="st">&quot;Year&quot;</span>], <span class="dt">a_xl =</span> Spatial_List$a_xl, 
+    <span class="dt">MeshList =</span> Spatial_List$MeshList, <span class="dt">GridList =</span> Spatial_List$GridList, 
+    <span class="dt">Method =</span> Spatial_List$Method, <span class="dt">Options =</span> Options)</code></pre>
+<pre><code>##   Omega1 Epsilon1   Omega2 Epsilon2 
+##        1        1        1        1 
+## Delta1 Delta2 
+##     -1     -1</code></pre>
+<p>We then build the TMB object.</p>
+<pre class="sourceCode r"><code class="sourceCode r">TmbList =<span class="st"> </span><span class="kw">Build_TMB_Fn</span>(<span class="dt">TmbData =</span> TmbData, <span class="dt">RunDir =</span> DateFile, 
+    <span class="dt">Version =</span> Version, <span class="dt">RhoConfig =</span> RhoConfig, <span class="dt">loc_x =</span> Spatial_List$loc_x, 
+    <span class="dt">Method =</span> Method)
+Obj =<span class="st"> </span>TmbList[[<span class="st">&quot;Obj&quot;</span>]]</code></pre>
+</div>
+<div id="estimate-fixed-effects-and-predict-random-effects" class="section level2">
+<h2>Estimate fixed effects and predict random effects</h2>
+<p>Next, we use a gradient-based nonlinear minimizer to identify maximum likelihood estimates for fixed-effects</p>
+<pre class="sourceCode r"><code class="sourceCode r">Opt =<span class="st"> </span>TMBhelper::<span class="kw">Optimize</span>(<span class="dt">obj =</span> Obj, <span class="dt">lower =</span> TmbList[[<span class="st">&quot;Lower&quot;</span>]], 
+    <span class="dt">upper =</span> TmbList[[<span class="st">&quot;Upper&quot;</span>]], <span class="dt">getsd =</span> <span class="ot">TRUE</span>, <span class="dt">savedir =</span> DateFile, 
+    <span class="dt">bias.correct =</span> <span class="ot">FALSE</span>, <span class="dt">newtonsteps =</span> <span class="dv">1</span>)</code></pre>
+<p>Finally, we bundle and save output</p>
+<pre class="sourceCode r"><code class="sourceCode r">Report =<span class="st"> </span>Obj$<span class="kw">report</span>()
+Save =<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;Opt&quot;</span>=Opt, <span class="st">&quot;Report&quot;</span>=Report, <span class="st">&quot;ParHat&quot;</span>=Obj$env$<span class="kw">parList</span>(Opt$par), <span class="st">&quot;TmbData&quot;</span>=TmbData)
+<span class="kw">save</span>(Save, <span class="dt">file=</span><span class="kw">paste0</span>(DateFile,<span class="st">&quot;Save.RData&quot;</span>))</code></pre>
+</div>
 </div>
 
 

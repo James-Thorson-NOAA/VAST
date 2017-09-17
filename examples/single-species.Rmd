@@ -306,4 +306,116 @@ Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbD
 save(Save, file=paste0(DateFile,"Save.RData"))
 ```
 
+# Diagnostic plots
+
+We first apply a set of standard model diagnostics to confirm that the model is reasonable and deserves further attention.  If any of these do not look reasonable, the model output should not be interpreted or used.
+
+## Plot data
+
+It is always good practice to conduct exploratory analysis of data.  Here, I visualize the spatial distribution of data.  Spatio-temporal models involve the assumption that the probability of sampling a given location is statistically independent of the probability distribution for the response at that location.  So if sampling "follows" changes in density, then the model is probably not appropriate!
+```{r explore_data, results="hide", tidy=TRUE, message=FALSE, warning=FALSE}
+SpatialDeltaGLMM::Plot_data_and_knots(Extrapolation_List=Extrapolation_List, Spatial_List=Spatial_List, Data_Geostat=Data_Geostat, PlotDir=DateFile )
+```
+![Spatial extent and location of knots](VAST_output/Data_and_knots.png) 
+
+![Spatial distribution of catch-rate data](VAST_output/Data_by_year.png) 
+
+## Convergence
+Here I print the diagnostics generated during parameter estimation, and I confirm that (1) no parameter is hitting an upper or lower bound and (2) the final gradient for each fixed-effect is close to zero. For explanation of parameters, please see `?Data_Fn`.
+```{r print_results, results="asis"}
+pander::pandoc.table( Opt$diagnostics[,c('Param','Lower','MLE','Upper','final_gradient')] ) 
+```
+
+## Diagnostics for encounter-probability component
+
+Next, we check whether observed encounter frequencies for either low or high probability samples are within the 95% predictive interval for predicted encounter probability
+```{r diagnostics_encounter_prob, results="hide", eval=TRUE, tidy=TRUE, linewidth=50}
+Enc_prob = SpatialDeltaGLMM::Check_encounter_prob( Report=Report, Data_Geostat=Data_Geostat, DirName=DateFile)
+```
+![Expectated probability and observed frequency of encounter for "encounter probability" component](VAST_output/Diag--Encounter_prob.png) 
+
+
+## Diagnostics for positive-catch-rate component
+
+We can visualize fit to residuals of catch-rates given encounters using a Q-Q plot.  A good Q-Q plot will have residuals along the one-to-one line.  
+```{r plot_QQ, eval=TRUE, tidy=TRUE, linewidth=50, message=FALSE, warning=FALSE}
+Q = SpatialDeltaGLMM::QQ_Fn( TmbData=TmbData, Report=Report, FileName_PP=paste0(DateFile,"Posterior_Predictive.jpg"),
+FileName_Phist=paste0(DateFile,"Posterior_Predictive-Histogram.jpg"), 
+FileName_QQ=paste0(DateFile,"Q-Q_plot.jpg"), FileName_Qhist=paste0(DateFile,"Q-Q_hist.jpg"))
+```
+![Quantile-quantile plot indicating residuals for "positive catch rate" component](VAST_output/Q-Q_plot.jpg) 
+
+## Diagnostics for plotting residuals on a map
+
+Finally, we visualize residuals on a map.  To do so, we first define years to plot and generate plotting inputs.
+useful plots by first determining which years to plot (`Years2Include`), and labels for each plotted year (`Year_Set`)
+```{r plot_years}
+# Get region-specific settings for plots
+MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( "Region"=Region, "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap, "Extrapolation_List"=Extrapolation_List )
+# Decide which years to plot                                                   
+Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
+Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
+```
+
+We then plot Pearson residuals.  If there are visible patterns (areas with consistently positive or negative residuals accross or within years) then this is an indication of the model "overshrinking" results towards the intercept, and model results should then be treated with caution.  
+```{r plot_pearson_resid, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=50}
+SpatialDeltaGLMM:::plot_residuals(Lat_i=Data_Geostat[,'Lat'], Lon_i=Data_Geostat[,'Lon'], TmbData=TmbData, Report=Report, Q=Q, savedir=DateFile, MappingDetails=MapDetails_List[["MappingDetails"]], PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=DateFile, Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], Cex=MapDetails_List[["Cex"]], Legend=MapDetails_List[["Legend"]], zone=MapDetails_List[["Zone"]], mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), cex=1.8)
+```
+![Pearson residuals for encounter-probability by knot](VAST_output/maps--encounter_pearson_resid.png) 
+
+![Pearson residuals for positive catch rates by knot](VAST_output/maps--catchrate_pearson_resid.png) 
+
+
+## Model selection
+
+To select among models, we recommend using the Akaike Information Criterion, AIC, via `Opt$AIC=` ``r Opt$AIC``. 
+
+# Model output
+
+Last but not least, we generate pre-defined plots for visualizing results
+
+## Direction of "geometric anisotropy"
+
+We can visualize which direction has faster or slower decorrelation (termed "geometric anisotropy")
+```{r plot_aniso, message=FALSE, results="hide", tidy=TRUE}
+SpatialDeltaGLMM::PlotAniso_Fn( FileName=paste0(DateFile,"Aniso.png"), Report=Report, TmbData=TmbData )
+```
+![Decorrelation distance for different directions](VAST_output/Aniso.png) 
+
+## Density surface for each year
+
+We can visualize many types of output from the model.  Here I only show predicted density, but other options are obtained via other integers passed to `plot_set` as described in `?PlotResultsOnMap_Fn`
+```{r plot_density, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=50}
+Dens_xt = SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set=c(3), MappingDetails=MapDetails_List[["MappingDetails"]], Report=Report, Sdreport=Opt$SD, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=DateFile, Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], Cex=MapDetails_List[["Cex"]], Legend=MapDetails_List[["Legend"]], zone=MapDetails_List[["Zone"]], mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), cex=1.8, plot_legend_fig=FALSE)
+```
+![Density maps for each year](VAST_output/Dens.png) 
+
+We can also extract density predictions at different locations, for use or plotting in other software. This is output in UTM using zone `r Extrapolation_List$zone-ifelse(Extrapolation_List$flip_around_dateline,30,0)`
+```{r calc_density_dataframe, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=50}
+Dens_DF = cbind( "Density"=as.vector(Dens_xt), "Year"=Year_Set[col(Dens_xt)], "E_km"=Spatial_List$MeshList$loc_x[row(Dens_xt),'E_km'], "N_km"=Spatial_List$MeshList$loc_x[row(Dens_xt),'N_km'] )
+```
+
+```{r show_density_head, results="asis", echo=FALSE}
+pander::pandoc.table( Dens_DF[1:6,], digits=3 )
+```
+
+
+## Index of abundance
+
+The index of abundance is generally most useful for stock assessment models.
+```{r plot_index, message=FALSE, tidy=TRUE, linewidth=50, results="asis"}
+Index = SpatialDeltaGLMM::PlotIndex_Fn( DirName=DateFile, TmbData=TmbData, Sdreport=Opt[["SD"]], Year_Set=Year_Set, Years2Include=Years2Include, use_biascorr=TRUE )
+pander::pandoc.table( Index$Table[,c("Year","Fleet","Estimate_metric_tons","SD_log","SD_mt")] ) 
+```
+![Index of abundance plus/minus 1 standard error](VAST_output/Index.png) 
+
+## Center of gravity and range expansion/contraction
+
+We can detect shifts in distribution or range expansion/contraction.  
+```{r plot_range, message=FALSE, tidy=TRUE, linewidth=50}
+SpatialDeltaGLMM::Plot_range_shifts(Report=Report, TmbData=TmbData, Sdreport=Opt[["SD"]], Znames=colnames(TmbData$Z_xm), PlotDir=DateFile, Year_Set=Year_Set)
+```
+![Center of gravity (COG) indicating shifts in distribution plus/minus 1 standard error](VAST_output/center_of_gravity.png) 
+
+![Effective area occupied indicating range expansion/contraction plus/minus 1 standard error](VAST_output/Effective_Area.png) 
 

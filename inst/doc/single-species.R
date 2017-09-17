@@ -1,7 +1,9 @@
-## ---- fig.show='hold'----------------------------------------------------
-plot(1:10)
-plot(10:1)
+## ----set_options, echo=FALSE, message=FALSE, warning=FALSE----
+# Width should apply to tidy
+# digits hopefully affects number of digits when using print
+options(width=50, width.cutoff=50, digits = 3) 
+install.packages("pander", repos="http://cran.us.r-project.org")
 
-## ---- echo=FALSE, results='asis'-----------------------------------------
-knitr::kable(head(mtcars, 10))
+## ----setup, include=FALSE-----------------------
+knitr::opts_chunk$set(cache=TRUE, cache.path="cache_single/")
 
