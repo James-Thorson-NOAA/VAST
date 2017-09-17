@@ -43,6 +43,8 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
   file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(RunDir,"/",Version,".cpp"), overwrite=FALSE)
+  origwd = getwd()
+  on.exit(setwd(origwd),add=TRUE)
   setwd( RunDir )
   compile( paste0(Version,".cpp") )
 
