@@ -47,7 +47,7 @@ Remotes:
     nwfsc-assess/geostatistical_delta-GLMM,
     james-thorson/spatial_DFA,
     james-thorson/utilities,
-    kaskr/TMB_contrib_R/TMBhelper
+    kaskr/TMB_contrib_R/TMBhelper,
     url::https://www.math.ntnu.no/inla/R/stable
 License: GPL-3
 LazyData: yes
