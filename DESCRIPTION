@@ -45,6 +45,4 @@ BuildVignettes: yes
 RoxygenNote: 5.0.1
 URL: http://github.com/James-Thorson/VAST
 BugReports: http://github.com/James-Thorson/VAST/issues
-VignetteBuilder: 
-    knitr
-    R.rsp
+VignetteBuilder: R.rsp
