@@ -7,10 +7,10 @@
   packageStartupMessage("Loading package VAST, developed by James Thorson for the Northwest Fisheries Science Center")
   packageStartupMessage("For details and citation guidance, please see http://github.com/james-thorson/VAST/")
   packageStartupMessage("###########################################################################################")
-  if( !"INLA" %in% utils::installed.packages()[,1] ){
-    packageStartupMessage("Installing package: INLA...")
-    utils::install.packages("INLA", repos="https://www.math.ntnu.no/inla/R/stable")
-  }
+  #if( !"INLA" %in% utils::installed.packages()[,1] ){
+  #  packageStartupMessage("Installing package: INLA...")
+  #  utils::install.packages("INLA", repos="https://www.math.ntnu.no/inla/R/stable")
+  #}
   #if( !"SpatialDeltaGLMM"%in%utils::installed.packages()[,1] || utils::packageVersion("SpatialDeltaGLMM")<3.40 ){
   #  packageStartupMessage("Installing package: SpatialDeltaGLMM...")
   #  devtools::install_github("nwfsc-assess/geostatistical_delta-GLMM")

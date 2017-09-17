@@ -34,11 +34,11 @@ Imports:
     ThorsonUtilities,
     TMBhelper,
     SpatialDFA,
-    SpatialDeltaGLMM
+    SpatialDeltaGLMM,
+    INLA
 Depends:
     R (>= 3.1.0),
 Suggests:
-    INLA,
     testthat,
     knitr,
     rmarkdown,
@@ -48,6 +48,7 @@ Remotes:
     james-thorson/spatial_DFA,
     james-thorson/utilities,
     kaskr/TMB_contrib_R/TMBhelper
+    url::https://www.math.ntnu.no/inla/R/stable
 License: GPL-3
 LazyData: yes
 BuildVignettes: yes
