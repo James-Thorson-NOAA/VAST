@@ -1,10 +1,10 @@
 ---
-title: "Multi-species"
+title: "Single-species"
 author: "James Thorson"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Multi-species}
+  %\VignetteIndexEntry{Single-species}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
