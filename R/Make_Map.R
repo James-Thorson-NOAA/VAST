@@ -139,7 +139,8 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
   # fix betas and/or epsilons for missing years if betas are fixed-effects
   #YearNotInData = !( (1:TmbData$n_t) %in% (unique(TmbData$t_i)+1) )
   Num_ct = tapply( TmbData$b_i, INDEX=list(factor(TmbData$c_i,levels=1:TmbData$n_c-1),factor(TmbData$t_i[,1],levels=1:TmbData$n_t-1)), FUN=function(vec){sum(!is.na(vec))} )
-  if( sum(Num_ct)>0 ){
+  Num_ct = ifelse( is.na(Num_ct), 0, Num_ct )
+  if( sum(Num_ct==0)>0 ){
     # Beta1 -- Fixed
     if( RhoConfig["Beta1"]==0){
       Map[["beta1_ct"]] = fixval_fn( fixvalTF=(Num_ct==0) )
