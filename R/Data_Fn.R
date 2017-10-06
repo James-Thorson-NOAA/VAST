@@ -154,6 +154,18 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     if( dim(X_xtp)[1]!=n_x | dim(X_xtp)[2]!=n_t | dim(X_xtp)[3]!=n_p ) stop("X_xtp has wrong dimensions")
   }
 
+  # Check for known bugs in earlier versions
+  if( ObsModel[2]==1 )
+    # Versions 1.6.0 through 2.2.0 used a previous interpretation of area-swept for Poisson-link model and are not consistent with Q-Q plotting
+    if( Version%in%c("VAST_v2_2_0","VAST_v2_1_0","VAST_v2_0_0","VAST_v1_9_0","VAST_v1_8_0","VAST_v1_7_0","VAST_v1_6_0") ){
+      stop("Problem with Poisson-link model for VAST versions 1.6.0 through 2.2.0")
+    }
+    # Versions 1.0.0 through 1.5.0 don't have Poisson-link model
+    if( Version%in%c("VAST_v1_5_0","VAST_v1_4_0","VAST_v1_3_0","VAST_v1_2_0","VAST_v1_1_0","VAST_v1_0_0") ){
+      stop("Poisson-link model for VAST versions 1.0.0 through 1.5.0")
+    }
+  }
+
   # switch defaults if necessary
   if( Method=="Grid" ){
     Aniso = 0
