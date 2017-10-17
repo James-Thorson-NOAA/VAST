@@ -1,6 +1,12 @@
 #' @export
 Make_Map <-
 function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)){
+
+  # Replace objects in TmbData
+  if( "ObsModel" %in% names(TmbData) ){
+    TmbData[["ObsModel_ez"]] = matrix( TmbData$ObsModel, ncol=2, nrow=1, byrow=TRUE )
+  }
+
   # Local functions
   fixval_fn <- function( fixvalTF ){
     vec = rep(0,length(fixvalTF))
@@ -44,43 +50,54 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
   }
 
   # Measurement error models
-  if(TmbData[["ObsModel"]][1]%in%c(0,1,2)){
-    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA) )
-    if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA,NA) )
+  # NOTE:  Uses TmbData$ObsModel_ez, which either exists or is added above
+  Map[["logSigmaM"]] = array(NA, dim=dim(TmbParams$logSigmaM))
+  if( "delta_i" %in% names(TmbParams)){
+    Map[["delta_i"]] = rep(NA, length(TmbParams[["delta_i"]]) )
   }
-  if(TmbData[["ObsModel"]][1]%in%c(5)){
-    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),TmbData$n_c+seq(1,TmbData$n_c)) )
-    if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),TmbData$n_c+seq(1,TmbData$n_c),NA) )
-    if(TmbData[["ObsModel"]][2]!=0) stop("ObsModel[1]=5 should use ObsModel[2]=0")
-  }
-  if(TmbData[["ObsModel"]][1]%in%c(6,7)){
-    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( matrix(NA,nrow=TmbData$n_c,ncol=2) )
-    if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( matrix(NA,nrow=TmbData$n_c,ncol=3) )
-    if(TmbData[["ObsModel"]][2]!=0) stop("ObsModel[1]=6 or 7 should use ObsModel[2]=0")
-  }
-  if(TmbData[["ObsModel"]][1]%in%c(8,10)){
-    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA) )
-    if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA,NA) )
-    if(TmbData[["ObsModel"]][2]!=2) stop("ObsModel[1]=8 and ObsModel[1]=10 should use ObsModel[2]=2")
-  }
-  if(TmbData[["ObsModel"]][1]%in%c(9)){
-    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( matrix(NA, nrow=TmbData$n_c, ncol=2) )
-    if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( matrix(NA, nrow=TmbData$n_c, ncol=3) )
-  }
-  if(TmbData[["ObsModel"]][1]%in%c(11)){
-    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA) )
-    if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA,NA) )
-  }else{
-    if( "delta_i" %in% names(TmbParams) ){
-      Map[["delta_i"]] = factor( rep(NA,length(TmbParams[["delta_i"]])) )
+  for( eI in 1:nrow(Map[["logSigmaM"]]) ){
+    if(TmbData$ObsModel_ez[eI,1]%in%c(0,1,2)){
+      if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA )
+      if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA, NA )
+    }
+    if(TmbData$ObsModel_ez[eI,1]%in%c(5)){
+      if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, 2 )
+      if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, 2, NA )
+      if( any(TmbData$ObsModel_ez[,2]!=0) ) stop("ObsModel[1]=5 should use ObsModel[2]=0")
+    }
+    if(TmbData$ObsModel_ez[eI,1]%in%c(6,7)){
+      if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( NA, NA )
+      if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( NA, NA, NA )
+      if( any(TmbData$ObsModel_ez[,2]!=0) ) stop("ObsModel[1]=6 or 7 should use ObsModel[2]=0")
+    }
+    if(TmbData$ObsModel_ez[eI,1]%in%c(8,10)){
+      if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA )
+      if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA, NA )
+      if( any(TmbData$ObsModel_ez[,2]!=2) ) stop("ObsModel[1]=8 and ObsModel[1]=10 should use ObsModel[2]=2")
+    }
+    if(TmbData$ObsModel_ez[eI,1]%in%c(9)){
+      if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( NA, NA )
+      if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( NA, NA, NA )
+    }
+    if(TmbData$ObsModel_ez[eI,1]%in%c(11)){
+      if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA )
+      if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA, NA )
+      Map[["delta_i"]][ which((TmbData$e_i+1)==eI) ] = max(c(0,Map[["delta_i"]]),na.rm=TRUE) + 1:length(which((TmbData$e_i+1)==eI))
     }
   }
-  if( length(TmbData[["ObsModel"]])==2 && TmbData[["ObsModel"]][2]%in%c(3) ){
+  Map[["logSigmaM"]] = factor(Map[["logSigmaM"]])
+  if( "delta_i" %in% names(TmbParams)){
+    Map[["delta_i"]] = factor(Map[["delta_i"]])
+  }
+
+  # Change beta1_ct if
+  if( any(TmbData$ObsModel_ez[,2]%in%c(3)) ){
     Tmp_ct = tapply(ifelse(TmbData$b_i>0,1,0), INDEX=list(factor(TmbData$c_i,levels=sort(unique(TmbData$c_i))),TmbData$t_i), FUN=mean)
     Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
     Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
     Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
   }
+
   # Anisotropy
   if(TmbData[["Options_vec"]]["Aniso"]==0 | all(TmbData[["FieldConfig"]] == -1)) Map[['ln_H_input']] = factor( rep(NA,2) )
   

@@ -202,6 +202,7 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(n_x);         // Number of real "strata" (i.e., k-means locations) 
   DATA_INTEGER(n_t);         // Number of time-indices
   DATA_INTEGER(n_c);         // Number of categories (e.g., length bins)
+  DATA_INTEGER(n_e);         // Number of error distributions
   DATA_INTEGER(n_j);         // Number of static covariates
   DATA_INTEGER(n_p);         // Number of dynamic covariates
   DATA_INTEGER(n_k);          // Number of catchability variables
@@ -221,7 +222,7 @@ Type objective_function<Type>::operator() ()
   // Slot 7 -- Whether to use SPDE or 2D-AR1 hyper-distribution for spatial process: 0=SPDE; 1=2D-AR1
   DATA_IVECTOR(FieldConfig);  // Input settings (vector, length 4)
   DATA_IVECTOR(OverdispersionConfig);          // Input settings (vector, length 2)
-  DATA_IVECTOR(ObsModel_ez);    // Observation model
+  DATA_IMATRIX(ObsModel_ez);    // Observation model
   // Column 0: Probability distribution for data for each level of e_i
   // Column 1: Link function for linear predictors for each level of c_i
   // NOTE:  nlevels(c_i) must be <= nlevels(e_i)
@@ -267,7 +268,8 @@ Type objective_function<Type>::operator() ()
 
   // Parameters 
   PARAMETER_VECTOR(ln_H_input); // Anisotropy parameters
-  //  -- presence/absence
+
+  //  -- presence/absence fixed effects
   PARAMETER_MATRIX(beta1_ct);       // Year effect
   PARAMETER_VECTOR(gamma1_j);        // Static covariate effect
   PARAMETER_ARRAY(gamma1_ctp);       // Dynamic covariate effect
@@ -281,11 +283,13 @@ Type objective_function<Type>::operator() ()
   PARAMETER(Beta_rho1);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER(Epsilon_rho1);  // AR1 for presence/absence Epsilon component, Default=0
   PARAMETER_VECTOR(log_sigmaratio1_z);  // Ratio of variance for columns of t_iz
-  // -- Gaussian random fields
+
+  // -- presence/absence random effects
   PARAMETER_MATRIX(eta1_vf);
   PARAMETER_ARRAY(Omegainput1_sf);      // Expectation
   PARAMETER_ARRAY(Epsiloninput1_sft);   // Annual variation
-  //  -- positive catch rates
+
+  //  -- positive catch rates fixed effects
   PARAMETER_MATRIX(beta2_ct);  // Year effect
   PARAMETER_VECTOR(gamma2_j);        // Covariate effect
   PARAMETER_ARRAY(gamma2_ctp);       // Dynamic covariate effect
@@ -299,9 +303,16 @@ Type objective_function<Type>::operator() ()
   PARAMETER(Beta_rho2);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER(Epsilon_rho2);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER_VECTOR(log_sigmaratio2_z);  // Ratio of variance for columns of t_iz
-  PARAMETER_ARRAY(logSigmaM);   // Slots: 0=mix1 CV, 1=prob-of-mix1, 2=
+
+  // Error distribution parameters
+  PARAMETER_ARRAY(logSigmaM);
+  // Columns: 0=CV, 1=[usually not used], 2=[usually not used]
+  // Rows:  Each level of e_i and/or c_i
+  // SigmaM[,0] indexed by e_i, e.g., SigmaM(e_i(i),0)
+  // SigmaM[,1] and SigmaM[,2] indexed by c_i, e.g., SigmaM(c_i(i),2)
+
+  // -- positive catch rates random effects
   PARAMETER_VECTOR(delta_i);
-  // -- Gaussian random fields
   PARAMETER_MATRIX(eta2_vf);
   PARAMETER_ARRAY(Omegainput2_sf);      // Expectation
   PARAMETER_ARRAY(Epsiloninput2_sft);   // Annual variation
@@ -335,7 +346,7 @@ Type objective_function<Type>::operator() ()
     Range_raw1 = log(0.1) / logkappa1;   // Range = approx. distance @ 10% correlation
     Range_raw2 = log(0.1) / logkappa2;     // Range = approx. distance @ 10% correlation
   }
-  array<Type> SigmaM( n_c, 3 );
+  array<Type> SigmaM( n_e, 3 );
   SigmaM = exp( logSigmaM );
 
   // Anisotropy elements
@@ -519,9 +530,9 @@ Type objective_function<Type>::operator() ()
         }
         // Positive density likelihood -- models with continuous positive support
         if( b_i(i) > 0 ){    // 1e-500 causes overflow on laptop
-          if(ObsModel_ez(e_i(i),0)==0) LogProb2_i(i) = dnorm(b_i(i), R2_i(i), SigmaM(c_i(i),0), true);
-          if(ObsModel_ez(e_i(i),0)==1) LogProb2_i(i) = dlnorm(b_i(i), log(R2_i(i))-pow(SigmaM(c_i(i),0),2)/2, SigmaM(c_i(i),0), true); // log-space
-          if(ObsModel_ez(e_i(i),0)==2) LogProb2_i(i) = dgamma(b_i(i), 1/pow(SigmaM(c_i(i),0),2), R2_i(i)*pow(SigmaM(c_i(i),0),2), true); // shape = 1/CV^2, scale = mean*CV^2
+          if(ObsModel_ez(e_i(i),0)==0) LogProb2_i(i) = dnorm(b_i(i), R2_i(i), SigmaM(e_i(i),0), true);
+          if(ObsModel_ez(e_i(i),0)==1) LogProb2_i(i) = dlnorm(b_i(i), log(R2_i(i))-pow(SigmaM(e_i(i),0),2)/2, SigmaM(e_i(i),0), true); // log-space
+          if(ObsModel_ez(e_i(i),0)==2) LogProb2_i(i) = dgamma(b_i(i), 1/pow(SigmaM(e_i(i),0),2), R2_i(i)*pow(SigmaM(e_i(i),0),2), true); // shape = 1/CV^2, scale = mean*CV^2
         }else{
           LogProb2_i(i) = 0;
         }
@@ -530,7 +541,7 @@ Type objective_function<Type>::operator() ()
       if(ObsModel_ez(e_i(i),0)==8){
         LogProb1_i(i) = 0;
         //dPoisGam( Type x, Type shape, Type scale, Type intensity, Type &max_log_w_j, int maxsum=50, int minsum=1, int give_log=0 )
-        LogProb2_i(i) = dPoisGam( b_i(i), SigmaM(c_i(i),0), R2_i(i), R1_i(i), diag_z, Options_vec(5), Options_vec(6), true );
+        LogProb2_i(i) = dPoisGam( b_i(i), SigmaM(e_i(i),0), R2_i(i), R1_i(i), diag_z, Options_vec(5), Options_vec(6), true );
         diag_iz.row(i) = diag_z;
       }
       if(ObsModel_ez(e_i(i),0)==10){
@@ -538,13 +549,13 @@ Type objective_function<Type>::operator() ()
         LogProb1_i(i) = 0;
         // dtweedie( Type y, Type mu, Type phi, Type p, int give_log=0 )
         // R1*R2 = mean
-        LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(SigmaM(c_i(i),0))+1.0, true );
+        LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(SigmaM(e_i(i),0))+1.0, true );
       }
       // Likelihood for models with discrete support
       if(ObsModel_ez(e_i(i),0)==4 | ObsModel_ez(e_i(i),0)==5 | ObsModel_ez(e_i(i),0)==6 | ObsModel_ez(e_i(i),0)==7 | ObsModel_ez(e_i(i),0)==9 | ObsModel_ez(e_i(i),0)==11){
         if(ObsModel_ez(e_i(i),0)==5){
           // Zero-inflated negative binomial (not numerically stable!)
-          var_i(i) = R2_i(i)*(1.0+SigmaM(c_i(i),0)) + pow(R2_i(i),2.0)*SigmaM(c_i(i),1);
+          var_i(i) = R2_i(i)*(1.0+SigmaM(e_i(i),0)) + pow(R2_i(i),2.0)*SigmaM(c_i(i),1);
           if( b_i(i)==0 ){
             //LogProb2_i(i) = log( (1-R1_i(i)) + dnbinom2(Type(0.0), R2_i(i), var_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
             LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dnbinom2(Type(0.0),R2_i(i),var_i(i),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
@@ -587,9 +598,9 @@ Type objective_function<Type>::operator() ()
           // Zero-inflated Poisson
           if( b_i(i)==0 ){
             //LogProb2_i(i) = log( (1-R1_i(i)) + dpois(Type(0.0), R2_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-            LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i)*exp(SigmaM(c_i(i),0)*delta_i(i)-pow(SigmaM(c_i(i),0),2)/2),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+            LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-pow(SigmaM(e_i(i),0),2)/2),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
           }else{
-            LogProb2_i(i) = dpois(b_i(i), R2_i(i)*exp(SigmaM(c_i(i),0)*delta_i(i)-pow(SigmaM(c_i(i),0),2)/2), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
+            LogProb2_i(i) = dpois(b_i(i), R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-pow(SigmaM(e_i(i),0),2)/2), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
           }
         }
         LogProb1_i(i) = 0;
