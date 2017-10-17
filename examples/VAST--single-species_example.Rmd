@@ -2,7 +2,7 @@
 title: Example script for VAST for spatio-temporal analysis of single-species catch-rate
   data
 author: "James Thorson"
-date: "October 10, 2016"
+date: "`r Sys.Date()`"
 output:
   pdf_document:
     fig_caption: yes
@@ -16,18 +16,18 @@ html_document:
 ---
 
 
-```{r setup, include=FALSE}
+```{r cache=TRUE, setup, include=FALSE}
 knitr::opts_chunk$set(cache=TRUE, cache.path="cache_single/")
 ```
 
-```{r set_options, echo=FALSE, message=FALSE, warning=FALSE}
+```{r cache=TRUE, set_options, echo=FALSE, message=FALSE, warning=FALSE}
 # Width should apply to tidy
 # digits hopefully affects number of digits when using print
 options(width=50, width.cutoff=50, digits = 3) 
 install.packages("pander", repos="http://cran.us.r-project.org")
 ```
 
-```{r wrap-hook, echo=FALSE}
+```{r cache=TRUE, wrap-hook, echo=FALSE}
 # FROM: https://github.com/yihui/knitr-examples/blob/master/077-wrap-output.Rmd
 library(knitr)
 hook_output = knit_hooks$get('output')
@@ -51,13 +51,13 @@ This tutorial will walk through a simple example of how to use `VAST` for estima
 # Getting started
 
 To install TMB on a windows machine, we need to first install [Rtools](https://cran.r-project.org/bin/windows/Rtools/).  During the installation, please select the option to have Rtools included in your system path.  On other operating systems, it is not necessary to install Rtools.  We then install `VAST`  
-```{r load_packages, message=FALSE}
+```{r cache=TRUE, load_packages, message=FALSE}
 devtools::install_github("james-thorson/VAST") 
 devtools::install_github("james-thorson/utilities")
 ```
 
 Next load libraries.
-```{r load_libraries, message=FALSE, warning=FALSE}
+```{r cache=TRUE, load_libraries, message=FALSE, warning=FALSE}
 library(TMB)               # Can instead load library(TMBdebug)
 library(VAST)
 ```
@@ -74,7 +74,7 @@ Related tools for spatio-temporal fisheries analysis are currently housed at [ww
 
 `VAST` has involved many publications for developing individual features.  If using `VAST`, please read and cite:
 
-```{r citation, tidy=TRUE, width=70, width.cutoff=70}
+```{r cache=TRUE, citation, tidy=TRUE, width=70, width.cutoff=70}
 citation("VAST")
 ```
 
@@ -87,13 +87,13 @@ Data_Set = c("Chatham_rise_hake", "Iceland_cod", "WCGBTS_canary", "GSL_american_
 ```
 
 Next use latest version for CPP code
-```{r}
+```{r cache=TRUE, cache=TRUE}
 Version = "VAST_v2_5_0"
 ```
 
 ## Spatial settings
 The following settings define the spatial resolution for the model, and whether to use a grid or mesh approximation
-```{r}
+```{r cache=TRUE, cache=TRUE}
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km = 25
 n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
@@ -118,7 +118,7 @@ Options =  c("SD_site_density"=0, "SD_site_logdensity"=0, "Calculate_Range"=1, "
 ## Stratification for results
 
 We also define any potential stratification of results, and settings specific to any case-study data set
-```{r define_strata, tidy=TRUE, linewidth=50}
+```{r cache=TRUE, define_strata, tidy=TRUE, linewidth=50}
 # Default
 if( Data_Set %in% c("GSL_american_plaice","BC_pacific_cod","EBS_pollock","SAWC_jacopever","Chatham_rise_hake","Aleutian_islands_POP")){
   strata.limits <- data.frame('STRATA'="All_areas")
@@ -158,7 +158,7 @@ if( Data_Set %in% c("Iceland_cod")){
 ## Derived objects
 
 Depending on the case study, we define a `Region` used when extrapolating or plotting density estimates.  If its a different data set, it will define `Region="Other"`, and this is a recognized level for all uses of `Region` (which attempts to define reasonable settings based on the location of sampling).  For example `Data_Set="Iceland_cod"` has no associated meta-data for the region, so it uses `Region="Other"` by default.
-```{r define_region, tidy=FALSE}
+```{r cache=TRUE, define_region, tidy=FALSE}
 Region = switch( Data_Set, "Chatham_rise_hake"="New_Zealand", 
                  "WCGBTS_canary"="California_current", 
                  "GSL_american_plaice"="Gulf_of_St_Lawrence", 
@@ -176,8 +176,8 @@ Region = switch( Data_Set, "Chatham_rise_hake"="New_Zealand",
 ## Save settings
 
 We then set the location for saving files.
-```{r make_dir, message=FALSE, warning=FALSE}
-DateFile = paste0(getwd(),'/VAST_output/')
+```{r cache=TRUE, make_dir, message=FALSE, warning=FALSE}
+DateFile = paste0(getwd(),'/Single-species/')
   dir.create(DateFile)
 ```
 
@@ -193,7 +193,7 @@ capture.output( Record, file=paste0(DateFile,"Record.txt"))
 ## Data-frame for catch-rate data
 
 Depending upon the `Data_Set` chosen, we load archived data sets that are distributed with the package. Each archived data set is then reformatted to create a data-frame `Data_Geostat` with a standardized set of columns. For a new data set, the user is responsible for formatting `Data_Geostat` appropriately to match this format.  We show the first six rows of `Data_Geostat` given that Data_Set = `Data_Set`.  
-```{r load_data, message=FALSE, tidy=TRUE, linewidth=50}
+```{r cache=TRUE, load_data, message=FALSE, tidy=TRUE, linewidth=50}
 if(Data_Set=="WCGBTS_canary"){
   data( WCGBTS_Canary_example, package="SpatialDeltaGLMM" )
   Year = as.numeric(sapply(WCGBTS_Canary_example[,'PROJECT_CYCLE'], FUN=function(Char){strsplit(as.character(Char)," ")[[1]][2]}))
@@ -250,7 +250,7 @@ if( Data_Set %in% c("Chatham_rise_hake")){
 Data_Geostat = na.omit( Data_Geostat )
 ```
 
-```{r show_data_head, results="asis", echo=FALSE}
+```{r cache=TRUE, show_data_head, results="asis", echo=FALSE}
 pander::pandoc.table( Data_Geostat[1:6,], digits=3 )
 ```
 
@@ -258,7 +258,7 @@ pander::pandoc.table( Data_Geostat[1:6,], digits=3 )
 ## Extrapolation grid
 
 We also generate the extrapolation grid appropriate for a given region.  For new regions, we use `Region="Other"`.
-```{r extrapolation_grid, message=FALSE, tidy=TRUE, linewidth=60}
+```{r cache=TRUE, extrapolation_grid, message=FALSE, tidy=TRUE, linewidth=60}
 if( Region %in% c("California_current","Eastern_Bering_Sea","Gulf_of_Alaska","Aleutian_Islands","Northwest_Atlantic","Gulf_of_St_Lawrence","New_Zealand") ){
   Extrapolation_List = SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn( Region=Region, strata.limits=strata.limits )
 }
@@ -276,7 +276,7 @@ if( Region == "Other" ){
 ## Derived objects for spatio-temporal estimation
 
 And we finally generate the information used for conducting spatio-temporal parameter estimation, bundled in list `Spatial_List`
-```{r spatial_information, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=60}
+```{r cache=TRUE, spatial_information, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=60}
 Spatial_List = SpatialDeltaGLMM::Spatial_Information_Fn( grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=DateFile, Save_Results=FALSE )
 # Add knots to Data_Geostat
 Data_Geostat = cbind( Data_Geostat, "knot_i"=Spatial_List$knot_i )
@@ -287,12 +287,12 @@ Data_Geostat = cbind( Data_Geostat, "knot_i"=Spatial_List$knot_i )
 ## Build model
 
 To estimate parameters, we first build a list of data-inputs used for parameter estimation.  `Data_Fn` has some simple checks for buggy inputs, but also please read the help file `?Data_Fn`.  
-```{r build_data, message=FALSE, tidy=TRUE, linewidth=60}
+```{r cache=TRUE, build_data, message=FALSE, tidy=TRUE, linewidth=60}
 TmbData = Data_Fn("Version"=Version, "FieldConfig"=FieldConfig, "OverdispersionConfig"=OverdispersionConfig, "RhoConfig"=RhoConfig, "ObsModel"=ObsModel, "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(Data_Geostat[,'Vessel'])-1, "s_i"=Data_Geostat[,'knot_i']-1, "t_i"=Data_Geostat[,'Year'], "a_xl"=Spatial_List$a_xl, "MeshList"=Spatial_List$MeshList, "GridList"=Spatial_List$GridList, "Method"=Spatial_List$Method, "Options"=Options )
 ```
 
 We then build the TMB object.
-```{r build_object, message=FALSE, results="hide", tidy=TRUE}
+```{r cache=TRUE, build_object, message=FALSE, results="hide", tidy=TRUE}
 TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x, "Method"=Method)
 Obj = TmbList[["Obj"]]
 ```
@@ -300,12 +300,12 @@ Obj = TmbList[["Obj"]]
 ## Estimate fixed effects and predict random effects
 
 Next, we use a gradient-based nonlinear minimizer to identify maximum likelihood estimates for fixed-effects
-```{r estimate_parameters, results="hide", tidy=TRUE}
+```{r cache=TRUE, estimate_parameters, results="hide", tidy=TRUE}
 Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=FALSE, newtonsteps=1 )
 ```
 
 Finally, we bundle and save output
-```{r save_results, linewidth=60}
+```{r cache=TRUE, save_results, linewidth=60}
 Report = Obj$report()
 Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
 save(Save, file=paste0(DateFile,"Save.RData"))
@@ -318,7 +318,7 @@ We first apply a set of standard model diagnostics to confirm that the model is 
 ## Plot data
 
 It is always good practice to conduct exploratory analysis of data.  Here, I visualize the spatial distribution of data.  Spatio-temporal models involve the assumption that the probability of sampling a given location is statistically independent of the probability distribution for the response at that location.  So if sampling "follows" changes in density, then the model is probably not appropriate!
-```{r explore_data, results="hide", tidy=TRUE, message=FALSE, warning=FALSE}
+```{r cache=TRUE, explore_data, results="hide", tidy=TRUE, message=FALSE, warning=FALSE}
 SpatialDeltaGLMM::Plot_data_and_knots(Extrapolation_List=Extrapolation_List, Spatial_List=Spatial_List, Data_Geostat=Data_Geostat, PlotDir=DateFile )
 ```
 ![Spatial extent and location of knots](VAST_output/Data_and_knots.png) 
@@ -327,14 +327,14 @@ SpatialDeltaGLMM::Plot_data_and_knots(Extrapolation_List=Extrapolation_List, Spa
 
 ## Convergence
 Here I print the diagnostics generated during parameter estimation, and I confirm that (1) no parameter is hitting an upper or lower bound and (2) the final gradient for each fixed-effect is close to zero. For explanation of parameters, please see `?Data_Fn`.
-```{r print_results, results="asis"}
+```{r cache=TRUE, print_results, results="asis"}
 pander::pandoc.table( Opt$diagnostics[,c('Param','Lower','MLE','Upper','final_gradient')] ) 
 ```
 
 ## Diagnostics for encounter-probability component
 
 Next, we check whether observed encounter frequencies for either low or high probability samples are within the 95% predictive interval for predicted encounter probability
-```{r diagnostics_encounter_prob, results="hide", eval=TRUE, tidy=TRUE, linewidth=50}
+```{r cache=TRUE, diagnostics_encounter_prob, results="hide", eval=TRUE, tidy=TRUE, linewidth=50}
 Enc_prob = SpatialDeltaGLMM::Check_encounter_prob( Report=Report, Data_Geostat=Data_Geostat, DirName=DateFile)
 ```
 ![Expectated probability and observed frequency of encounter for "encounter probability" component](VAST_output/Diag--Encounter_prob.png) 
@@ -343,7 +343,7 @@ Enc_prob = SpatialDeltaGLMM::Check_encounter_prob( Report=Report, Data_Geostat=D
 ## Diagnostics for positive-catch-rate component
 
 We can visualize fit to residuals of catch-rates given encounters using a Q-Q plot.  A good Q-Q plot will have residuals along the one-to-one line.  
-```{r plot_QQ, eval=TRUE, tidy=TRUE, linewidth=50, message=FALSE, warning=FALSE}
+```{r cache=TRUE, plot_QQ, eval=TRUE, tidy=TRUE, linewidth=50, message=FALSE, warning=FALSE}
 Q = SpatialDeltaGLMM::QQ_Fn( TmbData=TmbData, Report=Report, FileName_PP=paste0(DateFile,"Posterior_Predictive.jpg"),
 FileName_Phist=paste0(DateFile,"Posterior_Predictive-Histogram.jpg"), 
 FileName_QQ=paste0(DateFile,"Q-Q_plot.jpg"), FileName_Qhist=paste0(DateFile,"Q-Q_hist.jpg"))
@@ -354,7 +354,7 @@ FileName_QQ=paste0(DateFile,"Q-Q_plot.jpg"), FileName_Qhist=paste0(DateFile,"Q-Q
 
 Finally, we visualize residuals on a map.  To do so, we first define years to plot and generate plotting inputs.
 useful plots by first determining which years to plot (`Years2Include`), and labels for each plotted year (`Year_Set`)
-```{r plot_years}
+```{r cache=TRUE, plot_years}
 # Get region-specific settings for plots
 MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( "Region"=Region, "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap, "Extrapolation_List"=Extrapolation_List )
 # Decide which years to plot                                                   
@@ -363,7 +363,7 @@ Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
 ```
 
 We then plot Pearson residuals.  If there are visible patterns (areas with consistently positive or negative residuals accross or within years) then this is an indication of the model "overshrinking" results towards the intercept, and model results should then be treated with caution.  
-```{r plot_pearson_resid, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=50}
+```{r cache=TRUE, plot_pearson_resid, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=50}
 SpatialDeltaGLMM:::plot_residuals(Lat_i=Data_Geostat[,'Lat'], Lon_i=Data_Geostat[,'Lon'], TmbData=TmbData, Report=Report, Q=Q, savedir=DateFile, MappingDetails=MapDetails_List[["MappingDetails"]], PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=DateFile, Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], Cex=MapDetails_List[["Cex"]], Legend=MapDetails_List[["Legend"]], zone=MapDetails_List[["Zone"]], mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), cex=1.8)
 ```
 ![Pearson residuals for encounter-probability by knot](VAST_output/maps--encounter_pearson_resid.png) 
@@ -382,7 +382,7 @@ Last but not least, we generate pre-defined plots for visualizing results
 ## Direction of "geometric anisotropy"
 
 We can visualize which direction has faster or slower decorrelation (termed "geometric anisotropy")
-```{r plot_aniso, message=FALSE, results="hide", tidy=TRUE}
+```{r cache=TRUE, plot_aniso, message=FALSE, results="hide", tidy=TRUE}
 SpatialDeltaGLMM::PlotAniso_Fn( FileName=paste0(DateFile,"Aniso.png"), Report=Report, TmbData=TmbData )
 ```
 ![Decorrelation distance for different directions](VAST_output/Aniso.png) 
@@ -390,17 +390,17 @@ SpatialDeltaGLMM::PlotAniso_Fn( FileName=paste0(DateFile,"Aniso.png"), Report=Re
 ## Density surface for each year
 
 We can visualize many types of output from the model.  Here I only show predicted density, but other options are obtained via other integers passed to `plot_set` as described in `?PlotResultsOnMap_Fn`
-```{r plot_density, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=50}
+```{r cache=TRUE, plot_density, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=50}
 Dens_xt = SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set=c(3), MappingDetails=MapDetails_List[["MappingDetails"]], Report=Report, Sdreport=Opt$SD, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=DateFile, Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], Cex=MapDetails_List[["Cex"]], Legend=MapDetails_List[["Legend"]], zone=MapDetails_List[["Zone"]], mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), cex=1.8, plot_legend_fig=FALSE)
 ```
 ![Density maps for each year](VAST_output/Dens.png) 
 
 We can also extract density predictions at different locations, for use or plotting in other software. This is output in UTM using zone `r Extrapolation_List$zone-ifelse(Extrapolation_List$flip_around_dateline,30,0)`
-```{r calc_density_dataframe, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=50}
+```{r cache=TRUE, calc_density_dataframe, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=50}
 Dens_DF = cbind( "Density"=as.vector(Dens_xt), "Year"=Year_Set[col(Dens_xt)], "E_km"=Spatial_List$MeshList$loc_x[row(Dens_xt),'E_km'], "N_km"=Spatial_List$MeshList$loc_x[row(Dens_xt),'N_km'] )
 ```
 
-```{r show_density_head, results="asis", echo=FALSE}
+```{r cache=TRUE, show_density_head, results="asis", echo=FALSE}
 pander::pandoc.table( Dens_DF[1:6,], digits=3 )
 ```
 
@@ -408,7 +408,7 @@ pander::pandoc.table( Dens_DF[1:6,], digits=3 )
 ## Index of abundance
 
 The index of abundance is generally most useful for stock assessment models.
-```{r plot_index, message=FALSE, tidy=TRUE, linewidth=50, results="asis"}
+```{r cache=TRUE, plot_index, message=FALSE, tidy=TRUE, linewidth=50, results="asis"}
 Index = SpatialDeltaGLMM::PlotIndex_Fn( DirName=DateFile, TmbData=TmbData, Sdreport=Opt[["SD"]], Year_Set=Year_Set, Years2Include=Years2Include, use_biascorr=TRUE )
 pander::pandoc.table( Index$Table[,c("Year","Fleet","Estimate_metric_tons","SD_log","SD_mt")] ) 
 ```
@@ -417,7 +417,7 @@ pander::pandoc.table( Index$Table[,c("Year","Fleet","Estimate_metric_tons","SD_l
 ## Center of gravity and range expansion/contraction
 
 We can detect shifts in distribution or range expansion/contraction.  
-```{r plot_range, message=FALSE, tidy=TRUE, linewidth=50}
+```{r cache=TRUE, plot_range, message=FALSE, tidy=TRUE, linewidth=50}
 SpatialDeltaGLMM::Plot_range_shifts(Report=Report, TmbData=TmbData, Sdreport=Opt[["SD"]], Znames=colnames(TmbData$Z_xm), PlotDir=DateFile, Year_Set=Year_Set)
 ```
 ![Center of gravity (COG) indicating shifts in distribution plus/minus 1 standard error](VAST_output/center_of_gravity.png) 
