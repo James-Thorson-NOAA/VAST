@@ -459,6 +459,7 @@ Type objective_function<Type>::operator() ()
   // ObsModel = 0:4 or 11:12: probability ("phi") that data is greater than zero
   // ObsModel = 5 (ZINB):  phi = 1-ZeroInflation_prob -> Pr[D=0] = NB(0|mu,var)*phi + (1-phi) -> Pr[D>0] = phi - NB(0|mu,var)*phi 
   vector<Type> R1_i(n_i);   
+  vector<Type> log_one_minus_R1_i(n_i);
   vector<Type> LogProb1_i(n_i);
   // Linear predictor (pre-link) for positive component
   vector<Type> P2_i(n_i);   
@@ -499,6 +500,8 @@ Type objective_function<Type>::operator() ()
         // P2_i: Log-average weight;  R2_i:  Positive density prediction
         R1_i(i) = Type(1.0) - exp( -1*SigmaM(c_i(i),2)*a_i(i)*exp(P1_i(i)) );
         R2_i(i) = a_i(i)*exp(P1_i(i)) / R1_i(i) * exp( P2_i(i) );
+        // log_one_minus_R1_i is useful to prevent numerical underflow e.g., for 1 - exp(-40)
+        log_one_minus_R1_i(i) = -1*SigmaM(c_i(i),2)*a_i(i)*exp(P1_i(i));
       }
       if( ObsModel(1)==2 ){
         // Tweedie link, where area-swept affects numbers density exp(P1_i(i))
@@ -513,7 +516,11 @@ Type objective_function<Type>::operator() ()
         if( b_i(i) > 0 ){
           LogProb1_i(i) = log( R1_i(i) );
         }else{
-          LogProb1_i(i) = log( 1-R1_i(i) );
+          if( ObsModel(1)==1 ){
+            LogProb1_i(i) = log_one_minus_R1_i(i);
+          }else{
+            LogProb1_i(i) = log( 1-R1_i(i) );
+          }
         }
         // Positive density likelihood -- models with continuous positive support
         if( b_i(i) > 0 ){    // 1e-500 causes overflow on laptop
