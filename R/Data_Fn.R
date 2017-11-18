@@ -175,6 +175,12 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
       if( length(unique(ObsModel_ez[,1]))>1 ) stop("Can't use multiple error distributions prior to version 3.0.0")
     }
   }
+  if( any(FieldConfig_input == -2) ){
+    # Versions 2.6.0 was the first to allow "IID" setting for FieldConfig elements
+    if( Version%in%c("VAST_v2_5_0","VAST_v2_4_0","VAST_v2_3_0","VAST_v2_2_0","VAST_v2_1_0","VAST_v2_0_0","VAST_v1_9_0","VAST_v1_8_0","VAST_v1_7_0","VAST_v1_6_0","VAST_v1_5_0","VAST_v1_4_0","VAST_v1_3_0","VAST_v1_2_0","VAST_v1_1_0","VAST_v1_0_0") ){
+      stop("Problem with 'IID' option for factors for VAST versions 1.0.0 through 2.6.0")
+    }
+  }
 
   # switch defaults if necessary
   if( Method=="Grid" ){
