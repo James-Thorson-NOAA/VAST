@@ -6,6 +6,12 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
   if( "ObsModel" %in% names(TmbData) ){
     TmbData[["ObsModel_ez"]] = matrix( TmbData$ObsModel, ncol=2, nrow=1, byrow=TRUE )
   }
+  if( "c_i" %in% names(TmbData) ){
+    TmbData[["c_iz"]] = matrix( TmbData$c_i, ncol=1 )
+  }
+  if( "t_i" %in% names(TmbData) ){
+    TmbData[["t_iz"]] = matrix( TmbData$t_i, ncol=1 )
+  }
 
   # Local functions
   fixval_fn <- function( fixvalTF ){
@@ -92,7 +98,7 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
 
   # Change beta1_ct if
   if( any(TmbData$ObsModel_ez[,2]%in%c(3)) ){
-    Tmp_ct = tapply(ifelse(TmbData$b_i>0,1,0), INDEX=list(factor(TmbData$c_i,levels=sort(unique(TmbData$c_i))),TmbData$t_i), FUN=mean)
+    Tmp_ct = tapply(ifelse(TmbData$b_i>0,1,0), INDEX=list(factor(TmbData$c_iz[,1],levels=sort(unique(TmbData$c_iz[,1]))),TmbData$t_iz[,1]), FUN=mean)
     Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
     Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
     Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
@@ -155,7 +161,7 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
   }
   # fix betas and/or epsilons for missing years if betas are fixed-effects
   #YearNotInData = !( (1:TmbData$n_t) %in% (unique(TmbData$t_i)+1) )
-  Num_ct = tapply( TmbData$b_i, INDEX=list(factor(TmbData$c_i,levels=1:TmbData$n_c-1),factor(TmbData$t_i[,1],levels=1:TmbData$n_t-1)), FUN=function(vec){sum(!is.na(vec))} )
+  Num_ct = tapply( TmbData$b_i, INDEX=list(factor(TmbData$c_iz[,1],levels=1:TmbData$n_c-1),factor(TmbData$t_iz[,1],levels=1:TmbData$n_t-1)), FUN=function(vec){sum(!is.na(vec))} )
   Num_ct = ifelse( is.na(Num_ct), 0, Num_ct )
   if( sum(Num_ct==0)>0 ){
     # Beta1 -- Fixed
