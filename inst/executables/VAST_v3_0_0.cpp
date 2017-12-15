@@ -529,7 +529,7 @@ Type objective_function<Type>::operator() ()
         if( b_i(i) > 0 ){
           LogProb1_i(i) = log( R1_i(i) );
         }else{
-          if( ObsModel(1)==1 ){
+          if( ObsModel_ez(e_i(i),1)==1 ){
             LogProb1_i(i) = log_one_minus_R1_i(i);
           }else{
             LogProb1_i(i) = log( 1-R1_i(i) );
