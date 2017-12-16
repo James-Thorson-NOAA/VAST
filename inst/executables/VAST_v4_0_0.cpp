@@ -488,6 +488,8 @@ Type objective_function<Type>::operator() ()
   vector<Type> diag_z(4);
   matrix<Type> diag_iz(n_i,4);
   diag_iz.setZero();  // Used to track diagnostics for Tweedie distribution (columns: 0=maxJ; 1=maxW; 2=lowerW; 3=upperW)
+  P1_iz.setZero();
+  P2_iz.setZero();
 
   // Likelihood contribution from observations
   for(int i=0; i<n_i; i++){
@@ -495,6 +497,7 @@ Type objective_function<Type>::operator() ()
       // Linear predictors
       for( int zc=0; zc<c_iz.row(0).size(); zc++ ){
         if( c_iz(i,zc)>=0 & c_iz(i,zc)<n_c ){
+        //if( !isNA(c_iz(i,zc)) ){
           P1_iz(i,zc) = Omega1_sc(s_i(i),c_iz(i,zc)) + eta1_x(s_i(i)) + zeta1_i(i) + eta1_vc(v_i(i),c_iz(i,zc));
           P2_iz(i,zc) = Omega2_sc(s_i(i),c_iz(i,zc)) + eta2_x(s_i(i)) + zeta2_i(i) + eta2_vc(v_i(i),c_iz(i,zc));
           for( int zt=0; zt<t_iz.row(0).size(); zt++ ){
@@ -521,12 +524,13 @@ Type objective_function<Type>::operator() ()
         tmp_calc2 = 0;
         for( int zc=0; zc<c_iz.row(0).size(); zc++ ){
           if( c_iz(i,zc)>=0 & c_iz(i,zc)<n_c ){
+          //if( !isNA(c_iz(i,zc)) ){
             tmp_calc1 += exp(P1_iz(i,zc));
-            tmp_calc2 += exp(P2_iz(i,zc));
+            tmp_calc2 += exp(P1_iz(i,zc)) * exp(P2_iz(i,zc));
           }
         }
         R1_i(i) = Type(1.0) - exp( -1*a_i(i)*tmp_calc1 );
-        R2_i(i) = a_i(i)*tmp_calc1 / R1_i(i) * tmp_calc2;
+        R2_i(i) = a_i(i) * tmp_calc2 / R1_i(i);
         // log_one_minus_R1_i is useful to prevent numerical underflow e.g., for 1 - exp(-40)
         log_one_minus_R1_i(i) = -1*a_i(i)*tmp_calc1;
       }
@@ -636,6 +640,8 @@ Type objective_function<Type>::operator() ()
   jnll = jnll_comp.sum();
   Type pred_jnll = -1 * ( LogProb1_i*PredTF_i + LogProb2_i*PredTF_i ).sum();
   REPORT( pred_jnll );
+  REPORT( tmp_calc1 );
+  REPORT( tmp_calc2 );
 
   ////////////////////////
   // Calculate outputs
