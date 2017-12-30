@@ -151,10 +151,11 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     if( n_c!=length(unique(na.omit(as.vector(c_iz)))) ) stop("n_c doesn't equal the number of levels in c_i")
     if( any(X_xj!=0) ) stop("X_xj is deprecated, please use X_xtp to specify static or dynamic density covariates (which by default have constant effect among years but differ among categories)")
     if( any(ObsModel_ez[,1]==9) & !all(b_i%in%0:3) ) stop("If using 'ObsModel_ez[e,1]=9', all 'b_i' must be in {0,1,2,3}")
-    if( length(unique(ObsModel_ez[,2]))>1 ) stop("All ObsModel_ez[,2] must have the same value")
+    if( length(unique(ObsModel_ez[,2]))>1 ) stop("All `ObsModel_ez[,2]` must have the same value")
+    if( any(OverdispersionConfig>0) & length(unique(v_i))==1 ) stop("It doesn't make sense to use use `OverdispersionConfig` when using only one level of `v_i`")
   }
 
-  # Check for bad data entry
+  # Check for wrong dimensions
   if( CheckForErrors==TRUE ){
     if( any(c(length(b_i),length(a_i),nrow(c_iz),length(s_i),nrow(t_iz),length(v_i))!=n_i) ) stop("b_i, a_i, c_i, s_i, v_i, or t_i doesn't have length n_i")
     if( nrow(a_xl)!=n_x | ncol(a_xl)!=n_l ) stop("a_xl has wrong dimensions")
