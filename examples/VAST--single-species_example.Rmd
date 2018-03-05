@@ -88,7 +88,7 @@ Data_Set = c("Chatham_rise_hake", "Iceland_cod", "WCGBTS_canary", "GSL_american_
 
 Next use latest version for CPP code
 ```{r}
-Version = "VAST_v2_5_0"
+Version = "VAST_v4_1_0"
 ```
 
 ## Spatial settings
@@ -96,7 +96,7 @@ The following settings define the spatial resolution for the model, and whether 
 ```{r}
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km = 25
-n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
+n_x = 100   # Specify number of stations (a.k.a. "knots")
 Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )    
 ```
 
@@ -112,7 +112,7 @@ ObsModel = c(2,0)
 ## Potential outputs
 The following settings define what types of output we want to calculate
 ```{r, tidy=TRUE}
-Options =  c("SD_site_density"=0, "SD_site_logdensity"=0, "Calculate_Range"=1, "Calculate_evenness"=0, "Calculate_effective_area"=1, "Calculate_Cov_SE"=0, 'Calculate_Synchrony'=0, 'Calculate_Coherence'=0)
+Options =  c("SD_site_density"=0, "SD_site_logdensity"=0, "Calculate_Range"=1, "Calculate_evenness"=0, "Calculate_effective_area"=1, "Calculate_Cov_SE"=0, 'Calculate_Synchrony'=0, 'Calculate_Coherence'=0, 'normalize_GMRF_in_CPP'=TRUE)
 ```
 
 ## Stratification for results
@@ -183,7 +183,7 @@ DateFile = paste0(getwd(),'/VAST_output/')
 
 I also like to save all settings for later reference, although this is not necessary.
 ```{r, tidy=TRUE, linewidth=50}
-Record = ThorsonUtilities::bundlelist( c("Data_Set","Version","Method","grid_size_km","n_x","FieldConfig","RhoConfig","OverdispersionConfig","ObsModel","Kmeans_Config") )
+Record = ThorsonUtilities::bundlelist( c("Data_Set","Version","Method","grid_size_km","n_x","FieldConfig","RhoConfig","OverdispersionConfig","ObsModel","Kmeans_Config","Options") )
 save( Record, file=file.path(DateFile,"Record.RData"))
 capture.output( Record, file=paste0(DateFile,"Record.txt"))
 ```
