@@ -591,7 +591,7 @@ Type objective_function<Type>::operator() ()
       }
     }
     // Calculate predictors in link-space
-    if( ObsModel(1)==0 ){
+    if( ObsModel(1)==0 | ObsModel(1)==3 ){
       R1_xcy(x,c,y) = invlogit( P1_xcy(x,c,y) );
       R2_xcy(x,c,y) = exp( P2_xcy(x,c,y) );
       D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
