@@ -425,6 +425,12 @@ Type objective_function<Type>::operator() ()
     }
   }
 
+  // Normalization of GMRFs to normalize during outer-optimization step in R
+  Type jnll_GMRF = jnll_comp(0) + jnll_comp(1) + jnll_comp(2) + jnll_comp(3);
+  if( include_data == 0 ){
+    return( jnll_GMRF );
+  }
+
   ////// Probability of correlated overdispersion among bins
   // IN: eta1_vf; n_f; L1_z
   // OUT: jnll_comp; eta1_vc
@@ -638,7 +644,6 @@ Type objective_function<Type>::operator() ()
   REPORT( diag_iz );
 
   // Joint likelihood
-  Type jnll_GMRF = jnll_comp(0) + jnll_comp(1) + jnll_comp(2) + jnll_comp(3);
   jnll_comp(10) = -1 * (LogProb1_i * (Type(1.0)-PredTF_i)).sum();
   jnll_comp(11) = -1 * (LogProb2_i * (Type(1.0)-PredTF_i)).sum();
   jnll = jnll_comp.sum();
@@ -646,11 +651,6 @@ Type objective_function<Type>::operator() ()
   REPORT( pred_jnll );
   REPORT( tmp_calc1 );
   REPORT( tmp_calc2 );
-
-  // Normalized hyperdistribution to normalize in R
-  if( include_data == 0 ){
-    return( jnll_GMRF );
-  }
 
   ////////////////////////
   // Calculate outputs
@@ -1071,6 +1071,9 @@ Type objective_function<Type>::operator() ()
   }
   if( Options(1)==1 ){
     ADREPORT( log(Index_xcyl) );
+    //array<Type> log_Index_xcyl(Index_xcyl.dim);
+    //log_Index_xcyl = Index_xcyl.log();
+    //ADREPORT( log_Index_xcyl );
   }
 
   return jnll;
