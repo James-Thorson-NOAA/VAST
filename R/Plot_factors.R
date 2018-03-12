@@ -36,8 +36,7 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
   #Cov_List = Summarize_Covariance( Report=Report, ParHat=ParHat, Data=Data, SD=SD, category_names=category_names, figname=NULL )
 
   # Extract loadings matrices (more numerically stable than extracting covariances, and then re-creating Cholesky)
-  L_list = vector("list", length=4)
-  names(L_list) = c("Omega1", "Epsilon1", "Omega2", "Epsilon2")
+  L_list = vector("list", length=4)    # Add names at end so that NULL doesn't interfere
 
   # Loop through
   for(i in 1:4){
@@ -84,4 +83,8 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
       L_list[[i]] = NULL
     }
   }
+
+  # Return stuff invisibly
+  names(L_list) = c("Omega1", "Epsilon1", "Omega2", "Epsilon2")
+  return( invisible(L_list) )
 }

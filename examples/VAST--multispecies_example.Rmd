@@ -83,7 +83,7 @@ and also browse the [GitHub list](https://github.com/james-thorson/VAST/#descrip
 # Settings
 We use latest version for CPP code
 ```{r}
-Version = "VAST_v2_0_0"
+Version = "VAST_v4_1_0"
 ```
 
 ## Spatial settings
@@ -91,7 +91,7 @@ The following settings define the spatial resolution for the model, and whether 
 ```{r}
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km = 50
-n_x = c(50, 100, 250, 500, 1000, 2000)[1] # Number of stations
+n_x = 100   # Specify number of stations (a.k.a. "knots")
 Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )    
 ```
 
@@ -100,7 +100,7 @@ The following settings define whether to include spatial and spatio-temporal var
 ```{r, tidy=TRUE}
 FieldConfig = c("Omega1"=3, "Epsilon1"=3, "Omega2"=3, "Epsilon2"=3) 
 RhoConfig = c("Beta1"=0, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0) 
-OverdispersionConfig = c("Delta1"=0, "Delta2"=0)
+OverdispersionConfig = c("Eta1"=0, "Eta2"=0)
 ObsModel = c(2,0)   
 ```
 
@@ -194,7 +194,7 @@ Obj = TmbList[["Obj"]]
 
 Next, we use a gradient-based nonlinear minimizer to identify maximum likelihood estimates for fixed-effects
 ```{r estimate_parameters, results="hide", tidy=TRUE}
-Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=FALSE )
+Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=TRUE, bias.correct.control=list(sd=FALSE, split=NULL, nsplit=1, vars_to_correct="Index_cyl") )
 ```
 
 Finally, we bundle and save output
