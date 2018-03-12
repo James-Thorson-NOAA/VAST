@@ -6,6 +6,7 @@
 #' @param parhat0 parameter values to use by default (presumably maximum-likelihood estimates)
 #' @param turnoff_pars character-vector of parameters to turn off
 #' @param loc_x location for each knot used to calculate center-of-gravity for counter-factual runs with colnames c('E_km','N_km','Lon','Lat')
+#' @param cov_to_turnoff which covariates to turn off, as indicated by their order in \code{TmbData$X_xtp} (which only matters if "gamma1_ctp" or "gamma2_ctp" is in \code{turnoff_pars})
 #' @param calculate_COG Boolean whether to calculate COG for each run
 #' @param figname name for figure to plot density in counter-factual scenario
 #' @inheritParams Build_TMB_Fn
@@ -21,8 +22,8 @@
 #' }
 
 #' @export
-Rerun_Fn = function( parhat0, turnoff_pars, loc_x, calculate_COG=TRUE, figname=NULL, Map="generate", MapDetails_List=NULL,
-  year_set=1:ncol(parhat0[["beta1_ct"]]), c_set=1:nrow(parhat0[["beta1_ct"]]), ... ){
+Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat[["gamma2_ctp"]])[3], calculate_COG=TRUE, figname=NULL,
+  Map="generate", MapDetails_List=NULL, year_set=1:ncol(parhat0[["beta1_ct"]]), c_set=1:nrow(parhat0[["beta1_ct"]]), ... ){
 
   # Local function -- calculate center of gravity
   Calc_COG = function( z_x, B_xt ){
@@ -73,8 +74,9 @@ Rerun_Fn = function( parhat0, turnoff_pars, loc_x, calculate_COG=TRUE, figname=N
   if( "Epsiloninput2_sft" %in% turnoff_pars ) parhat_mod[["Epsiloninput2_sft"]][] = 0
   if( "beta1_ct" %in% turnoff_pars ) parhat_mod[["beta1_ct"]][] = outer( rowMeans(ParHat[["beta1_ct"]]), rep(1,ncol(ParHat[["beta1_ct"]])) )
   if( "beta2_ct" %in% turnoff_pars ) parhat_mod[["beta2_ct"]][] = outer( rowMeans(ParHat[["beta2_ct"]]), rep(1,ncol(ParHat[["beta2_ct"]])) )
-  if( "gamma1_ctp" %in% turnoff_pars ) parhat_mod[["gamma1_ctp"]][] = 0
-  if( "gamma2_ctp" %in% turnoff_pars ) parhat_mod[["gamma2_ctp"]][] = 0
+  which_cov_to_turnoff = intersect(cov_to_turnoff, 1:dim(parhat_mod[["gamma1_ctp"]])[3])
+  if( "gamma1_ctp" %in% turnoff_pars ) parhat_mod[["gamma1_ctp"]][,,which_cov_to_turnoff] = 0
+  if( "gamma2_ctp" %in% turnoff_pars ) parhat_mod[["gamma2_ctp"]][,,which_cov_to_turnoff] = 0
 
   # Rebuild
   NewBuild_List = Build_TMB_Fn( "Parameters"=parhat_mod, Map=Map, ... )

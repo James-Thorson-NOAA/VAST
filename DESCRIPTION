@@ -1,9 +1,9 @@
 Package: VAST
 Type: Package
 Title: Vector-autoregressive spatio-temporal (VAST) model
-Version: 1.1.0
-Date: 2016-08-09
-Author: James Thorson
+Version: 1.5.0
+Date: 2017-08-04
+Authors@R: person("James","Thorson", email="James.Thorson@noaa.gov", role=c("aut","cre"))
 Maintainer: James Thorson <James.Thorson@noaa.gov>
 Description: VAST is an R package for conducting spatio-temporal analysis
     of data from multiple categories (species, sizes, etc.), and includes both
@@ -30,15 +30,27 @@ Imports:
     mapdata,
     TMB,
     abind,
-    MatrixModels  
+    MatrixModels,  
+    ThorsonUtilities,
+    TMBhelper,
+    SpatialDFA,
+    SpatialDeltaGLMM
 Depends:
     R (>= 3.1.0),
 Suggests:
-    INLA,
-    testthat
-License: GPL-2
+    testthat,
+    knitr,
+    rmarkdown,
+    R.rsp
+Remotes:
+    nwfsc-assess/geostatistical_delta-GLMM,
+    james-thorson/spatial_DFA,
+    james-thorson/utilities,
+    kaskr/TMB_contrib_R/TMBhelper
+License: GPL-3
 LazyData: yes
 BuildVignettes: yes
 RoxygenNote: 5.0.1
 URL: http://github.com/James-Thorson/VAST
 BugReports: http://github.com/James-Thorson/VAST/issues
+VignetteBuilder: R.rsp

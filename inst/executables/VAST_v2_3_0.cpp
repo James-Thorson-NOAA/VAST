@@ -488,7 +488,7 @@ Type objective_function<Type>::operator() ()
     if(ObsModel(0)==8){
       LogProb1_i(i) = 0;
       // dPoisGam( Type x, Type shape, Type scale, Type intensity, Type &max_log_w_j, int maxsum=50, int minsum=1, int give_log=0 )
-      LogProb2_i(i) = dPoisGam( b_i(i), SigmaM(c_i(i),0), R1_i(i), R2_i(i), diag_z, Options_vec(5), Options_vec(6), true );
+      LogProb2_i(i) = dPoisGam( b_i(i), SigmaM(c_i(i),0), R2_i(i), R1_i(i), diag_z, Options_vec(5), Options_vec(6), true );
       diag_iz.row(i) = diag_z;
     }
     // Likelihood for models with discrete support 
@@ -556,17 +556,18 @@ Type objective_function<Type>::operator() ()
     if( ObsModel(1)==0 ){
       R1_xcy(x,c,y) = invlogit( P1_xcy(x,c,y) );
       R2_xcy(x,c,y) = exp( P2_xcy(x,c,y) );
+      D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
     }
     if( ObsModel(1)==1 ){
       R1_xcy(x,c,y) = Type(1.0) - exp( -SigmaM(c,2)*exp(P1_xcy(x,c,y)) );
       R2_xcy(x,c,y) = exp(P1_xcy(x,c,y)) / R1_xcy(x,c,y) * exp( P2_xcy(x,c,y) );
+      D_xcy(x,c,y) = exp(P1_xcy(x,c,y)) * exp( P2_xcy(x,c,y) );        // Use this line to prevent numerical over/underflow
     }
     if( ObsModel(1)==2 ){
       R1_xcy(x,c,y) = exp( P1_xcy(x,c,y) );
       R2_xcy(x,c,y) = exp( P2_xcy(x,c,y) );
+      D_xcy(x,c,y) = exp(P1_xcy(x,c,y)) * exp( P2_xcy(x,c,y) );
     }
-    // Expected value for predictive distribution in a grid cell
-    D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
   }}}
 
   // Calculate indices

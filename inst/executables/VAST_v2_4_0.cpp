@@ -354,9 +354,9 @@ Type objective_function<Type>::operator() ()
   }
   // Probability of encounter
   gmrf_Q = GMRF(Q1);
-  array<Type> Omegamean1_sf(n_s, FieldConfig(0));
+  array<Type> Omegamean1_sf(n_s, abs(FieldConfig(0)));  // If FieldConfig(0)==-1, then dim = n_x by 1
   Omegamean1_sf.setZero();
-  array<Type> Epsilonmean1_sf(n_s, FieldConfig(1));
+  array<Type> Epsilonmean1_sf(n_s, abs(FieldConfig(1)));  // If FieldConfig(1)==-1, then dim = n_x by 1
   array<Type> Omega1_sc(n_s, n_c);
   Omega1_sc = gmrf_by_category_nll(FieldConfig(0), Options_vec(7), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_z, gmrf_Q, jnll_comp(0));
   array<Type> Epsilon1_sct(n_s, n_c, n_t);
@@ -373,9 +373,9 @@ Type objective_function<Type>::operator() ()
   }
   // Positive catch rate
   gmrf_Q = GMRF(Q2);
-  array<Type> Omegamean2_sf(n_s, FieldConfig(2));
+  array<Type> Omegamean2_sf(n_s, abs(FieldConfig(2)));  // If FieldConfig(2)==-1, then dim = n_x by 1
   Omegamean2_sf.setZero();
-  array<Type> Epsilonmean2_sf(n_s, FieldConfig(3));
+  array<Type> Epsilonmean2_sf(n_s, abs(FieldConfig(3)));  // If FieldConfig(3)==-1, then dim = n_x by 1
   array<Type> Omega2_sc(n_s, n_c);
   Omega2_sc = gmrf_by_category_nll(FieldConfig(2), Options_vec(7), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_z, gmrf_Q, jnll_comp(2));
   array<Type> Epsilon2_sct(n_s, n_c, n_t);
@@ -387,7 +387,6 @@ Type objective_function<Type>::operator() ()
     if(t>=1){
       Epsilonmean2_sf = Epsilon_rho2 * Epsiloninput2_sft.col(t-1);
       Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3));
-      //Epsilon2_sct.col(t) += Epsilon_rho2 * Epsilon2_sct.col(t-1);
     }
   }
 
@@ -502,7 +501,7 @@ Type objective_function<Type>::operator() ()
     if(ObsModel(0)==8){
       LogProb1_i(i) = 0;
       // dPoisGam( Type x, Type shape, Type scale, Type intensity, Type &max_log_w_j, int maxsum=50, int minsum=1, int give_log=0 )
-      LogProb2_i(i) = dPoisGam( b_i(i), SigmaM(c_i(i),0), R1_i(i), R2_i(i), diag_z, Options_vec(5), Options_vec(6), true );
+      LogProb2_i(i) = dPoisGam( b_i(i), SigmaM(c_i(i),0), R2_i(i), R1_i(i), diag_z, Options_vec(5), Options_vec(6), true );
       diag_iz.row(i) = diag_z;
     }
     // Likelihood for models with discrete support 
@@ -570,17 +569,18 @@ Type objective_function<Type>::operator() ()
     if( ObsModel(1)==0 ){
       R1_xcy(x,c,y) = invlogit( P1_xcy(x,c,y) );
       R2_xcy(x,c,y) = exp( P2_xcy(x,c,y) );
+      D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
     }
     if( ObsModel(1)==1 ){
       R1_xcy(x,c,y) = Type(1.0) - exp( -SigmaM(c,2)*exp(P1_xcy(x,c,y)) );
       R2_xcy(x,c,y) = exp(P1_xcy(x,c,y)) / R1_xcy(x,c,y) * exp( P2_xcy(x,c,y) );
+      D_xcy(x,c,y) = exp(P1_xcy(x,c,y)) * exp( P2_xcy(x,c,y) );        // Use this line to prevent numerical over/underflow
     }
     if( ObsModel(1)==2 ){
       R1_xcy(x,c,y) = exp( P1_xcy(x,c,y) );
       R2_xcy(x,c,y) = exp( P2_xcy(x,c,y) );
+      D_xcy(x,c,y) = exp(P1_xcy(x,c,y)) * exp( P2_xcy(x,c,y) );
     }
-    // Expected value for predictive distribution in a grid cell
-    D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
   }}}
 
   // Calculate indices
