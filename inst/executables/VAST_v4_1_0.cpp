@@ -166,7 +166,8 @@ Type dPoisGam( Type x, Type shape, Type scale, Type intensity, vector<Type> &dia
   }
   // Integration constant
   Type W = 0;
-  Type log_w_j, pos_penalty;
+  Type log_w_j;
+  //Type pos_penalty;
   for( int j=minsum; j<=maxsum; j++ ){
     Type j2 = j;
     //W += pow(intensity,j) * pow(x/scale, j2*shape) / exp(lgamma(j2+1)) / exp(lgamma(j2*shape)) / exp(max_log_w_j);
@@ -203,9 +204,7 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(n_t);         // Number of time-indices
   DATA_INTEGER(n_c);         // Number of categories (e.g., length bins)
   DATA_INTEGER(n_e);         // Number of error distributions
-  DATA_INTEGER(n_j);         // Number of static covariates
   DATA_INTEGER(n_p);         // Number of dynamic covariates
-  DATA_INTEGER(n_k);          // Number of catchability variables
   DATA_INTEGER(n_v);          // Number of tows/vessels (i.e., levels for the factor explaining overdispersion)
   DATA_INTEGER(n_l);         // Number of indices to post-process
   DATA_INTEGER(n_m);         // Number of range metrics to use (probably 2 for Eastings-Northings)
@@ -321,7 +320,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_ARRAY(Epsiloninput2_sft);   // Annual variation
 
   // Indices -- i=Observation; j=Covariate; v=Vessel; t=Year; s=Stratum
-  int i,j,v,t,s,c,y,z;
+  int i,t,c;
   
   // Objective function
   vector<Type> jnll_comp(13);
@@ -367,11 +366,11 @@ Type objective_function<Type>::operator() ()
   Eigen::SparseMatrix<Type> Q1;
   Eigen::SparseMatrix<Type> Q2;
   GMRF_t<Type> gmrf_Q;
-  if( Options_vec(7)==0 & Options_vec(0)==0 ){
+  if( (Options_vec(7)==0) & (Options_vec(0)==0) ){
     Q1 = Q_spde(spde, exp(logkappa1));
     Q2 = Q_spde(spde, exp(logkappa2));
   }
-  if( Options_vec(7)==0 & Options_vec(0)==1 ){
+  if( (Options_vec(7)==0) & (Options_vec(0)==1) ){
     Q1 = Q_spde(spde_aniso, exp(logkappa1), H);
     Q2 = Q_spde(spde_aniso, exp(logkappa2), H);
   }
@@ -474,7 +473,6 @@ Type objective_function<Type>::operator() ()
 
   // Derived quantities
   vector<Type> var_i(n_i);
-  Type var_y;
   Type tmp_calc1;
   Type tmp_calc2;
   // Linear predictor (pre-link) for presence/absence component
@@ -505,12 +503,12 @@ Type objective_function<Type>::operator() ()
     if( !isNA(b_i(i)) ){
       // Linear predictors
       for( int zc=0; zc<c_iz.row(0).size(); zc++ ){
-        if( c_iz(i,zc)>=0 & c_iz(i,zc)<n_c ){
+        if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
         //if( !isNA(c_iz(i,zc)) ){
           P1_iz(i,zc) = Omega1_sc(s_i(i),c_iz(i,zc)) + eta1_x(s_i(i)) + zeta1_i(i) + eta1_vc(v_i(i),c_iz(i,zc));
           P2_iz(i,zc) = Omega2_sc(s_i(i),c_iz(i,zc)) + eta2_x(s_i(i)) + zeta2_i(i) + eta2_vc(v_i(i),c_iz(i,zc));
           for( int zt=0; zt<t_iz.row(0).size(); zt++ ){
-            if( t_iz(i,zt)>=0 & t_iz(i,zt)<n_t ){  // isNA doesn't seem to work for IMATRIX type
+            if( (t_iz(i,zt)>=0) & (t_iz(i,zt)<n_t) ){  // isNA doesn't seem to work for IMATRIX type
               P1_iz(i,zc) += beta1_ct(c_iz(i,zc),t_iz(i,zt)) + Epsilon1_sct(s_i(i),c_iz(i,zc),t_iz(i,zt))*exp(log_sigmaratio1_z(zt)) + eta1_xct(s_i(i),c_iz(i,zc),t_iz(i,zt));
               P2_iz(i,zc) += beta2_ct(c_iz(i,zc),t_iz(i,zt)) + Epsilon2_sct(s_i(i),c_iz(i,zc),t_iz(i,zt))*exp(log_sigmaratio2_z(zt)) + eta2_xct(s_i(i),c_iz(i,zc),t_iz(i,zt));
             }
@@ -518,7 +516,7 @@ Type objective_function<Type>::operator() ()
         }
       }
       // Responses
-      if( ObsModel_ez(c_iz(i,0),1)==0 | ObsModel_ez(c_iz(i,0),1)==3 ){
+      if( (ObsModel_ez(c_iz(i,0),1)==0) | (ObsModel_ez(c_iz(i,0),1)==3) ){
         // Log and logit-link, where area-swept only affects positive catch rate exp(P2_i(i))
         // P1_i: Logit-Probability of occurrence;  R1_i:  Probability of occurrence
         // P2_i: Log-Positive density prediction;  R2_i:  Positive density prediction
@@ -532,7 +530,7 @@ Type objective_function<Type>::operator() ()
         tmp_calc1 = 0;
         tmp_calc2 = 0;
         for( int zc=0; zc<c_iz.row(0).size(); zc++ ){
-          if( c_iz(i,zc)>=0 & c_iz(i,zc)<n_c ){
+          if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
           //if( !isNA(c_iz(i,zc)) ){
             tmp_calc1 += exp(P1_iz(i,zc));
             tmp_calc2 += exp(P1_iz(i,zc)) * exp(P2_iz(i,zc));
@@ -551,7 +549,7 @@ Type objective_function<Type>::operator() ()
         R2_i(i) = exp( P2_iz(i,0) );
       }
       // Likelihood for delta-models with continuous positive support
-      if(ObsModel_ez(e_i(i),0)==0 | ObsModel_ez(e_i(i),0)==1 | ObsModel_ez(e_i(i),0)==2){
+      if( (ObsModel_ez(e_i(i),0)==0) | (ObsModel_ez(e_i(i),0)==1) | (ObsModel_ez(e_i(i),0)==2) ){
         // Presence-absence likelihood
         if( b_i(i) > 0 ){
           LogProb1_i(i) = log( R1_i(i) );
@@ -586,7 +584,7 @@ Type objective_function<Type>::operator() ()
         LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(SigmaM(e_i(i),0))+1.0, true );
       }
       // Likelihood for models with discrete support
-      if(ObsModel_ez(e_i(i),0)==4 | ObsModel_ez(e_i(i),0)==5 | ObsModel_ez(e_i(i),0)==6 | ObsModel_ez(e_i(i),0)==7 | ObsModel_ez(e_i(i),0)==9 | ObsModel_ez(e_i(i),0)==11){
+      if( (ObsModel_ez(e_i(i),0)==4) | (ObsModel_ez(e_i(i),0)==5) | (ObsModel_ez(e_i(i),0)==6) | (ObsModel_ez(e_i(i),0)==7) | (ObsModel_ez(e_i(i),0)==9) | (ObsModel_ez(e_i(i),0)==11) ){
         if(ObsModel_ez(e_i(i),0)==5){
           // Zero-inflated negative binomial (not numerically stable!)
           var_i(i) = R2_i(i)*(1.0+SigmaM(e_i(i),0)) + pow(R2_i(i),2.0)*SigmaM(c_iz(i,0),1);
@@ -673,13 +671,13 @@ Type objective_function<Type>::operator() ()
     P1_xcy(x,c,y) = Omega1_sc(x,c) + eta1_x(x);
     P2_xcy(x,c,y) =  Omega2_sc(x,c) + eta2_x(x);
     for( int z=0; z<t_yz.row(0).size(); z++ ){
-      if( t_yz(y,z)>=0 & t_yz(y,z)<n_t ){    // isNA doesn't seem to work for IMATRIX type
+      if( (t_yz(y,z)>=0) & (t_yz(y,z)<n_t) ){    // isNA doesn't seem to work for IMATRIX type
         P1_xcy(x,c,y) += beta1_ct(c,t_yz(y,z)) + Epsilon1_sct(x,c,t_yz(y,z))*exp(log_sigmaratio1_z(z)) + eta1_xct(x,c,t_yz(y,z));
         P2_xcy(x,c,y) += beta2_ct(c,t_yz(y,z)) + Epsilon2_sct(x,c,t_yz(y,z))*exp(log_sigmaratio2_z(z)) + eta2_xct(x,c,t_yz(y,z));
       }
     }
     // Calculate predictors in link-space
-    if( ObsModel_ez(c,1)==0 | ObsModel_ez(c,1)==3 ){
+    if( (ObsModel_ez(c,1)==0) | (ObsModel_ez(c,1)==3) ){
       R1_xcy(x,c,y) = invlogit( P1_xcy(x,c,y) );
       R2_xcy(x,c,y) = exp( P2_xcy(x,c,y) );
       D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
