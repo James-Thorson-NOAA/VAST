@@ -249,7 +249,7 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
 
   # Catchability variables
   Var_k = apply( DataList[["Q_ik"]], MARGIN=2, FUN=var )
-  Map[["lambda1_k"]] = Map[["lambda2_k"]] = 1:DataList$n_k
+  Map[["lambda1_k"]] = Map[["lambda2_k"]] = 1:ncol(DataList$Q_ik)
   for(k in 1:length(Var_k)){
     if( Var_k[k]==0 || sum(Q_Config)==0 ){
       Map[["lambda1_k"]][k] = NA
