@@ -1061,7 +1061,6 @@ Type objective_function<Type>::operator() ()
   ADREPORT( Range_raw2 );
   ADREPORT( Index_cyl );
   ADREPORT( ln_Index_cyl );
-  ADREPORT( SigmaM );
 
   // Additional miscellaneous outputs
   if( Options(0)==1 ){
