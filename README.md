@@ -57,7 +57,7 @@ none
 
 Example code
 =============
-Please see examples folder for single-species and multi-species examples of how to run the model.  This folder also contains a [User Manual](https://github.com/James-Thorson/VAST/blob/master/examples/VAST_user_manual.pdf)
+Please see examples folder for single-species and multi-species examples of how to run the model.  This folder also contains a [User Manual](https://github.com/James-Thorson/VAST/blob/master/examples/VAST_user_manual.docx)
 
 This code illustrates how to loop through different default model configurations,
 plot diagnostics for each model, and obtain the AIC for each model.
