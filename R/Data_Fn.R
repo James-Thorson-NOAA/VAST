@@ -192,6 +192,11 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     }
   }
 
+  # Check for incompatible settings
+  if( ncol(t_iz)>=2 & ( RhoConfig[["Beta1"]]!=0 | RhoConfig[["Beta2"]]!=0 ) ){
+    stop("Temporal structure on intercepts is not implemented for seasonal models")
+  }
+
   # switch defaults if necessary
   if( Method=="Grid" ){
     Aniso = 0

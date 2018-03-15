@@ -85,8 +85,8 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     Map[["delta_i"]] = factor(Map[["delta_i"]])
   }
 
-  # Change beta1_ct if
-  if( any(DataList$ObsModel_ez[,2]%in%c(3)) ){
+  # Change beta1_ct if 100% encounters (not designed to work with seasonal models
+  if( any(DataList$ObsModel_ez[,2]%in%c(3)) & ncol(DataList$t_iz)==1 ){
     Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),DataList$t_iz[,1]), FUN=mean)
     Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
     Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
@@ -150,8 +150,12 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
   }
   # fix betas and/or epsilons for missing years if betas are fixed-effects
   #YearNotInData = !( (1:DataList$n_t) %in% (unique(DataList$t_i)+1) )
-  Num_ct = tapply( DataList$b_i, INDEX=list(factor(DataList$c_iz[,1],levels=1:DataList$n_c-1),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=function(vec){sum(!is.na(vec))} )
-  Num_ct = ifelse( is.na(Num_ct), 0, Num_ct )
+  Num_ct = array(0, dim=c(DataList$n_c,DataList$n_t))
+  for( tz in 1:ncol(DataList$t_iz) ){
+    Temp = tapply( DataList$b_i, INDEX=list(factor(DataList$c_iz[,1],levels=1:DataList$n_c-1),factor(DataList$t_iz[,tz],levels=1:DataList$n_t-1)), FUN=function(vec){sum(!is.na(vec))} )
+    Temp = ifelse( is.na(Temp), 0, Temp )
+    Num_ct = Num_ct + Temp
+  }
   if( sum(Num_ct==0)>0 ){
     # Beta1 -- Fixed
     if( RhoConfig["Beta1"]==0){
@@ -193,15 +197,20 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     # (Re)start map for intercepts
     if( !("beta1_ct" %in% names(Map)) ){
       Map[["beta1_ct"]] = 1:prod(dim(TmbParams[["beta1_ct"]]))
-    }else{ Map[["beta1_ct"]] = as.numeric(Map[["beta1_ct"]]) }
+    }else{
+      Map[["beta1_ct"]] = as.numeric(Map[["beta1_ct"]])
+    }
     if( !("beta2_ct" %in% names(Map)) ){
       Map[["beta2_ct"]] = 1:prod(dim(TmbParams[["beta2_ct"]]))
-    }else{ Map[["beta2_ct"]] = as.numeric(Map[["beta2_ct"]]) }
+    }else{
+      Map[["beta2_ct"]] = as.numeric(Map[["beta2_ct"]])
+    }
     # Add fixed values for lowest value of 2nd and higher columns
     for( zI in 2:ncol(DataList$t_iz) ){
       Which2Fix = min( DataList$t_iz[,zI] )
-      Map[["beta1_ct"]][Which2Fix+1] = NA
-      Map[["beta2_ct"]][Which2Fix+1] = NA
+      Which2Fix = matrix( 1:(TmbData$n_c*TmbData$n_t), ncol=TmbData$n_t, nrow=TmbData$n_c )[,Which2Fix+1]
+      Map[["beta1_ct"]][Which2Fix] = NA
+      Map[["beta2_ct"]][Which2Fix] = NA
     }
     # Remake as factor
     Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
