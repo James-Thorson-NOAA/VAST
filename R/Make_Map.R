@@ -237,7 +237,7 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
 
   # Static covariates
   Var_j = apply( DataList[["X_xj"]], MARGIN=2, FUN=var )
-  Map[["gamma1_j"]] = Map[["gamma2_j"]] = 1:DataList$n_j
+  Map[["gamma1_j"]] = Map[["gamma2_j"]] = 1:ncol(DataList$X_xj)
   for(j in 1:length(Var_j)){
     if( Var_j[j]==0 || sum(CovConfig)==0 ){
       Map[["gamma1_j"]][j] = NA
