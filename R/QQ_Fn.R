@@ -12,7 +12,7 @@
 #' @examples 
 #' Q <- QQ_Fn(TmbData = TmbData, Report = Report, 
 #' plot_categories = c(1), 
-#' save_dir=paste0(getwd(),"/QQ_Fn/"), 
+#' save_dir=paste0(getwd()), 
 #' FileName_PP="Posterior_Predictive", 
 #' FileName_Phist="Posterior_Predictive-Histogram", 
 #' FileName_QQ="Q-Q_plot", 
