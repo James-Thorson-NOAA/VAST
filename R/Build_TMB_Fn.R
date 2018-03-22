@@ -103,7 +103,13 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   # Build object
   dyn.load( paste0(RunDir,"/",TMB::dynlib(Version)) ) # random=Random,
   Obj <- MakeADFun(data=TmbData, parameters=Parameters, hessian=FALSE, map=Map, random=Random, inner.method="newton", DLL=Version)  #
-  Obj$control <- list(trace=1, parscale=1, REPORT=1, reltol=1e-12, maxit=100)
+  Obj$control <- list(parscale=1, REPORT=1, reltol=1e-12, maxit=100)
+
+  # Add normalization in
+  if(Version %in% c("VAST_v4_1_0") & TmbData$Options['normalize_GMRF_in_CPP']==FALSE ){
+    message("Normalizing GMRF in R using `TMB::normalize` feature")
+    Obj = TMB::normalize(Obj, flag="include_data", value=FALSE)
+  }
 
   # Diagnostic functions (optional)
   if( !is.null(DiagnosticDir) ){
