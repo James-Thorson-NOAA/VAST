@@ -9,7 +9,8 @@
   packageStartupMessage("###########################################################################################")
   if( !"INLA" %in% utils::installed.packages()[,1] ){
     packageStartupMessage("Installing package: INLA...")
-    utils::install.packages("INLA", repos="https://www.math.ntnu.no/inla/R/stable")
+    #utils::install.packages("INLA", repos="https://www.math.ntnu.no/inla/R/stable")
+    utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
   }
   #if( !"SpatialDeltaGLMM"%in%utils::installed.packages()[,1] || utils::packageVersion("SpatialDeltaGLMM")<3.40 ){
   #  packageStartupMessage("Installing package: SpatialDeltaGLMM...")
