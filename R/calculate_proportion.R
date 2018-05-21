@@ -35,7 +35,11 @@ calculate_proportion = function( TmbData, Index, Year_Set=NULL, Years2Include=NU
   for( cI in 1:dim(var_Prop_ctl)[1]){
   for( tI in 1:dim(var_Prop_ctl)[2]){
   for( lI in 1:dim(var_Prop_ctl)[3]){
-    var_Prop_ctl[cI,tI,lI] = Index_ctl[cI,tI,lI]^2/Index_tl[tI,lI]^2 * (SE_Index_ctl[cI,tI,lI]^2/Index_ctl[cI,tI,lI]^2  + SE_Index_tl[tI,lI]^2/Index_tl[tI,lI]^2 )
+    # Original version
+    #var_Prop_ctl[cI,tI,lI] = Index_ctl[cI,tI,lI]^2/Index_tl[tI,lI]^2 * (SE_Index_ctl[cI,tI,lI]^2/Index_ctl[cI,tI,lI]^2  + SE_Index_tl[tI,lI]^2/Index_tl[tI,lI]^2 )
+    # Slightly extended version
+    var_Prop_ctl[cI,tI,lI] = Index_ctl[cI,tI,lI]^2/Index_tl[tI,lI]^2 * (SE_Index_ctl[cI,tI,lI]^2/Index_ctl[cI,tI,lI]^2 - 2*SE_Index_ctl[cI,tI,lI]^2/(Index_ctl[cI,tI,lI]*Index_tl[tI,lI]) + SE_Index_tl[tI,lI]^2/Index_tl[tI,lI]^2 )
+    # Covert to effective sample size
     Neff_ctl[cI,tI,lI] = Prop_ctl[cI,tI,lI] * (1-Prop_ctl[cI,tI,lI]) / var_Prop_ctl[cI,tI,lI]
   }}}
 

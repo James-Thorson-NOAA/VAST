@@ -54,7 +54,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   Options=c('SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_proportion'=0) ){
 
   # Specify default values for `Options`
-  Options2use = c('SD_site_density'=0, 'SD_site_logdensity'=0, 'Calculate_Range'=0, 'Calculate_evenness'=0, 'Calculate_effective_area'=0,
+  Options2use = c('SD_site_density'=0, 'SD_site_logdensity'=0, 'Calculate_Range'=0, 'SD_observation_density'=0, 'Calculate_effective_area'=0,
     'Calculate_Cov_SE'=0, 'Calculate_Synchrony'=0, 'Calculate_Coherence'=0, 'Calculate_proportion'=0, 'normalize_GMRF_in_CPP'=TRUE)
 
   # Replace defaults for `Options` with provided values (if any)
@@ -194,6 +194,11 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   if( RhoConfig[["Beta1"]]==3 | RhoConfig[["Beta2"]]==3 ){
     if( Version%in%c("VAST_v4_1_0","VAST_v4_0_0","VAST_v3_0_0","VAST_v2_8_0","VAST_v2_7_0","VAST_v2_6_0","VAST_v2_5_0","VAST_v2_4_0","VAST_v2_3_0","VAST_v2_2_0","VAST_v2_1_0","VAST_v2_0_0","VAST_v1_9_0","VAST_v1_8_0","VAST_v1_7_0","VAST_v1_6_0","VAST_v1_5_0","VAST_v1_4_0","VAST_v1_3_0","VAST_v1_2_0","VAST_v1_1_0","VAST_v1_0_0") ){
       stop("There was bug in specifying fixed intercepts among years for versions prior to V4.2.0")
+    }
+  }
+  if( Options2use['SD_observation_density']==1 ){
+    if( Version%in%c("VAST_v4_1_0","VAST_v4_0_0","VAST_v3_0_0","VAST_v2_8_0","VAST_v2_7_0","VAST_v2_6_0","VAST_v2_5_0","VAST_v2_4_0","VAST_v2_3_0","VAST_v2_2_0","VAST_v2_1_0","VAST_v2_0_0","VAST_v1_9_0","VAST_v1_8_0","VAST_v1_7_0","VAST_v1_6_0","VAST_v1_5_0","VAST_v1_4_0","VAST_v1_3_0","VAST_v1_2_0","VAST_v1_1_0","VAST_v1_0_0") ){
+      stop("Calculating 'SD_observation_density' is not possible prior to V4.2.0")
     }
   }
 

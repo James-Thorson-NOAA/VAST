@@ -227,10 +227,10 @@ Type objective_function<Type>::operator() ()
   // NOTE:  nlevels(c_i) must be <= nlevels(e_i)
   DATA_INTEGER(include_data);   // Always use TRUE except for internal usage to extract GRMF normalization when turn off GMRF normalization in CPP
   DATA_IVECTOR(Options);    // Reporting options
-  // Slot 0: Calculate SD for Index_xctl
-  // Slot 1: Calculate SD for log(Index_xctl)
+  // Slot 0: Calculate SE for Index_xctl
+  // Slot 1: Calculate SE for log(Index_xctl)
   // Slot 2: Calculate mean_Z_ctm (i.e., center-of-gravity)
-  // Slot 3: DEPRECATED
+  // Slot 3: Calculate SE for D_i (expected density for every observation)
   // Slot 4: Calculate mean_D_tl and effective_area_tl
   // Slot 5: Calculate standard errors for Covariance and Correlation among categories using factor-analysis parameterization
   // Slot 6: Calculate synchrony for different periods specified via yearbounds_zz
@@ -1073,9 +1073,11 @@ Type objective_function<Type>::operator() ()
   }
   if( Options(1)==1 ){
     ADREPORT( log(Index_xcyl) );
-    //array<Type> log_Index_xcyl(Index_xcyl.dim);
-    //log_Index_xcyl = Index_xcyl.log();
-    //ADREPORT( log_Index_xcyl );
+  }
+  if( Options(3)==1 ){
+    vector<Type> D_i( n_i );
+    D_i = R1_i * R2_i;
+    ADREPORT( D_i );
   }
 
   return jnll;
