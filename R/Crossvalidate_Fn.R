@@ -9,12 +9,14 @@
 #' @param group_i, a vector of positive integers, indicating the k-fold group for each observation (default=NULL, which generates a new group_i with even probability)
 #' @param kfold, the number of crossvalidation batches used (default=10)
 #' @param skip_finished boolean specifying whether to rerun (skip_finished==FALSE) or skip (skip_finished==TRUE) previously completed runs (Default=FALSE)
+#' @param skip_finished boolean specifying whether to rerun (skip_finished==FALSE) or skip (skip_finished==TRUE) previously completed runs (Default=FALSE)
+#' @param newtonsteps number of extra newton steps to take after optimization (alternative to \code{loopnum})
 #' @param ... Additional arguments to pass to \code{VAST::Build_TMB_Fn}
 
 #' @return Results a matrix with total predictive negative log-likelihood for each crossvalidation partition, and number of crossvalidation samples for that partition
 
 #' @export
-Crossvalidate_Fn = function(record_dir, parhat, original_data, group_i=NULL, kfold=10, skip_finished=FALSE, ... ){
+Crossvalidate_Fn = function(record_dir, parhat, original_data, group_i=NULL, kfold=10, newtonsteps=1, skip_finished=FALSE, ... ){
   # Lump observations into groups
   if( is.null(group_i) || length(group_i)!=original_data$n_i ){
     message( "Generating group_i" )
@@ -51,8 +53,7 @@ Crossvalidate_Fn = function(record_dir, parhat, original_data, group_i=NULL, kfo
       TmbList[["Upper"]][grep("logkappa",names(TmbList[["Upper"]]))] = Inf
 
       # Run model
-      for(i in 1:2) Opt = nlminb(start=Obj$env$last.par.best[-Obj$env$random], objective=Obj$fn, gradient=Obj$gr, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], control=list(eval.max=1e4, iter.max=1e4, trace=1))  # , rel.tol=1e-20
-      Opt[["final_diagnostics"]] = data.frame( "Name"=names(Opt$par), "Lwr"=TmbList[["Lower"]], "Est"=Opt$par, "Upr"=TmbList[["Upper"]], "Gradient"=Obj$gr(Opt$par) )
+      Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], newtonsteps=newtonsteps )  # , rel.tol=1e-20
 
       # Reports
       Report = Obj$report( Obj$env$last.par.best )
