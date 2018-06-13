@@ -41,7 +41,7 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
   # Loop through
   for(i in 1:4){
     # Variable names
-    Par_name = names(L_list)[i]
+    Par_name = c("Omega1","Epsilon1","Omega2","Epsilon2")[i]
     if(Par_name == "Omega1") Var_name = "Omegainput1_sf"
     if(Par_name == "Epsilon1") Var_name = "Epsiloninput1_sft"
     if(Par_name == "Omega2") Var_name = "Omegainput2_sf"
