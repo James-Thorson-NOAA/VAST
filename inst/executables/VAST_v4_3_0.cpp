@@ -454,7 +454,7 @@ Type objective_function<Type>::operator() ()
 
   // Penalty on lognormal-Poisson overdispesrion delta_i
   for(i=0; i<delta_i.size(); i++){
-    if( ObsModel_ez(e_i(i),0)==11 ){
+    if( (ObsModel_ez(e_i(i),0)==11) | (ObsModel_ez(e_i(i),0)==14) ){
       jnll_comp(12) -= dnorm( delta_i(i), Type(0.0), Type(1.0), true );
     }
   }
