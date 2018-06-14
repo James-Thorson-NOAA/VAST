@@ -635,9 +635,9 @@ Type objective_function<Type>::operator() ()
           // Zero-inflated Lognormal Poisson
           if( b_i(i)==0 ){
             //LogProb2_i(i) = log( (1-R1_i(i)) + dpois(Type(0.0), R2_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-            LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-pow(SigmaM(e_i(i),0),2)/2),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+            LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
           }else{
-            LogProb2_i(i) = dpois(b_i(i), R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-pow(SigmaM(e_i(i),0),2)/2), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
+            LogProb2_i(i) = dpois(b_i(i), R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
           }
         }
         if(ObsModel_ez(e_i(i),0)==12){
@@ -652,6 +652,10 @@ Type objective_function<Type>::operator() ()
             LogProb2_i(i) = logspace_sub( log(Type(1.0)), dpois(Type(0), R1_i(i), true) );
           }
           // Non-zero-inflated Bernoulli
+        }
+        if(ObsModel_ez(e_i(i),0)==14){
+          // Non-zero-inflated Poisson using log link from 1st linear predictor
+          LogProb2_i(i) = dpois(b_i(i), R1_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)), true);
         }
         LogProb1_i(i) = 0;
       }

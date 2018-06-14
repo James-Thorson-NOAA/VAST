@@ -5,14 +5,14 @@
 \title{Build data input for VAST model}
 \usage{
 Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
-  ObsModel = c(PosDist = 1, Link = 0), b_i, a_i, c_i, s_i, t_iz, a_xl,
-  MeshList, GridList, Method, v_i = rep(0, length(b_i)), PredTF_i = rep(0,
-  length(b_i)), X_xj = NULL, X_xtp = NULL, Q_ik = NULL, Aniso = 1,
-  RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
-  t_yz = NULL, CheckForErrors = TRUE, yearbounds_zz = NULL,
-  Options = c(SD_site_logdensity = 0, Calculate_Range = 0,
-  Calculate_effective_area = 0, Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
-  Calculate_proportion = 0))
+  ObsModel_ez = c(PosDist = 1, Link = 0), b_i, a_i, c_iz, s_i, t_iz, a_xl,
+  MeshList, GridList, Method, v_i = rep(0, length(b_i)), e_i = c_iz[, 1],
+  PredTF_i = rep(0, length(b_i)), X_xj = NULL, X_xtp = NULL,
+  Q_ik = NULL, Aniso = 1, RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 =
+  0, Epsilon2 = 0), t_yz = NULL, CheckForErrors = TRUE,
+  yearbounds_zz = NULL, Options = c(SD_site_logdensity = 0, Calculate_Range
+  = 0, Calculate_effective_area = 0, Calculate_Cov_SE = 0, Calculate_Synchrony =
+  0, Calculate_proportion = 0))
 }
 \arguments{
 \item{Version}{a version number (see example for current default).}
@@ -21,28 +21,32 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
 
 \item{OverdispersionConfig}{OPTIONAL, a vector of format c("eta1"=0, "eta2"="AR1") governing any correlated overdispersion among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance}
 
-\item{ObsModel}{an optional vector of format c(1,0), where first element specifies the distribution for positive catch rates, and second element specifies the functional form for encounter probabilities
+\item{ObsModel_ez}{an optional matrix with two columns where first column specifies the distribution for positive catch rates, and second element specifies the functional form for encounter probabilities
 \describe{
-  \item{ObsModel[1]=0}{Normal}
-  \item{ObsModel[1]=1}{Lognormal}
-  \item{ObsModel[1]=2}{Gamma}
-  \item{ObsModel[1]=5}{Negative binomial}
-  \item{ObsModel[1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
-  \item{ObsModel[1]=7}{Poisson (more numerically stable than negative-binomial)}
-  \item{ObsModel[1]=8}{Compound-Poisson-Gamma, where the expected number of individuals is the 1st-component, the expected biomass per individual is the 2nd-component, and SigmaM is the variance in positive catches (likely to be very slow)}
-  \item{ObsModel[1]=9}{Binned-Poisson (for use with REEF data, where 0=0 individual; 1=1 individual; 2=2:10 individuals; 3=>10 individuals)}
-  \item{ObsModel[1]=10}{Tweedie distribution, where epected biomass (lambda) is the product of 1st-component and 2nd-component, variance scalar (phi) is the 1st component, and logis-SigmaM is the power}
-  \item{ObsModel[2]=0}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
-  \item{ObsModel[2]=1}{Alternative delta-model using log-link for numbers-density and log-link for biomass per number}
-  \item{ObsModel[2]=2}{Link function for Tweedie distribution, necessary for \code{ObsModel[1]=8} or \code{ObsModel[1]=10}}
-  \item{ObsModel[2]=3}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
+  \item{ObsModel_ez[e,1]=0}{Normal}
+  \item{ObsModel_ez[e,1]=1}{Lognormal}
+  \item{ObsModel_ez[e,1]=2}{Gamma}
+  \item{ObsModel_ez[e,1]=5}{Negative binomial}
+  \item{ObsModel_ez[e,1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
+  \item{ObsModel_ez[e,1]=7}{Poisson (more numerically stable than negative-binomial)}
+  \item{ObsModel_ez[e,1]=8}{Compound-Poisson-Gamma, where the expected number of individuals is the 1st-component, the expected biomass per individual is the 2nd-component, and SigmaM is the variance in positive catches (likely to be very slow)}
+  \item{ObsModel_ez[e,1]=9}{Binned-Poisson (for use with REEF data, where 0=0 individual; 1=1 individual; 2=2:10 individuals; 3=>10 individuals)}
+  \item{ObsModel_ez[e,1]=10}{Tweedie distribution, where epected biomass (lambda) is the product of 1st-component and 2nd-component, variance scalar (phi) is the 1st component, and logis-SigmaM is the power}
+  \item{ObsModel_ez[e,1]=11}{Zero-inflated Poisson with additional normally-distributed variation overdispersion in the log-intensity of the Poisson distribution}
+  \item{ObsModel_ez[e,1]=12}{Poisson distribution (not zero-inflated) with log-intensity from the 1st linear predictor, to be used in combination with the Poisson-link delta model for combining multiple data types}
+  \item{ObsModel_ez[e,1]=13}{Bernoilli distribution using complementary log-log (cloglog) link from the 1st linear predictor, to be used in combination with the Poisson-link delta model for combining multiple data types}
+  \item{ObsModel_ez[e,1]=14}{Similar to 12, but also including lognormal overdispersion}
+  \item{ObsModel_ez[e,2]=0}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
+  \item{ObsModel_ez[e,2]=1}{Alternative delta-model using log-link for numbers-density and log-link for biomass per number}
+  \item{ObsModel_ez[e,2]=2}{Link function for Tweedie distribution, necessary for \code{ObsModel_ez[e,1]=8} or \code{ObsModel_ez[e,1]=10}}
+  \item{ObsModel_ez[e,2]=3}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
 }}
 
 \item{b_i}{Sampled biomass for each observation i}
 
 \item{a_i}{Sampled area for each observation i}
 
-\item{c_i}{Category (e.g., species, length-bin) for each observation i}
+\item{c_iz}{Category (e.g., species, length-bin) for each observation i}
 
 \item{s_i}{Spatial knot (e.g., grid cell) for each observation i}
 
@@ -57,6 +61,8 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
 \item{Method, }{character (either "Mesh" or "Grid") specifying hyperdistribution (Default="Mesh")}
 
 \item{v_i}{OPTIONAL, sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i}
+
+\item{e_i}{Error distribution for each observation i (by default \code{e_i=c_i})}
 
 \item{PredTF_i}{OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)}
 
