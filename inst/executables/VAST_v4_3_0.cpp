@@ -504,6 +504,8 @@ Type objective_function<Type>::operator() ()
   P2_iz.setZero();
 
   // Likelihood contribution from observations
+  LogProb1_i.setZero();
+  LogProb2_i.setZero();
   for(int i=0; i<n_i; i++){
     if( !isNA(b_i(i)) ){
       // Linear predictors
@@ -581,6 +583,7 @@ Type objective_function<Type>::operator() ()
         LogProb2_i(i) = dPoisGam( b_i(i), SigmaM(e_i(i),0), R2_i(i), R1_i(i), diag_z, Options_vec(5), Options_vec(6), true );
         diag_iz.row(i) = diag_z;
       }
+      // Likelihood #2 for Tweedie model with continuous positive support
       if(ObsModel_ez(e_i(i),0)==10){
         // Packaged code
         LogProb1_i(i) = 0;
@@ -588,76 +591,72 @@ Type objective_function<Type>::operator() ()
         // R1*R2 = mean
         LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(SigmaM(e_i(i),0))+1.0, true );
       }
-      // Likelihood for models with discrete support
-      if( (ObsModel_ez(e_i(i),0)==4) | (ObsModel_ez(e_i(i),0)==5) | (ObsModel_ez(e_i(i),0)==6) | (ObsModel_ez(e_i(i),0)==7) | (ObsModel_ez(e_i(i),0)==9) | (ObsModel_ez(e_i(i),0)==11) | (ObsModel_ez(e_i(i),0)==12) | (ObsModel_ez(e_i(i),0)==13) ){
-        if(ObsModel_ez(e_i(i),0)==5){
-          // Zero-inflated negative binomial (not numerically stable!)
-          var_i(i) = R2_i(i)*(1.0+SigmaM(e_i(i),0)) + pow(R2_i(i),2.0)*SigmaM(c_iz(i,0),1);
-          if( b_i(i)==0 ){
-            //LogProb2_i(i) = log( (1-R1_i(i)) + dnbinom2(Type(0.0), R2_i(i), var_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
-            LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dnbinom2(Type(0.0),R2_i(i),var_i(i),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
-          }else{
-            LogProb2_i(i) = dnbinom2(b_i(i), R2_i(i), var_i(i), true) + log(R1_i(i)); // Pr[X=x] = NB(X=x)*phi
-          }
+      ///// Likelihood for models with discrete support
+      // Zero-inflated negative binomial (not numerically stable!)
+      if(ObsModel_ez(e_i(i),0)==5){
+        var_i(i) = R2_i(i)*(1.0+SigmaM(e_i(i),0)) + pow(R2_i(i),2.0)*SigmaM(c_iz(i,0),1);
+        if( b_i(i)==0 ){
+          //LogProb2_i(i) = log( (1-R1_i(i)) + dnbinom2(Type(0.0), R2_i(i), var_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
+          LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dnbinom2(Type(0.0),R2_i(i),var_i(i),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
+        }else{
+          LogProb2_i(i) = dnbinom2(b_i(i), R2_i(i), var_i(i), true) + log(R1_i(i)); // Pr[X=x] = NB(X=x)*phi
         }
-        if(ObsModel_ez(e_i(i),0)==6){
-          // Conway-Maxwell-Poisson
-          LogProb2_i(i) = dCMP(b_i(i), R2_i(i), exp(P1_iz(i,0)), true, Options_vec(5));
+      }
+      // Conway-Maxwell-Poisson
+      if(ObsModel_ez(e_i(i),0)==6){
+        LogProb2_i(i) = dCMP(b_i(i), R2_i(i), exp(P1_iz(i,0)), true, Options_vec(5));
+      }
+      // Zero-inflated Poisson
+      if(ObsModel_ez(e_i(i),0)==7){
+        if( b_i(i)==0 ){
+          //LogProb2_i(i) = log( (1-R1_i(i)) + dpois(Type(0.0), R2_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+          LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+        }else{
+          LogProb2_i(i) = dpois(b_i(i), R2_i(i), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
         }
-        if(ObsModel_ez(e_i(i),0)==7){
-          // Zero-inflated Poisson
-          if( b_i(i)==0 ){
-            //LogProb2_i(i) = log( (1-R1_i(i)) + dpois(Type(0.0), R2_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-            LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-          }else{
-            LogProb2_i(i) = dpois(b_i(i), R2_i(i), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
-          }
+      }
+      // Binned Poisson (for REEF data: 0=none; 1=1; 2=2-10; 3=>11)
+        /// Doesn't appear stable given spatial or spatio-temporal variation
+      if(ObsModel_ez(e_i(i),0)==9){
+        vector<Type> logdBinPois(4);
+        logdBinPois(0) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0), R2_i(i), true) + log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+        logdBinPois(1) = dpois(Type(1.0), R2_i(i), true) + log(R1_i(i));                                 //  Pr[X | X>0] = Pois(X)*phi
+        logdBinPois(2) = dpois(Type(2.0), R2_i(i), true) + log(R1_i(i));                                 // SUM_J( Pr[X|X>0] ) = phi * SUM_J( Pois(J) )
+        for(int j=3; j<=10; j++){
+          logdBinPois(2) += logspace_add( logdBinPois(2), dpois(Type(j), R2_i(i), true) + log(R1_i(i)) );
         }
-        if(ObsModel_ez(e_i(i),0)==9){
-          // Binned Poisson (for REEF data: 0=none; 1=1; 2=2-10; 3=>11)
-          /// Doesn't appear stable given spatial or spatio-temporal variation
-          vector<Type> logdBinPois(4);
-          logdBinPois(0) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0), R2_i(i), true) + log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-          logdBinPois(1) = dpois(Type(1.0), R2_i(i), true) + log(R1_i(i));                                 //  Pr[X | X>0] = Pois(X)*phi
-          logdBinPois(2) = dpois(Type(2.0), R2_i(i), true) + log(R1_i(i));                                 // SUM_J( Pr[X|X>0] ) = phi * SUM_J( Pois(J) )
-          for(int j=3; j<=10; j++){
-            logdBinPois(2) += logspace_add( logdBinPois(2), dpois(Type(j), R2_i(i), true) + log(R1_i(i)) );
-          }
-          logdBinPois(3) = logspace_sub( log(Type(1.0)), logdBinPois(0) );
-          logdBinPois(3) = logspace_sub( logdBinPois(3), logdBinPois(1) );
-          logdBinPois(3) = logspace_sub( logdBinPois(3), logdBinPois(2) );
-          if( b_i(i)==0 ) LogProb2_i(i) = logdBinPois(0);
-          if( b_i(i)==1 ) LogProb2_i(i) = logdBinPois(1);
-          if( b_i(i)==2 ) LogProb2_i(i) = logdBinPois(2);
-          if( b_i(i)==3 ) LogProb2_i(i) = logdBinPois(3);
+        logdBinPois(3) = logspace_sub( log(Type(1.0)), logdBinPois(0) );
+        logdBinPois(3) = logspace_sub( logdBinPois(3), logdBinPois(1) );
+        logdBinPois(3) = logspace_sub( logdBinPois(3), logdBinPois(2) );
+        if( b_i(i)==0 ) LogProb2_i(i) = logdBinPois(0);
+        if( b_i(i)==1 ) LogProb2_i(i) = logdBinPois(1);
+        if( b_i(i)==2 ) LogProb2_i(i) = logdBinPois(2);
+        if( b_i(i)==3 ) LogProb2_i(i) = logdBinPois(3);
+      }
+      // Zero-inflated Lognormal Poisson
+      if(ObsModel_ez(e_i(i),0)==11){
+        if( b_i(i)==0 ){
+          //LogProb2_i(i) = log( (1-R1_i(i)) + dpois(Type(0.0), R2_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+          LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+        }else{
+          LogProb2_i(i) = dpois(b_i(i), R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
         }
-        if(ObsModel_ez(e_i(i),0)==11){
-          // Zero-inflated Lognormal Poisson
-          if( b_i(i)==0 ){
-            //LogProb2_i(i) = log( (1-R1_i(i)) + dpois(Type(0.0), R2_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-            LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-          }else{
-            LogProb2_i(i) = dpois(b_i(i), R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
-          }
+      }
+      // Non-zero-inflated Poisson using log link from 1st linear predictor
+      if(ObsModel_ez(e_i(i),0)==12){
+        LogProb2_i(i) = dpois(b_i(i), R1_i(i), true);
+      }
+      // Non-zero-inflated Bernoulli using cloglog link from 1st lilnear predict
+      if(ObsModel_ez(e_i(i),0)==13){
+        if( b_i(i)==0 ){
+          LogProb2_i(i) = dpois(Type(0), R1_i(i), true);
+        }else{
+          LogProb2_i(i) = logspace_sub( log(Type(1.0)), dpois(Type(0), R1_i(i), true) );
         }
-        if(ObsModel_ez(e_i(i),0)==12){
-          // Non-zero-inflated Poisson using log link from 1st linear predictor
-          LogProb2_i(i) = dpois(b_i(i), R1_i(i), true);
-        }
-        if(ObsModel_ez(e_i(i),0)==13){
-          // Non-zero-inflated Bernoulli using cloglog link from 1st lilnear predict
-          if( b_i(i)==0 ){
-            LogProb2_i(i) = dpois(Type(0), R1_i(i), true);
-          }else{
-            LogProb2_i(i) = logspace_sub( log(Type(1.0)), dpois(Type(0), R1_i(i), true) );
-          }
-          // Non-zero-inflated Bernoulli
-        }
-        if(ObsModel_ez(e_i(i),0)==14){
-          // Non-zero-inflated Poisson using log link from 1st linear predictor
-          LogProb2_i(i) = dpois(b_i(i), R1_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)), true);
-        }
-        LogProb1_i(i) = 0;
+      }
+      // Non-zero-inflated Poisson using log link from 1st linear predictor
+      if(ObsModel_ez(e_i(i),0)==14){
+        LogProb2_i(i) = dpois(b_i(i), R1_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)), true);
       }
     }
   }
