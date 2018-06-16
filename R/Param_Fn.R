@@ -121,8 +121,8 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
     Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),DataList$t_iz[,1]), FUN=mean)
     Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
   }
-  if(is.na(Return[["beta1_ct"]])) Return[["beta1_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
-  if(is.na(Return[["beta2_ct"]])) Return[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
+  if(length(Return[["beta1_ct"]])==1 && is.na(Return[["beta1_ct"]])) Return[["beta1_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
+  if(length(Return[["beta2_ct"]])==1 && is.na(Return[["beta2_ct"]])) Return[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
 
   # If either beta or epsilon is a random-walk process, fix starting value at 1
   if( "Beta_rho1"%in%names(Return) && RhoConfig[["Beta1"]]==2 ) Return[["Beta_rho1"]] = 1
