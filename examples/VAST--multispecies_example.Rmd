@@ -236,9 +236,11 @@ Enc_prob = SpatialDeltaGLMM::Check_encounter_prob( Report=Report, Data_Geostat=D
 
 We can visualize fit to residuals of catch-rates given encounters using a Q-Q plot.  A good Q-Q plot will have residuals along the one-to-one line.  
 ```{r plot_QQ, eval=TRUE, tidy=TRUE, linewidth=50, message=FALSE, warning=FALSE}
-Q = SpatialDeltaGLMM::QQ_Fn( TmbData=TmbData, Report=Report, FileName_PP=paste0(DateFile,"Posterior_Predictive.jpg"), FileName_Phist=paste0(DateFile,"Posterior_Predictive-Histogram.jpg"), FileName_QQ=paste0(DateFile,"Q-Q_plot.jpg"), FileName_Qhist=paste0(DateFile,"Q-Q_hist.jpg")) # SpatialDeltaGLMM::
+Q = SpatialDeltaGLMM::QQ_Fn( TmbData=TmbData, Report=Report, FileName_PP="Posterior_Predictive",
+FileName_Phist="Posterior_Predictive-Histogram", 
+FileName_QQ="Q-Q_plot", FileName_Qhist="Q-Q_hist" )
 ```
-![Quantile-quantile plot indicating residuals for "positive catch rate" component](VAST_output/Q-Q_plot.jpg) 
+![Quantile-quantile plot indicating residuals for "positive catch rate" component](QQ_Fn/Q-Q_plot-1.jpg) 
 
 ## Diagnostics for plotting residuals on a map
 
