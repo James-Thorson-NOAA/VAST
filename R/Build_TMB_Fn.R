@@ -106,7 +106,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   Obj$control <- list(parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 
   # Add normalization in
-  if(Version %in% c("VAST_v4_3_0","VAST_v4_2_0","VAST_v4_1_0") & TmbData$Options['normalize_GMRF_in_CPP']==FALSE ){
+  if(Version %in% c("VAST_v4_4_0","VAST_v4_3_0","VAST_v4_2_0","VAST_v4_1_0") & TmbData$Options['normalize_GMRF_in_CPP']==FALSE ){
     message("Normalizing GMRF in R using `TMB::normalize` feature")
     Obj = TMB::normalize(Obj, flag="include_data", value=FALSE)
   }
