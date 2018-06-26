@@ -88,7 +88,7 @@ Data_Set = c("Chatham_rise_hake", "Iceland_cod", "WCGBTS_canary", "GSL_american_
 
 Next use latest version for CPP code
 ```{r}
-Version = "VAST_v4_1_0"
+Version = SpatialDeltaGLMM::get_latest_version( package="VAST" )
 ```
 
 ## Spatial settings

@@ -83,7 +83,7 @@ and also browse the [GitHub list](https://github.com/james-thorson/VAST/#descrip
 # Settings
 We use latest version for CPP code
 ```{r}
-Version = "VAST_v4_1_0"
+Version = SpatialDeltaGLMM::get_latest_version( package="VAST" )
 ```
 
 ## Spatial settings
