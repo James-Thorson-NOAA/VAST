@@ -143,7 +143,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     if( any(a_i<=0) ) stop("a_i must be greater than zero for all observations, and at least one value of a_i is not")
     # Warnings about all positive or zero
     Prop_nonzero = tapply( b_i, INDEX=list(t_iz[,1],c_iz[,1]), FUN=function(vec){mean(vec>0)} )
-    if( any(Prop_nonzero==0|Prop_nonzero==1) & ObsModel_ez[1,2]==0 ){
+    if( any(Prop_nonzero==0|Prop_nonzero==1) & any(ObsModel_ez[1,]==0) ){
       print( Prop_nonzero )
       stop("Some years and/or categories have either all or no encounters, and this is not permissible when ObsModel_ez[,'Link']=0")
     }
@@ -161,11 +161,12 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
       if( any(ObsModel_ez[,2] != 1) ) stop("If using `ObsModel_ez[e,1]` in {12,13,14} then must use `ObsModel_ez[e,2]=1`")
       if( !any(ObsModel_ez[,1] %in% c(0,1,2,3)) ) stop("Using `ObsModel_ez[e,1]` in {12,13,14} is only intended when combining data with biomass-sampling data")
     }
+    if( all(b_i>0) & any(FieldConfig_input[1:2]>0) & any(ObsModel_ez[1,]==0) ) stop("All data are positive, so please turn off `Omega1` and `Epsilon1` terms")
   }
 
   # Check for wrong dimensions
   if( CheckForErrors==TRUE ){
-    if( any(c(length(b_i),length(a_i),nrow(c_iz),length(s_i),nrow(t_iz),length(v_i))!=n_i) ) stop("b_i, a_i, c_i, s_i, v_i, or t_i doesn't have length n_i")
+    if( any(c(length(b_i),length(a_i),nrow(c_iz),length(s_i),nrow(t_iz),length(v_i),length(PredTF_i))!=n_i) ) stop("b_i, a_i, c_i, s_i, v_i, or t_i doesn't have length n_i")
     if( nrow(a_xl)!=n_x | ncol(a_xl)!=n_l ) stop("a_xl has wrong dimensions")
     if( nrow(X_xj)!=n_x | ncol(X_xj)!=n_j ) stop("X_xj has wrong dimensions")
     if( nrow(Q_ik)!=n_i | ncol(Q_ik)!=n_k ) stop("Q_ik has wrong dimensions")
@@ -224,6 +225,11 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   if( Method=="Spherical_mesh" ){
     Aniso = 0
     message("Using spherical projection for SPDE approximation, so switching to Aniso=0")
+  }
+
+  # Warning messages
+  if( n_c>1 & any(FieldConfig_input==1)){
+    warning( "Using 1 factor for more than one category:  Please note that this is non-standard, and it is more common to use multiple factors (often as many as the number of categories)" )
   }
 
   # Output tagged list

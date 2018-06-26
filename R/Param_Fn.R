@@ -129,6 +129,11 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   if( "Beta_rho2"%in%names(Return) && RhoConfig[["Beta2"]]==2 ) Return[["Beta_rho2"]] = 1
   if( "Epsilon_rho1"%in%names(Return) && RhoConfig[["Epsilon1"]]==2 ) Return[["Epsilon_rho1"]] = 1
   if( "Epsilon_rho2"%in%names(Return) && RhoConfig[["Epsilon2"]]==2 ) Return[["Epsilon_rho2"]] = 1
+  # If either beta or epsilon is a AR1 process, fix starting value at 0.01 to ensure a non-zero starting gradient
+  if( "Beta_rho1"%in%names(Return) && RhoConfig[["Beta1"]]==4 ) Return[["Beta_rho1"]] = 0.01
+  if( "Beta_rho2"%in%names(Return) && RhoConfig[["Beta2"]]==4 ) Return[["Beta_rho2"]] = 0.01
+  if( "Epsilon_rho1"%in%names(Return) && RhoConfig[["Epsilon1"]]==4 ) Return[["Epsilon_rho1"]] = 0.01
+  if( "Epsilon_rho2"%in%names(Return) && RhoConfig[["Epsilon2"]]==4 ) Return[["Epsilon_rho2"]] = 0.01
   # replace missing values function
   tmpfn = function( vec ){
     Return = ifelse( abs(vec)==Inf, NA, vec)
