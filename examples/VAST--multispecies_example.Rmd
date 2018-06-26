@@ -83,7 +83,7 @@ and also browse the [GitHub list](https://github.com/james-thorson/VAST/#descrip
 # Settings
 We use latest version for CPP code
 ```{r}
-Version = "VAST_v4_1_0"
+Version = SpatialDeltaGLMM::get_latest_version( package="VAST" )
 ```
 
 ## Spatial settings
@@ -194,7 +194,7 @@ Obj = TmbList[["Obj"]]
 
 Next, we use a gradient-based nonlinear minimizer to identify maximum likelihood estimates for fixed-effects
 ```{r estimate_parameters, results="hide", tidy=TRUE}
-Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=TRUE, bias.correct.control=list(sd=FALSE, split=NULL, nsplit=1, vars_to_correct="Index_cyl") )
+Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=TRUE, bias.correct.control=list(sd=FALSE, split=NULL, nsplit=1, newtonsteps=1, vars_to_correct="Index_cyl") )
 ```
 
 Finally, we bundle and save output
@@ -236,7 +236,9 @@ Enc_prob = SpatialDeltaGLMM::Check_encounter_prob( Report=Report, Data_Geostat=D
 
 We can visualize fit to residuals of catch-rates given encounters using a Q-Q plot.  A good Q-Q plot will have residuals along the one-to-one line.  
 ```{r plot_QQ, eval=TRUE, tidy=TRUE, linewidth=50, message=FALSE, warning=FALSE}
-Q = SpatialDeltaGLMM::QQ_Fn( TmbData=TmbData, Report=Report, FileName_PP=paste0(DateFile,"Posterior_Predictive.jpg"), FileName_Phist=paste0(DateFile,"Posterior_Predictive-Histogram.jpg"), FileName_QQ=paste0(DateFile,"Q-Q_plot.jpg"), FileName_Qhist=paste0(DateFile,"Q-Q_hist.jpg")) # SpatialDeltaGLMM::
+Q = SpatialDeltaGLMM::QQ_Fn( TmbData=TmbData, Report=Report, FileName_PP="Posterior_Predictive",
+FileName_Phist="Posterior_Predictive-Histogram", 
+FileName_QQ="Q-Q_plot", FileName_Qhist="Q-Q_hist", DateFile=DateFile) 
 ```
 ![Quantile-quantile plot indicating residuals for "positive catch rate" component](VAST_output/Q-Q_plot.jpg) 
 
@@ -254,7 +256,7 @@ Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
 
 We then plot Pearson residuals.  If there are visible patterns (areas with consistently positive or negative residuals accross or within years) then this is an indication of the model "overshrinking" results towards the intercept, and model results should then be treated with caution.  
 ```{r plot_pearson_resid, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=50}
-SpatialDeltaGLMM:::plot_residuals(Lat_i=Data_Geostat[,'Lat'], Lon_i=Data_Geostat[,'Lon'], TmbData=TmbData, Report=Report, Q=Q, savedir=DateFile, MappingDetails=MapDetails_List[["MappingDetails"]], PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=DateFile, Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], Cex=MapDetails_List[["Cex"]], Legend=MapDetails_List[["Legend"]], zone=MapDetails_List[["Zone"]], mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), cex=1.8)
+SpatialDeltaGLMM::plot_residuals(Lat_i=Data_Geostat[,'Lat'], Lon_i=Data_Geostat[,'Lon'], TmbData=TmbData, Report=Report, Q=Q, savedir=DateFile, MappingDetails=MapDetails_List[["MappingDetails"]], PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=DateFile, Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], Cex=MapDetails_List[["Cex"]], Legend=MapDetails_List[["Legend"]], zone=MapDetails_List[["Zone"]], mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), cex=1.8)
 ```
 ![Pearson residuals for encounter-probability by knot](VAST_output/maps--encounter_pearson_resid.png) 
 

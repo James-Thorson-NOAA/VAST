@@ -36,7 +36,7 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
   #Cov_List = Summarize_Covariance( Report=Report, ParHat=ParHat, Data=Data, SD=SD, category_names=category_names, figname=NULL )
 
   # Extract loadings matrices (more numerically stable than extracting covariances, and then re-creating Cholesky)
-  L_list = vector("list", length=4)    # Add names at end so that NULL doesn't interfere
+  Psiprime_list = Lprime_list = L_list = vector("list", length=4)    # Add names at end so that NULL doesn't interfere
 
   # Loop through
   for(i in 1:4){
@@ -54,10 +54,16 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
       rownames(L_list[[i]]) = category_names
 
       # Get covariance # SpatialDFA::
-      # Cov_jj=Cov_List[[paste0("Cov_",tolower(Par_name))]][,,'Estimate']; Psi=Report[[Var_name]]; RotationMethod="PCA"; testcutoff=1e-4
-      #Var_rot = Rotate_Fn( Cov_jj=Cov_List[[paste0("Cov_",tolower(Par_name))]][,,'Estimate'], Psi=Report[[Var_name]], RotationMethod="PCA", testcutoff=1e-4 )
-      # L_pj=L_list[[i]]; Psi=Report[[Var_name]]; RotationMethod="PCA"; testcutoff=1e-4
-      Var_rot = SpatialDFA::Rotate_Fn( L_pj=L_list[[i]], Psi=Report[[Var_name]], RotationMethod=RotationMethod, testcutoff=1e-4 )
+      Psi_sjt = Report[[Var_name]]
+      tau = NULL
+      logkappa = unlist(ParHat[c('logkappa1','logkappa2')])[c(1,1,2,2)[i]]
+      if(Data$Options_vec[8]==0) tau = 1 / (exp(logkappa) * sqrt(4*pi));
+      if(Data$Options_vec[8]==1) tau = 1 / sqrt(1-exp(logkappa*2));
+      if( is.null(tau)) stop("Check 'Data$Options_vec[8]' for allowable entries")
+      Var_rot = SpatialDFA::Rotate_Fn( L_pj=L_list[[i]], Psi=Psi_sjt/tau, RotationMethod=RotationMethod, testcutoff=1e-4 )
+      Lprime_list[[i]] = Var_rot$L_pj_rot
+      rownames(Lprime_list[[i]]) = category_names
+      Psiprime_list[[i]] = Var_rot$Psi_rot
 
       # Plot loadings
       Dim_factor = Dim(Data[["FieldConfig"]][[Par_name]])
@@ -80,11 +86,12 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
         SpatialDeltaGLMM:::PlotMap_Fn( MappingDetails=mapdetails_list[["MappingDetails"]], Mat=Mat_sf, PlotDF=mapdetails_list[["PlotDF"]], MapSizeRatio=mapdetails_list[["MapSizeRatio"]], Xlim=mapdetails_list[["Xlim"]], Ylim=mapdetails_list[["Ylim"]], FileName=paste0(plotdir,"Factor_maps--",Par_name), Year_Set=paste0("Factor_",1:ncol(Mat_sf)), Rotate=mapdetails_list[["Rotate"]], zone=mapdetails_list[["Zone"]], mar=c(0,0,2,0), oma=c(2.5,2.5,0,0), Cex=0.01, mfrow=Dim_factor, pch=20, Legend=mapdetails_list[["Legend"]], plot_legend_fig=FALSE, land_color=land_color)
       }
     }else{
-      L_list[[i]] = NULL
+      Psiprime_list[[i]] = Lprime_list[[i]] = L_list[[i]] = "Element not estimated, and therefore empty"
     }
   }
 
   # Return stuff invisibly
-  names(L_list) = c("Omega1", "Epsilon1", "Omega2", "Epsilon2")
-  return( invisible(L_list) )
+  names(Psiprime_list) = names(Lprime_list) = names(L_list) = c("Omega1", "Epsilon1", "Omega2", "Epsilon2")
+  Return = list("Loadings"=L_list, "Rotated_loadings"=Lprime_list, "Rotated_factors"=Psiprime_list)
+  return( invisible(Return) )
 }

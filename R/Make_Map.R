@@ -79,6 +79,17 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
       if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA, NA )
       Map[["delta_i"]][ which((DataList$e_i+1)==eI) ] = max(c(0,Map[["delta_i"]]),na.rm=TRUE) + 1:length(which((DataList$e_i+1)==eI))
     }
+    if(DataList$ObsModel_ez[eI,1]%in%c(12,13)){
+      if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( NA, NA )
+      if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( NA, NA, NA )
+      if( any(DataList$ObsModel_ez[,2]!=1) ) stop("ObsModel[1]=12 or 13 should use ObsModel[2]=1")
+    }
+    if(DataList$ObsModel_ez[eI,1]%in%c(14)){
+      if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA )
+      if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA, NA )
+      Map[["delta_i"]][ which((DataList$e_i+1)==eI) ] = max(c(0,Map[["delta_i"]]),na.rm=TRUE) + 1:length(which((DataList$e_i+1)==eI))
+      if( any(DataList$ObsModel_ez[,2]!=1) ) stop("ObsModel[1]=14 should use ObsModel[2]=1")
+    }
   }
   Map[["logSigmaM"]] = factor(Map[["logSigmaM"]])
   if( "delta_i" %in% names(TmbParams)){
