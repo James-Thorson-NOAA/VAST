@@ -50,7 +50,7 @@ matrix<Type> loadings_matrix( vector<Type> L_val, int n_rows, int n_cols ){
 // IN: eta1_vf; L1_z
 // OUT: jnll_comp; eta1_vc
 template<class Type>
-matrix<Type> overdispersion_by_category_nll( int n_f, int n_v, int n_c, matrix<Type> eta_vf, vector<Type> L_z, Type &jnll_pointer){
+matrix<Type> overdispersion_by_category_nll( int n_f, int n_v, int n_c, matrix<Type> eta_vf, vector<Type> L_z, Type &jnll_pointer, objective_function<Type>* of){
   using namespace density;
   matrix<Type> eta_vc(n_v, n_c);
   vector<Type> Tmp_c;
@@ -61,8 +61,13 @@ matrix<Type> overdispersion_by_category_nll( int n_f, int n_v, int n_c, matrix<T
   // AR1 structure
   if( n_f==0 ){
     for(int v=0; v<n_v; v++){
-      Tmp_c = eta_vc.row(v);
+      Tmp_c = eta_vf.row(v);
       jnll_pointer += SCALE( AR1(L_z(1)), exp(L_z(0)) )( Tmp_c );
+      // Simulate new values when using obj.simulate()
+      if(isDouble<Type>::value && of->do_simulate){
+        SCALE( AR1(L_z(1)), exp(L_z(0)) ).simulate(Tmp_c);
+        eta_vf.row(v) = Tmp_c;
+      }
     }
     eta_vc = eta_vf;
   }
@@ -70,13 +75,17 @@ matrix<Type> overdispersion_by_category_nll( int n_f, int n_v, int n_c, matrix<T
   if( n_f>0 ){
     // Assemble the loadings matrix
     matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
-    // Multiply out overdispersion
-    eta_vc = eta_vf * L_cf.transpose();
     // Probability of overdispersion
     for(int v=0; v<n_v; v++){
     for(int f=0; f<n_f; f++){
       jnll_pointer -= dnorm( eta_vf(v,f), Type(0.0), Type(1.0), true );
+      // Simulate new values when using obj.simulate()
+      if(isDouble<Type>::value && of->do_simulate){
+        eta_vf(v,f) = rnorm( Type(0.0), Type(1.0) );
+      }
     }}
+    // Multiply out overdispersion
+    eta_vc = eta_vf * L_cf.transpose();
   }
   return eta_vc;
 }
@@ -94,20 +103,23 @@ matrix<Type> convert_upper_cov_to_cor( matrix<Type> cov ){
 // Input: L_omega1_z, Q1, Omegainput1_sf, n_f, n_s, n_c, FieldConfig(0)
 // Output: jnll_comp(0), Omega1_sc
 template<class Type>                                                                                        //
-matrix<Type> gmrf_by_category_nll( int n_f, int method, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, array<Type> gmrf_mean_sf, vector<Type> L_z, density::GMRF_t<Type> gmrf_Q, Type &jnll_pointer){
+matrix<Type> gmrf_by_category_nll( int n_f, int method, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, array<Type> gmrf_mean_sf, vector<Type> L_z, density::GMRF_t<Type> gmrf_Q, Type &jnll_pointer, objective_function<Type>* of){
   using namespace density;
   matrix<Type> gmrf_sc(n_s, n_c);
+  vector<Type> gmrf_s(n_s);
   Type logtau;
   // IID
   if(n_f == -2){
     for( int c=0; c<n_c; c++ ){
+      jnll_pointer += gmrf_Q(gmrf_input_sf.col(c) - gmrf_mean_sf.col(c));
+      // Simulate new values when using obj.simulate()
+      if(isDouble<Type>::value && of->do_simulate) {
+        gmrf_Q.simulate(gmrf_s);
+        gmrf_input_sf.col(c) = gmrf_s + gmrf_mean_sf.col(c);
+      }
+      // Rescale
       if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
       if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
-      jnll_pointer += gmrf_Q(gmrf_input_sf.col(c) - gmrf_mean_sf.col(c));
-      //SIMULATE {
-      //  gmrf_Q.simulate(gmrf_input_sf.col(c));
-      //  gmrf_input_sf.col(c) += gmrf_mean_sf.col(c);
-      //}
       gmrf_sc.col(c) = gmrf_input_sf.col(c) / exp(logtau) * L_z(c);                                // Rescaling from comp_index_v1d.cpp
     }
   }
@@ -117,16 +129,30 @@ matrix<Type> gmrf_by_category_nll( int n_f, int method, int n_s, int n_c, Type l
   }
   // AR1 structure
   if(n_f==0){
-    logtau = L_z(0) - logkappa;  //
     jnll_pointer += SEPARABLE( AR1(L_z(1)), gmrf_Q )(gmrf_input_sf - gmrf_mean_sf);
+    // Simulate new values when using obj.simulate()
+    if(isDouble<Type>::value && of->do_simulate) {
+      SEPARABLE( AR1(L_z(1)), gmrf_Q ).simulate(gmrf_input_sf);
+      gmrf_input_sf += gmrf_input_sf;
+    }
+    // Rescale
+    logtau = L_z(0) - logkappa;  //
     gmrf_sc = gmrf_input_sf / exp(logtau);                                // Rescaling from comp_index_v1d.cpp
   }
   // Factor analysis structure
   if(n_f>0){
+    for( int f=0; f<n_f; f++ ){
+      jnll_pointer += gmrf_Q(gmrf_input_sf.col(f) - gmrf_mean_sf.col(f));  // Rescaling from spatial_vam_v13.cpp
+      // Simulate new values when using obj.simulate()
+      if(isDouble<Type>::value && of->do_simulate) {
+        gmrf_Q.simulate(gmrf_s);
+        gmrf_input_sf.col(f) = gmrf_s + gmrf_mean_sf.col(f);
+      }
+    }
+    // Rescale
+    matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
     if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
     if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
-    for( int f=0; f<n_f; f++ ) jnll_pointer += gmrf_Q(gmrf_input_sf.col(f) - gmrf_mean_sf.col(f));  // Rescaling from spatial_vam_v13.cpp
-    matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
     gmrf_sc = (gmrf_input_sf.matrix() * L_cf.transpose()) / exp(logtau);
   }
   return gmrf_sc;
@@ -393,16 +419,16 @@ Type objective_function<Type>::operator() ()
   n_f = Epsiloninput1_sft.col(0).cols();
   array<Type> Epsilonmean1_sf(n_s, n_f);
   array<Type> Omega1_sc(n_s, n_c);
-  Omega1_sc = gmrf_by_category_nll(FieldConfig(0), Options_vec(7), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_z, gmrf_Q, jnll_comp(0));
+  Omega1_sc = gmrf_by_category_nll(FieldConfig(0), Options_vec(7), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_z, gmrf_Q, jnll_comp(0), this);
   array<Type> Epsilon1_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
     if(t==0){
       Epsilonmean1_sf.setZero();
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1));
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
     }
     if(t>=1){
       Epsilonmean1_sf = Epsilon_rho1 * Epsiloninput1_sft.col(t-1);
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1));
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
     }
   }
   // Positive catch rate
@@ -415,16 +441,16 @@ Type objective_function<Type>::operator() ()
   n_f = Epsiloninput2_sft.col(0).cols();
   array<Type> Epsilonmean2_sf(n_s, n_f);
   array<Type> Omega2_sc(n_s, n_c);
-  Omega2_sc = gmrf_by_category_nll(FieldConfig(2), Options_vec(7), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_z, gmrf_Q, jnll_comp(2));
+  Omega2_sc = gmrf_by_category_nll(FieldConfig(2), Options_vec(7), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_z, gmrf_Q, jnll_comp(2), this);
   array<Type> Epsilon2_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
     if(t==0){
       Epsilonmean2_sf.setZero();
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3));
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
     if(t>=1){
       Epsilonmean2_sf = Epsilon_rho2 * Epsiloninput2_sft.col(t-1);
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3));
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
   }
 
@@ -438,21 +464,29 @@ Type objective_function<Type>::operator() ()
   // IN: eta1_vf; n_f; L1_z
   // OUT: jnll_comp; eta1_vc
   matrix<Type> eta1_vc(n_v, n_c);
-  eta1_vc = overdispersion_by_category_nll( OverdispersionConfig(0), n_v, n_c, eta1_vf, L1_z, jnll_comp(4) );
+  eta1_vc = overdispersion_by_category_nll( OverdispersionConfig(0), n_v, n_c, eta1_vf, L1_z, jnll_comp(4), this );
   matrix<Type> eta2_vc(n_v, n_c);
-  eta2_vc = overdispersion_by_category_nll( OverdispersionConfig(1), n_v, n_c, eta2_vf, L2_z, jnll_comp(5) );
+  eta2_vc = overdispersion_by_category_nll( OverdispersionConfig(1), n_v, n_c, eta2_vf, L2_z, jnll_comp(5), this );
 
   // Possible structure on betas
   if( Options_vec(2)!=0 ){
     for(c=0; c<n_c; c++){
     for(t=1; t<n_t; t++){
       jnll_comp(8) -= dnorm( beta1_ct(c,t), Beta_rho1*beta1_ct(c,t-1) + Beta_mean1, exp(logsigmaB1), true );
+      // Simulate new values when using obj.simulate()
+      SIMULATE{
+        beta1_ct(c,t) = rnorm( Beta_rho1*beta1_ct(c,t-1) + Beta_mean1, exp(logsigmaB1) );
+      }
     }}
   }
   if( Options_vec(3)!=0 ){
     for(c=0; c<n_c; c++){
     for(t=1; t<n_t; t++){
       jnll_comp(9) -= dnorm( beta2_ct(c,t), Beta_rho2*beta2_ct(c,t-1) + Beta_mean2, exp(logsigmaB2), true );
+      // Simulate new values when using obj.simulate()
+      SIMULATE{
+        beta2_ct(c,t) = rnorm( Beta_rho2*beta2_ct(c,t-1) + Beta_mean2, exp(logsigmaB2) );
+      }
     }}
   }
 
@@ -460,6 +494,10 @@ Type objective_function<Type>::operator() ()
   for(i=0; i<delta_i.size(); i++){
     if( (ObsModel_ez(e_i(i),0)==11) | (ObsModel_ez(e_i(i),0)==14) ){
       jnll_comp(12) -= dnorm( delta_i(i), Type(0.0), Type(1.0), true );
+      // Simulate new values when using obj.simulate()
+      SIMULATE{
+        delta_i(i) = rnorm( Type(0.0), Type(1.0) );
+      }
     }
   }
 
@@ -542,7 +580,6 @@ Type objective_function<Type>::operator() ()
         tmp_calc2 = 0;
         for( int zc=0; zc<c_iz.row(0).size(); zc++ ){
           if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
-          //if( !isNA(c_iz(i,zc)) ){
             tmp_calc1 += exp(P1_iz(i,zc));
             tmp_calc2 += exp(P1_iz(i,zc)) * exp(P2_iz(i,zc));
           }
@@ -571,11 +608,33 @@ Type objective_function<Type>::operator() ()
             LogProb1_i(i) = log( 1-R1_i(i) );
           }
         }
+        // Simulate new values when using obj.simulate()
+        SIMULATE{
+          b_i(i) = rbinom( Type(1), R1_i(i) );
+        }
         // Positive density likelihood -- models with continuous positive support
         if( b_i(i) > 0 ){    // 1e-500 causes overflow on laptop
-          if(ObsModel_ez(e_i(i),0)==0) LogProb2_i(i) = dnorm(b_i(i), R2_i(i), SigmaM(e_i(i),0), true);
-          if(ObsModel_ez(e_i(i),0)==1) LogProb2_i(i) = dlnorm(b_i(i), log(R2_i(i))-pow(SigmaM(e_i(i),0),2)/2, SigmaM(e_i(i),0), true); // log-space
-          if(ObsModel_ez(e_i(i),0)==2) LogProb2_i(i) = dgamma(b_i(i), 1/pow(SigmaM(e_i(i),0),2), R2_i(i)*pow(SigmaM(e_i(i),0),2), true); // shape = 1/CV^2, scale = mean*CV^2
+          if(ObsModel_ez(e_i(i),0)==0){
+            LogProb2_i(i) = dnorm(b_i(i), R2_i(i), SigmaM(e_i(i),0), true);
+            // Simulate new values when using obj.simulate()
+            SIMULATE{
+              b_i(i) = rnorm( R2_i(i), SigmaM(e_i(i),0) );
+            }
+          }
+          if(ObsModel_ez(e_i(i),0)==1){
+            LogProb2_i(i) = dlnorm(b_i(i), log(R2_i(i))-pow(SigmaM(e_i(i),0),2)/2, SigmaM(e_i(i),0), true); // log-space
+            // Simulate new values when using obj.simulate()
+            SIMULATE{
+              b_i(i) = exp(rnorm( log(R2_i(i))-pow(SigmaM(e_i(i),0),2)/2, SigmaM(e_i(i),0) ));
+            }
+          }
+          if(ObsModel_ez(e_i(i),0)==2){
+            LogProb2_i(i) = dgamma(b_i(i), 1/pow(SigmaM(e_i(i),0),2), R2_i(i)*pow(SigmaM(e_i(i),0),2), true); // shape = 1/CV^2, scale = mean*CV^2
+            // Simulate new values when using obj.simulate()
+            SIMULATE{
+              b_i(i) = rgamma( 1/pow(SigmaM(e_i(i),0),2), R2_i(i)*pow(SigmaM(e_i(i),0),2) );
+            }
+          }
         }else{
           LogProb2_i(i) = 0;
         }
@@ -586,6 +645,10 @@ Type objective_function<Type>::operator() ()
         //dPoisGam( Type x, Type shape, Type scale, Type intensity, Type &max_log_w_j, int maxsum=50, int minsum=1, int give_log=0 )
         LogProb2_i(i) = dPoisGam( b_i(i), SigmaM(e_i(i),0), R2_i(i), R1_i(i), diag_z, Options_vec(5), Options_vec(6), true );
         diag_iz.row(i) = diag_z;
+        // Simulate new values when using obj.simulate()
+        SIMULATE{
+          b_i(i) = 0;   // Option not available
+        }
       }
       // Likelihood #2 for Tweedie model with continuous positive support
       if(ObsModel_ez(e_i(i),0)==10){
@@ -594,6 +657,10 @@ Type objective_function<Type>::operator() ()
         // dtweedie( Type y, Type mu, Type phi, Type p, int give_log=0 )
         // R1*R2 = mean
         LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(SigmaM(e_i(i),0))+1.0, true );
+        // Simulate new values when using obj.simulate()
+        SIMULATE{
+          b_i(i) = 0;   // Option not available
+        }
       }
       ///// Likelihood for models with discrete support
       // Zero-inflated negative binomial (not numerically stable!)
@@ -605,10 +672,21 @@ Type objective_function<Type>::operator() ()
         }else{
           LogProb2_i(i) = dnbinom2(b_i(i), R2_i(i), var_i(i), true) + log(R1_i(i)); // Pr[X=x] = NB(X=x)*phi
         }
+        // Simulate new values when using obj.simulate()
+        SIMULATE{
+          b_i(i) = rbinom( Type(1), R1_i(i) );
+          if( b_i(i)>0 ){
+            b_i(i) = rnbinom2( R2_i(i), var_i(i) );
+          }
+        }
       }
       // Conway-Maxwell-Poisson
       if(ObsModel_ez(e_i(i),0)==6){
         LogProb2_i(i) = dCMP(b_i(i), R2_i(i), exp(P1_iz(i,0)), true, Options_vec(5));
+        // Simulate new values when using obj.simulate()
+        SIMULATE{
+          b_i(i) = 0;   // Option not available
+        }
       }
       // Zero-inflated Poisson
       if(ObsModel_ez(e_i(i),0)==7){
@@ -617,6 +695,13 @@ Type objective_function<Type>::operator() ()
           LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
         }else{
           LogProb2_i(i) = dpois(b_i(i), R2_i(i), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
+        }
+        // Simulate new values when using obj.simulate()
+        SIMULATE{
+          b_i(i) = rbinom( Type(1), R1_i(i) );
+          if( b_i(i)>0 ){
+            b_i(i) = rpois( R2_i(i) );
+          }
         }
       }
       // Binned Poisson (for REEF data: 0=none; 1=1; 2=2-10; 3=>11)
@@ -636,6 +721,10 @@ Type objective_function<Type>::operator() ()
         if( b_i(i)==1 ) LogProb2_i(i) = logdBinPois(1);
         if( b_i(i)==2 ) LogProb2_i(i) = logdBinPois(2);
         if( b_i(i)==3 ) LogProb2_i(i) = logdBinPois(3);
+        // Simulate new values when using obj.simulate()
+        SIMULATE{
+          b_i(i) = 0;   // Option not available
+        }
       }
       // Zero-inflated Lognormal Poisson
       if(ObsModel_ez(e_i(i),0)==11){
@@ -645,10 +734,21 @@ Type objective_function<Type>::operator() ()
         }else{
           LogProb2_i(i) = dpois(b_i(i), R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
         }
+        // Simulate new values when using obj.simulate()
+        SIMULATE{
+          b_i(i) = rbinom( Type(1), R1_i(i) );
+          if( b_i(i)>0 ){
+            b_i(i) = rpois( R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)) );
+          }
+        }
       }
       // Non-zero-inflated Poisson using log link from 1st linear predictor
       if(ObsModel_ez(e_i(i),0)==12){
         LogProb2_i(i) = dpois(b_i(i), R1_i(i), true);
+        // Simulate new values when using obj.simulate()
+        SIMULATE{
+          b_i(i) = rpois( R1_i(i) );
+        }
       }
       // Non-zero-inflated Bernoulli using cloglog link from 1st lilnear predict
       if(ObsModel_ez(e_i(i),0)==13){
@@ -657,10 +757,21 @@ Type objective_function<Type>::operator() ()
         }else{
           LogProb2_i(i) = logspace_sub( log(Type(1.0)), dpois(Type(0), R1_i(i), true) );
         }
+        // Simulate new values when using obj.simulate()
+        SIMULATE{
+          b_i(i) = rpois( R1_i(i) );
+          if( b_i(i)>0 ){
+            b_i(i) = 1;
+          }
+        }
       }
-      // Non-zero-inflated Poisson using log link from 1st linear predictor
+      // Non-zero-inflated Lognormal-Poisson using log link from 1st linear predictor
       if(ObsModel_ez(e_i(i),0)==14){
         LogProb2_i(i) = dpois(b_i(i), R1_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)), true);
+        // Simulate new values when using obj.simulate()
+        SIMULATE{
+          b_i(i) = rpois( R1_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)) );
+        }
       }
     }
   }
@@ -1086,6 +1197,10 @@ Type objective_function<Type>::operator() ()
   ADREPORT( Range_raw2 );
   ADREPORT( Index_cyl );
   ADREPORT( ln_Index_cyl );
+
+  SIMULATE{
+    REPORT( b_i );
+  }
 
   // Additional miscellaneous outputs
   if( Options(0)==1 ){

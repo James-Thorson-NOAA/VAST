@@ -2,7 +2,7 @@
 title: Example script for VAST for spatio-temporal analysis of multispecies catch-rate
   data
 author: "James Thorson"
-date: "October 26, 2016"
+date: "`r Sys.Date()`"
 output:
   pdf_document:
     fig_caption: yes
