@@ -255,6 +255,10 @@ Type objective_function<Type>::operator() ()
   // Column 0: Probability distribution for data for each level of e_i
   // Column 1: Link function for linear predictors for each level of c_i
   // NOTE:  nlevels(c_i) must be <= nlevels(e_i)
+  DATA_IVECTOR(VamConfig);
+  // Slot 0 -- method for calculating n_c-by-n_c interaction matrix, B_cc
+  // Slot 1 -- rank of interaction matrix B_cc
+  // Current implementation only makes sense when (1) intercepts are constant among years; (2) using a Poisson-link delta model; (3) n_f=n_c for spatio-temporal variation; (4) starts near equilibrium manifold
   DATA_INTEGER(include_data);   // Always use TRUE except for internal usage to extract GRMF normalization when turn off GMRF normalization in CPP
   DATA_IVECTOR(Options);    // Reporting options
   // Slot 0: Calculate SE for Index_xctl
@@ -300,6 +304,8 @@ Type objective_function<Type>::operator() ()
 
   // Parameters 
   PARAMETER_VECTOR(ln_H_input); // Anisotropy parameters
+  PARAMETER_MATRIX(Chi_cr);   // error correction responses
+  PARAMETER_MATRIX(Psi_cr);   // error correction loadings, B_cc = Chi_cr %*% t(Psi_cr)
 
   //  -- presence/absence fixed effects
   PARAMETER_MATRIX(beta1_ct);       // Year effect
@@ -392,6 +398,18 @@ Type objective_function<Type>::operator() ()
   // Calculate joint likelihood
   ////////////////////////
 
+  // Interaction matrix
+  matrix<Type> B_cc
+  matrix<Type> Psi_rc = Psi_cr.transpose();
+  if( VamConfig(0)==0 ){
+    // No interactions (default)
+    B_cc.setIdentity()
+  }
+  if( VamConfig(0)==1 ){
+    // Simple co-integration
+    B_cc = Alpha_pr * Beta_rp
+  }
+
   // Random field probability
   Eigen::SparseMatrix<Type> Q1;
   Eigen::SparseMatrix<Type> Q2;
@@ -427,7 +445,21 @@ Type objective_function<Type>::operator() ()
       Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
     }
     if(t>=1){
-      Epsilonmean1_sf = Epsilon_rho1 * Epsiloninput1_sft.col(t-1);
+      // Prediction for spatio-temporal component
+      if( VamConfig(0)==0 | Options_vec(7)!=n_c ){
+        // If no interactions, then just autoregressive for factors
+        Epsilonmean1_sf = Epsilon_rho1 * Epsiloninput1_sft.col(t-1);
+      }else{
+        // Impact of interactions, B_cc
+        Epsilonmean1_sf.setZero();
+        for(int s=0; s<n_s; s++){
+        for(int c1=0; c1<n_c; c1++){
+        for(int c2=0; c2<n_c; c2++){
+          Epsilonmean1_sf(s,c1) += B_pp(c1,c2) * Epsiloninput1_sft(s,c2,t-1);
+          if( c1==c2 ) Epsilonmean1_sf(s,c1) += Epsilon_rho1 * Epsiloninput1_sft(s,c2,t-1);
+        }}}
+      }
+      // Hyperdistribution for spatio-temporal component
       Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
     }
   }
@@ -449,7 +481,21 @@ Type objective_function<Type>::operator() ()
       Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
     if(t>=1){
-      Epsilonmean2_sf = Epsilon_rho2 * Epsiloninput2_sft.col(t-1);
+      // Prediction for spatio-temporal component
+      if( VamConfig(0)==0 | Options_vec(7)!=n_c ){
+        // If no interactions, then just autoregressive for factors
+        Epsilonmean2_sf = Epsilon_rho2 * Epsiloninput2_sft.col(t-1);
+      }else{
+        // Impact of interactions, B_cc
+        Epsilonmean2_sf.setZero();
+        for(int s=0; s<n_s; s++){
+        for(int c1=0; c1<n_c; c1++){
+        for(int c2=0; c2<n_c; c2++){
+          Epsilonmean2_sf(s,c1) += B_pp(c1,c2) * Epsiloninput2_sft(s,c2,t-1);
+          if( c1==c2 ) Epsilonmean2_sf(s,c1) += Epsilon_rho2 * Epsiloninput2_sft(s,c2,t-1);
+        }}}
+      }
+      // Hyperdistribution for spatio-temporal component
       Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
   }

@@ -312,6 +312,21 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     }
   }
 
+  # Interactions
+  if( "VamConfig"%in%names(DataList) & all(c("Chi_cr","Psi_cr")%in%names(TmbParams)) ){
+    # Turn off interactions
+    if( DataList$VamConfig[1]==0 ){
+      Map[["Chi_cr"]] = factor( rep(NA,prod(dim(TmbParams$Chi_cr))) )
+      Map[["Psi_cr"]] = factor( rep(NA,prod(dim(TmbParams$Psi_cr))) )
+    }
+    # Reduce degrees of freedom for interactions
+    if( DataList$VamConfig[1]==1 ){
+      Map[["Psi_cr"]] = matrix( 1:prod(dim(TmbParams$Psi_cr)), dim=dim(TmbParams$Psi_cr) )
+      Map[["Psi_cr"]][(1+nrow(Map[["Psi_cr"]])-ncol(Map[["Psi_cr"]])):nrow(Map[["Psi_cr"]]),] = NA
+      Map[["Psi_cr"]] = factor( Map[["Psi_cr"]] )
+    }
+  }
+
   # Return
   return(Map)
 }

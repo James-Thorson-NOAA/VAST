@@ -5,14 +5,15 @@
 \title{Build data input for VAST model}
 \usage{
 Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
-  ObsModel_ez = c(PosDist = 1, Link = 0), b_i, a_i, c_iz, s_i, t_iz, a_xl,
-  MeshList, GridList, Method, v_i = rep(0, length(b_i)), e_i = c_iz[, 1],
-  PredTF_i = rep(0, length(b_i)), X_xj = NULL, X_xtp = NULL,
-  Q_ik = NULL, Aniso = 1, RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 =
-  0, Epsilon2 = 0), t_yz = NULL, CheckForErrors = TRUE,
-  yearbounds_zz = NULL, Options = c(SD_site_logdensity = 0, Calculate_Range
-  = 0, Calculate_effective_area = 0, Calculate_Cov_SE = 0, Calculate_Synchrony =
-  0, Calculate_proportion = 0))
+  ObsModel_ez = c(PosDist = 1, Link = 0), VamConfig = c(Method = 0, Rank =
+  0), b_i, a_i, c_iz, s_i, t_iz, a_xl, MeshList, GridList, Method,
+  v_i = rep(0, length(b_i)), e_i = c_iz[, 1], PredTF_i = rep(0,
+  length(b_i)), X_xj = NULL, X_xtp = NULL, Q_ik = NULL, Aniso = 1,
+  RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
+  t_yz = NULL, CheckForErrors = TRUE, yearbounds_zz = NULL,
+  Options = c(SD_site_logdensity = 0, Calculate_Range = 0,
+  Calculate_effective_area = 0, Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
+  Calculate_proportion = 0))
 }
 \arguments{
 \item{Version}{a version number (see example for current default).}
@@ -41,6 +42,8 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
   \item{ObsModel_ez[e,2]=2}{Link function for Tweedie distribution, necessary for \code{ObsModel_ez[e,1]=8} or \code{ObsModel_ez[e,1]=10}}
   \item{ObsModel_ez[e,2]=3}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
 }}
+
+\item{VamConfig}{Options to estimate interactions, where first slot selects method for forming interaction matrix and second indicates rank}
 
 \item{b_i}{Sampled biomass for each observation i}
 
