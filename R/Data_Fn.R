@@ -53,7 +53,7 @@
 
 #' @export
 Data_Fn <-
-function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsModel_ez=c("PosDist"=1,"Link"=0), VamConfig=c("Method"=0,"Rank"=0),
+function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsModel_ez=c("PosDist"=1,"Link"=0), VamConfig=c("Method"=0,"Rank"=0,"Timing"=0),
   b_i, a_i, c_iz, s_i, t_iz, a_xl, MeshList, GridList, Method, v_i=rep(0,length(b_i)), e_i=c_iz[,1],
   PredTF_i=rep(0,length(b_i)), X_xj=NULL, X_xtp=NULL, Q_ik=NULL, Aniso=1,
   RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
@@ -202,7 +202,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
       stop("Can't have observations assigned to more than one category prior to version 4.0.0")
     }
   }
-  if( RhoConfig[["Beta1"]]==3 | RhoConfig[["Beta2"]]==3 ){
+  if( any(RhoConfig[1:2]==3) ){
     if( Version%in%c("VAST_v4_1_0","VAST_v4_0_0","VAST_v3_0_0","VAST_v2_8_0","VAST_v2_7_0","VAST_v2_6_0","VAST_v2_5_0","VAST_v2_4_0","VAST_v2_3_0","VAST_v2_2_0","VAST_v2_1_0","VAST_v2_0_0","VAST_v1_9_0","VAST_v1_8_0","VAST_v1_7_0","VAST_v1_6_0","VAST_v1_5_0","VAST_v1_4_0","VAST_v1_3_0","VAST_v1_2_0","VAST_v1_1_0","VAST_v1_0_0") ){
       stop("There was bug in specifying fixed intercepts among years for versions prior to V4.2.0")
     }
@@ -216,19 +216,25 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
 
   ### Check for incompatible settings
   # Seasonal models and intercepts
-  if( ncol(t_iz)>=2 & ( RhoConfig[["Beta1"]]!=0 | RhoConfig[["Beta2"]]!=0 ) ){
+  if( ncol(t_iz)>=2 & any(RhoConfig[1:2]!=0) ){
     stop("Temporal structure on intercepts is not implemented for seasonal models")
+  }
+  if( (FieldConfig[2]==0 & RhoConfig[3]!=0) | (FieldConfig[4]==0 & RhoConfig[4]!=0) ){
+    stop("Spatio-temporal variation is turned off for a component with temporal structure, and this combination doesn't make sense")
   }
   # Interactions
   if( VamConfig[1]!=0 ){
-    if( any(RhoConfig[c('Beta1','Beta2')]!=3) | any(ObsModel_ez[,2]!=1) ){
+    if( any(RhoConfig[1:2]!=3) | any(ObsModel_ez[,2]!=1) ){
       stop("Bad settings when turning on `VamConfig`")
     }
-    if( FieldConfig[c(2,4)]!=n_c ){
-      stop("Must have full rank covariance for spatio-temporal variation when using interactions")
+    if( !all(FieldConfig[c(2,4)] %in% c(0,n_c)) ){
+      stop("Spatio-temporal variation must either have full rank covariance or be turned off for each component for when using interactions")
     }
-    if( VamConfig[2]>n_c | VamConfig[2]<0 | !is.integer(VamConfig[2]) ){
+    if( VamConfig[2]>n_c | VamConfig[2]<0 ){
       stop("Rank for interactions must be an integer between 0 and `n_c`, inclusive")
+    }
+    if( VamConfig[2]==n_c & any(RhoConfig[3:4]!=0) ){
+      stop("Can't simultaneously identify full-rank interactions and temporal correlation on spatio-temporal components")
     }
   }
 
@@ -249,7 +255,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
 
   # Output tagged list
   # CMP_xmax should be >100 and CMP_breakpoint should be 1 for Tweedie model
-  Options_vec = c("Aniso"=Aniso, "R2_interpretation"=0, "Rho_beta1_TF"=ifelse(RhoConfig[["Beta1"]]%in%c(1,2,4),1,0), "Rho_beta2_TF"=ifelse(RhoConfig[["Beta2"]]%in%c(1,2,4),1,0), "AreaAbundanceCurveTF"=0, "CMP_xmax"=200, "CMP_breakpoint"=1, "Method"=switch(Method,"Mesh"=0,"Grid"=1,"Spherical_mesh"=0) )
+  Options_vec = c("Aniso"=Aniso, "R2_interpretation"=0, "Rho_beta1_TF"=ifelse(RhoConfig[1]%in%c(1,2,4),1,0), "Rho_beta2_TF"=ifelse(RhoConfig[2]%in%c(1,2,4),1,0), "AreaAbundanceCurveTF"=0, "CMP_xmax"=200, "CMP_breakpoint"=1, "Method"=switch(Method,"Mesh"=0,"Grid"=1,"Spherical_mesh"=0) )
   if(Version%in%c("VAST_v1_1_0","VAST_v1_0_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=t_iz[,1]-min(t_iz[,1]), "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }

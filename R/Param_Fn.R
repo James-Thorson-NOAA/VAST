@@ -128,7 +128,10 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   if(length(Return[["beta2_ct"]])==1 && is.na(Return[["beta2_ct"]])) Return[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
   # Interactions
   if( "VamConfig"%in%names(DataList) & all(c("Chi_cr","Psi_cr")%in%names(Return)) ){
-    Return[["Psi_cr"]][(1+nrow(Map[["Psi_cr"]])-ncol(Map[["Psi_cr"]])):nrow(Map[["Psi_cr"]]),] = diag(nrow=ncol(Map[["Psi_cr"]]))
+    Return[["Psi_cr"]][1:ncol(Return[["Psi_cr"]]),] = diag(nrow=ncol(Return[["Psi_cr"]]))
+    if( DataList$VamConfig[1]==2 ){
+      diag(Return[["Psi_cr"]][1:ncol(Return[["Psi_cr"]]),]) = seq(0.2,0.9,length=ncol(Return[["Psi_cr"]]))
+    }
   }
 
   # If either beta or epsilon is a random-walk process, fix starting value at 1
