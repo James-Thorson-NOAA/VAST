@@ -153,14 +153,17 @@ matrix<Type> gmrf_by_category_nll( int n_f, int method, int timing, int n_s, int
           gmrf_input_sf.col(f) = gmrf_s + gmrf_mean_sf.col(f);
         }
       }
+      // Rescale
+      matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
+      if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
+      if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
+      gmrf_sc = (gmrf_input_sf.matrix() * L_cf.transpose()) / exp(logtau);
     }
-    // Rescale
-    matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
-    if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
-    if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
-    gmrf_sc = (gmrf_input_sf.matrix() * L_cf.transpose()) / exp(logtau);
     // PDF if density-dependence/interactions occurs after correlated dynamics (Only makes sense if n_f == n_c)
     if( timing==1 ){
+      // Calculate difference without rescaling
+      gmrf_sc = gmrf_input_sf.matrix();
+      matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
       Cov_cc = L_cf * L_cf.transpose();
       for( int s=0; s<n_s; s++){
       for( int c=0; c<n_c; c++){
