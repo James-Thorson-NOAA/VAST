@@ -130,7 +130,7 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   if( "VamConfig"%in%names(DataList) & all(c("Chi_cr","Psi_cr")%in%names(Return)) ){
     Return[["Psi_cr"]][1:ncol(Return[["Psi_cr"]]),] = diag(nrow=ncol(Return[["Psi_cr"]]))
     if( DataList$VamConfig[1]==2 ){
-      diag(Return[["Psi_cr"]][1:ncol(Return[["Psi_cr"]]),]) = seq(0.2,0.9,length=ncol(Return[["Psi_cr"]]))
+      Return[["Psi_cr"]][cbind(1:ncol(Return[["Psi_cr"]]),1:ncol(Return[["Psi_cr"]]))] = seq(0.2,0.9,length=ncol(Return[["Psi_cr"]]))  # "diag" threw an error when ncol(Return[["Psi_cr"]])=1
     }
   }
 

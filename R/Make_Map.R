@@ -335,7 +335,7 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     if( DataList$VamConfig[1]==2 ){
       Map[["Psi_cr"]] = array( 1:prod(dim(TmbParams$Psi_cr)), dim=dim(TmbParams$Psi_cr) )
       Map[["Psi_cr"]][1:ncol(Map[["Psi_cr"]]),] = NA
-      diag(Map[["Psi_cr"]][1:ncol(Map[["Psi_cr"]]),]) = max(c(0,Map[["Psi_cr"]]),na.rm=TRUE) + 1:ncol(Map[["Psi_cr"]])
+      Map[["Psi_cr"]][cbind(1:ncol(Map[["Psi_cr"]]),1:ncol(Map[["Psi_cr"]]))] = max(c(0,Map[["Psi_cr"]]),na.rm=TRUE) + 1:ncol(Map[["Psi_cr"]])
       Map[["Psi_cr"]] = factor(Map[["Psi_cr"]])
     }
   }
