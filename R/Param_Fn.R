@@ -126,13 +126,6 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   }
   if(length(Return[["beta1_ct"]])==1 && is.na(Return[["beta1_ct"]])) Return[["beta1_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
   if(length(Return[["beta2_ct"]])==1 && is.na(Return[["beta2_ct"]])) Return[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
-  # Interactions
-  if( "VamConfig"%in%names(DataList) & all(c("Chi_cr","Psi_cr")%in%names(Return)) ){
-    Return[["Psi_cr"]][1:ncol(Return[["Psi_cr"]]),] = diag(nrow=ncol(Return[["Psi_cr"]]))
-    if( DataList$VamConfig[1]==2 ){
-      Return[["Psi_cr"]][cbind(1:ncol(Return[["Psi_cr"]]),1:ncol(Return[["Psi_cr"]]))] = seq(0.2,0.9,length=ncol(Return[["Psi_cr"]]))  # "diag" threw an error when ncol(Return[["Psi_cr"]])=1
-    }
-  }
 
   # If either beta or epsilon is a random-walk process, fix starting value at 1
   if( "Beta_rho1"%in%names(Return) && RhoConfig[["Beta1"]]==2 ) Return[["Beta_rho1"]] = 1
@@ -151,6 +144,14 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   }
   Return[["beta1_ct"]] = tmpfn( Return[["beta1_ct"]] )
   Return[["beta2_ct"]] = tmpfn( Return[["beta2_ct"]] )
+
+  # Interactions
+  if( "VamConfig"%in%names(DataList) & all(c("Chi_cr","Psi_cr")%in%names(Return)) ){
+    Return[["Psi_cr"]][1:ncol(Return[["Psi_cr"]]),] = diag(nrow=ncol(Return[["Psi_cr"]]))
+    if( DataList$VamConfig[1]==2 ){
+      Return[["Psi_cr"]][cbind(1:ncol(Return[["Psi_cr"]]),1:ncol(Return[["Psi_cr"]]))] = seq(0.2,0.9,length=ncol(Return[["Psi_cr"]])) - max(Return[["Epsilon_rho1"]],Return[["Epsilon_rho2"]])  # "diag" threw an error when ncol(Return[["Psi_cr"]])=1
+    }
+  }
 
   # Error messages
   if( any(sapply(Return, FUN=function(num){any(is.na(num))})) ) stop("Some parameter is NA")

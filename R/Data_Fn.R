@@ -219,7 +219,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   if( ncol(t_iz)>=2 & any(RhoConfig[1:2]!=0) ){
     stop("Temporal structure on intercepts is not implemented for seasonal models")
   }
-  if( (FieldConfig[2]==0 & RhoConfig[3]!=0) | (FieldConfig[4]==0 & RhoConfig[4]!=0) ){
+  if( (FieldConfig_input[2]==(-1) & RhoConfig[3]!=0) | (FieldConfig_input[4]==(-1) & RhoConfig[4]!=0) ){
     stop("Spatio-temporal variation is turned off for a component with temporal structure, and this combination doesn't make sense")
   }
   # Interactions
@@ -227,8 +227,8 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     if( any(RhoConfig[1:2]!=3) | any(ObsModel_ez[,2]!=1) ){
       stop("Bad settings when turning on `VamConfig`")
     }
-    if( !all(FieldConfig[c(2,4)] %in% c(0,n_c)) ){
-      stop("Spatio-temporal variation must either have full rank covariance or be turned off for each component for when using interactions")
+    if( !all(FieldConfig_input[c(2,4)] %in% c(-2,-1,0,n_c)) ){
+      stop("Spatio-temporal variation must either have full rank covariance or be turned off or IID for each component for when using interactions")
     }
     if( VamConfig[2]>n_c | VamConfig[2]<0 ){
       stop("Rank for interactions must be an integer between 0 and `n_c`, inclusive")
