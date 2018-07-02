@@ -224,16 +224,19 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   }
   # Interactions
   if( VamConfig[1]!=0 ){
-    if( any(RhoConfig[1:2]!=3) | any(ObsModel_ez[,2]!=1) ){
-      stop("Bad settings when turning on `VamConfig`")
+    if( any(ObsModel_ez[,2]!=1) ){
+      stop("Must use Poisson-link delta model when estimating interactions")
     }
-    if( !all(FieldConfig_input[c(2,4)] %in% c(-2,-1,0,n_c)) ){
-      stop("Spatio-temporal variation must either have full rank covariance or be turned off or IID for each component for when using interactions")
+    if( any(RhoConfig[1:2]!=3) ){
+      #stop("Must use constant intercepts when estimating interactions")
+    }
+    if( !(FieldConfig_input[2] %in% c(-2,-1,0,n_c)) & VamConfig[3]==1 ){
+      stop("Spatio-temporal variation must either have full rank covariance or be turned off or IID for the 1st linear predictor for when using interactions and when VamConfig[`Timing`]==1")
     }
     if( VamConfig[2]>n_c | VamConfig[2]<0 ){
       stop("Rank for interactions must be an integer between 0 and `n_c`, inclusive")
     }
-    if( VamConfig[2]==n_c & any(RhoConfig[3:4]!=0) ){
+    if( VamConfig[2]==FieldConfig_input[2] & any(RhoConfig[3:4]!=0) ){
       stop("Can't simultaneously identify full-rank interactions and temporal correlation on spatio-temporal components")
     }
   }
@@ -246,6 +249,10 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   if( Method=="Spherical_mesh" ){
     Aniso = 0
     message("Using spherical projection for SPDE approximation, so switching to Aniso=0")
+  }
+  if( VamConfig[2]==0 & VamConfig[1]!=0 ){
+    VamConfig[1] = 0
+    message("Using interactions with no interactions (`VamConfig[2]==0`), so turning off interactions (`VamConfig[1]=0`)")
   }
 
   # Warning messages

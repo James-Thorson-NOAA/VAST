@@ -313,30 +313,27 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
   }
 
   # Interactions
-  if( "VamConfig"%in%names(DataList) & all(c("Chi_cr","Psi_cr")%in%names(TmbParams)) ){
+  if( "VamConfig"%in%names(DataList) & all(c("Chi_fr","Psi_fr")%in%names(TmbParams)) ){
     # Turn off interactions
     if( DataList$VamConfig[1]==0 ){
-      Map[["Chi_cr"]] = factor( rep(NA,prod(dim(TmbParams$Chi_cr))) )
-      Map[["Psi_cr"]] = factor( rep(NA,prod(dim(TmbParams$Psi_cr))) )
+      Map[["Chi_fr"]] = factor( rep(NA,prod(dim(TmbParams$Chi_fr))) )
+      Map[["Psi_fr"]] = factor( rep(NA,prod(dim(TmbParams$Psi_fr))) )
     }
     # Reduce degrees of freedom for interactions
-    if( DataList$VamConfig[1]==1 ){
-      Map[["Psi_cr"]] = array( 1:prod(dim(TmbParams$Psi_cr)), dim=dim(TmbParams$Psi_cr) )
-      #Map[["Psi_cr"]][(1+nrow(Map[["Psi_cr"]])-ncol(Map[["Psi_cr"]])):nrow(Map[["Psi_cr"]]),] = NA
-      Map[["Psi_cr"]][1:ncol(Map[["Psi_cr"]]),] = NA
-      Map[["Psi_cr"]] = factor(Map[["Psi_cr"]])
+    if( DataList$VamConfig[1] %in% c(1,3) ){
+      Map[["Psi_fr"]] = array( 1:prod(dim(TmbParams$Psi_fr)), dim=dim(TmbParams$Psi_fr) )
+      Map[["Psi_fr"]][1:ncol(Map[["Psi_fr"]]),] = NA
+      Map[["Psi_fr"]] = factor(Map[["Psi_fr"]])
     }
     # Reduce degrees of freedom for interactions
     if( DataList$VamConfig[1]==2 ){
-      Map[["Psi_cr"]] = array( 1:prod(dim(TmbParams$Psi_cr)), dim=dim(TmbParams$Psi_cr) )
-      Map[["Psi_cr"]][1:ncol(Map[["Psi_cr"]]),] = NA
-      Map[["Psi_cr"]] = factor(Map[["Psi_cr"]])
-    }
-    if( DataList$VamConfig[1]==2 ){
-      Map[["Psi_cr"]] = array( 1:prod(dim(TmbParams$Psi_cr)), dim=dim(TmbParams$Psi_cr) )
-      Map[["Psi_cr"]][1:ncol(Map[["Psi_cr"]]),] = NA
-      Map[["Psi_cr"]][cbind(1:ncol(Map[["Psi_cr"]]),1:ncol(Map[["Psi_cr"]]))] = max(c(0,Map[["Psi_cr"]]),na.rm=TRUE) + 1:ncol(Map[["Psi_cr"]])
-      Map[["Psi_cr"]] = factor(Map[["Psi_cr"]])
+      Map[["Psi_fr"]] = array( 1:prod(dim(TmbParams$Psi_fr)), dim=dim(TmbParams$Psi_fr) )
+      Map[["Psi_fr"]][1:ncol(Map[["Psi_fr"]]),] = NA
+      Map[["Psi_fr"]] = factor(Map[["Psi_fr"]])
+      Map[["Psi_fr"]] = array( 1:prod(dim(TmbParams$Psi_fr)), dim=dim(TmbParams$Psi_fr) )
+      Map[["Psi_fr"]][1:ncol(Map[["Psi_fr"]]),] = NA
+      Map[["Psi_fr"]][cbind(1:ncol(Map[["Psi_fr"]]),1:ncol(Map[["Psi_fr"]]))] = max(c(0,Map[["Psi_fr"]]),na.rm=TRUE) + 1:ncol(Map[["Psi_fr"]])
+      Map[["Psi_fr"]] = factor(Map[["Psi_fr"]])
     }
   }
 
