@@ -103,10 +103,12 @@ matrix<Type> convert_upper_cov_to_cor( matrix<Type> cov ){
 // Input: L_omega1_z, Q1, Omegainput1_sf, n_f, n_s, n_c, FieldConfig(0)
 // Output: jnll_comp(0), Omega1_sc
 template<class Type>                                                                                        //
-matrix<Type> gmrf_by_category_nll( int n_f, int method, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, array<Type> gmrf_mean_sf, vector<Type> L_z, density::GMRF_t<Type> gmrf_Q, Type &jnll_pointer, objective_function<Type>* of){
+matrix<Type> gmrf_by_category_nll( int n_f, int method, int timing, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, array<Type> gmrf_mean_sf, vector<Type> L_z, density::GMRF_t<Type> gmrf_Q, Type &jnll_pointer, objective_function<Type>* of){
   using namespace density;
   matrix<Type> gmrf_sc(n_s, n_c);
   vector<Type> gmrf_s(n_s);
+  matrix<Type> Cov_cc(n_c,n_c);
+  array<Type> diff_gmrf_sc(n_s, n_c); // Requires an array
   Type logtau;
   // IID
   if(n_f == -2){
@@ -141,19 +143,41 @@ matrix<Type> gmrf_by_category_nll( int n_f, int method, int n_s, int n_c, Type l
   }
   // Factor analysis structure
   if(n_f>0){
-    for( int f=0; f<n_f; f++ ){
-      jnll_pointer += gmrf_Q(gmrf_input_sf.col(f) - gmrf_mean_sf.col(f));  // Rescaling from spatial_vam_v13.cpp
+    // PDF if density-dependence/interactions occurs prior to correlated dynamics
+    if( timing==0 ){
+      for( int f=0; f<n_f; f++ ){
+        // Calculate likelihood
+        jnll_pointer += gmrf_Q(gmrf_input_sf.col(f) - gmrf_mean_sf.col(f));  // Rescaling from spatial_vam_v13.cpp
+        // Simulate new values when using obj.simulate()
+        if(isDouble<Type>::value && of->do_simulate) {
+          gmrf_Q.simulate(gmrf_s);
+          gmrf_input_sf.col(f) = gmrf_s + gmrf_mean_sf.col(f);
+        }
+      }
+      // Rescale
+      matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
+      if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
+      if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
+      gmrf_sc = (gmrf_input_sf.matrix() * L_cf.transpose()) / exp(logtau);
+    }
+    // PDF if density-dependence/interactions occurs after correlated dynamics (Only makes sense if n_f == n_c)
+    if( timing==1 ){
+      // Calculate difference without rescaling
+      gmrf_sc = gmrf_input_sf.matrix();
+      for( int s=0; s<n_s; s++){
+      for( int c=0; c<n_c; c++){
+        diff_gmrf_sc(s,c) = gmrf_sc(s,c) - gmrf_mean_sf(s,c);
+      }}
+      // Calculate likelihood
+      matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
+      Cov_cc = L_cf * L_cf.transpose();
+      jnll_pointer += SCALE(SEPARABLE(MVNORM(Cov_cc), gmrf_Q), exp(-logtau))( diff_gmrf_sc );
       // Simulate new values when using obj.simulate()
       if(isDouble<Type>::value && of->do_simulate) {
-        gmrf_Q.simulate(gmrf_s);
-        gmrf_input_sf.col(f) = gmrf_s + gmrf_mean_sf.col(f);
+        SEPARABLE(MVNORM(Cov_cc), gmrf_Q).simulate( diff_gmrf_sc );
+        gmrf_sc = gmrf_mean_sf + diff_gmrf_sc/exp(logtau);
       }
     }
-    // Rescale
-    matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
-    if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
-    if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
-    gmrf_sc = (gmrf_input_sf.matrix() * L_cf.transpose()) / exp(logtau);
   }
   return gmrf_sc;
 }
@@ -218,6 +242,85 @@ Type dPoisGam( Type x, Type shape, Type scale, Type intensity, vector<Type> &dia
   if(give_log) return loglike; else return exp(loglike);
 }
 
+// Calculate B_pp
+template<class Type>
+matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, matrix<Type> Psi_fr ){
+  matrix<Type> B_ff( n_f, n_f );
+  matrix<Type> BplusI_ff( n_f, n_f );
+  matrix<Type> Chi_rf = Chi_fr.transpose();
+  matrix<Type> Psi_rf = Psi_fr.transpose();
+  matrix<Type> Identity_ff( n_f, n_f );
+  Identity_ff.setIdentity();
+
+  // No interactions (default)
+  if( method==0 ){
+    B_ff.setZero();
+  }
+  // Simple co-integration -- complex unbounded eigenvalues
+  if( method==1 ){
+    B_ff = Chi_fr * Psi_rf;
+  }
+  // Real eigenvalues
+  if( method==2 ){
+    matrix<Type> Chi_ff( n_f, n_f );
+    Chi_ff = Identity_ff;
+    // Make Chi_ff
+    vector<Type> colnorm_r( n_r );
+    colnorm_r.setZero();
+    for(int f=0; f<n_f; f++){
+    for(int r=0; r<n_r; r++){
+      Chi_ff(f,r) = Chi_fr(f,r);
+      colnorm_r(r) += pow( Chi_ff(f,r), 2 );
+    }}
+    for(int f=0; f<n_f; f++){
+    for(int r=0; r<n_r; r++){
+      Chi_ff(f,r) /= pow( colnorm_r(r), 0.5 );
+    }}
+    // Make Psi_ff
+    matrix<Type> Psi_ff( n_f, n_f );
+    Psi_ff = Identity_ff;
+    for(int f=n_r; f<n_f; f++){
+    for(int r=0; r<n_r; r++){
+      Psi_ff(f,r) = Psi_fr(f,r);
+    }}
+    // Make L_ff
+    matrix<Type> L_ff(n_f, n_f);
+    L_ff.setZero();
+    for(int r=0; r<n_r; r++){
+      L_ff(r,r) = Psi_fr(r,r);
+    }
+    // Build B_ff
+    matrix<Type> invChi_ff = atomic::matinv( Chi_ff );
+    matrix<Type> trans_Psi_ff = Psi_ff.transpose();
+    matrix<Type> trans_invPsi_ff = atomic::matinv( Psi_ff ).transpose();
+    B_ff = Chi_ff * trans_Psi_ff;
+    B_ff = B_ff * L_ff;
+    B_ff = B_ff * trans_invPsi_ff;
+    B_ff = B_ff * invChi_ff;
+    // Penalize colnorm_r
+    //if( Options_vec(0)==3 ) jnll_comp(3) += PenMult_z(1) * ( log(colnorm_r)*log(colnorm_r) ).sum();
+  }
+  // Complex bounded eigenvalues
+  if( method==3 ){
+    BplusI_ff = Chi_fr * Psi_rf + Identity_ff;
+    // Extract eigenvalues
+    vector< std::complex<Type> > eigenvalues_B_ff = B_ff.eigenvalues();
+    vector<Type> real_eigenvalues_B_ff = eigenvalues_B_ff.real();
+    vector<Type> imag_eigenvalues_B_ff = eigenvalues_B_ff.imag();
+    vector<Type> mod_eigenvalues_B_ff( n_f );
+    // Calculate maximum eigenvalues
+    Type MaxEigen = 1;
+    for(int f=0; f<n_f; f++){
+      mod_eigenvalues_B_ff(f) = pow( pow(real_eigenvalues_B_ff(f),2) + pow(imag_eigenvalues_B_ff(f),2), 0.5 );
+      MaxEigen = CppAD::CondExpGt(mod_eigenvalues_B_ff(f), MaxEigen, mod_eigenvalues_B_ff(f), MaxEigen);
+    }
+    // Rescale interaction matrix
+    BplusI_ff = BplusI_ff / MaxEigen;
+    B_ff = BplusI_ff - Identity_ff;
+    //jnll_comp(3) += PenMult_z(0) * CppAD::CondExpGe( MaxEigen, Type(1.0), pow(MaxEigen-Type(1.0),2), Type(0.0) );
+  }
+  return B_ff;
+}
 
 // Space time
 template<class Type>
@@ -255,6 +358,10 @@ Type objective_function<Type>::operator() ()
   // Column 0: Probability distribution for data for each level of e_i
   // Column 1: Link function for linear predictors for each level of c_i
   // NOTE:  nlevels(c_i) must be <= nlevels(e_i)
+  DATA_IVECTOR(VamConfig);
+  // Slot 0 -- method for calculating n_c-by-n_c interaction matrix, B_ff
+  // Slot 1 -- rank of interaction matrix B_ff
+  // Current implementation only makes sense when (1) intercepts are constant among years; (2) using a Poisson-link delta model; (3) n_f=n_c for spatio-temporal variation; (4) starts near equilibrium manifold
   DATA_INTEGER(include_data);   // Always use TRUE except for internal usage to extract GRMF normalization when turn off GMRF normalization in CPP
   DATA_IVECTOR(Options);    // Reporting options
   // Slot 0: Calculate SE for Index_xctl
@@ -300,6 +407,8 @@ Type objective_function<Type>::operator() ()
 
   // Parameters 
   PARAMETER_VECTOR(ln_H_input); // Anisotropy parameters
+  PARAMETER_MATRIX(Chi_fr);   // error correction responses
+  PARAMETER_MATRIX(Psi_fr);   // error correction loadings, B_ff = Chi_fr %*% t(Psi_fr)
 
   //  -- presence/absence fixed effects
   PARAMETER_MATRIX(beta1_ct);       // Year effect
@@ -419,16 +528,41 @@ Type objective_function<Type>::operator() ()
   n_f = Epsiloninput1_sft.col(0).cols();
   array<Type> Epsilonmean1_sf(n_s, n_f);
   array<Type> Omega1_sc(n_s, n_c);
-  Omega1_sc = gmrf_by_category_nll(FieldConfig(0), Options_vec(7), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_z, gmrf_Q, jnll_comp(0), this);
+  Omega1_sc = gmrf_by_category_nll(FieldConfig(0), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_z, gmrf_Q, jnll_comp(0), this);
+  // Define interaction matrix for Epsilon1
+  matrix<Type> B_ff( n_f, n_f );
+  B_ff = calculate_B( VamConfig(0), n_f, VamConfig(1), Chi_fr, Psi_fr );
+  // PDF for Epsilon1
   array<Type> Epsilon1_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
     if(t==0){
       Epsilonmean1_sf.setZero();
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
     }
     if(t>=1){
-      Epsilonmean1_sf = Epsilon_rho1 * Epsiloninput1_sft.col(t-1);
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
+      // Prediction for spatio-temporal component
+      // Default, and also necessary whenever VamConfig(2)==1 & n_f!=n_c
+      if( (VamConfig(0)==0) | ((n_f!=n_c) & (VamConfig(2)==1)) ){
+        // If no interactions, then just autoregressive for factors
+        Epsilonmean1_sf = Epsilon_rho1 * Epsiloninput1_sft.col(t-1);
+      }else{
+        // Impact of interactions, B_ff
+        Epsilonmean1_sf.setZero();
+        for(int s=0; s<n_s; s++){
+        for(int f1=0; f1<n_f; f1++){
+        for(int f2=0; f2<n_f; f2++){
+          if( VamConfig(2)==0 ){
+            Epsilonmean1_sf(s,f1) += B_ff(f1,f2) * Epsiloninput1_sft(s,f2,t-1);
+            if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1 * Epsiloninput1_sft(s,f2,t-1);
+          }
+          if( VamConfig(2)==1 ){
+            Epsilonmean1_sf(s,f1) += B_ff(f1,f2) * Epsilon1_sct(s,f2,t-1);
+            if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1 * Epsilon1_sct(s,f2,t-1);
+          }
+        }}}
+      }
+      // Hyperdistribution for spatio-temporal component
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
     }
   }
   // Positive catch rate
@@ -441,16 +575,19 @@ Type objective_function<Type>::operator() ()
   n_f = Epsiloninput2_sft.col(0).cols();
   array<Type> Epsilonmean2_sf(n_s, n_f);
   array<Type> Omega2_sc(n_s, n_c);
-  Omega2_sc = gmrf_by_category_nll(FieldConfig(2), Options_vec(7), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_z, gmrf_Q, jnll_comp(2), this);
+  Omega2_sc = gmrf_by_category_nll(FieldConfig(2), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_z, gmrf_Q, jnll_comp(2), this);
+  // PDF for Epsilon1
   array<Type> Epsilon2_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
     if(t==0){
       Epsilonmean2_sf.setZero();
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
     if(t>=1){
+      // Prediction for spatio-temporal component
       Epsilonmean2_sf = Epsilon_rho2 * Epsiloninput2_sft.col(t-1);
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
+      // Hyperdistribution for spatio-temporal component
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
   }
 
@@ -1150,6 +1287,7 @@ Type objective_function<Type>::operator() ()
   // Diagnostic output
   REPORT( Q1 );
   REPORT( Q2 );
+  REPORT( B_ff );
   REPORT( P1_iz );
   REPORT( P2_iz );
   REPORT( R1_i );

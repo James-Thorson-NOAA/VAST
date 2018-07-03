@@ -26,6 +26,7 @@
 #'   \item{ObsModel_ez[e,2]=2}{Link function for Tweedie distribution, necessary for \code{ObsModel_ez[e,1]=8} or \code{ObsModel_ez[e,1]=10}}
 #'   \item{ObsModel_ez[e,2]=3}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
 #' }
+#' @param VamConfig Options to estimate interactions, where first slot selects method for forming interaction matrix and second indicates rank
 #' @param b_i Sampled biomass for each observation i
 #' @param a_i Sampled area for each observation i
 #' @param c_iz Category (e.g., species, length-bin) for each observation i
@@ -52,9 +53,10 @@
 
 #' @export
 Data_Fn <-
-function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsModel_ez=c("PosDist"=1,"Link"=0), b_i, a_i, c_iz, s_i, t_iz,
-  a_xl, MeshList, GridList, Method, v_i=rep(0,length(b_i)), e_i=c_iz[,1], PredTF_i=rep(0,length(b_i)), X_xj=NULL, X_xtp=NULL, Q_ik=NULL,
-  Aniso=1, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
+function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsModel_ez=c("PosDist"=1,"Link"=0), VamConfig=c("Method"=0,"Rank"=0,"Timing"=0),
+  b_i, a_i, c_iz, s_i, t_iz, a_xl, MeshList, GridList, Method, v_i=rep(0,length(b_i)), e_i=c_iz[,1],
+  PredTF_i=rep(0,length(b_i)), X_xj=NULL, X_xtp=NULL, Q_ik=NULL, Aniso=1,
+  RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
   Options=c('SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_proportion'=0) ){
 
   # Specify default values for `Options`
@@ -200,7 +202,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
       stop("Can't have observations assigned to more than one category prior to version 4.0.0")
     }
   }
-  if( RhoConfig[["Beta1"]]==3 | RhoConfig[["Beta2"]]==3 ){
+  if( any(RhoConfig[1:2]==3) ){
     if( Version%in%c("VAST_v4_1_0","VAST_v4_0_0","VAST_v3_0_0","VAST_v2_8_0","VAST_v2_7_0","VAST_v2_6_0","VAST_v2_5_0","VAST_v2_4_0","VAST_v2_3_0","VAST_v2_2_0","VAST_v2_1_0","VAST_v2_0_0","VAST_v1_9_0","VAST_v1_8_0","VAST_v1_7_0","VAST_v1_6_0","VAST_v1_5_0","VAST_v1_4_0","VAST_v1_3_0","VAST_v1_2_0","VAST_v1_1_0","VAST_v1_0_0") ){
       stop("There was bug in specifying fixed intercepts among years for versions prior to V4.2.0")
     }
@@ -212,9 +214,31 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   }
 
 
-  # Check for incompatible settings
-  if( ncol(t_iz)>=2 & ( RhoConfig[["Beta1"]]!=0 | RhoConfig[["Beta2"]]!=0 ) ){
+  ### Check for incompatible settings
+  # Seasonal models and intercepts
+  if( ncol(t_iz)>=2 & any(RhoConfig[1:2]!=0) ){
     stop("Temporal structure on intercepts is not implemented for seasonal models")
+  }
+  if( (FieldConfig_input[2]==(-1) & RhoConfig[3]!=0) | (FieldConfig_input[4]==(-1) & RhoConfig[4]!=0) ){
+    stop("Spatio-temporal variation is turned off for a component with temporal structure, and this combination doesn't make sense")
+  }
+  # Interactions
+  if( VamConfig[1]!=0 ){
+    if( any(ObsModel_ez[,2]!=1) ){
+      stop("Must use Poisson-link delta model when estimating interactions")
+    }
+    if( any(RhoConfig[1:2]!=3) ){
+      #stop("Must use constant intercepts when estimating interactions")
+    }
+    if( !(FieldConfig_input[2] %in% c(-2,-1,0,n_c)) & VamConfig[3]==1 ){
+      stop("Spatio-temporal variation must either have full rank covariance or be turned off or IID for the 1st linear predictor for when using interactions and when VamConfig[`Timing`]==1")
+    }
+    if( VamConfig[2]>n_c | VamConfig[2]<0 ){
+      stop("Rank for interactions must be an integer between 0 and `n_c`, inclusive")
+    }
+    if( VamConfig[2]==FieldConfig_input[2] & any(RhoConfig[3:4]!=0) ){
+      stop("Can't simultaneously identify full-rank interactions and temporal correlation on spatio-temporal components")
+    }
   }
 
   # switch defaults if necessary
@@ -226,6 +250,10 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     Aniso = 0
     message("Using spherical projection for SPDE approximation, so switching to Aniso=0")
   }
+  if( VamConfig[2]==0 & VamConfig[1]!=0 ){
+    VamConfig[1] = 0
+    message("Using interactions with no interactions (`VamConfig[2]==0`), so turning off interactions (`VamConfig[1]=0`)")
+  }
 
   # Warning messages
   if( n_c>1 & any(FieldConfig_input==1)){
@@ -234,7 +262,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
 
   # Output tagged list
   # CMP_xmax should be >100 and CMP_breakpoint should be 1 for Tweedie model
-  Options_vec = c("Aniso"=Aniso, "R2_interpretation"=0, "Rho_beta1_TF"=ifelse(RhoConfig[["Beta1"]]%in%c(1,2,4),1,0), "Rho_beta2_TF"=ifelse(RhoConfig[["Beta2"]]%in%c(1,2,4),1,0), "AreaAbundanceCurveTF"=0, "CMP_xmax"=200, "CMP_breakpoint"=1, "Method"=switch(Method,"Mesh"=0,"Grid"=1,"Spherical_mesh"=0) )
+  Options_vec = c("Aniso"=Aniso, "R2_interpretation"=0, "Rho_beta1_TF"=ifelse(RhoConfig[1]%in%c(1,2,4),1,0), "Rho_beta2_TF"=ifelse(RhoConfig[2]%in%c(1,2,4),1,0), "AreaAbundanceCurveTF"=0, "CMP_xmax"=200, "CMP_breakpoint"=1, "Method"=switch(Method,"Mesh"=0,"Grid"=1,"Spherical_mesh"=0) )
   if(Version%in%c("VAST_v1_1_0","VAST_v1_0_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=t_iz[,1]-min(t_iz[,1]), "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
@@ -264,6 +292,9 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   }
   if(Version%in%c("VAST_v4_4_0","VAST_v4_3_0","VAST_v4_2_0","VAST_v4_1_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=t_iz-min(t_iz,na.rm=TRUE), "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+  }
+  if(Version%in%c("VAST_v5_0_0")){
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=t_iz-min(t_iz,na.rm=TRUE), "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if( "spde" %in% names(Return) ) Return[['spde']] = MeshList$isotropic_spde$param.inla[c("M0","M1","M2")]
   if( "spde_aniso" %in% names(Return) ) Return[['spde_aniso']] = list("n_s"=MeshList$anisotropic_spde$n.spde, "n_tri"=nrow(MeshList$anisotropic_mesh$graph$tv), "Tri_Area"=MeshList$Tri_Area, "E0"=MeshList$E0, "E1"=MeshList$E1, "E2"=MeshList$E2, "TV"=MeshList$TV-1, "G0"=MeshList$anisotropic_spde$param.inla$M0, "G0_inv"=INLA::inla.as.dgTMatrix(solve(MeshList$anisotropic_spde$param.inla$M0)) )
