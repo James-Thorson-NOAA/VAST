@@ -189,7 +189,8 @@ matrix<Type> gmrf_by_category_nll( int n_f, int method, int timing, int n_s, int
       // Calculate likelihood
       matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
       Cov_cc = L_cf * L_cf.transpose();
-      jnll_pointer += SCALE(SEPARABLE(MVNORM(Cov_cc), gmrf_Q), exp(-logtau))( diff_gmrf_sc );
+      jnll_pointer += SEPARABLE(MVNORM(Cov_cc), gmrf_Q)( diff_gmrf_sc );
+      gmrf_sc = gmrf_sc / exp(logtau);
       // Simulate new values when using obj.simulate()
       if(isDouble<Type>::value && of->do_simulate) {
         SEPARABLE(MVNORM(Cov_cc), gmrf_Q).simulate( diff_gmrf_sc );
