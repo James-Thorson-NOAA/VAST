@@ -525,6 +525,29 @@ Type objective_function<Type>::operator() ()
   // Calculate joint likelihood
   ////////////////////////
 
+  // Define interaction matrix for Epsilon1
+  int n_f;
+  n_f = Epsiloninput1_sft.col(0).cols();
+  matrix<Type> B_ff( n_f, n_f );
+  B_ff = calculate_B( VamConfig(0), n_f, VamConfig(1), Chi_fr, Psi_fr );
+  // Calculate interaction matrix B_cc for categories if feasible
+  if( n_c==n_f ){
+    matrix<Type> B_cc( n_c, n_c );
+    B_cc = B_ff;
+    for( int c=0; c<n_c; c++ ){
+      B_cc(c,c) += Epsilon_rho1;
+    }
+    // If Timing=0, transform from interaction among factors to interaction among categories
+    if( VamConfig(2)==0 ){
+      matrix<Type> L_cf = loadings_matrix( L_epsilon1_z, n_c, n_f );
+      matrix<Type> Btemp_cc( n_c, n_c );
+      Btemp_cc = L_cf * B_cc;
+      B_cc = Btemp_cc * L_cf.inverse();
+    }
+    REPORT( B_cc );
+    ADREPORT( B_cc );
+  }
+
   // Random field probability
   Eigen::SparseMatrix<Type> Q1( n_s, n_s );
   Eigen::SparseMatrix<Type> Q2( n_s, n_s );
@@ -548,7 +571,6 @@ Type objective_function<Type>::operator() ()
   // Probability of encounter
   gmrf_Q = GMRF( Q1, bool(Options(9)) );
   // Omega1
-  int n_f;
   n_f = Omegainput1_sf.cols();
   array<Type> Omegamean1_sf(n_s, n_f);
   Omegamean1_sf.setZero();
@@ -557,9 +579,6 @@ Type objective_function<Type>::operator() ()
   // Epsilon1
   n_f = Epsiloninput1_sft.col(0).cols();
   array<Type> Epsilonmean1_sf(n_s, n_f);
-  // Define interaction matrix for Epsilon1
-  matrix<Type> B_ff( n_f, n_f );
-  B_ff = calculate_B( VamConfig(0), n_f, VamConfig(1), Chi_fr, Psi_fr );
   // PDF for Epsilon1
   array<Type> Epsilon1_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
