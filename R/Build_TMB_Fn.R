@@ -130,8 +130,8 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   
   # Declare upper and lower bounds for parameter search
   Bounds = matrix( NA, ncol=2, nrow=length(Obj$par), dimnames=list(names(Obj$par),c("Lower","Upper")) )
-  Bounds[,'Lower'] = rep(-50, length(Obj$par))
-  Bounds[,'Upper'] = rep( 50, length(Obj$par))
+  Bounds[,'Lower'] = rep(-Inf, length(Obj$par))
+  Bounds[,'Upper'] = rep( Inf, length(Obj$par))
   Bounds[grep("SigmaM",names(Obj$par)),'Upper'] = 10 # ZINB can crash if it gets > 20
   if( any(TmbData$ObsModel_ez[1,]==8) ) Bounds[grep("SigmaM",names(Obj$par)),'Upper'] = 3 # Tweedie can crash if logSigmaM gets too high
   if( !is.null(loc_x) && !is.na(TmbData$Options_vec['Method']) && TmbData$Options_vec['Method']==0 && Method!="Spherical_mesh" ){

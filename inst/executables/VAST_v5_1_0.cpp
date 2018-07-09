@@ -532,6 +532,8 @@ Type objective_function<Type>::operator() ()
   B_ff = calculate_B( VamConfig(0), n_f, VamConfig(1), Chi_fr, Psi_fr );
   // Calculate interaction matrix B_cc for categories if feasible
   if( n_c==n_f ){
+    matrix<Type> L_epsilon1_cf = loadings_matrix( L_epsilon1_z, n_c, n_f );
+    // Assemble interaction matrix
     matrix<Type> B_cc( n_c, n_c );
     B_cc = B_ff;
     for( int c=0; c<n_c; c++ ){
@@ -539,7 +541,6 @@ Type objective_function<Type>::operator() ()
     }
     // If Timing=0, transform from interaction among factors to interaction among categories
     if( VamConfig(2)==0 ){
-      matrix<Type> L_epsilon1_cf = loadings_matrix( L_epsilon1_z, n_c, n_f );
       matrix<Type> Btemp_cc( n_c, n_c );
       Btemp_cc = L_epsilon1_cf * B_cc;
       B_cc = Btemp_cc * L_epsilon1_cf.inverse();
