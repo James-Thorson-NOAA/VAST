@@ -97,6 +97,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
 
   # Bundle for debugging
   #Save = list("Map"=Map, "Data"=TmbData, "Parameters"=Parameters, "Random"=Random)
+  #return(Save)
   #on.exit( return(Save) )
   #save(Save, file=paste0(RunDir,"/Save.RData"))
 
@@ -106,7 +107,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   Obj$control <- list(parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 
   # Add normalization in
-  if(Version %in% c("VAST_v5_0_0","VAST_v4_4_0","VAST_v4_3_0","VAST_v4_2_0","VAST_v4_1_0") & TmbData$Options['normalize_GMRF_in_CPP']==FALSE ){
+  if(Version %in% c("VAST_v5_1_0","VAST_v5_0_0","VAST_v4_4_0","VAST_v4_3_0","VAST_v4_2_0","VAST_v4_1_0") & TmbData$Options['normalize_GMRF_in_CPP']==FALSE ){
     message("Normalizing GMRF in R using `TMB::normalize` feature")
     Obj = TMB::normalize(Obj, flag="include_data", value=FALSE)
   }
@@ -129,8 +130,8 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   
   # Declare upper and lower bounds for parameter search
   Bounds = matrix( NA, ncol=2, nrow=length(Obj$par), dimnames=list(names(Obj$par),c("Lower","Upper")) )
-  Bounds[,'Lower'] = rep(-50, length(Obj$par))
-  Bounds[,'Upper'] = rep( 50, length(Obj$par))
+  Bounds[,'Lower'] = rep(-Inf, length(Obj$par))
+  Bounds[,'Upper'] = rep( Inf, length(Obj$par))
   Bounds[grep("SigmaM",names(Obj$par)),'Upper'] = 10 # ZINB can crash if it gets > 20
   if( any(TmbData$ObsModel_ez[1,]==8) ) Bounds[grep("SigmaM",names(Obj$par)),'Upper'] = 3 # Tweedie can crash if logSigmaM gets too high
   if( !is.null(loc_x) && !is.na(TmbData$Options_vec['Method']) && TmbData$Options_vec['Method']==0 && Method!="Spherical_mesh" ){
