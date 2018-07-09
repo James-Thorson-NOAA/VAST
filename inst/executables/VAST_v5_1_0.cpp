@@ -539,12 +539,13 @@ Type objective_function<Type>::operator() ()
     }
     // If Timing=0, transform from interaction among factors to interaction among categories
     if( VamConfig(2)==0 ){
-      matrix<Type> L_cf = loadings_matrix( L_epsilon1_z, n_c, n_f );
+      matrix<Type> L_epsilon1_cf = loadings_matrix( L_epsilon1_z, n_c, n_f );
       matrix<Type> Btemp_cc( n_c, n_c );
-      Btemp_cc = L_cf * B_cc;
-      B_cc = Btemp_cc * L_cf.inverse();
+      Btemp_cc = L_epsilon1_cf * B_cc;
+      B_cc = Btemp_cc * L_epsilon1_cf.inverse();
     }
     REPORT( B_cc );
+    REPORT( L_epsilon1_cf );
     ADREPORT( B_cc );
   }
 
@@ -713,6 +714,7 @@ Type objective_function<Type>::operator() ()
   // ObsModel_ez(e,0) = 5 (ZINB):  phi = 1-ZeroInflation_prob -> Pr[D=0] = NB(0|mu,var)*phi + (1-phi) -> Pr[D>0] = phi - NB(0|mu,var)*phi
   vector<Type> R1_i(n_i);   
   vector<Type> log_one_minus_R1_i(n_i);
+  vector<Type> log_R1_i(n_i);
   vector<Type> LogProb1_i(n_i);
   // Linear predictor (pre-link) for positive component
   matrix<Type> P2_iz(n_i,c_iz.row(0).size());
@@ -770,8 +772,9 @@ Type objective_function<Type>::operator() ()
         }
         R1_i(i) = Type(1.0) - exp( -1*a_i(i)*tmp_calc1 );
         R2_i(i) = a_i(i) * tmp_calc2 / R1_i(i);
-        // log_one_minus_R1_i is useful to prevent numerical underflow e.g., for 1 - exp(-40)
+        // Calulate in logspace to prevent numerical over/under-flow
         log_one_minus_R1_i(i) = -1*a_i(i)*tmp_calc1;
+        log_R1_i(i) = logspace_sub( log(Type(1.0)), -1*a_i(i)*tmp_calc1 );
       }
       if( ObsModel_ez(c_iz(i,0),1)==2 ){
         // Tweedie link, where area-swept affects numbers density exp(P1_i(i))
@@ -783,11 +786,15 @@ Type objective_function<Type>::operator() ()
       // Likelihood for delta-models with continuous positive support
       if( (ObsModel_ez(e_i(i),0)==0) | (ObsModel_ez(e_i(i),0)==1) | (ObsModel_ez(e_i(i),0)==2) ){
         // Presence-absence likelihood
-        if( b_i(i) > 0 ){
-          LogProb1_i(i) = log( R1_i(i) );
-        }else{
-          if( ObsModel_ez(e_i(i),1)==1 ){
+        if( ObsModel_ez(e_i(i),1)==1 ){
+          if( b_i(i) > 0 ){
+            LogProb1_i(i) = log_R1_i(i);
+          }else{
             LogProb1_i(i) = log_one_minus_R1_i(i);
+          }
+        }else{
+          if( b_i(i) > 0 ){
+            LogProb1_i(i) = log( R1_i(i) );
           }else{
             LogProb1_i(i) = log( 1-R1_i(i) );
           }
