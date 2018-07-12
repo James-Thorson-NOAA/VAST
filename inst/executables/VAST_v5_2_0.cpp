@@ -530,14 +530,14 @@ Type objective_function<Type>::operator() ()
   // Define interaction matrix for Epsilon1, and also the imapct of F_ct on intercepts
   int n_f;
   n_f = Epsiloninput1_sft.col(0).cols();
-  matrix<Type> B_ff( n_f, n_f );
+  matrix<Type> B_ff( n_f, n_f );          // Interactions among factors
   B_ff = calculate_B( VamConfig(0), n_f, VamConfig(1), Chi_fr, Psi_fr );
-  matrix<Type> iota_ct( n_c, n_t );
+  matrix<Type> iota_ct( n_c, n_t );       // Cumulative impact of fishing mortality F_ct in years <= current year t
   // Calculate interaction matrix B_cc for categories if feasible
   if( n_c==n_f ){
     matrix<Type> L_epsilon1_cf = loadings_matrix( L_epsilon1_z, n_c, n_f );
     // Assemble interaction matrix
-    matrix<Type> B_cc( n_c, n_c );
+    matrix<Type> B_cc( n_c, n_c );        // Interactions among categories
     B_cc = B_ff;
     for( int c=0; c<n_c; c++ ){
       B_cc(c,c) += Epsilon_rho1;
@@ -553,7 +553,7 @@ Type objective_function<Type>::operator() ()
     ADREPORT( B_cc );
     // Define impact of F_ct on intercepts
     if( Options_vec(8)==1 ){
-      iota_ct.col(0) = F_ct.col(0)
+      iota_ct.col(0) = F_ct.col(0);
       for( int t=1; t<n_t; t++ ){
         iota_ct.col(t) = B_cc * iota_ct.col(t-1) + iota_ct.col(t);
       }
@@ -1377,6 +1377,7 @@ Type objective_function<Type>::operator() ()
   REPORT( eta2_vf );
   REPORT( zeta1_i );
   REPORT( zeta2_i );
+  REPORT( iota_ct );
 
   REPORT( SigmaM );
   REPORT( Index_cyl );

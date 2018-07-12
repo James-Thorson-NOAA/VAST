@@ -6,14 +6,14 @@
 \usage{
 Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
   ObsModel_ez = c(PosDist = 1, Link = 0), VamConfig = c(Method = 0, Rank =
-  0), b_i, a_i, c_iz, s_i, t_iz, a_xl, MeshList, GridList, Method,
+  0, Timing = 0), b_i, a_i, c_iz, s_i, t_iz, a_xl, MeshList, GridList, Method,
   v_i = rep(0, length(b_i)), e_i = c_iz[, 1], PredTF_i = rep(0,
   length(b_i)), X_xj = NULL, X_xtp = NULL, Q_ik = NULL, Aniso = 1,
-  RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
-  t_yz = NULL, CheckForErrors = TRUE, yearbounds_zz = NULL,
-  Options = c(SD_site_logdensity = 0, Calculate_Range = 0,
-  Calculate_effective_area = 0, Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
-  Calculate_proportion = 0))
+  Network_sz = NULL, F_ct = NULL, RhoConfig = c(Beta1 = 0, Beta2 = 0,
+  Epsilon1 = 0, Epsilon2 = 0), t_yz = NULL, CheckForErrors = TRUE,
+  yearbounds_zz = NULL, Options = c(SD_site_logdensity = 0, Calculate_Range
+  = 0, Calculate_effective_area = 0, Calculate_Cov_SE = 0, Calculate_Synchrony =
+  0, Calculate_proportion = 0))
 }
 \arguments{
 \item{Version}{a version number (see example for current default).}
@@ -76,6 +76,8 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
 \item{Q_ik}{OPTIONAL, matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i}
 
 \item{Aniso}{OPTIONAL, whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)}
+
+\item{F_ct}{OPTIONAL, matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)}
 
 \item{RhoConfig}{OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)}
 
