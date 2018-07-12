@@ -249,6 +249,9 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   }else{
     Network_sz = matrix( c(1,1,1), nrow=1, dimnames=list(NULL,c("parent_s","child_s","dist_s")) )
   }
+  if( RhoConfig[1]!=0 & ObsModel[2]==3 ){
+    stop( "RhoConfig[1] must be 0 when using ObsModel[2]=3:  Other options are not coded to work together" )
+  }
 
   # switch defaults if necessary
   if( Method=="Grid" ){
