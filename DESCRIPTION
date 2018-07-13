@@ -33,8 +33,7 @@ Imports:
     MatrixModels,  
     ThorsonUtilities,
     TMBhelper,
-    SpatialDFA,
-    SpatialDeltaGLMM
+    SpatialDFA
 Depends:
     R (>= 3.1.0),
     FishStatsUtils
@@ -45,7 +44,6 @@ Suggests:
     R.rsp
 Remotes:
     james-thorson/FishStatsUtils,
-    nwfsc-assess/geostatistical_delta-GLMM,
     james-thorson/spatial_DFA,
     james-thorson/utilities,
     kaskr/TMB_contrib_R/TMBhelper
