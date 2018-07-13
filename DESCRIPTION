@@ -31,6 +31,7 @@ Imports:
     TMB,
     abind,
     MatrixModels,  
+    FishStatsUtils,
     ThorsonUtilities,
     TMBhelper,
     SpatialDFA,
@@ -43,6 +44,7 @@ Suggests:
     rmarkdown,
     R.rsp
 Remotes:
+    james-thorson/FishStatsUtils,
     nwfsc-assess/geostatistical_delta-GLMM,
     james-thorson/spatial_DFA,
     james-thorson/utilities,
