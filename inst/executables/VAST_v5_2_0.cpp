@@ -552,13 +552,27 @@ Type objective_function<Type>::operator() ()
     REPORT( L_epsilon1_cf );
     ADREPORT( B_cc );
     // Define impact of F_ct on intercepts
-    if( Options_vec(8)==1 ){
-      iota_ct.col(0) = F_ct.col(0);
-      for( int t=1; t<n_t; t++ ){
-        iota_ct.col(t) = B_cc * iota_ct.col(t-1) + iota_ct.col(t);
-      }
-    }else{
+    if( Options_vec(8)==0 ){
       iota_ct.setZero();
+    }else{
+      // Use F_ct in first year as initial condition
+      if( Options_vec(8)==1 ){
+        iota_ct.col(0) = -1 * F_ct.col(0);
+      }
+      // Use median of stationary distribution given F_ct in first year as initial condition
+      if( Options_vec(8)==2 ){
+        vector<Type> iota0_c( n_c );
+        matrix<Type> I_cc( n_c, n_c );
+        matrix<Type> sumF_cc( n_c, n_c );
+        I_cc.setIdentity();
+        I_cc = I_cc - B_cc;
+        sumF_cc = I_cc.inverse();
+        iota_ct.col(0) -= sumF_cc * F_ct.col(0);
+        REPORT( sumF_cc );
+      }
+      for( int t=1; t<n_t; t++ ){
+        iota_ct.col(t) = B_cc * iota_ct.col(t-1) - F_ct.col(t);
+      }
     }
   }else{
     iota_ct.setZero();
