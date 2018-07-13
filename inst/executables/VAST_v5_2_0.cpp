@@ -261,7 +261,7 @@ Type dPoisGam( Type x, Type shape, Type scale, Type intensity, vector<Type> &dia
   if(give_log) return loglike; else return exp(loglike);
 }
 
-// Calculate B_pp
+// Calculate B_cc
 template<class Type>
 matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, matrix<Type> Psi_fr ){
   matrix<Type> B_ff( n_f, n_f );
