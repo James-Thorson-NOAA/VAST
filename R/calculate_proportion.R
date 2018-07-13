@@ -4,8 +4,8 @@
 #'
 #' \code{calculate_proportion} takes output from a VAST run and calculates the proportion of biomass in different categories
 #'
-#' @param Index output from \code{SpatialDeltaGLMM::PlotIndex_Fn}
-#' @inheritParams SpatialDeltaGLMM::PlotIndex_Fn
+#' @param Index output from \code{FishStatsUtils::PlotIndex_Fn}
+#' @inheritParams FishStatsUtils::PlotIndex_Fn
 #' @param ... list of settings to pass to \code{sdreport}
 #'
 #' @return Tagged list of output
@@ -62,7 +62,7 @@ calculate_proportion = function( TmbData, Index, Year_Set=NULL, Years2Include=NU
       # Plot stuff
       plot(1, type="n", xlim=range(category_names), ylim=1.05*Ylim, xlab="", ylab="", main=ifelse(TmbData$n_t>1,paste0("Year ",Year_Set[tI]),"") )
       for(l in 1:TmbData$n_l){
-        SpatialDeltaGLMM:::Plot_Points_and_Bounds_Fn( y=Prop_ctl[,tI,l], x=1:TmbData$n_c+seq(-0.1,0.1,length=TmbData$n_l)[l], ybounds=Prop_ctl[,tI,]%o%c(1,1) + sqrt(var_Prop_ctl[,tI,])%o%c(-interval_width,interval_width), type="b", col=rainbow(TmbData[['n_l']])[l], col_bounds=rainbow(TmbData[['n_l']])[l], ylim=Ylim)
+        FishStatsUtils::Plot_Points_and_Bounds_Fn( y=Prop_ctl[,tI,l], x=1:TmbData$n_c+seq(-0.1,0.1,length=TmbData$n_l)[l], ybounds=Prop_ctl[,tI,]%o%c(1,1) + sqrt(var_Prop_ctl[,tI,])%o%c(-interval_width,interval_width), type="b", col=rainbow(TmbData[['n_l']])[l], col_bounds=rainbow(TmbData[['n_l']])[l], ylim=Ylim)
       }
       if(plot_legend==TRUE) legend( "top", bty="n", fill=rainbow(TmbData[['n_l']]), legend=as.character(strata_names), ncol=2 )
     }

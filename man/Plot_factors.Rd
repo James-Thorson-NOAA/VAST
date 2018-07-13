@@ -22,7 +22,7 @@ Plot_factors(Report, ParHat, Data, SD, Year_Set = NULL,
 
 \item{category_names}{character-vector listing name for each category}
 
-\item{mapdetails_list}{output from \code{SpatialDeltaGLMM::MapDetails_Fn}}
+\item{mapdetails_list}{output from \code{FishStatsUtils::MapDetails_Fn}}
 
 \item{Dim_year}{Plotting dimension (row,column) for plot of years (default: square with sufficient size for number of years)}
 

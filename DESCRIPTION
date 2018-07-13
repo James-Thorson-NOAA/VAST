@@ -32,8 +32,7 @@ Imports:
     abind,
     MatrixModels,  
     ThorsonUtilities,
-    TMBhelper,
-    SpatialDFA
+    TMBhelper
 Depends:
     R (>= 3.1.0),
     FishStatsUtils
@@ -44,7 +43,6 @@ Suggests:
     R.rsp
 Remotes:
     james-thorson/FishStatsUtils,
-    james-thorson/spatial_DFA,
     james-thorson/utilities,
     kaskr/TMB_contrib_R/TMBhelper
 License: GPL-3
