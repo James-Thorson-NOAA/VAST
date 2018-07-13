@@ -263,7 +263,7 @@ Type dPoisGam( Type x, Type shape, Type scale, Type intensity, vector<Type> &dia
 
 // Calculate B_cc
 template<class Type>
-matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, matrix<Type> Psi_fr ){
+matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, matrix<Type> Psi_fr, Type &jnll_pointer ){
   matrix<Type> B_ff( n_f, n_f );
   matrix<Type> BplusI_ff( n_f, n_f );
   matrix<Type> Chi_rf = Chi_fr.transpose();
@@ -317,7 +317,7 @@ matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, mat
     B_ff = B_ff * trans_invPsi_ff;
     B_ff = B_ff * invChi_ff;
     // Penalize colnorm_r
-    //if( Options_vec(0)==3 ) jnll_comp(3) += PenMult_z(1) * ( log(colnorm_r)*log(colnorm_r) ).sum();
+    jnll_pointer += ( log(colnorm_r)*log(colnorm_r) ).sum();
   }
   // Complex bounded eigenvalues
   if( method==3 ){
@@ -336,7 +336,7 @@ matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, mat
     // Rescale interaction matrix
     BplusI_ff = BplusI_ff / MaxEigen;
     B_ff = BplusI_ff - Identity_ff;
-    //jnll_comp(3) += PenMult_z(0) * CppAD::CondExpGe( MaxEigen, Type(1.0), pow(MaxEigen-Type(1.0),2), Type(0.0) );
+    jnll_pointer += CppAD::CondExpGe( MaxEigen, Type(1.0), pow(MaxEigen-Type(1.0),2), Type(0.0) );
   }
   return B_ff;
 }
@@ -488,7 +488,7 @@ Type objective_function<Type>::operator() ()
   int i,t,c;
   
   // Objective function
-  vector<Type> jnll_comp(13);
+  vector<Type> jnll_comp(14);
   // Slot 0 -- spatial, encounter
   // Slot 1 -- spatio-temporal, encounter
   // Slot 2 -- spatial, positive catch
@@ -500,6 +500,7 @@ Type objective_function<Type>::operator() ()
   // Slot 10 -- likelihood of data, encounter
   // Slot 11 -- likelihood of data, positive catch
   // Slot 12 -- Likelihood of Lognormal-Poisson overdispersion delta_i
+  // Slot 13 -- penalty on estimate_B structure
   jnll_comp.setZero();
   Type jnll = 0;                
 
@@ -531,7 +532,7 @@ Type objective_function<Type>::operator() ()
   int n_f;
   n_f = Epsiloninput1_sft.col(0).cols();
   matrix<Type> B_ff( n_f, n_f );          // Interactions among factors
-  B_ff = calculate_B( VamConfig(0), n_f, VamConfig(1), Chi_fr, Psi_fr );
+  B_ff = calculate_B( VamConfig(0), n_f, VamConfig(1), Chi_fr, Psi_fr, jnll_comp(13) );
   matrix<Type> iota_ct( n_c, n_t );       // Cumulative impact of fishing mortality F_ct in years <= current year t
   // Calculate interaction matrix B_cc for categories if feasible
   if( n_c==n_f ){
