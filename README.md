@@ -80,6 +80,9 @@ Description of individual features
 ### Index of abundance
 * Thorson, J.T., Shelton, A.O., Ward, E.J., Skaug, H.J., 2015. Geostatistical delta-generalized linear mixed models improve precision for estimated abundance indices for West Coast groundfishes. ICES J. Mar. Sci. J. Cons. 72(5), 1297–1310. doi:10.1093/icesjms/fsu243. URL: http://icesjms.oxfordjournals.org/content/72/5/1297
 
+### Standardizing samples of size/age-composition data
+* Thorson, J. T., and Haltuch, M. A. 2018. Spatio-temporal analysis of compositional data: increased precision and improved workflow using model-based inputs to stock assessment. Canadian Journal of Fisheries and Aquatic Sciences. doi:10.1139/cjfas-2018-0015. URL: http://www.nrcresearchpress.com/doi/abs/10.1139/cjfas-2018-0015#.W0oloTpKiUk
+
 ### Range shift metrics
 * Thorson, J.T., Pinsky, M.L., Ward, E.J., 2016. Model-based inference for estimating shifts in species distribution, area occupied, and center of gravity. Methods Ecol. Evol. 7(8), 990-1008.  doi:10.1111/2041-210X.12567.  URL: http://onlinelibrary.wiley.com/doi/10.1111/2041-210X.12567/full
 
@@ -104,11 +107,22 @@ Description of individual features
 ### Bias-correction of estimated indices of abundance
 * Thorson, J.T., and Kristensen, K. 2016. Implementing a generic method for bias correction in statistical models using random effects, with spatial and population dynamics examples. Fish. Res. 175: 66–74. doi:10.1016/j.fishres.2015.11.016. url: http://www.sciencedirect.com/science/article/pii/S0165783615301399
 
+### Estimating and attributing variation in size-structured distribution
+* Kai, M., Thorson, J. T., Piner, K. R., and Maunder, M. N. 2017. Spatio-temporal variation in size-structured populations using fishery data: an application to shortfin mako (Isurus oxyrinchus) in the Pacific Ocean. Canadian Journal of Fisheries and Aquatic Sciences. doi:10.1139/cjfas-2016-0327. URL: http://www.nrcresearchpress.com/doi/abs/10.1139/cjfas-2016-0327#.W0olqjpKiUk.
+* Thorson, J. T., Ianelli, J. N., and Kotwicki, S. 2018. The relative influence of temperature and size-structure on fish distribution shifts: A case-study on Walleye pollock in the Bering Sea. Fish and Fisheries. doi:10.1111/faf.12225. URL: https://onlinelibrary.wiley.com/doi/abs/10.1111/faf.12225.
+
+
+### Estimating fishing impacts using spatial surplus production modelling
+* Thorson, J. T., Jannot, J., and Somers, K. 2017. Using spatio-temporal models of population growth and movement to monitor overlap between human impacts and fish populations. Journal of Applied Ecology, 54: 577–587.doi:10.1111/1365-2664.12664. URL: https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/1365-2664.12664
+
+### Estimating species interactions using multispecies Gompertz model
+* Thorson, J. T., Munch, S. B., and Swain, D. P. 2017. Estimating partial regulation in spatiotemporal models of community dynamics. Ecology, 98: 1277–1289. doi:10.1002/ecy.1760. URL: https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1002/ecy.1760
+
 Funding and support for the tool
 =============
 * Ongoing:  Support from Fisheries Resource Analysis and Monitoring Division (FRAM), Northwest Fisheries Science Center, National Marine Fisheries Service, NOAA
 * Ongoing:  Support from Danish Technical University (in particular Kasper Kristensen) for  development of Template Model Builder software, URL: https://www.jstatsoft.org/article/view/v070i05
 * Generous support from people knowledgeable about each region and survey! Specific contributions are listed [here](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/blob/master/shiny/Acknowledgements_for_regional_inputs.csv).  
-* 2015.  Thorson, J., Ianelli, J., and O’Brien, L.  Distribution and application of a new geostatistical index standardization and habitat modeling tool for stock assessments and essential fish habitat designation in Alaska and Northwest Atlantic regions.  Habitat Assessment Improvement Plan 2014 RFP.  URL: https://www.st.nmfs.noaa.gov/ecosystems/habitat/funding/projects/project15-027
+* Thorson, J., Ianelli, J., and O’Brien, L.  2015.  Distribution and application of a new geostatistical index standardization and habitat modeling tool for stock assessments and essential fish habitat designation in Alaska and Northwest Atlantic regions.  Habitat Assessment Improvement Plan 2014 RFP.  URL: https://www.st.nmfs.noaa.gov/ecosystems/habitat/funding/projects/project15-027
 
 
