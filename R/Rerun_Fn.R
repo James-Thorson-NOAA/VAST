@@ -40,6 +40,7 @@ Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat[[
 
     return( COG_t )
   }
+
   # Local function -- plot density maps
   plot_density = function( Report, MapDetails_List, type, year_set, c_set ){
     if("D_xct" %in% names(Report)) D_xcy = Report$D_xct
@@ -101,12 +102,12 @@ Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat[[
   }
 
   # Plot
-  if( !is.null(figname) & !is.null(MapDetails_List) ){
-    message( "Starting plot for counter-factual run" )
-    ThorsonUtilities::save_fig( file=figname, width=8, height=12, type="pdf", onefile=TRUE )
-      plot_density( Report=Report, MapDetails_List=MapDetails_List, type="year", year_set=Year_Set, c_set=c_set )
-    dev.off()
-  }
+  #if( !is.null(figname) & !is.null(MapDetails_List) ){
+  #  message( "Starting plot for counter-factual run" )
+  #  ThorsonUtilities::save_fig( file=figname, width=8, height=12, type="pdf", onefile=TRUE )
+  #    plot_density( Report=Report, MapDetails_List=MapDetails_List, type="year", year_set=Year_Set, c_set=c_set )
+  #  dev.off()
+  #}
 
   # Return
   return( Return )
