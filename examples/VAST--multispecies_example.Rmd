@@ -162,14 +162,14 @@ pander::pandoc.table( tail(Data_Geostat), digits=3 )
 
 We also generate the extrapolation grid appropriate for a given region.  For new regions, we use `Region="Other"`.
 ```{r extrapolation_grid, message=FALSE, tidy=TRUE, linewidth=60}
-Extrapolation_List = Prepare_Extrapolation_Data_Fn( Region=Region, strata.limits=strata.limits )
+Extrapolation_List = make_extrapolation_info( Region=Region, strata.limits=strata.limits )
 ```
 
 ## Derived objects for spatio-temporal estimation
 
 And we finally generate the information used for conducting spatio-temporal parameter estimation, bundled in list `Spatial_List`
 ```{r spatial_information, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=60}
-Spatial_List = Spatial_Information_Fn( grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, DirPath=DateFile, Save_Results=FALSE )
+Spatial_List = make_spatial_info( grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, DirPath=DateFile, Save_Results=FALSE )
 # Add knots to Data_Geostat
 Data_Geostat = cbind( Data_Geostat, "knot_i"=Spatial_List$knot_i )
 ```
@@ -211,7 +211,7 @@ We first apply a set of standard model diagnostics to confirm that the model is 
 
 It is always good practice to conduct exploratory analysis of data.  Here, I visualize the spatial distribution of data.  Spatio-temporal models involve the assumption that the probability of sampling a given location is statistically independent of the probability distribution for the response at that location.  So if sampling "follows" changes in density, then the model is probably not appropriate!
 ```{r explore_data, results="hide", tidy=TRUE, message=FALSE, warning=FALSE}
-Plot_data_and_knots(Extrapolation_List=Extrapolation_List, Spatial_List=Spatial_List, Data_Geostat=Data_Geostat, PlotDir=DateFile )
+plot_data(Extrapolation_List=Extrapolation_List, Spatial_List=Spatial_List, Data_Geostat=Data_Geostat, PlotDir=DateFile )
 ```
 ![Spatial extent and location of knots](VAST_output/Data_and_knots.png) 
 
@@ -227,7 +227,7 @@ pander::pandoc.table( Opt$diagnostics[,c('Param','Lower','MLE','Upper','final_gr
 
 Next, we check whether observed encounter frequencies for either low or high probability samples are within the 95% predictive interval for predicted encounter probability
 ```{r diagnostics_encounter_prob, results="hide", eval=TRUE, tidy=TRUE, linewidth=50}
-Enc_prob = Check_encounter_prob( Report=Report, Data_Geostat=Data_Geostat, DirName=DateFile)
+Enc_prob = plot_encounter_diagnostic( Report=Report, Data_Geostat=Data_Geostat, DirName=DateFile)
 ```
 ![Expectated probability and observed frequency of encounter for "encounter probability" component](VAST_output/Diag--Encounter_prob.png) 
 
@@ -235,7 +235,7 @@ Enc_prob = Check_encounter_prob( Report=Report, Data_Geostat=Data_Geostat, DirNa
 
 We can visualize fit to residuals of catch-rates given encounters using a Q-Q plot.  A good Q-Q plot will have residuals along the one-to-one line.  
 ```{r plot_QQ, eval=TRUE, tidy=TRUE, linewidth=50, message=FALSE, warning=FALSE}
-Q = QQ_Fn( TmbData=TmbData, Report=Report, FileName_PP="Posterior_Predictive",
+Q = plot_quantile_diagnostic( TmbData=TmbData, Report=Report, FileName_PP="Posterior_Predictive",
 FileName_Phist="Posterior_Predictive-Histogram", 
 FileName_QQ="Q-Q_plot", FileName_Qhist="Q-Q_hist", DateFile=DateFile) 
 ```
@@ -247,7 +247,7 @@ Finally, we visualize residuals on a map.  To do so, we first define years to pl
 useful plots by first determining which years to plot (`Years2Include`), and labels for each plotted year (`Year_Set`)
 ```{r plot_years}
 # Get region-specific settings for plots
-MapDetails_List = MapDetails_Fn( "Region"=Region, "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap, "Extrapolation_List"=Extrapolation_List )
+MapDetails_List = make_map_info( "Region"=Region, "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap, "Extrapolation_List"=Extrapolation_List )
 # Decide which years to plot                                                   
 Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
 Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
@@ -274,7 +274,7 @@ Last but not least, we generate pre-defined plots for visualizing results
 
 We can visualize which direction has faster or slower decorrelation (termed "geometric anisotropy")
 ```{r plot_aniso, message=FALSE, results="hide", tidy=TRUE}
-PlotAniso_Fn( FileName=paste0(DateFile,"Aniso.png"), Report=Report, TmbData=TmbData )
+plot_anisotropy( FileName=paste0(DateFile,"Aniso.png"), Report=Report, TmbData=TmbData )
 ```
 ![Decorrelation distance for different directions](VAST_output/Aniso.png) 
 
@@ -289,9 +289,9 @@ Cov_List = Summarize_Covariance( Report=Report, ParHat=Obj$env$parList(), Data=T
 
 ## Density surface for each year
 
-We can visualize many types of output from the model.  Here I only show predicted density, but other options are obtained via other integers passed to `plot_set` as described in `?PlotResultsOnMap_Fn`
+We can visualize many types of output from the model.  Here I only show predicted density, but other options are obtained via other integers passed to `plot_set` as described in `?plot_maps`
 ```{r plot_density, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=50}
-PlotResultsOnMap_Fn(plot_set=c(3), MappingDetails=MapDetails_List[["MappingDetails"]], Report=Report, Sdreport=Opt$SD, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=DateFile, Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], Cex=MapDetails_List[["Cex"]], Legend=MapDetails_List[["Legend"]], zone=MapDetails_List[["Zone"]], mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), cex=1.8, category_names=levels(Data_Geostat[,'spp']))
+plot_maps(plot_set=c(3), MappingDetails=MapDetails_List[["MappingDetails"]], Report=Report, Sdreport=Opt$SD, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName=DateFile, Year_Set=Year_Set, Years2Include=Years2Include, Rotate=MapDetails_List[["Rotate"]], Cex=MapDetails_List[["Cex"]], Legend=MapDetails_List[["Legend"]], zone=MapDetails_List[["Zone"]], mar=c(0,0,2,0), oma=c(3.5,3.5,0,0), cex=1.8, category_names=levels(Data_Geostat[,'spp']))
 ```
 ![Density maps for each year for arrowtooth flounder](VAST_output/Dens--Atheresthes_stomias.png) 
 
@@ -301,7 +301,7 @@ PlotResultsOnMap_Fn(plot_set=c(3), MappingDetails=MapDetails_List[["MappingDetai
 
 The index of abundance is generally most useful for stock assessment models.
 ```{r plot_index, message=FALSE, tidy=TRUE, linewidth=50, results="asis"}
-Index = PlotIndex_Fn( DirName=DateFile, TmbData=TmbData, Sdreport=Opt[["SD"]], Year_Set=Year_Set, Years2Include=Years2Include, strata_names=strata.limits[,1], use_biascorr=TRUE, category_names=levels(Data_Geostat[,'spp']) )
+Index = plot_biomass_index( DirName=DateFile, TmbData=TmbData, Sdreport=Opt[["SD"]], Year_Set=Year_Set, Years2Include=Years2Include, strata_names=strata.limits[,1], use_biascorr=TRUE, category_names=levels(Data_Geostat[,'spp']) )
 pander::pandoc.table( Index$Table[,c("Category","Year","Estimate_metric_tons","SD_mt")] ) 
 ```
 ![Index of abundance plus/minus 1 standard error](VAST_output/Index.png) 
@@ -310,7 +310,7 @@ pander::pandoc.table( Index$Table[,c("Category","Year","Estimate_metric_tons","S
 
 We can detect shifts in distribution or range expansion/contraction.  
 ```{r plot_range, message=FALSE, tidy=TRUE, linewidth=50}
-Plot_range_shifts(Report=Report, TmbData=TmbData, Sdreport=Opt[["SD"]], Znames=colnames(TmbData$Z_xm), PlotDir=DateFile, category_names=levels(Data_Geostat[,'spp']), Year_Set=Year_Set)
+plot_range_index(Report=Report, TmbData=TmbData, Sdreport=Opt[["SD"]], Znames=colnames(TmbData$Z_xm), PlotDir=DateFile, category_names=levels(Data_Geostat[,'spp']), Year_Set=Year_Set)
 ```
 ![Center of gravity (COG) indicating shifts in distribution plus/minus 1 standard error](VAST_output/center_of_gravity.png) 
 
