@@ -7,12 +7,12 @@
 calculate_proportion(TmbData, Index, Year_Set = NULL, Years2Include = NULL,
   strata_names = NULL, category_names = NULL, plot_legend = TRUE,
   DirName = paste0(getwd(), "/"), PlotName = "Proportion.png",
-  interval_width = 1, width = 4, height = 4, ...)
+  interval_width = 1, width = 6, height = 6, ...)
 }
 \arguments{
-\item{TmbData}{Formatted data inputs, from `SpatialDeltaGLMM::Data_Fn(...)`}
+\item{TmbData}{Formatted data inputs, from `VAST::Data_Fn(...)`}
 
-\item{Index}{output from \code{SpatialDeltaGLMM::PlotIndex_Fn}}
+\item{Index}{output from \code{FishStatsUtils::PlotIndex_Fn}}
 
 \item{Year_Set}{Year names for labeling panels}
 

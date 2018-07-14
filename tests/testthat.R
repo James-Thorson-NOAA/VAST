@@ -3,7 +3,7 @@ library(VAST)
 library(TMB)
 
 # Version
-Version_VAST = SpatialDeltaGLMM::get_latest_version( package="VAST" )
+Version_VAST = get_latest_version( package="VAST" )
 
 # Use "extdata" in "inst" because its loaded with R packages
 singlespecies_example_path <- system.file("extdata", package="SpatialDeltaGLMM")

@@ -10,7 +10,7 @@
 #' @param calculate_COG Boolean whether to calculate COG for each run
 #' @param figname name for figure to plot density in counter-factual scenario
 #' @inheritParams Build_TMB_Fn
-#' @param MapDetails_List output from \code{SpatialDeltaGLMM::MapDetails_Fn}
+#' @param MapDetails_List output from \code{FishStatsUtils::MapDetails_Fn}
 #' @param year_set set of parameters to include
 #' @param c_set set of categories to include
 #' @param ... additional arguments passed to \code{VAST::Build_TMB_Fn}
@@ -40,6 +40,7 @@ Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat[[
 
     return( COG_t )
   }
+
   # Local function -- plot density maps
   plot_density = function( Report, MapDetails_List, type, year_set, c_set ){
     if("D_xct" %in% names(Report)) D_xcy = Report$D_xct
@@ -49,7 +50,7 @@ Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat[[
       for( i in 1:(length(c_set)-1) ){
         Mat = log(D_xcy[,i,])
         Zlim = range( log(D_xcy[,i,]) )
-        SpatialDeltaGLMM:::PlotMap_Fn( MappingDetails=MapDetails_List[["MappingDetails"]], Mat=Mat, zlim=Zlim, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName="", Year_Set=year_set, Rescale=FALSE, Rotate=MapDetails_List[["Rotate"]], Format="", Res=NA, mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,4,0), Cex=MapDetails_List[["Cex"]], textmargin=textmargin, add=FALSE, pch=20, zone=MapDetails_List[["Zone"]] )
+        FishStatsUtils:::PlotMap_Fn( MappingDetails=MapDetails_List[["MappingDetails"]], Mat=Mat, zlim=Zlim, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName="", Year_Set=year_set, Rescale=FALSE, Rotate=MapDetails_List[["Rotate"]], Format="", Res=NA, mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,4,0), Cex=MapDetails_List[["Cex"]], textmargin=textmargin, add=FALSE, pch=20, zone=MapDetails_List[["Zone"]] )
         mtext( side=3, outer=TRUE, text=paste0("Size bounds:",c_set[i]," to ",c_set[i+1]), cex=1.5, line=1 )
       }
     }
@@ -58,7 +59,7 @@ Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat[[
       for( i in 1:length(year_set) ){
         Mat = log(D_xcy[,,i])
         Zlim = range( log(D_xcy[,,i]) )
-        SpatialDeltaGLMM:::PlotMap_Fn( MappingDetails=MapDetails_List[["MappingDetails"]], Mat=Mat, zlim=Zlim, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName="", Year_Set=c_set[-1], Rescale=FALSE, Rotate=MapDetails_List[["Rotate"]], Format="", Res=NA, mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,4,0), Cex=MapDetails_List[["Cex"]], textmargin=textmargin, add=FALSE, pch=20, zone=MapDetails_List[["Zone"]] )
+        FishStatsUtils:::PlotMap_Fn( MappingDetails=MapDetails_List[["MappingDetails"]], Mat=Mat, zlim=Zlim, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName="", Year_Set=c_set[-1], Rescale=FALSE, Rotate=MapDetails_List[["Rotate"]], Format="", Res=NA, mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,4,0), Cex=MapDetails_List[["Cex"]], textmargin=textmargin, add=FALSE, pch=20, zone=MapDetails_List[["Zone"]] )
         mtext( side=3, outer=TRUE, text=paste0("Year:",year_set[i]), cex=1.5, line=1 )
       }
     }    #
@@ -101,12 +102,12 @@ Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat[[
   }
 
   # Plot
-  if( !is.null(figname) & !is.null(MapDetails_List) ){
-    message( "Starting plot for counter-factual run" )
-    ThorsonUtilities::save_fig( file=figname, width=8, height=12, type="pdf", onefile=TRUE )
-      plot_density( Report=Report, MapDetails_List=MapDetails_List, type="year", year_set=Year_Set, c_set=c_set )
-    dev.off()
-  }
+  #if( !is.null(figname) & !is.null(MapDetails_List) ){
+  #  message( "Starting plot for counter-factual run" )
+  #  ThorsonUtilities::save_fig( file=figname, width=8, height=12, type="pdf", onefile=TRUE )
+  #    plot_density( Report=Report, MapDetails_List=MapDetails_List, type="year", year_set=Year_Set, c_set=c_set )
+  #  dev.off()
+  #}
 
   # Return
   return( Return )

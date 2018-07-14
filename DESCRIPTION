@@ -32,19 +32,17 @@ Imports:
     abind,
     MatrixModels,  
     ThorsonUtilities,
-    TMBhelper,
-    SpatialDFA,
-    SpatialDeltaGLMM
+    TMBhelper
 Depends:
     R (>= 3.1.0),
+    FishStatsUtils
 Suggests:
     testthat,
     knitr,
     rmarkdown,
     R.rsp
 Remotes:
-    nwfsc-assess/geostatistical_delta-GLMM,
-    james-thorson/spatial_DFA,
+    james-thorson/FishStatsUtils,
     james-thorson/utilities,
     kaskr/TMB_contrib_R/TMBhelper
 License: GPL-3

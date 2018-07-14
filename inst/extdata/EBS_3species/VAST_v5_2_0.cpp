@@ -1,6 +1,25 @@
 #include <TMB.hpp>
 #include <Eigen/Eigenvalues>
 
+// Needed for returning SparseMatrix
+template<class Type>
+Eigen::SparseMatrix<Type> Q_network( Type log_theta, int n_s, vector<int> parent_s, vector<int> child_s, vector<Type> dist_s ){
+  Eigen::SparseMatrix<Type> Q( n_s, n_s );
+  Type theta = exp( log_theta );
+  for(int s=0; s<n_s; s++){
+    Q.coeffRef( s, s ) = Type(1.0);
+  }
+  for(int s=1; s<parent_s.size(); s++){
+    if( exp(-dist_s(s))!=0 ){
+      Q.coeffRef( parent_s(s), child_s(s) ) = -exp(-theta*dist_s(s)) / (1-exp(-2*theta*dist_s(s)));
+      Q.coeffRef( child_s(s), parent_s(s) ) = Q.coeffRef( parent_s(s), child_s(s) );
+      Q.coeffRef( parent_s(s), parent_s(s) ) += exp(-2*theta*dist_s(s)) / (1-exp(-2*theta*dist_s(s)));
+      Q.coeffRef( child_s(s), child_s(s) ) += exp(-2*theta*dist_s(s)) / (1-exp(-2*theta*dist_s(s)));
+    }
+  }
+  return Q;
+}
+
 // Function for detecting NAs
 template<class Type>
 bool isNA(Type x){
@@ -110,6 +129,9 @@ matrix<Type> gmrf_by_category_nll( int n_f, int method, int timing, int n_s, int
   matrix<Type> Cov_cc(n_c,n_c);
   array<Type> diff_gmrf_sc(n_s, n_c); // Requires an array
   Type logtau;
+  if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
+  if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
+  if(method==2) logtau = Type(0.0);
   // IID
   if(n_f == -2){
     for( int c=0; c<n_c; c++ ){
@@ -120,8 +142,6 @@ matrix<Type> gmrf_by_category_nll( int n_f, int method, int timing, int n_s, int
         gmrf_input_sf.col(c) = gmrf_s + gmrf_mean_sf.col(c);
       }
       // Rescale
-      if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
-      if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
       gmrf_sc.col(c) = gmrf_input_sf.col(c) / exp(logtau) * L_z(c);                                // Rescaling from comp_index_v1d.cpp
     }
   }
@@ -156,8 +176,6 @@ matrix<Type> gmrf_by_category_nll( int n_f, int method, int timing, int n_s, int
       }
       // Rescale
       matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
-      if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
-      if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
       gmrf_sc = (gmrf_input_sf.matrix() * L_cf.transpose()) / exp(logtau);
     }
     // PDF if density-dependence/interactions occurs after correlated dynamics (Only makes sense if n_f == n_c)
@@ -171,8 +189,8 @@ matrix<Type> gmrf_by_category_nll( int n_f, int method, int timing, int n_s, int
       // Calculate likelihood
       matrix<Type> L_cf = loadings_matrix( L_z, n_c, n_f );
       Cov_cc = L_cf * L_cf.transpose();
-      jnll_pointer += SEPARABLE(MVNORM(Cov_cc), gmrf_Q)( diff_gmrf_sc );
-      gmrf_sc = gmrf_sc / exp(logtau);
+      jnll_pointer += SCALE(SEPARABLE(MVNORM(Cov_cc), gmrf_Q), exp(-logtau))( diff_gmrf_sc );
+      //gmrf_sc = gmrf_sc / exp(logtau);
       // Simulate new values when using obj.simulate()
       if(isDouble<Type>::value && of->do_simulate) {
         SEPARABLE(MVNORM(Cov_cc), gmrf_Q).simulate( diff_gmrf_sc );
@@ -245,7 +263,7 @@ Type dPoisGam( Type x, Type shape, Type scale, Type intensity, vector<Type> &dia
 
 // Calculate B_cc
 template<class Type>
-matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, matrix<Type> Psi_fr ){
+matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, matrix<Type> Psi_fr, Type &jnll_pointer ){
   matrix<Type> B_ff( n_f, n_f );
   matrix<Type> BplusI_ff( n_f, n_f );
   matrix<Type> Chi_rf = Chi_fr.transpose();
@@ -299,7 +317,7 @@ matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, mat
     B_ff = B_ff * trans_invPsi_ff;
     B_ff = B_ff * invChi_ff;
     // Penalize colnorm_r
-    //if( Options_vec(0)==3 ) jnll_comp(3) += PenMult_z(1) * ( log(colnorm_r)*log(colnorm_r) ).sum();
+    jnll_pointer += ( log(colnorm_r)*log(colnorm_r) ).sum();
   }
   // Complex bounded eigenvalues
   if( method==3 ){
@@ -318,7 +336,7 @@ matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, mat
     // Rescale interaction matrix
     BplusI_ff = BplusI_ff / MaxEigen;
     B_ff = BplusI_ff - Identity_ff;
-    //jnll_comp(3) += PenMult_z(0) * CppAD::CondExpGe( MaxEigen, Type(1.0), pow(MaxEigen-Type(1.0),2), Type(0.0) );
+    jnll_pointer += CppAD::CondExpGe( MaxEigen, Type(1.0), pow(MaxEigen-Type(1.0),2), Type(0.0) );
   }
   return B_ff;
 }
@@ -352,7 +370,8 @@ Type objective_function<Type>::operator() ()
   // Slot 4 -- DEPRECATED
   // Slot 5 -- Upper limit constant of integration calculation for infinite-series density functions (Conway-Maxwell-Poisson and Tweedie)
   // Slot 6 -- Breakpoint in CMP density function
-  // Slot 7 -- Whether to use SPDE or 2D-AR1 hyper-distribution for spatial process: 0=SPDE; 1=2D-AR1
+  // Slot 7 -- Whether to use SPDE or 2D-AR1 hyper-distribution for spatial process: 0=SPDE; 1=2D-AR1; 2=Stream-network
+  // Slot 8 -- Whether to use F_ct or ignore it for speedup
   DATA_IVECTOR(FieldConfig);  // Input settings (vector, length 4)
   DATA_IVECTOR(OverdispersionConfig);          // Input settings (vector, length 2)
   DATA_IMATRIX(ObsModel_ez);    // Observation model
@@ -393,6 +412,12 @@ Type objective_function<Type>::operator() ()
   DATA_MATRIX(Q_ik);        // Catchability matrix (observations x variable)
   DATA_IMATRIX(t_yz);        // Matrix for time-indices of calculating outputs (abundance index and "derived-quantity")
   DATA_MATRIX(Z_xm);        // Derived quantity matrix
+  DATA_MATRIX(F_ct);         // Matrix of annual fishing mortality for each category
+
+  // Spatial network inputs
+  DATA_IVECTOR(parent_s);  // Columns:  0=Parent index, 1=Child index, 2=Distance from parent to child
+  DATA_IVECTOR(child_s);  // Columns:  0=Parent index, 1=Child index, 2=Distance from parent to child
+  DATA_VECTOR(dist_s);  // Columns:  0=Parent index, 1=Child index, 2=Distance from parent to child
 
   // SPDE objects
   DATA_STRUCT(spde,spde_t);
@@ -463,7 +488,7 @@ Type objective_function<Type>::operator() ()
   int i,t,c;
   
   // Objective function
-  vector<Type> jnll_comp(13);
+  vector<Type> jnll_comp(14);
   // Slot 0 -- spatial, encounter
   // Slot 1 -- spatio-temporal, encounter
   // Slot 2 -- spatial, positive catch
@@ -475,6 +500,7 @@ Type objective_function<Type>::operator() ()
   // Slot 10 -- likelihood of data, encounter
   // Slot 11 -- likelihood of data, positive catch
   // Slot 12 -- Likelihood of Lognormal-Poisson overdispersion delta_i
+  // Slot 13 -- penalty on estimate_B structure
   jnll_comp.setZero();
   Type jnll = 0;                
 
@@ -484,7 +510,7 @@ Type objective_function<Type>::operator() ()
     Range_raw1 = sqrt(8) / exp( logkappa1 );   // Range = approx. distance @ 10% correlation
     Range_raw2 = sqrt(8) / exp( logkappa2 );     // Range = approx. distance @ 10% correlation
   }
-  if( Options_vec(7)==1 ){
+  if( (Options_vec(7)==1) | (Options_vec(7)==2) ){
     Range_raw1 = log(0.1) / logkappa1;   // Range = approx. distance @ 10% correlation
     Range_raw2 = log(0.1) / logkappa2;     // Range = approx. distance @ 10% correlation
   }
@@ -502,9 +528,60 @@ Type objective_function<Type>::operator() ()
   // Calculate joint likelihood
   ////////////////////////
 
+  // Define interaction matrix for Epsilon1, and also the imapct of F_ct on intercepts
+  int n_f;
+  n_f = Epsiloninput1_sft.col(0).cols();
+  matrix<Type> B_ff( n_f, n_f );          // Interactions among factors
+  B_ff = calculate_B( VamConfig(0), n_f, VamConfig(1), Chi_fr, Psi_fr, jnll_comp(13) );
+  matrix<Type> iota_ct( n_c, n_t );       // Cumulative impact of fishing mortality F_ct in years <= current year t
+  // Calculate interaction matrix B_cc for categories if feasible
+  if( n_c==n_f ){
+    matrix<Type> L_epsilon1_cf = loadings_matrix( L_epsilon1_z, n_c, n_f );
+    // Assemble interaction matrix
+    matrix<Type> B_cc( n_c, n_c );        // Interactions among categories
+    B_cc = B_ff;
+    for( int c=0; c<n_c; c++ ){
+      B_cc(c,c) += Epsilon_rho1;
+    }
+    // If Timing=0, transform from interaction among factors to interaction among categories
+    if( VamConfig(2)==0 ){
+      matrix<Type> Btemp_cc( n_c, n_c );
+      Btemp_cc = L_epsilon1_cf * B_cc;
+      B_cc = Btemp_cc * L_epsilon1_cf.inverse();
+    }
+    REPORT( B_cc );
+    REPORT( L_epsilon1_cf );
+    ADREPORT( B_cc );
+    // Define impact of F_ct on intercepts
+    if( Options_vec(8)==0 ){
+      iota_ct.setZero();
+    }else{
+      // Use F_ct in first year as initial condition
+      if( Options_vec(8)==1 ){
+        iota_ct.col(0) = -1 * F_ct.col(0);
+      }
+      // Use median of stationary distribution given F_ct in first year as initial condition
+      if( Options_vec(8)==2 ){
+        vector<Type> iota0_c( n_c );
+        matrix<Type> I_cc( n_c, n_c );
+        matrix<Type> sumF_cc( n_c, n_c );
+        I_cc.setIdentity();
+        I_cc = I_cc - B_cc;
+        sumF_cc = I_cc.inverse();
+        iota_ct.col(0) -= sumF_cc * F_ct.col(0);
+        REPORT( sumF_cc );
+      }
+      for( int t=1; t<n_t; t++ ){
+        iota_ct.col(t) = B_cc * iota_ct.col(t-1) - F_ct.col(t);
+      }
+    }
+  }else{
+    iota_ct.setZero();
+  }
+
   // Random field probability
-  Eigen::SparseMatrix<Type> Q1;
-  Eigen::SparseMatrix<Type> Q2;
+  Eigen::SparseMatrix<Type> Q1( n_s, n_s );
+  Eigen::SparseMatrix<Type> Q2( n_s, n_s );
   GMRF_t<Type> gmrf_Q;
   if( (Options_vec(7)==0) & (Options_vec(0)==0) ){
     Q1 = Q_spde(spde, exp(logkappa1));
@@ -518,21 +595,21 @@ Type objective_function<Type>::operator() ()
     Q1 = M0*pow(1+exp(logkappa1*2),2) + M1*(1+exp(logkappa1*2))*(-exp(logkappa1)) + M2*exp(logkappa1*2);
     Q2 = M0*pow(1+exp(logkappa2*2),2) + M1*(1+exp(logkappa2*2))*(-exp(logkappa2)) + M2*exp(logkappa2*2);
   }
+  if( Options_vec(7)==2 ){
+    Q1 = Q_network( logkappa1, n_s, parent_s, child_s, dist_s );
+    Q2 = Q_network( logkappa2, n_s, parent_s, child_s, dist_s );
+  }
   // Probability of encounter
   gmrf_Q = GMRF( Q1, bool(Options(9)) );
   // Omega1
-  int n_f;
   n_f = Omegainput1_sf.cols();
   array<Type> Omegamean1_sf(n_s, n_f);
   Omegamean1_sf.setZero();
+  array<Type> Omega1_sc(n_s, n_c);
+  Omega1_sc = gmrf_by_category_nll(FieldConfig(0), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_z, gmrf_Q, jnll_comp(0), this);
   // Epsilon1
   n_f = Epsiloninput1_sft.col(0).cols();
   array<Type> Epsilonmean1_sf(n_s, n_f);
-  array<Type> Omega1_sc(n_s, n_c);
-  Omega1_sc = gmrf_by_category_nll(FieldConfig(0), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_z, gmrf_Q, jnll_comp(0), this);
-  // Define interaction matrix for Epsilon1
-  matrix<Type> B_ff( n_f, n_f );
-  B_ff = calculate_B( VamConfig(0), n_f, VamConfig(1), Chi_fr, Psi_fr );
   // PDF for Epsilon1
   array<Type> Epsilon1_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
@@ -572,11 +649,11 @@ Type objective_function<Type>::operator() ()
   n_f = Omegainput2_sf.cols();
   array<Type> Omegamean2_sf(n_s, n_f);
   Omegamean2_sf.setZero();
+  array<Type> Omega2_sc(n_s, n_c);
+  Omega2_sc = gmrf_by_category_nll(FieldConfig(2), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_z, gmrf_Q, jnll_comp(2), this);
   // Epsilon2
   n_f = Epsiloninput2_sft.col(0).cols();
   array<Type> Epsilonmean2_sf(n_s, n_f);
-  array<Type> Omega2_sc(n_s, n_c);
-  Omega2_sc = gmrf_by_category_nll(FieldConfig(2), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_z, gmrf_Q, jnll_comp(2), this);
   // PDF for Epsilon1
   array<Type> Epsilon2_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
@@ -667,6 +744,7 @@ Type objective_function<Type>::operator() ()
   // ObsModel_ez(e,0) = 5 (ZINB):  phi = 1-ZeroInflation_prob -> Pr[D=0] = NB(0|mu,var)*phi + (1-phi) -> Pr[D>0] = phi - NB(0|mu,var)*phi
   vector<Type> R1_i(n_i);   
   vector<Type> log_one_minus_R1_i(n_i);
+  vector<Type> log_R1_i(n_i);
   vector<Type> LogProb1_i(n_i);
   // Linear predictor (pre-link) for positive component
   matrix<Type> P2_iz(n_i,c_iz.row(0).size());
@@ -696,7 +774,7 @@ Type objective_function<Type>::operator() ()
           P2_iz(i,zc) = Omega2_sc(s_i(i),c_iz(i,zc)) + eta2_x(s_i(i)) + zeta2_i(i) + eta2_vc(v_i(i),c_iz(i,zc));
           for( int zt=0; zt<t_iz.row(0).size(); zt++ ){
             if( (t_iz(i,zt)>=0) & (t_iz(i,zt)<n_t) ){  // isNA doesn't seem to work for IMATRIX type
-              P1_iz(i,zc) += beta1_ct(c_iz(i,zc),t_iz(i,zt)) + Epsilon1_sct(s_i(i),c_iz(i,zc),t_iz(i,zt))*exp(log_sigmaratio1_z(zt)) + eta1_xct(s_i(i),c_iz(i,zc),t_iz(i,zt));
+              P1_iz(i,zc) += beta1_ct(c_iz(i,zc),t_iz(i,zt)) + Epsilon1_sct(s_i(i),c_iz(i,zc),t_iz(i,zt))*exp(log_sigmaratio1_z(zt)) + eta1_xct(s_i(i),c_iz(i,zc),t_iz(i,zt)) + iota_ct(c_iz(i,zc),t_iz(i,zt));
               P2_iz(i,zc) += beta2_ct(c_iz(i,zc),t_iz(i,zt)) + Epsilon2_sct(s_i(i),c_iz(i,zc),t_iz(i,zt))*exp(log_sigmaratio2_z(zt)) + eta2_xct(s_i(i),c_iz(i,zc),t_iz(i,zt));
             }
           }
@@ -724,8 +802,9 @@ Type objective_function<Type>::operator() ()
         }
         R1_i(i) = Type(1.0) - exp( -1*a_i(i)*tmp_calc1 );
         R2_i(i) = a_i(i) * tmp_calc2 / R1_i(i);
-        // log_one_minus_R1_i is useful to prevent numerical underflow e.g., for 1 - exp(-40)
+        // Calulate in logspace to prevent numerical over/under-flow
         log_one_minus_R1_i(i) = -1*a_i(i)*tmp_calc1;
+        log_R1_i(i) = logspace_sub( log(Type(1.0)), -1*a_i(i)*tmp_calc1 );
       }
       if( ObsModel_ez(c_iz(i,0),1)==2 ){
         // Tweedie link, where area-swept affects numbers density exp(P1_i(i))
@@ -737,11 +816,15 @@ Type objective_function<Type>::operator() ()
       // Likelihood for delta-models with continuous positive support
       if( (ObsModel_ez(e_i(i),0)==0) | (ObsModel_ez(e_i(i),0)==1) | (ObsModel_ez(e_i(i),0)==2) ){
         // Presence-absence likelihood
-        if( b_i(i) > 0 ){
-          LogProb1_i(i) = log( R1_i(i) );
-        }else{
-          if( ObsModel_ez(e_i(i),1)==1 ){
+        if( ObsModel_ez(e_i(i),1)==1 ){
+          if( b_i(i) > 0 ){
+            LogProb1_i(i) = log_R1_i(i);
+          }else{
             LogProb1_i(i) = log_one_minus_R1_i(i);
+          }
+        }else{
+          if( b_i(i) > 0 ){
+            LogProb1_i(i) = log( R1_i(i) );
           }else{
             LogProb1_i(i) = log( 1-R1_i(i) );
           }
@@ -1309,6 +1392,7 @@ Type objective_function<Type>::operator() ()
   REPORT( eta2_vf );
   REPORT( zeta1_i );
   REPORT( zeta2_i );
+  REPORT( iota_ct );
 
   REPORT( SigmaM );
   REPORT( Index_cyl );
