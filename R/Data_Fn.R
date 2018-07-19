@@ -147,7 +147,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     if( any(a_i<=0) ) stop("a_i must be greater than zero for all observations, and at least one value of a_i is not")
     # Warnings about all positive or zero
     Prop_nonzero = tapply( b_i, INDEX=list(t_iz[,1],c_iz[,1]), FUN=function(vec){mean(vec>0)} )
-    if( any(Prop_nonzero==0|Prop_nonzero==1) & any(ObsModel_ez[,1]==0) ){
+    if( any(Prop_nonzero==0|Prop_nonzero==1) & any(ObsModel_ez[,2]==0) ){
       print( Prop_nonzero )
       stop("Some years and/or categories have either all or no encounters, and this is not permissible when ObsModel_ez[,'Link']=0")
     }
