@@ -564,12 +564,12 @@ Type objective_function<Type>::operator() ()
       if( Options_vec(8)==2 ){
         vector<Type> iota0_c( n_c );
         matrix<Type> I_cc( n_c, n_c );
-        matrix<Type> sumF_cc( n_c, n_c );
+        matrix<Type> sumB_cc( n_c, n_c );
         I_cc.setIdentity();
         I_cc = I_cc - B_cc;
-        sumF_cc = I_cc.inverse();
-        iota_ct.col(0) -= sumF_cc * F_ct.col(0);
-        REPORT( sumF_cc );
+        sumB_cc = I_cc.inverse();
+        iota_ct.col(0) -= sumB_cc * F_ct.col(0);
+        REPORT( sumB_cc );
       }
       for( int t=1; t<n_t; t++ ){
         iota_ct.col(t) = B_cc * iota_ct.col(t-1) - F_ct.col(t);
