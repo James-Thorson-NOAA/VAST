@@ -207,15 +207,14 @@ matrix<Type> gmrf_by_category_nll( int n_f, int method, int timing, int n_s, int
 // 2. Spatial Gompertz model conditions
 // 3. Timing = 1
 template<class Type>
-matrix<Type> gmrf_stationary_nll( int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sc, matrix<Type> Cov_cc, density::GMRF_t<Type> gmrf_Q, Type &jnll_pointer, objective_function<Type>* of){
+matrix<Type> gmrf_stationary_nll( int method, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sc, matrix<Type> Cov_cc, density::GMRF_t<Type> gmrf_Q, Type &jnll_pointer, objective_function<Type>* of){
   using namespace density;
-  matrix<Type> gmrf_sc(n_s, n_c);
+  array<Type> gmrf_sc(n_s, n_c);
   Type logtau;
   if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
   if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
   if(method==2) logtau = Type(0.0);
   // PDF if density-dependence/interactions occurs after correlated dynamics (Only makes sense if n_f == n_c)
-  // Calculate difference without rescaling
   gmrf_sc = gmrf_input_sc.matrix();
   // Calculate likelihood
   jnll_pointer += SCALE(SEPARABLE(MVNORM(Cov_cc), gmrf_Q), exp(-logtau))( gmrf_sc );
@@ -223,7 +222,7 @@ matrix<Type> gmrf_stationary_nll( int n_s, int n_c, Type logkappa, array<Type> g
   if(isDouble<Type>::value && of->do_simulate) {
     SEPARABLE(MVNORM(Cov_cc), gmrf_Q).simulate( gmrf_sc );
   }
-  return gmrf_sc;
+  return gmrf_sc.matrix();
 }
 
 // CMP distribution
@@ -583,12 +582,15 @@ Type objective_function<Type>::operator() ()
   matrix<Type> B_ff( n_f, n_f );          // Interactions among factors
   B_ff = calculate_B( VamConfig(0), n_f, VamConfig(1), Chi_fr, Psi_fr, jnll_comp(13) );
   matrix<Type> iota_ct( n_c, n_t );       // Cumulative impact of fishing mortality F_ct in years <= current year t
+  matrix<Type> B_cc( n_c, n_c );        // Interactions among categories
+  matrix<Type> covB0_cc( n_c, n_c );
+  B_cc.setZero();
+  covB0_cc.setZero();
   // Calculate interaction matrix B_cc for categories if feasible
   if( n_c==n_f ){
     matrix<Type> L_epsilon1_cf = loadings_matrix( L_epsilon1_z, n_c, n_f );
-    matrix<Type> Cov_epsilon1_cc = L_epsilon1_cf * L_epsilon1_cf.transpose()
+    matrix<Type> Cov_epsilon1_cc = L_epsilon1_cf * L_epsilon1_cf.transpose();
     // Assemble interaction matrix
-    matrix<Type> B_cc( n_c, n_c );        // Interactions among categories
     B_cc = B_ff;
     for( int c=0; c<n_c; c++ ){
       B_cc(c,c) += Epsilon_rho1;
@@ -602,32 +604,29 @@ Type objective_function<Type>::operator() ()
     REPORT( B_cc );
     REPORT( L_epsilon1_cf );
     ADREPORT( B_cc );
-    // Calculate sumB_cc for calculating mean of stationary distribution given F_ct[,0], only if needed to initialize given F in first year, or calculate B0
-    if( Options_vec(8)==2 | VamConfig(3)==1 ){
+    // Calculate variance of stationary distribution only if necessary to calculate B0
+    if( VamConfig(3)==1 ){
+      covB0_cc = stationary_variance( n_c, B_cc, Cov_epsilon1_cc );
+      REPORT( covB0_cc );
+    }
+    // Define impact of F_ct on intercepts
+    if( Options_vec(8)==0 ){
+      iota_ct.setZero();
+    }
+    // Use F_ct in first year as initial condition...
+    if( Options_vec(8)==1 ){
+      iota_ct.col(0) = -1 * F_ct.col(0);
+    }
+    // ... or use median of stationary distribution given F_ct in first year as initial condition
+    if( Options_vec(8)==2 ){
       matrix<Type> sumB_cc( n_c, n_c );
       matrix<Type> I_cc( n_c, n_c );
       I_cc.setIdentity();
       I_cc = I_cc - B_cc;
       sumB_cc = I_cc.inverse();
-      REPORT( sumB_cc );
+      iota_ct.col(0) -= sumB_cc * F_ct.col(0);
     }
-    // Calculate variance of stationary distribution only if necessary to calculate B0
-    if( VamConfig(3)==1 ){
-      covB_cc = stationary_variance( n_c, B_cc, Cov_epsilon1_cc );
-      REPORT( covB_cc );
-    }
-    // Define impact of F_ct on intercepts
-    if( Options_vec(8)==0 ){
-      iota_ct.setZero();
-    }else{
-      // Use F_ct in first year as initial condition...
-      if( Options_vec(8)==1 ){
-        iota_ct.col(0) = -1 * F_ct.col(0);
-      }
-      // ... or use median of stationary distribution given F_ct in first year as initial condition
-      if( Options_vec(8)==2 ){
-        iota_ct.col(0) -= sumB_cc * F_ct.col(0);
-      }
+    if( (Options_vec(8)==1) | (Options_vec(8)==2) ){
       // Project forward effect of F_ct from initial year through current year
       for( int t=1; t<n_t; t++ ){
         iota_ct.col(t) = B_cc * iota_ct.col(t-1) - F_ct.col(t);
@@ -672,8 +671,8 @@ Type objective_function<Type>::operator() ()
   array<Type> Epsilon1_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
     // PDF for B0 (not tied to autoregressive variation)
-    if( t==(VamConfig(3)-1) ){
-      Epsilon1_sct.col(t) = gmrf_stationary_nll( n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), covB_cc, gmrf_Q, jnll_comp(1), this);
+    if( VamConfig(3)==1 & t==(VamConfig(3)-1) ){
+      Epsilon1_sct.col(t) = gmrf_stationary_nll( Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), covB0_cc, gmrf_Q, jnll_comp(1), this);
     }
     // PDF for first year of autoregression
     if( t==(VamConfig(3)+0) ){
@@ -1136,6 +1135,21 @@ Type objective_function<Type>::operator() ()
     }
   }}}
   ln_Index_cyl = log( Index_cyl );
+
+  // Calculate B / B0
+  if( VamConfig(3)==1 ){
+    array<Type> Bratio_cyl(n_c, n_y, n_l);
+    array<Type> ln_Bratio_cyl(n_c, n_y, n_l);
+    for(int c=0; c<n_c; c++){
+    for(int y=0; y<n_y; y++){
+    for(int l=0; l<n_l; l++){
+      Bratio_cyl(c,y,l) = Index_cyl(c,y,l) / Index_cyl(c,0,l);
+    }}}
+    ln_Bratio_cyl = log( Bratio_cyl );
+    REPORT( Bratio_cyl );
+    ADREPORT( Bratio_cyl );
+    ADREPORT( ln_Bratio_cyl );
+  }
 
   // Calculate other derived summaries
   // Each is the weighted-average X_xl over polygons (x) with weights equal to abundance in each polygon and time (where abundance is from the first index)

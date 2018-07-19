@@ -71,11 +71,11 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     }
   }
 
+  # Rescale tprime_iz to start at 0
+  tprime_iz = t_iz - min(t_iz,na.rm=TRUE)
+
   # Coerce tprime_iz to be a matrix
   if( !is.matrix(tprime_iz) ) tprime_iz = matrix(tprime_iz,ncol=1)
-
-  # Rescale tprime_iz to start at 0
-  tprime_iz = tprime_iz - min(tprime_iz,na.rm=TRUE)
 
   # Increment first tprime_iz if t=0 corresponds to B0
   if( VamConfig[4]==1 ){
