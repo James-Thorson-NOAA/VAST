@@ -147,7 +147,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     if( any(a_i<=0) ) stop("a_i must be greater than zero for all observations, and at least one value of a_i is not")
     # Warnings about all positive or zero
     Prop_nonzero = tapply( b_i, INDEX=list(t_iz[,1],c_iz[,1]), FUN=function(vec){mean(vec>0)} )
-    if( any(Prop_nonzero==0|Prop_nonzero==1) & any(ObsModel_ez[1,]==0) ){
+    if( any(Prop_nonzero==0|Prop_nonzero==1) & any(ObsModel_ez[,1]==0) ){
       print( Prop_nonzero )
       stop("Some years and/or categories have either all or no encounters, and this is not permissible when ObsModel_ez[,'Link']=0")
     }
@@ -165,7 +165,8 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
       if( any(ObsModel_ez[,2] != 1) ) stop("If using `ObsModel_ez[e,1]` in {12,13,14} then must use `ObsModel_ez[e,2]=1`")
       if( !any(ObsModel_ez[,1] %in% c(0,1,2,3)) ) stop("Using `ObsModel_ez[e,1]` in {12,13,14} is only intended when combining data with biomass-sampling data")
     }
-    if( all(b_i>0) & any(FieldConfig_input[1:2]>0) & any(ObsModel_ez[1,]==0) ) stop("All data are positive, so please turn off `Omega1` and `Epsilon1` terms")
+    if( all(b_i>0) & all(ObsModel_ez[,1]==0) & !all(FieldConfig_input[1:2]==-1) ) stop("All data are positive and using a conventional delta-model, so please turn off `Omega1` and `Epsilon1` terms")
+    if( !(all(ObsModel_ez[,1] %in% c(0,1,2,5,6,7,8,9,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
   }
 
   # Check for wrong dimensions
@@ -290,6 +291,10 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   # Warning messages
   if( n_c>1 & any(FieldConfig_input==1)){
     warning( "Using 1 factor for more than one category:  Please note that this is non-standard, and it is more common to use multiple factors (often as many as the number of categories)" )
+  }
+  SD_p = apply( X_xtp, MARGIN=3, FUN=sd )
+  if( any(SD_p>3) ){
+    warning( "I highly recommend that you standardize each density covariate `X_xtp` to have a low standard deviation, to avoid numerical under/over-flow" )
   }
 
   # Output tagged list
