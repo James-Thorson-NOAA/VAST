@@ -62,7 +62,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
 
   # Specify default values for `Options`
   Options2use = c('SD_site_density'=0, 'SD_site_logdensity'=0, 'Calculate_Range'=0, 'SD_observation_density'=0, 'Calculate_effective_area'=0,
-    'Calculate_Cov_SE'=0, 'Calculate_Synchrony'=0, 'Calculate_Coherence'=0, 'Calculate_proportion'=0, 'normalize_GMRF_in_CPP'=TRUE)
+    'Calculate_Cov_SE'=0, 'Calculate_Synchrony'=0, 'Calculate_Coherence'=0, 'Calculate_proportion'=0, 'normalize_GMRF_in_CPP'=TRUE, 'Calculate_Fratio'=0)
 
   # Replace defaults for `Options` with provided values (if any)
   for( i in 1:length(Options)){

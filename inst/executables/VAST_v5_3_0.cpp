@@ -442,6 +442,7 @@ Type objective_function<Type>::operator() ()
   // Slot 7: Calculate coherence and variance for Epsilon1_sct and Epsilon2_sct
   // Slot 8: Calculate proportions and SE
   // Slot 9: Include normalization in GMRF PDF
+  // Slot 10: Calculate F_ct divided by F achieving 40% of B0
   DATA_IMATRIX(yearbounds_zz);
   // Two columns, and 1+ rows, specifying first and last t for each period used in calculating synchrony
 
@@ -584,6 +585,9 @@ Type objective_function<Type>::operator() ()
   matrix<Type> iota_ct( n_c, n_t );       // Cumulative impact of fishing mortality F_ct in years <= current year t
   matrix<Type> B_cc( n_c, n_c );        // Interactions among categories
   matrix<Type> covB0_cc( n_c, n_c );
+  matrix<Type> I_cc( n_c, n_c );
+  matrix<Type> IminusB_cc( n_c, n_c );
+  I_cc.setIdentity();
   B_cc.setZero();
   covB0_cc.setZero();
   // Calculate interaction matrix B_cc for categories if feasible
@@ -604,6 +608,23 @@ Type objective_function<Type>::operator() ()
     REPORT( B_cc );
     REPORT( L_epsilon1_cf );
     ADREPORT( B_cc );
+    // Calculate F resulting in 40% of B0
+    if( Options(10)==1 ){
+      vector<Type> Btarg( n_c );
+      vector<Type> Ftarg( n_c );
+      matrix<Type> Fratio( n_c, n_t );
+      IminusB_cc = I_cc - B_cc;
+      Btarg = log( 0.4 );  // 40% target, transformed for log-link
+      Ftarg = -1 * ( IminusB_cc * Btarg );
+      for( int t=0; t<n_t; t++ ){
+      for( int c=0; c<n_c; c++ ){
+        Fratio(c,t) = F_ct(c,t) / Ftarg(c);
+      }}
+      REPORT( Ftarg );
+      REPORT( Fratio );
+      ADREPORT( Ftarg );
+      ADREPORT( Fratio );
+    }
     // Calculate variance of stationary distribution only if necessary to calculate B0
     if( VamConfig(3)==1 ){
       covB0_cc = stationary_variance( n_c, B_cc, Cov_epsilon1_cc );
@@ -620,10 +641,8 @@ Type objective_function<Type>::operator() ()
     // ... or use median of stationary distribution given F_ct in first year as initial condition
     if( Options_vec(8)==2 ){
       matrix<Type> sumB_cc( n_c, n_c );
-      matrix<Type> I_cc( n_c, n_c );
-      I_cc.setIdentity();
-      I_cc = I_cc - B_cc;
-      sumB_cc = I_cc.inverse();
+      IminusB_cc = I_cc - B_cc;
+      sumB_cc = IminusB_cc.inverse();
       iota_ct.col(0) -= sumB_cc * F_ct.col(0);
     }
     if( (Options_vec(8)==1) | (Options_vec(8)==2) ){
