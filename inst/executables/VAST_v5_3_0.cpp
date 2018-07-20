@@ -1099,7 +1099,7 @@ Type objective_function<Type>::operator() ()
     P2_xcy(x,c,y) =  Omega2_sc(x,c) + eta2_x(x);
     for( int z=0; z<t_yz.row(0).size(); z++ ){
       if( (t_yz(y,z)>=0) & (t_yz(y,z)<n_t) ){    // isNA doesn't seem to work for IMATRIX type
-        P1_xcy(x,c,y) += beta1_ct(c,t_yz(y,z)) + Epsilon1_sct(x,c,t_yz(y,z))*exp(log_sigmaratio1_z(z)) + eta1_xct(x,c,t_yz(y,z));
+        P1_xcy(x,c,y) += beta1_ct(c,t_yz(y,z)) + Epsilon1_sct(x,c,t_yz(y,z))*exp(log_sigmaratio1_z(z)) + eta1_xct(x,c,t_yz(y,z)) + iota_ct(c,t_yz(y,z));
         P2_xcy(x,c,y) += beta2_ct(c,t_yz(y,z)) + Epsilon2_sct(x,c,t_yz(y,z))*exp(log_sigmaratio2_z(z)) + eta2_xct(x,c,t_yz(y,z));
       }
     }
