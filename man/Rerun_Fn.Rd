@@ -5,7 +5,7 @@
 \title{Explore counter-factual scenario}
 \usage{
 Rerun_Fn(parhat0, turnoff_pars, loc_x,
-  cov_to_turnoff = 1:dim(parhat[["gamma2_ctp"]])[3], calculate_COG = TRUE,
+  cov_to_turnoff = 1:dim(parhat0[["gamma2_ctp"]])[3], calculate_COG = TRUE,
   figname = NULL, Map = "generate", MapDetails_List = NULL,
   year_set = 1:ncol(parhat0[["beta1_ct"]]),
   c_set = 1:nrow(parhat0[["beta1_ct"]]), ...)
@@ -43,4 +43,13 @@ Tagged list
 \description{
 \code{Rerun_Fn} re-builds a model while fixing a subset of parameters at zero
 }
+\examples{
+\dontrun{
+# Run without GMRF
 
+Rerun_Fn(parhat0 = Obj$env$parList(),
+         turnoff_pars = c("Epsiloninput1_sft", "Epsiloninput2_sft"),
+         loc_x = Spatial_List$loc_x,
+         TmbData = TmbData, Version = "VAST_v4_0_0")
+}
+}

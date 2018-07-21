@@ -610,20 +610,20 @@ Type objective_function<Type>::operator() ()
     ADREPORT( B_cc );
     // Calculate F resulting in 40% of B0
     if( Options(10)==1 ){
-      vector<Type> Btarg( n_c );
-      vector<Type> Ftarg( n_c );
-      matrix<Type> Fratio( n_c, n_t );
+      vector<Type> Btarg_c( n_c );
+      vector<Type> Ftarg_c( n_c );
+      matrix<Type> Fratio_ct( n_c, n_t );
       IminusB_cc = I_cc - B_cc;
-      Btarg = log( 0.4 );  // 40% target, transformed for log-link
-      Ftarg = -1 * ( IminusB_cc * Btarg );
+      Btarg_c = log( 0.4 );  // 40% target, transformed for log-link
+      Ftarg_c = -1 * ( IminusB_cc * Btarg_c );
       for( int t=0; t<n_t; t++ ){
       for( int c=0; c<n_c; c++ ){
-        Fratio(c,t) = F_ct(c,t) / Ftarg(c);
+        Fratio_ct(c,t) = F_ct(c,t) / Ftarg_c(c);
       }}
-      REPORT( Ftarg );
-      REPORT( Fratio );
-      ADREPORT( Ftarg );
-      ADREPORT( Fratio );
+      REPORT( Ftarg_c );
+      REPORT( Fratio_ct );
+      ADREPORT( Ftarg_c );
+      ADREPORT( Fratio_ct );
     }
     // Calculate variance of stationary distribution only if necessary to calculate B0
     if( VamConfig(3)==1 ){

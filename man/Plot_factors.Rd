@@ -35,4 +35,3 @@ Plot_factors(Report, ParHat, Data, SD, Year_Set = NULL,
 \description{
 \code{Plot_factors} plots factor loadings, average spatial factors, and spatio-temporal factors
 }
-

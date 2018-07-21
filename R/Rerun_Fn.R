@@ -21,8 +21,18 @@
 #'   \item{NewBuild_List}{Output from \code{VAST::Build_TMB_Fn} using counter-factual parameters}
 #' }
 
+#' @examples
+#' \dontrun{
+#' # Run without GMRF
+#'
+#' Rerun_Fn(parhat0 = Obj$env$parList(),
+#'          turnoff_pars = c("Epsiloninput1_sft", "Epsiloninput2_sft"),
+#'          loc_x = Spatial_List$loc_x,
+#'          TmbData = TmbData, Version = "VAST_v4_0_0")
+#' }
+
 #' @export
-Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat[["gamma2_ctp"]])[3], calculate_COG=TRUE, figname=NULL,
+Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat0[["gamma2_ctp"]])[3], calculate_COG=TRUE, figname=NULL,
   Map="generate", MapDetails_List=NULL, year_set=1:ncol(parhat0[["beta1_ct"]]), c_set=1:nrow(parhat0[["beta1_ct"]]), ... ){
 
   # Local function -- calculate center of gravity
