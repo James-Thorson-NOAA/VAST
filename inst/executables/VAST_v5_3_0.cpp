@@ -442,7 +442,8 @@ Type objective_function<Type>::operator() ()
   // Slot 7: Calculate coherence and variance for Epsilon1_sct and Epsilon2_sct
   // Slot 8: Calculate proportions and SE
   // Slot 9: Include normalization in GMRF PDF
-  // Slot 10: Calculate F_ct divided by F achieving 40% of B0
+  // Slot 10: Calculate Fratio as F_ct divided by F achieving 40% of B0
+  // Slot 11: Calculate B0 and Bratio
   DATA_IMATRIX(yearbounds_zz);
   // Two columns, and 1+ rows, specifying first and last t for each period used in calculating synchrony
 
@@ -497,7 +498,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER(Beta_mean1);  // mean-reversion for beta1_t
   PARAMETER(logsigmaB1);  // SD of beta1_t (default: not included in objective function)
   PARAMETER(Beta_rho1);  // AR1 for positive catch Epsilon component, Default=0
-  PARAMETER(Epsilon_rho1);  // AR1 for presence/absence Epsilon component, Default=0
+  PARAMETER_VECTOR(Epsilon_rho1_f);  // AR1 for presence/absence Epsilon component, Default=0
   PARAMETER_VECTOR(log_sigmaratio1_z);  // Ratio of variance for columns of t_iz
 
   // -- presence/absence random effects
@@ -517,7 +518,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER(Beta_mean2);  // mean-reversion for beta2_t
   PARAMETER(logsigmaB2);  // SD of beta2_t (default: not included in objective function)
   PARAMETER(Beta_rho2);  // AR1 for positive catch Epsilon component, Default=0
-  PARAMETER(Epsilon_rho2);  // AR1 for positive catch Epsilon component, Default=0
+  PARAMETER_VECTOR(Epsilon_rho2_f);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER_VECTOR(log_sigmaratio2_z);  // Ratio of variance for columns of t_iz
 
   // Error distribution parameters
@@ -597,7 +598,7 @@ Type objective_function<Type>::operator() ()
     // Assemble interaction matrix
     B_cc = B_ff;
     for( int c=0; c<n_c; c++ ){
-      B_cc(c,c) += Epsilon_rho1;
+      B_cc(c,c) += Epsilon_rho1_f(c);
     }
     // If Timing=0, transform from interaction among factors to interaction among categories
     if( VamConfig(2)==0 ){
@@ -626,7 +627,7 @@ Type objective_function<Type>::operator() ()
       ADREPORT( Fratio_ct );
     }
     // Calculate variance of stationary distribution only if necessary to calculate B0
-    if( VamConfig(3)==1 ){
+    if( Options(11)==1 ){
       covB0_cc = stationary_variance( n_c, B_cc, Cov_epsilon1_cc );
       REPORT( covB0_cc );
     }
@@ -690,21 +691,24 @@ Type objective_function<Type>::operator() ()
   array<Type> Epsilon1_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
     // PDF for B0 (not tied to autoregressive variation)
-    if( VamConfig(3)==1 & t==(VamConfig(3)-1) ){
+    if( Options(11)==1 & t==(Options(11)-1) ){
       Epsilon1_sct.col(t) = gmrf_stationary_nll( Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), covB0_cc, gmrf_Q, jnll_comp(1), this);
     }
     // PDF for first year of autoregression
-    if( t==(VamConfig(3)+0) ){
+    if( t==(Options(11)+0) ){
       Epsilonmean1_sf.setZero();
       Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
     }
     // PDF for subsequent years of autoregression
-    if( t>=(VamConfig(3)+1) ){
+    if( t>=(Options(11)+1) ){
       // Prediction for spatio-temporal component
       // Default, and also necessary whenever VamConfig(2)==1 & n_f!=n_c
       if( (VamConfig(0)==0) | ((n_f!=n_c) & (VamConfig(2)==1)) ){
         // If no interactions, then just autoregressive for factors
-        Epsilonmean1_sf = Epsilon_rho1 * Epsiloninput1_sft.col(t-1);
+        for(int s=0; s<n_s; s++){
+        for(int f=0; f<n_f; f++){
+          Epsilonmean1_sf(s,f) = Epsilon_rho1_f(f) * Epsiloninput1_sft(s,f,t-1);
+        }}
       }else{
         // Impact of interactions, B_ff
         Epsilonmean1_sf.setZero();
@@ -713,11 +717,11 @@ Type objective_function<Type>::operator() ()
         for(int f2=0; f2<n_f; f2++){
           if( VamConfig(2)==0 ){
             Epsilonmean1_sf(s,f1) += B_ff(f1,f2) * Epsiloninput1_sft(s,f2,t-1);
-            if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1 * Epsiloninput1_sft(s,f2,t-1);
+            if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1_f(f1) * Epsiloninput1_sft(s,f2,t-1);
           }
           if( VamConfig(2)==1 ){
             Epsilonmean1_sf(s,f1) += B_ff(f1,f2) * Epsilon1_sct(s,f2,t-1);
-            if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1 * Epsilon1_sct(s,f2,t-1);
+            if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1_f(f1) * Epsilon1_sct(s,f2,t-1);
           }
         }}}
       }
@@ -740,19 +744,22 @@ Type objective_function<Type>::operator() ()
   array<Type> Epsilon2_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
     // PDF for B0 (not tied to autoregressive variation)
-    if( t==(VamConfig(3)-1) ){
+    if( t==(Options(11)-1) ){
       Epsilonmean2_sf.setZero();
       Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
     // PDF for first year of autoregression
-    if( t==(VamConfig(3)+0) ){
+    if( t==(Options(11)+0) ){
       Epsilonmean2_sf.setZero();
       Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
     // PDF for subsequent years of autoregression
-    if( t>=(VamConfig(3)+1) ){
+    if( t>=(Options(11)+1) ){
       // Prediction for spatio-temporal component
-      Epsilonmean2_sf = Epsilon_rho2 * Epsiloninput2_sft.col(t-1);
+      for(int s=0; s<n_s; s++){
+      for(int f=0; f<n_f; f++){
+        Epsilonmean2_sf(s,f) = Epsilon_rho2_f(f) * Epsiloninput2_sft(s,f,t-1);
+      }}
       // Hyperdistribution for spatio-temporal component
       Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
@@ -1156,7 +1163,7 @@ Type objective_function<Type>::operator() ()
   ln_Index_cyl = log( Index_cyl );
 
   // Calculate B / B0
-  if( VamConfig(3)==1 ){
+  if( Options(11)==1 ){
     array<Type> Bratio_cyl(n_c, n_y, n_l);
     array<Type> ln_Bratio_cyl(n_c, n_y, n_l);
     for(int c=0; c<n_c; c++){

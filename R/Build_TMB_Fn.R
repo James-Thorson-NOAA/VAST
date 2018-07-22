@@ -65,14 +65,6 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   setwd( RunDir )
   compile( paste0(Version,".cpp") )
 
-  # Local functions
-  boundsifpresent_fn = function( par, map, name, lower, upper, bounds ){
-    if( name %in% names(par) ){
-      bounds[grep(name,names(par)),c('Lower','Upper')] = c(lower,upper)
-    }
-    return( bounds )
-  }
-  
   # Parameters
     # DataList=TmbData
   if( length(Parameters)==1 && Parameters=="generate" ) Parameters = Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
@@ -128,6 +120,14 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
     utils::write.table( matrix(Obj$par,nrow=1), row.names=FALSE, sep=",", col.names=FALSE, file=paste0(DiagnosticDir,"trace.csv"))
   }
   
+  # Local functions
+  boundsifpresent_fn = function( par, map, name, lower, upper, bounds ){
+    if( name %in% names(par) ){
+      bounds[grep(name,names(par)),c('Lower','Upper')] = rep(1,length(grep(name,names(par)))) %o% c(lower,upper)
+    }
+    return( bounds )
+  }
+
   # Declare upper and lower bounds for parameter search
   Bounds = matrix( NA, ncol=2, nrow=length(Obj$par), dimnames=list(names(Obj$par),c("Lower","Upper")) )
   Bounds[,'Lower'] = rep(-Inf, length(Obj$par))
@@ -150,6 +150,8 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   Bounds = boundsifpresent_fn( par=Obj$par, name="Beta_rho2", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="Epsilon_rho1", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="Epsilon_rho2", lower=-0.99, upper=0.99, bounds=Bounds)
+  Bounds = boundsifpresent_fn( par=Obj$par, name="Epsilon_rho1_f", lower=-0.99, upper=0.99, bounds=Bounds)
+  Bounds = boundsifpresent_fn( par=Obj$par, name="Epsilon_rho2_f", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="rho_c1", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="rho_c2", lower=-0.99, upper=0.99, bounds=Bounds)
   if( ("n_f_input"%in%names(TmbData)) && TmbData[["n_f_input"]]==0 ){

@@ -153,11 +153,19 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
   }
   # Epsilon1 -- Fixed OR White-noise OR Random walk
   if( RhoConfig["Epsilon1"] %in% c(0,1,2)){
-    Map[["Epsilon_rho1"]] = factor( NA )
+    if( "Epsilon_rho1" %in% names(TmbParams) ) Map[["Epsilon_rho1"]] = factor( NA )
+    if( "Epsilon_rho1_f" %in% names(TmbParams) ) Map[["Epsilon_rho1_f"]] = factor( rep(NA,length(TmbParams$Epsilon_rho1_f)) )
+  }
+  if( RhoConfig["Epsilon1"] %in% c(4)){
+    if( "Epsilon_rho1_f" %in% names(TmbParams) ) Map[["Epsilon_rho1_f"]] = factor( rep(1,length(TmbParams$Epsilon_rho1_f)) )
   }
   # Epsilon2 -- Fixed OR White-noise OR Random walk
   if( RhoConfig["Epsilon2"] %in% c(0,1,2)){
-    Map[["Epsilon_rho2"]] = factor( NA )
+    if( "Epsilon_rho2" %in% names(TmbParams) ) Map[["Epsilon_rho2"]] = factor( NA )
+    if( "Epsilon_rho2_f" %in% names(TmbParams) ) Map[["Epsilon_rho2_f"]] = factor( rep(NA,length(TmbParams$Epsilon_rho2_f)) )
+  }
+  if( RhoConfig["Epsilon2"] %in% c(4)){
+    if( "Epsilon_rho2_f" %in% names(TmbParams) ) Map[["Epsilon_rho2_f"]] = factor( rep(1,length(TmbParams$Epsilon_rho2_f)) )
   }
   # fix betas and/or epsilons for missing years if betas are fixed-effects
   #YearNotInData = !( (1:DataList$n_t) %in% (unique(DataList$t_i)+1) )
@@ -175,7 +183,6 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     # Beta1 -- White-noise
     if( RhoConfig["Beta1"]==1){
       # Don't fix because it would affect estimates of variance
-      #Map[["beta1_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=DataList$n_c) )
     }
     # Beta2 -- Fixed
     if( !("beta2_ct" %in% names(Map)) ){
@@ -185,7 +192,6 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
       # Beta2 -- White-noise
       if( RhoConfig["Beta2"]==1){
         # Don't fix because it would affect estimates of variance
-        #Map[["beta2_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=DataList$n_c) )
       }
     }
   }
