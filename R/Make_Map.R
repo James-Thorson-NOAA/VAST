@@ -129,8 +129,8 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     Map[["logsigmaB1"]] = factor( NA )
     Map[["beta1_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
   }
-  # Beta2 -- Fixed
-  if( RhoConfig["Beta2"]==0){
+  # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
+  if( RhoConfig["Beta2"] %in% c(0,6) ){
     Map[["Beta_mean2"]] = factor( NA )
     Map[["Beta_rho2"]] = factor( NA )
     Map[["logsigmaB2"]] = factor( NA )
@@ -152,19 +152,19 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     Map[["beta2_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
   }
   # Epsilon1 -- Fixed OR White-noise OR Random walk
-  if( RhoConfig["Epsilon1"] %in% c(0,1,2)){
+  if( RhoConfig["Epsilon1"] %in% c(0,1,2) ){
     if( "Epsilon_rho1" %in% names(TmbParams) ) Map[["Epsilon_rho1"]] = factor( NA )
     if( "Epsilon_rho1_f" %in% names(TmbParams) ) Map[["Epsilon_rho1_f"]] = factor( rep(NA,length(TmbParams$Epsilon_rho1_f)) )
   }
-  if( RhoConfig["Epsilon1"] %in% c(4)){
+  if( RhoConfig["Epsilon1"] %in% c(4) ){
     if( "Epsilon_rho1_f" %in% names(TmbParams) ) Map[["Epsilon_rho1_f"]] = factor( rep(1,length(TmbParams$Epsilon_rho1_f)) )
   }
-  # Epsilon2 -- Fixed OR White-noise OR Random walk
-  if( RhoConfig["Epsilon2"] %in% c(0,1,2)){
+  # Epsilon2 -- Fixed OR White-noise OR Random walk OR mirroring Epsilon_rho1_f
+  if( RhoConfig["Epsilon2"] %in% c(0,1,2,6) ){
     if( "Epsilon_rho2" %in% names(TmbParams) ) Map[["Epsilon_rho2"]] = factor( NA )
     if( "Epsilon_rho2_f" %in% names(TmbParams) ) Map[["Epsilon_rho2_f"]] = factor( rep(NA,length(TmbParams$Epsilon_rho2_f)) )
   }
-  if( RhoConfig["Epsilon2"] %in% c(4)){
+  if( RhoConfig["Epsilon2"] %in% c(4) ){
     if( "Epsilon_rho2_f" %in% names(TmbParams) ) Map[["Epsilon_rho2_f"]] = factor( rep(1,length(TmbParams$Epsilon_rho2_f)) )
   }
   # fix betas and/or epsilons for missing years if betas are fixed-effects

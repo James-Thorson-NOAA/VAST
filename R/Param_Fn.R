@@ -133,11 +133,11 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   # If either beta or epsilon is a random-walk process, fix starting value at 1
   if( "Beta_rho1"%in%names(Return) && RhoConfig[["Beta1"]]==2 ) Return[["Beta_rho1"]] = 1
   if( "Beta_rho2"%in%names(Return) && RhoConfig[["Beta2"]]==2 ) Return[["Beta_rho2"]] = 1
-  if( RhoConfig[["Epsilon1"]]==2 ){
+  if( RhoConfig[["Epsilon1"]] %in% c(2) ){
     if( "Epsilon_rho1"%in%names(Return) ) Return[["Epsilon_rho1"]] = 1
     if( "Epsilon_rho1_f"%in%names(Return) ) Return[["Epsilon_rho1_f"]][] = 1
   }
-  if( RhoConfig[["Epsilon2"]]==2 ){
+  if( RhoConfig[["Epsilon2"]] %in% c(2) ){
     if( "Epsilon_rho2"%in%names(Return) ) Return[["Epsilon_rho2"]] = 1
     if( "Epsilon_rho2_f"%in%names(Return) ) Return[["Epsilon_rho2_f"]][] = 1
   }

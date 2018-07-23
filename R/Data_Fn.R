@@ -180,7 +180,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     }
     if( all(b_i>0) & all(ObsModel_ez[,1]==0) & !all(FieldConfig_input[1:2]==-1) ) stop("All data are positive and using a conventional delta-model, so please turn off `Omega1` and `Epsilon1` terms")
     if( !(all(ObsModel_ez[,1] %in% c(0,1,2,5,6,7,8,9,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
-    if( !all(RhoConfig[1:2]%in%c(0,1,2,3,4)) | !all(RhoConfig[3:4]%in%c(0,1,2,4,5)) ) stop("Check `RhoConfig` inputs")
+    if( !all(RhoConfig[1]%in%c(0,1,2,3,4)) | !all(RhoConfig[2]%in%c(0,1,2,3,4,6)) | !all(RhoConfig[3]%in%c(0,1,2,4,5)) | !all(RhoConfig[4]%in%c(0,1,2,4,5,6)) ) stop("Check `RhoConfig` inputs")
   }
 
   # Check for wrong dimensions
@@ -260,6 +260,12 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
       stop("Can't simultaneously identify full-rank interactions and temporal correlation on spatio-temporal component for 1st linear predictor")
     }
   }
+  # Mirroring
+  if( RhoConfig[4]==6 ){
+    if( FieldConfig[2]!=FieldConfig[4] ){
+      stop("To fix 'Epsilon_rho2_f` equal to 'Epsilon_rho2_f`, you must specify the same rank using `FieldConfig[2]` equal to `FieldConfig[4]`")
+    }
+  }
   # Bratio reporting
   if( Options2use[12]!=0 ){
     if( FieldConfig_input[2]!=n_c ){
@@ -272,6 +278,12 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
       stop("Must use Poisson-link delta model when estimating interactions")
     }
   }
+  # Fratio reporting
+  if( Options2use[11]!=0 ){
+    if( FieldConfig[4]!=0 & !(RhoConfig[4] %in% c(6)) ){
+      stop("To estimate Fratio, either Epsilon2 must be turned off (i.e., `FieldConfig[4]=0`) or B2 must equal B1_cc (i.e., `RhoConfig[4]=6`)")
+    }
+  }
   # Fishing mortality
   if( any(F_ct!=0) ){
     if( any(ObsModel_ez[,2]!=1) ){
@@ -282,6 +294,11 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     }
     if( !(F_init %in% c(1,2)) ){
       stop("`F_init` must be either 1 or 2")
+    }
+    if( F_init==2 ){
+      if( FieldConfig[4]!=0 & !(RhoConfig[4] %in% c(6)) ){
+        stop("To estimate stationary distribution for initial F, either Epsilon2 must be turned off (i.e., `FieldConfig[4]=0`) or B2 must equal B1_cc (i.e., `RhoConfig[4]=6`)")
+      }
     }
   }
   # Stream network stuff
@@ -366,8 +383,11 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   if(Version%in%c("VAST_v5_1_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
-  if(Version%in%c("VAST_v5_3_0","VAST_v5_2_0")){
+  if(Version%in%c("VAST_v5_2_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+  }
+  if(Version%in%c("VAST_v5_3_0")){
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if( is.null(Return) ) stop("`Version` provided does not match the list of possible values")
   if( "spde" %in% names(Return) ) Return[['spde']] = MeshList$isotropic_spde$param.inla[c("M0","M1","M2")]
