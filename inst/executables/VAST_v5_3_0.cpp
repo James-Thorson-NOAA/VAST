@@ -221,6 +221,7 @@ matrix<Type> gmrf_stationary_nll( int method, int n_s, int n_c, Type logkappa, a
   // Simulate new values when using obj.simulate()
   if(isDouble<Type>::value && of->do_simulate) {
     SEPARABLE(MVNORM(Cov_cc), gmrf_Q).simulate( gmrf_sc );
+    gmrf_sc = gmrf_sc / exp(logtau);
   }
   return gmrf_sc.matrix();
 }

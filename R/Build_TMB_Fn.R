@@ -38,7 +38,7 @@ Build_TMB_Fn <-
 function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Method="Mesh",
   ConvergeTol=1, Use_REML=FALSE, loc_x=NULL, Parameters="generate", Random="generate", Map="generate",
-  DiagnosticDir=NULL, TmbDir=system.file("executables",package="VAST"), RunDir=getwd() ){
+  DiagnosticDir=NULL, TmbDir=system.file("executables",package="VAST"), RunDir=getwd(), build_model=TRUE ){
                                             
   # Augment objects in TmbData (to deal with backwards compatibility)
   if( !("n_e" %in% names(TmbData)) ){
@@ -92,6 +92,12 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   #return(Save)
   #on.exit( return(Save) )
   #save(Save, file=paste0(RunDir,"/Save.RData"))
+
+  #
+  if( build_model==FALSE ){
+    Return = list("Map"=Map, "Data"=TmbData, "Parameters"=Parameters, "Random"=Random)
+    return( Return )
+  }
 
   # Build object
   dyn.load( paste0(RunDir,"/",TMB::dynlib(Version)) ) # random=Random,
