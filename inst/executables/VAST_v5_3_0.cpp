@@ -712,13 +712,12 @@ Type objective_function<Type>::operator() ()
   // Probability of encounter
   gmrf_Q = GMRF( Q1, bool(Options(9)) );
   // Omega1
-  array<Type> Omegamean1_sf(n_s, n_f1);
+  array<Type> Omegamean1_sf(n_s, Omegainput1_sf.cols() );
   Omegamean1_sf.setZero();
   array<Type> Omega1_sc(n_s, n_c);
   Omega1_sc = gmrf_by_category_nll(FieldConfig(0), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_z, gmrf_Q, jnll_comp(0), this);
   // Epsilon1
-  n_f1 = Epsiloninput1_sft.col(0).cols();
-  array<Type> Epsilonmean1_sf(n_s, n_f1);
+  array<Type> Epsilonmean1_sf(n_s, n_f1 );
   // PDF for Epsilon1
   array<Type> Epsilon1_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
@@ -764,12 +763,11 @@ Type objective_function<Type>::operator() ()
   // Positive catch rate
   gmrf_Q = GMRF( Q2, bool(Options(9)) );
   // Omega2
-  array<Type> Omegamean2_sf(n_s, n_f2);
+  array<Type> Omegamean2_sf(n_s, Omegainput2_sf.cols() );
   Omegamean2_sf.setZero();
   array<Type> Omega2_sc(n_s, n_c);
   Omega2_sc = gmrf_by_category_nll(FieldConfig(2), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_z, gmrf_Q, jnll_comp(2), this);
   // Epsilon2
-  n_f2 = Epsiloninput2_sft.col(0).cols();
   array<Type> Epsilonmean2_sf(n_s, n_f2);
   // PDF for Epsilon1
   array<Type> Epsilon2_sct(n_s, n_c, n_t);
