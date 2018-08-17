@@ -608,7 +608,7 @@ Type objective_function<Type>::operator() ()
   covE1_cc.setZero();
   covE2_cc.setZero();
   // Calculate interaction matrix B_cc for categories if feasible
-  if( (n_c==n_f1) & (n_c==n_f2) ){
+  if( (n_c==n_f1) & (n_c==n_f2) & (FieldConfig(1)>0) & (FieldConfig(3)>0) ){
     matrix<Type> L_epsilon1_cf = loadings_matrix( L_epsilon1_z, n_c, n_f1 );
     matrix<Type> Cov_epsilon1_cc = L_epsilon1_cf * L_epsilon1_cf.transpose();
     matrix<Type> L_epsilon2_cf = loadings_matrix( L_epsilon2_z, n_c, n_f2 );
