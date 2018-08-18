@@ -5,7 +5,7 @@ context("Testing examples")
 test_that("Male lingcod compositional expansion is working ", {
   skip_on_travis()
   #test_path = "C:/Users/James.Thorson/Desktop/UW Hideaway/AFSC/2018-08 -- Lingcod testthat/"
-  test_path = file.path(multispecies_example_path,"EBS_pollock")
+  test_path = file.path(multispecies_example_path,"Lingcod_comp_expansion")
   load( file=file.path(test_path,"Data_Geostat.RData") )
   load( file.path(test_path,"opt.RData") )
   load( file.path(test_path,"Record.RData") )
