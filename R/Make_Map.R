@@ -1,6 +1,6 @@
 #' @export
 Make_Map <-
-function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)){
+function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Npool=0 ){
 
   # Local functions
   fixval_fn <- function( fixvalTF ){
@@ -96,7 +96,7 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     Map[["delta_i"]] = factor(Map[["delta_i"]])
   }
 
-  # Change beta1_ct if 100% encounters (not designed to work with seasonal models
+  # Change beta1_ct if 100% encounters (not designed to work with seasonal models)
   if( any(DataList$ObsModel_ez[,2]%in%c(3)) & ncol(DataList$t_iz)==1 ){
     Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),DataList$t_iz[,1]), FUN=mean)
     Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
@@ -250,6 +250,38 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
       Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
       Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
     }
+  }
+
+  # Npool option:
+  # Make all category-specific variances (SigmaM, Omega, Epsilon) constant for models with EncNum_a < Npool
+  if( Npool>0 ){
+    if( !all(DataList$FieldConfig %in% c(-2)) ){
+      stop("Npool should only be specified when using 'IID' variation for `FieldConfig`")
+    }
+  }
+  EncNum_ct = array(0, dim=c(DataList$n_c,DataList$n_t))
+  for( tz in 1:ncol(DataList$t_iz) ){
+    Temp = tapply( DataList$b_i, INDEX=list(factor(DataList$c_iz[,1],levels=1:DataList$n_c-1),factor(DataList$t_iz[,tz],levels=1:DataList$n_t-1)), FUN=function(vec){sum(vec>0,na.rm=TRUE)} )
+    Temp = ifelse( is.na(Temp), 0, Temp )
+    EncNum_ct = EncNum_ct + Temp
+  }
+  EncNum_c = rowSums( EncNum_ct )
+  if( any(EncNum_c < Npool) ){
+    pool = function(poolTF){
+      Return = 1:length(poolTF)
+      Return = ifelse( poolTF==TRUE, length(poolTF)+1, Return )
+      return(Return)
+    }
+    # Change SigmaM / L_omega1_z / L_omega2_z / L_epsilon1_z / L_epsilon2_z
+    Map[["logSigmaM"]] = array( as.numeric(Map$logSigmaM), dim=dim(TmbParams$logSigmaM) )
+    Map[["logSigmaM"]][ which(EncNum_c < Npool), ] = rep(1,sum(EncNum_c<Npool)) %o% Map[["logSigmaM"]][ which(EncNum_c < Npool)[1], ]
+    Map[["logSigmaM"]] = factor( Map[["logSigmaM"]] )
+    # Change Omegas
+    Map[["L_omega1_z"]] = factor(pool(EncNum_c<Npool))
+    Map[["L_omega2_z"]] = factor(pool(EncNum_c<Npool))
+    # Change Epsilons
+    Map[["L_epsilon1_z"]] = factor(pool(EncNum_c<Npool))
+    Map[["L_epsilon2_z"]] = factor(pool(EncNum_c<Npool))
   }
 
   # Static covariates

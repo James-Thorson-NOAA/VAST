@@ -36,7 +36,7 @@
 #' @export
 Build_TMB_Fn <-
 function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
-  RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Method="Mesh",
+  RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Method="Mesh", Npool=0,
   ConvergeTol=1, Use_REML=FALSE, loc_x=NULL, Parameters="generate", Random="generate", Map="generate",
   DiagnosticDir=NULL, TmbDir=system.file("executables",package="VAST"), RunDir=getwd(), build_model=TRUE ){
                                             
@@ -70,7 +70,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   if( length(Parameters)==1 && Parameters=="generate" ) Parameters = Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
 
   # Which parameters are turned off
-  if( length(Map)==1 && Map=="generate" ) Map = Make_Map( DataList=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
+  if( length(Map)==1 && Map=="generate" ) Map = Make_Map( DataList=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig, Npool=Npool )
 
   # Which are random
   if( length(Random)==1 && Random=="generate" ){

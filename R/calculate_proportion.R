@@ -62,7 +62,7 @@ calculate_proportion = function( TmbData, Index, Year_Set=NULL, Years2Include=NU
       # Plot stuff
       plot(1, type="n", xlim=range(category_names), ylim=1.05*Ylim, xlab="", ylab="", main=ifelse(TmbData$n_t>1,paste0("Year ",Year_Set[tI]),"") )
       for(l in 1:TmbData$n_l){
-        FishStatsUtils::Plot_Points_and_Bounds_Fn( y=Prop_ctl[,tI,l], x=1:TmbData$n_c+seq(-0.1,0.1,length=TmbData$n_l)[l], ybounds=Prop_ctl[,tI,]%o%c(1,1) + sqrt(var_Prop_ctl[,tI,])%o%c(-interval_width,interval_width), type="b", col=rainbow(TmbData[['n_l']])[l], col_bounds=rainbow(TmbData[['n_l']])[l], ylim=Ylim)
+        FishStatsUtils::plot_lines( y=Prop_ctl[,tI,l], x=1:TmbData$n_c+seq(-0.1,0.1,length=TmbData$n_l)[l], ybounds=Prop_ctl[,tI,]%o%c(1,1) + sqrt(var_Prop_ctl[,tI,])%o%c(-interval_width,interval_width), type="b", col=rainbow(TmbData[['n_l']])[l], col_bounds=rainbow(TmbData[['n_l']])[l], ylim=Ylim)
       }
       if(plot_legend==TRUE) legend( "top", bty="n", fill=rainbow(TmbData[['n_l']]), legend=as.character(strata_names), ncol=2 )
     }
@@ -71,5 +71,5 @@ calculate_proportion = function( TmbData, Index, Year_Set=NULL, Years2Include=NU
 
   # Return stuff
   Return = list("Prop_ctl"=Prop_ctl, "Neff_tl"=Neff_tl, "var_Prop_ctl"=var_Prop_ctl, "Index_tl"=Index_tl, "Neff_ctl"=Neff_ctl)
-  return( Return )
+  return( invisible(Return) )
 }
