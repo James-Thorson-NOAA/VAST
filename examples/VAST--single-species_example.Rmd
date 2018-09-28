@@ -275,7 +275,7 @@ if( Region == "Other" ){
 
 And we finally generate the information used for conducting spatio-temporal parameter estimation, bundled in list `Spatial_List`
 ```{r spatial_information, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=60}
-Spatial_List = make_spatial_info( grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=DateFile, Save_Results=FALSE )
+Spatial_List = make_spatial_info( grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, DirPath=DateFile, Save_Results=FALSE )
 # Add knots to Data_Geostat
 Data_Geostat = cbind( Data_Geostat, "knot_i"=Spatial_List$knot_i )
 ```
