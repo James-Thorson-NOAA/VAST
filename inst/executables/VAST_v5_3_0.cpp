@@ -827,7 +827,7 @@ Type objective_function<Type>::operator() ()
   eta2_vc = overdispersion_by_category_nll( OverdispersionConfig(1), n_v, n_c, eta2_vf, L2_z, jnll_comp(5), this );
 
   // Possible structure on betas
-  if( (RhoConfig(1)==1) | (RhoConfig(1)==2) | (RhoConfig(1)==4) ){
+  if( (RhoConfig(0)==1) | (RhoConfig(0)==2) | (RhoConfig(0)==4) ){
     for(c=0; c<n_c; c++){
     for(t=1; t<n_t; t++){
       jnll_comp(8) -= dnorm( beta1_ct(c,t), Beta_rho1*beta1_ct(c,t-1) + Beta_mean1, exp(logsigmaB1), true );
