@@ -131,7 +131,7 @@ matrix<Type> gmrf_by_category_nll( int n_f, int method, int timing, int n_s, int
   Type logtau;
   if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
   if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
-  if(method==2) logtau = Type(0.0);
+  if( (method!=0) & (method!=1) ) logtau = Type(0.0);
   // IID
   if(n_f == -2){
     for( int c=0; c<n_c; c++ ){
@@ -213,7 +213,7 @@ matrix<Type> gmrf_stationary_nll( int method, int n_s, int n_c, Type logkappa, a
   Type logtau;
   if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
   if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
-  if(method==2) logtau = Type(0.0);
+  if( (method!=0) & (method!=1) ) logtau = Type(0.0);
   // PDF if density-dependence/interactions occurs after correlated dynamics (Only makes sense if n_f == n_c)
   gmrf_sc = gmrf_input_sc.matrix();
   // Calculate likelihood
