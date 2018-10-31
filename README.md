@@ -13,6 +13,21 @@ Background
 * Submodels for encounter probability and positive catch rates by default incorporate variation in density among years (as a fixed effect), and can incorporate variation among sampling vessels (as a random effect, Thorson and Ward 2014) which may be correlated among categories (Thorson Fonner Haltuch Ono Winker In press).  
 * Spatial and spatiotemporal variation are approximated as Gaussian Markov random fields (Thorson Skaug Kristensen Shelton Ward Harms Banante 2014 Ecology), which imply that correlations in spatial variation decay as a function of distance.  
 
+User resources for learning about VAST
+=============
+There are eight main resources for learning about VAST:
+
+*  *Model structure*:  Please see the [User Manual](https://github.com/James-Thorson/VAST/blob/master/manual/VAST_model_structure.docx) for a document listing model equations and relating them to the input/output used in R.
+*  *Guidance for user decisions*:  Please see [Thorson-2019](https://www.sciencedirect.com/science/article/abs/pii/S0165783618302820) for guidance regarding the 15 major decisions needed in every VAST model 
+*  *Examples*:  Please see [examples folder](https://github.com/James-Thorson/VAST/tree/master/examples) for annoted Rmarkdown scripts that run single-species or multi-species examples for a variety of regions.  
+*  *R-help documentation*:  Please see the standard R-help documentation, e.g., by typing `?VAST::Data_Fn` in the R-terminal after installing the package.
+*  *Publications*:  Please see the [publications list](https://github.com/James-Thorson/VAST#description-of-individual-features) to identify peer-reviewed publications regarding individual features.  These publications include statistical theory and model testing.
+*  *List-serv*: Consider joining the [FishStats listserve](https://groups.google.com/forum/#!forum/fishstats-listserv) for 4-6 updates per year, including training classes.
+*  *Issue-tracker*:  Before posting new issues, users should explore the previous issues in the github issue tracker for [VAST](https://github.com/James-Thorson/VAST/issues), [SpatialDeltaGLMM](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/issues), and [FishStatsUtils](https://github.com/james-thorson/FishStatsUtils/issues), including a search for old and closed issues.
+*  *Wiki*:  Users should read and are encouraged to actively contribute to the wiki, which is housed at [the github for SpatialDeltaGLMM](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/wiki)
+
+If there are questions that arise after this, please look for a [VAST Point-of-Contact](https://docs.google.com/spreadsheets/d/1YfYeHHTLwHPxh_5jz4_-hhaRd4gbTq-Cvmii84vxWw0/edit) at your institution and consider contacting them prior to posting an issue.
+
 Database
 =============
 
@@ -44,7 +59,7 @@ Note: at the moment, TMB and INLA can be installed using the commands
     # source script to get INLA from the web
     source("http://www.math.ntnu.no/inla/givemeINLA.R")  
     
-Next, please install the geostatistical_delta-GLMM package from this GitHub repository using a function in the "devtools" package:
+Next, please install the VAST package from this GitHub repository using a function in the "devtools" package:
 
     # Install package
     install_github("james-thorson/VAST") 
@@ -55,21 +70,12 @@ Known installation/usage issues
 =============
 none
 
-Example code
-=============
-Please see examples folder for single-species and multi-species examples of how to run the model.  This folder also contains a [User Manual](https://github.com/James-Thorson/VAST/blob/master/examples/VAST_user_manual.docx)
-
-This code illustrates how to loop through different default model configurations,
-plot diagnostics for each model, and obtain the AIC for each model.
-
-Please also read the instructions from the single-species `SpatialDeltaGLMM` package, [Guidelines for West Coast users](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/wiki/West-Coast-Guidelines)
-wiki page, which is a living document and will evolve over time as best practices
-become apparent.
-
 Description of package
 =============
 ### Please cite if using the software
-* Thorson, J.T., and Barnett, L.A.K. In press. Comparing estimates of abundance trends and distribution shifts using single- and multispecies models of fishes and biogenic habitat. ICES J. Mar. Sci. URL: https://academic.oup.com/icesjms/article-abstract/2907795/Comparing-estimates-of-abundance-trends-and
+* Thorson, J.T., Barnett, L.A.K., 2017. Comparing estimates of abundance trends and distribution shifts using single- and multispecies models of fishes and biogenic habitat. ICES J. Mar. Sci. 74, 1311–1321. https://doi.org/10.1093/icesjms/fsw193
+* Thorson, J.T., 2019. Guidance for decisions using the Vector Autoregressive Spatio-Temporal (VAST) package in stock, ecosystem, habitat and climate assessments. Fish. Res. 210, 143–161. https://doi.org/10.1016/j.fishres.2018.10.013
+
 
 Description of individual features
 =============
@@ -103,6 +109,7 @@ Description of individual features
 
 ### Accounting for fisher targetting in fishery-dependent data
 * Thorson, J.T., Fonner, R., Haltuch, M., Ono, K., and Winker, H. In press. Accounting for spatiotemporal variation and fisher targeting when estimating abundance from multispecies fishery data. Can. J. Fish. Aquat. Sci. doi:10.1139/cjfas-2015-0598. URL: http://www.nrcresearchpress.com/doi/abs/10.1139/cjfas-2015-0598
+* Dolder, P.J., Thorson, J.T., Minto, C., 2018. Spatial separation of catches in highly mixed fisheries. Sci. Rep. 8, 13886. https://doi.org/10.1038/s41598-018-31881-w
 
 ### Bias-correction of estimated indices of abundance
 * Thorson, J.T., and Kristensen, K. 2016. Implementing a generic method for bias correction in statistical models using random effects, with spatial and population dynamics examples. Fish. Res. 175: 66–74. doi:10.1016/j.fishres.2015.11.016. url: http://www.sciencedirect.com/science/article/pii/S0165783615301399
@@ -111,12 +118,17 @@ Description of individual features
 * Kai, M., Thorson, J. T., Piner, K. R., and Maunder, M. N. 2017. Spatio-temporal variation in size-structured populations using fishery data: an application to shortfin mako (Isurus oxyrinchus) in the Pacific Ocean. Canadian Journal of Fisheries and Aquatic Sciences. doi:10.1139/cjfas-2016-0327. URL: http://www.nrcresearchpress.com/doi/abs/10.1139/cjfas-2016-0327#.W0olqjpKiUk.
 * Thorson, J. T., Ianelli, J. N., and Kotwicki, S. 2018. The relative influence of temperature and size-structure on fish distribution shifts: A case-study on Walleye pollock in the Bering Sea. Fish and Fisheries. doi:10.1111/faf.12225. URL: https://onlinelibrary.wiley.com/doi/abs/10.1111/faf.12225.
 
-
 ### Estimating fishing impacts using spatial surplus production modelling
 * Thorson, J. T., Jannot, J., and Somers, K. 2017. Using spatio-temporal models of population growth and movement to monitor overlap between human impacts and fish populations. Journal of Applied Ecology, 54: 577–587.doi:10.1111/1365-2664.12664. URL: https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/1365-2664.12664
 
 ### Estimating species interactions using multispecies Gompertz model
 * Thorson, J. T., Munch, S. B., and Swain, D. P. 2017. Estimating partial regulation in spatiotemporal models of community dynamics. Ecology, 98: 1277–1289. doi:10.1002/ecy.1760. URL: https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1002/ecy.1760
+
+### Estimating synchrony among species and locations as measure of risk-exposure
+* Thorson, J.T., Scheuerell, M.D., Olden, J.D., Schindler, D.E., 2018. Spatial heterogeneity contributes more to portfolio effects than species variability in bottom-associated marine fishes. Proc R Soc B 285, 20180915. https://doi.org/10.1098/rspb.2018.0915
+
+### Forecasting future changes in distribution or abundance
+Thorson, In press. Forecast skill for predicting distribution shifts:  A retrospective experiment for marine fishes in the Eastern Bering Sea. Fish Fish.
 
 Funding and support for the tool
 =============
