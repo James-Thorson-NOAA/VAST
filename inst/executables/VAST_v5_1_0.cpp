@@ -531,7 +531,7 @@ Type objective_function<Type>::operator() ()
   matrix<Type> B_ff( n_f, n_f );
   B_ff = calculate_B( VamConfig(0), n_f, VamConfig(1), Chi_fr, Psi_fr );
   // Calculate interaction matrix B_cc for categories if feasible
-  if( n_c==n_f ){
+  if( (n_c==n_f) & (FieldConfig(1)>0) ){
     matrix<Type> L_epsilon1_cf = loadings_matrix( L_epsilon1_z, n_c, n_f );
     // Assemble interaction matrix
     matrix<Type> B_cc( n_c, n_c );

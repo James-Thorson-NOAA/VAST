@@ -131,7 +131,7 @@ matrix<Type> gmrf_by_category_nll( int n_f, int method, int timing, int n_s, int
   Type logtau;
   if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
   if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
-  if(method==2) logtau = Type(0.0);
+  if( (method!=0) & (method!=1) ) logtau = Type(0.0);
   // IID
   if(n_f == -2){
     for( int c=0; c<n_c; c++ ){
@@ -199,6 +199,31 @@ matrix<Type> gmrf_by_category_nll( int n_f, int method, int timing, int n_s, int
     }
   }
   return gmrf_sc;
+}
+
+// Used to calculate GMRF PDF for initial condition given covariance Cov_cc
+// Only makes sense given:
+// 1. full-rank factor model
+// 2. Spatial Gompertz model conditions
+// 3. Timing = 1
+template<class Type>
+matrix<Type> gmrf_stationary_nll( int method, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sc, matrix<Type> Cov_cc, density::GMRF_t<Type> gmrf_Q, Type &jnll_pointer, objective_function<Type>* of){
+  using namespace density;
+  array<Type> gmrf_sc(n_s, n_c);
+  Type logtau;
+  if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
+  if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
+  if( (method!=0) & (method!=1) ) logtau = Type(0.0);
+  // PDF if density-dependence/interactions occurs after correlated dynamics (Only makes sense if n_f == n_c)
+  gmrf_sc = gmrf_input_sc.matrix();
+  // Calculate likelihood
+  jnll_pointer += SCALE(SEPARABLE(MVNORM(Cov_cc), gmrf_Q), exp(-logtau))( gmrf_sc );
+  // Simulate new values when using obj.simulate()
+  if(isDouble<Type>::value && of->do_simulate) {
+    SEPARABLE(MVNORM(Cov_cc), gmrf_Q).simulate( gmrf_sc );
+    gmrf_sc = gmrf_sc / exp(logtau);
+  }
+  return gmrf_sc.matrix();
 }
 
 // CMP distribution
@@ -341,6 +366,30 @@ matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, mat
   return B_ff;
 }
 
+// Calculate variance of stationary distributino
+template<class Type>
+matrix<Type> stationary_variance( int n_c, matrix<Type> B_cc, matrix<Type> Cov_cc ){
+  int n2_c = n_c*n_c;
+  matrix<Type> Kronecker_c2c2(n2_c,n2_c);
+  matrix<Type> InvDiff_c2c2(n2_c, n2_c);
+  matrix<Type> Vinf_cc(n_c, n_c);
+  Kronecker_c2c2 = kronecker( B_cc, B_cc );
+  InvDiff_c2c2.setIdentity();
+  InvDiff_c2c2 = InvDiff_c2c2 - Kronecker_c2c2;
+  InvDiff_c2c2 = atomic::matinv( InvDiff_c2c2 );
+  Vinf_cc.setZero();
+  for(int i=0; i<n_c; i++){
+  for(int j=0; j<n_c; j++){
+    int k = i + j*n_c;
+    for(int i2=0; i2<n_c; i2++){
+    for(int j2=0; j2<n_c; j2++){
+      int k2 = i2 + j2*n_c;
+      Vinf_cc(i,j) += InvDiff_c2c2(k,k2) * Cov_cc(i2,j2);
+    }}
+  }}
+  return Vinf_cc;
+}
+
 // Space time
 template<class Type>
 Type objective_function<Type>::operator() ()
@@ -373,6 +422,7 @@ Type objective_function<Type>::operator() ()
   // Slot 7 -- Whether to use SPDE or 2D-AR1 hyper-distribution for spatial process: 0=SPDE; 1=2D-AR1; 2=Stream-network
   // Slot 8 -- Whether to use F_ct or ignore it for speedup
   DATA_IVECTOR(FieldConfig);  // Input settings (vector, length 4)
+  DATA_IVECTOR(RhoConfig);
   DATA_IVECTOR(OverdispersionConfig);          // Input settings (vector, length 2)
   DATA_IMATRIX(ObsModel_ez);    // Observation model
   // Column 0: Probability distribution for data for each level of e_i
@@ -394,6 +444,8 @@ Type objective_function<Type>::operator() ()
   // Slot 7: Calculate coherence and variance for Epsilon1_sct and Epsilon2_sct
   // Slot 8: Calculate proportions and SE
   // Slot 9: Include normalization in GMRF PDF
+  // Slot 10: Calculate Fratio as F_ct divided by F achieving 40% of B0
+  // Slot 11: Calculate B0 and Bratio
   DATA_IMATRIX(yearbounds_zz);
   // Two columns, and 1+ rows, specifying first and last t for each period used in calculating synchrony
 
@@ -448,7 +500,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER(Beta_mean1);  // mean-reversion for beta1_t
   PARAMETER(logsigmaB1);  // SD of beta1_t (default: not included in objective function)
   PARAMETER(Beta_rho1);  // AR1 for positive catch Epsilon component, Default=0
-  PARAMETER(Epsilon_rho1);  // AR1 for presence/absence Epsilon component, Default=0
+  PARAMETER_VECTOR(Epsilon_rho1_f);  // AR1 for presence/absence Epsilon component, Default=0
   PARAMETER_VECTOR(log_sigmaratio1_z);  // Ratio of variance for columns of t_iz
 
   // -- presence/absence random effects
@@ -468,7 +520,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER(Beta_mean2);  // mean-reversion for beta2_t
   PARAMETER(logsigmaB2);  // SD of beta2_t (default: not included in objective function)
   PARAMETER(Beta_rho2);  // AR1 for positive catch Epsilon component, Default=0
-  PARAMETER(Epsilon_rho2);  // AR1 for positive catch Epsilon component, Default=0
+  PARAMETER_VECTOR(Epsilon_rho2_f);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER_VECTOR(log_sigmaratio2_z);  // Ratio of variance for columns of t_iz
 
   // Error distribution parameters
@@ -524,55 +576,112 @@ Type objective_function<Type>::operator() ()
   H(0,1) = ln_H_input(1);
   H(1,1) = (1+ln_H_input(1)*ln_H_input(1)) / exp(ln_H_input(0));
 
+  // Overwrite parameters when mirroring them
+  if( RhoConfig(1)==6 ){
+    Beta_rho2 = Beta_rho1;
+  }
+  if( RhoConfig(3)==6 ){
+    Epsilon_rho2_f = Epsilon_rho1_f;
+  }
+
   ////////////////////////
   // Calculate joint likelihood
   ////////////////////////
 
   // Define interaction matrix for Epsilon1, and also the imapct of F_ct on intercepts
-  int n_f;
-  n_f = Epsiloninput1_sft.col(0).cols();
-  matrix<Type> B_ff( n_f, n_f );          // Interactions among factors
-  B_ff = calculate_B( VamConfig(0), n_f, VamConfig(1), Chi_fr, Psi_fr, jnll_comp(13) );
+  int n_f1;
+  n_f1 = Epsiloninput1_sft.col(0).cols();
+  int n_f2;
+  n_f2 = Epsiloninput2_sft.col(0).cols();
+  matrix<Type> B_ff( n_f1, n_f1 );          // Interactions among factors
+  B_ff = calculate_B( VamConfig(0), n_f1, VamConfig(1), Chi_fr, Psi_fr, jnll_comp(13) );
   matrix<Type> iota_ct( n_c, n_t );       // Cumulative impact of fishing mortality F_ct in years <= current year t
+  matrix<Type> B1_cc( n_c, n_c );        // Interactions among categories
+  matrix<Type> covE1_cc( n_c, n_c );
+  matrix<Type> B2_cc( n_c, n_c );        // Interactions among categories
+  matrix<Type> covE2_cc( n_c, n_c );
+  matrix<Type> I_cc( n_c, n_c );
+  matrix<Type> IminusB_cc( n_c, n_c );
+  I_cc.setIdentity();
+  B1_cc.setZero();
+  B2_cc.setZero();
+  covE1_cc.setZero();
+  covE2_cc.setZero();
   // Calculate interaction matrix B_cc for categories if feasible
-  if( (n_c==n_f) & (FieldConfig(1)>0) ){
-    matrix<Type> L_epsilon1_cf = loadings_matrix( L_epsilon1_z, n_c, n_f );
+  if( (n_c==n_f1) & (n_c==n_f2) & (FieldConfig(1)>0) & (FieldConfig(3)>0) ){
+    matrix<Type> L_epsilon1_cf = loadings_matrix( L_epsilon1_z, n_c, n_f1 );
+    matrix<Type> Cov_epsilon1_cc = L_epsilon1_cf * L_epsilon1_cf.transpose();
+    matrix<Type> L_epsilon2_cf = loadings_matrix( L_epsilon2_z, n_c, n_f2 );
+    matrix<Type> Cov_epsilon2_cc = L_epsilon2_cf * L_epsilon2_cf.transpose();
+    matrix<Type> Btemp_cc( n_c, n_c );
     // Assemble interaction matrix
-    matrix<Type> B_cc( n_c, n_c );        // Interactions among categories
-    B_cc = B_ff;
+    B1_cc = B_ff;
     for( int c=0; c<n_c; c++ ){
-      B_cc(c,c) += Epsilon_rho1;
+      B1_cc(c,c) += Epsilon_rho1_f(c);
     }
     // If Timing=0, transform from interaction among factors to interaction among categories
     if( VamConfig(2)==0 ){
-      matrix<Type> Btemp_cc( n_c, n_c );
-      Btemp_cc = L_epsilon1_cf * B_cc;
-      B_cc = Btemp_cc * L_epsilon1_cf.inverse();
+      Btemp_cc = L_epsilon1_cf * B1_cc;
+      B1_cc = Btemp_cc * L_epsilon1_cf.inverse();
     }
-    REPORT( B_cc );
+    // Assemble interaction matrix
+    B2_cc = B_ff;
+    for( int c=0; c<n_c; c++ ){
+      B2_cc(c,c) += Epsilon_rho2_f(c);
+    }
+    // If Timing=0, transform from interaction among factors to interaction among categories
+    if( VamConfig(2)==0 ){
+      Btemp_cc = L_epsilon2_cf * B1_cc;
+      B2_cc = Btemp_cc * L_epsilon2_cf.inverse();
+    }
+    REPORT( B1_cc );
     REPORT( L_epsilon1_cf );
-    ADREPORT( B_cc );
+    REPORT( B2_cc );
+    REPORT( L_epsilon2_cf );
+    ADREPORT( B1_cc );
+    // Calculate F resulting in 40% of B0 if requested (only makes sense when B1_cc = B2_cc or Epsilon2 is turned off)
+    if( Options(10)==1 ){
+      vector<Type> Btarg_c( n_c );
+      vector<Type> Ftarg_c( n_c );
+      matrix<Type> Fratio_ct( n_c, n_t );
+      IminusB_cc = I_cc - B1_cc;
+      Btarg_c = log( 0.4 );  // 40% target, transformed for log-link
+      Ftarg_c = -1 * ( IminusB_cc * Btarg_c );
+      for( int t=0; t<n_t; t++ ){
+      for( int c=0; c<n_c; c++ ){
+        Fratio_ct(c,t) = F_ct(c,t) / Ftarg_c(c);
+      }}
+      REPORT( Ftarg_c );
+      REPORT( Fratio_ct );
+      ADREPORT( Ftarg_c );
+      ADREPORT( Fratio_ct );
+    }
+    // Calculate variance of stationary distribution only if necessary to calculate B0
+    if( Options(11)==1 ){
+      covE1_cc = stationary_variance( n_c, B1_cc, Cov_epsilon1_cc );
+      REPORT( covE1_cc );
+      covE2_cc = stationary_variance( n_c, B2_cc, Cov_epsilon2_cc );
+      REPORT( covE2_cc );
+    }
     // Define impact of F_ct on intercepts
     if( Options_vec(8)==0 ){
       iota_ct.setZero();
-    }else{
-      // Use F_ct in first year as initial condition
-      if( Options_vec(8)==1 ){
-        iota_ct.col(0) = -1 * F_ct.col(0);
-      }
-      // Use median of stationary distribution given F_ct in first year as initial condition
-      if( Options_vec(8)==2 ){
-        vector<Type> iota0_c( n_c );
-        matrix<Type> I_cc( n_c, n_c );
-        matrix<Type> sumB_cc( n_c, n_c );
-        I_cc.setIdentity();
-        I_cc = I_cc - B_cc;
-        sumB_cc = I_cc.inverse();
-        iota_ct.col(0) -= sumB_cc * F_ct.col(0);
-        REPORT( sumB_cc );
-      }
+    }
+    // Use F_ct in first year as initial condition...
+    if( (Options_vec(8)==1) ){
+      iota_ct.col(0) = -1 * F_ct.col(0);
+    }
+    // ... or use median of stationary distribution given F_ct in first year as initial condition
+    if( Options_vec(8)==2 ){
+      matrix<Type> sumB1_cc( n_c, n_c );
+      IminusB_cc = I_cc - B1_cc;
+      sumB1_cc = IminusB_cc.inverse();
+      iota_ct.col(0) -= sumB1_cc * F_ct.col(0);
+    }
+    if( (Options_vec(8)==1) | (Options_vec(8)==2) ){
+      // Project forward effect of F_ct from initial year through current year
       for( int t=1; t<n_t; t++ ){
-        iota_ct.col(t) = B_cc * iota_ct.col(t-1) - F_ct.col(t);
+        iota_ct.col(t) = B1_cc * iota_ct.col(t-1) - F_ct.col(t);
       }
     }
   }else{
@@ -599,43 +708,51 @@ Type objective_function<Type>::operator() ()
     Q1 = Q_network( logkappa1, n_s, parent_s, child_s, dist_s );
     Q2 = Q_network( logkappa2, n_s, parent_s, child_s, dist_s );
   }
+
   // Probability of encounter
   gmrf_Q = GMRF( Q1, bool(Options(9)) );
   // Omega1
-  n_f = Omegainput1_sf.cols();
-  array<Type> Omegamean1_sf(n_s, n_f);
+  array<Type> Omegamean1_sf(n_s, Omegainput1_sf.cols() );
   Omegamean1_sf.setZero();
   array<Type> Omega1_sc(n_s, n_c);
   Omega1_sc = gmrf_by_category_nll(FieldConfig(0), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_z, gmrf_Q, jnll_comp(0), this);
   // Epsilon1
-  n_f = Epsiloninput1_sft.col(0).cols();
-  array<Type> Epsilonmean1_sf(n_s, n_f);
+  array<Type> Epsilonmean1_sf(n_s, n_f1 );
   // PDF for Epsilon1
   array<Type> Epsilon1_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
-    if(t==0){
+    // PDF for B0 (not tied to autoregressive variation)
+    if( (Options(11)==1) & (t==(Options(11)-1)) ){
+      Epsilon1_sct.col(t) = gmrf_stationary_nll( Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), covE1_cc, gmrf_Q, jnll_comp(1), this);
+    }
+    // PDF for first year of autoregression
+    if( t==(Options(11)+0) ){
       Epsilonmean1_sf.setZero();
       Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
     }
-    if(t>=1){
+    // PDF for subsequent years of autoregression
+    if( t>=(Options(11)+1) ){
       // Prediction for spatio-temporal component
-      // Default, and also necessary whenever VamConfig(2)==1 & n_f!=n_c
-      if( (VamConfig(0)==0) | ((n_f!=n_c) & (VamConfig(2)==1)) ){
+      // Default, and also necessary whenever VamConfig(2)==1 & n_f1!=n_c
+      if( (VamConfig(0)==0) | ((n_f1!=n_c) & (VamConfig(2)==1)) ){
         // If no interactions, then just autoregressive for factors
-        Epsilonmean1_sf = Epsilon_rho1 * Epsiloninput1_sft.col(t-1);
+        for(int s=0; s<n_s; s++){
+        for(int f=0; f<n_f1; f++){
+          Epsilonmean1_sf(s,f) = Epsilon_rho1_f(f) * Epsiloninput1_sft(s,f,t-1);
+        }}
       }else{
         // Impact of interactions, B_ff
         Epsilonmean1_sf.setZero();
         for(int s=0; s<n_s; s++){
-        for(int f1=0; f1<n_f; f1++){
-        for(int f2=0; f2<n_f; f2++){
+        for(int f1=0; f1<n_f1; f1++){
+        for(int f2=0; f2<n_f1; f2++){
           if( VamConfig(2)==0 ){
             Epsilonmean1_sf(s,f1) += B_ff(f1,f2) * Epsiloninput1_sft(s,f2,t-1);
-            if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1 * Epsiloninput1_sft(s,f2,t-1);
+            if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1_f(f1) * Epsiloninput1_sft(s,f2,t-1);
           }
           if( VamConfig(2)==1 ){
             Epsilonmean1_sf(s,f1) += B_ff(f1,f2) * Epsilon1_sct(s,f2,t-1);
-            if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1 * Epsilon1_sct(s,f2,t-1);
+            if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1_f(f1) * Epsilon1_sct(s,f2,t-1);
           }
         }}}
       }
@@ -646,24 +763,50 @@ Type objective_function<Type>::operator() ()
   // Positive catch rate
   gmrf_Q = GMRF( Q2, bool(Options(9)) );
   // Omega2
-  n_f = Omegainput2_sf.cols();
-  array<Type> Omegamean2_sf(n_s, n_f);
+  array<Type> Omegamean2_sf(n_s, Omegainput2_sf.cols() );
   Omegamean2_sf.setZero();
   array<Type> Omega2_sc(n_s, n_c);
   Omega2_sc = gmrf_by_category_nll(FieldConfig(2), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_z, gmrf_Q, jnll_comp(2), this);
   // Epsilon2
-  n_f = Epsiloninput2_sft.col(0).cols();
-  array<Type> Epsilonmean2_sf(n_s, n_f);
+  array<Type> Epsilonmean2_sf(n_s, n_f2);
   // PDF for Epsilon1
   array<Type> Epsilon2_sct(n_s, n_c, n_t);
   for(t=0; t<n_t; t++){
-    if(t==0){
+    // PDF for B0 (not tied to autoregressive variation)
+    if( (Options(11)==1) & (t==(Options(11)-1)) ){
+      Epsilon2_sct.col(t) = gmrf_stationary_nll( Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), covE2_cc, gmrf_Q, jnll_comp(3), this);
+    }
+    // PDF for first year of autoregression
+    if( t==(Options(11)+0) ){
       Epsilonmean2_sf.setZero();
       Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
-    if(t>=1){
+    // PDF for subsequent years of autoregression
+    if( t>=(Options(11)+1) ){
       // Prediction for spatio-temporal component
-      Epsilonmean2_sf = Epsilon_rho2 * Epsiloninput2_sft.col(t-1);
+      // Default, and also necessary whenever VamConfig(2)==1 & n_f2!=n_c
+      if( (VamConfig(0)==0) | ((n_f2!=n_c) & (VamConfig(2)==1)) ){
+        // If no interactions, then just autoregressive for factors
+        for(int s=0; s<n_s; s++){
+        for(int f=0; f<n_f2; f++){
+          Epsilonmean2_sf(s,f) = Epsilon_rho2_f(f) * Epsiloninput2_sft(s,f,t-1);
+        }}
+      }else{
+        // Impact of interactions, B_ff
+        Epsilonmean2_sf.setZero();
+        for(int s=0; s<n_s; s++){
+        for(int f1=0; f1<n_f2; f1++){
+        for(int f2=0; f2<n_f2; f2++){
+          if( VamConfig(2)==0 ){
+            Epsilonmean2_sf(s,f1) += B_ff(f1,f2) * Epsiloninput2_sft(s,f2,t-1);
+            if( f1==f2 ) Epsilonmean2_sf(s,f1) += Epsilon_rho2_f(f1) * Epsiloninput2_sft(s,f2,t-1);
+          }
+          if( VamConfig(2)==1 ){
+            Epsilonmean2_sf(s,f1) += B_ff(f1,f2) * Epsilon2_sct(s,f2,t-1);
+            if( f1==f2 ) Epsilonmean2_sf(s,f1) += Epsilon_rho2_f(f1) * Epsilon2_sct(s,f2,t-1);
+          }
+        }}}
+      }
       // Hyperdistribution for spatio-temporal component
       Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
@@ -684,7 +827,7 @@ Type objective_function<Type>::operator() ()
   eta2_vc = overdispersion_by_category_nll( OverdispersionConfig(1), n_v, n_c, eta2_vf, L2_z, jnll_comp(5), this );
 
   // Possible structure on betas
-  if( Options_vec(2)!=0 ){
+  if( (RhoConfig(0)==1) | (RhoConfig(0)==2) | (RhoConfig(0)==4) ){
     for(c=0; c<n_c; c++){
     for(t=1; t<n_t; t++){
       jnll_comp(8) -= dnorm( beta1_ct(c,t), Beta_rho1*beta1_ct(c,t-1) + Beta_mean1, exp(logsigmaB1), true );
@@ -694,7 +837,7 @@ Type objective_function<Type>::operator() ()
       }
     }}
   }
-  if( Options_vec(3)!=0 ){
+  if( (RhoConfig(1)==1) | (RhoConfig(1)==2) | (RhoConfig(1)==4) | (RhoConfig(1)==6) ){
     for(c=0; c<n_c; c++){
     for(t=1; t<n_t; t++){
       jnll_comp(9) -= dnorm( beta2_ct(c,t), Beta_rho2*beta2_ct(c,t-1) + Beta_mean2, exp(logsigmaB2), true );
@@ -1066,6 +1209,21 @@ Type objective_function<Type>::operator() ()
   }}}
   ln_Index_cyl = log( Index_cyl );
 
+  // Calculate B / B0
+  if( Options(11)==1 ){
+    array<Type> Bratio_cyl(n_c, n_y, n_l);
+    array<Type> ln_Bratio_cyl(n_c, n_y, n_l);
+    for(int c=0; c<n_c; c++){
+    for(int y=0; y<n_y; y++){
+    for(int l=0; l<n_l; l++){
+      Bratio_cyl(c,y,l) = Index_cyl(c,y,l) / Index_cyl(c,0,l);
+    }}}
+    ln_Bratio_cyl = log( Bratio_cyl );
+    REPORT( Bratio_cyl );
+    ADREPORT( Bratio_cyl );
+    ADREPORT( ln_Bratio_cyl );
+  }
+
   // Calculate other derived summaries
   // Each is the weighted-average X_xl over polygons (x) with weights equal to abundance in each polygon and time (where abundance is from the first index)
   array<Type> mean_Z_cym(n_c, n_y, n_m);
@@ -1395,6 +1553,10 @@ Type objective_function<Type>::operator() ()
   REPORT( iota_ct );
 
   REPORT( SigmaM );
+  REPORT( Beta_rho1 );
+  REPORT( Epsilon_rho1_f );
+  REPORT( Beta_rho2 );
+  REPORT( Epsilon_rho2_f );
   REPORT( Index_cyl );
   REPORT( D_xcy );
   REPORT( R1_xcy );

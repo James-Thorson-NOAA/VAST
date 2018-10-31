@@ -32,4 +32,3 @@ Results a matrix with total predictive negative log-likelihood for each crossval
 \description{
 \code{Crossvalidate_Fn} runs a k-fold crossvalidation analysis on a fitted model object
 }
-

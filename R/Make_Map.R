@@ -1,6 +1,6 @@
 #' @export
 Make_Map <-
-function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)){
+function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Npool=0 ){
 
   # Local functions
   fixval_fn <- function( fixvalTF ){
@@ -96,7 +96,7 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     Map[["delta_i"]] = factor(Map[["delta_i"]])
   }
 
-  # Change beta1_ct if 100% encounters (not designed to work with seasonal models
+  # Change beta1_ct if 100% encounters (not designed to work with seasonal models)
   if( any(DataList$ObsModel_ez[,2]%in%c(3)) & ncol(DataList$t_iz)==1 ){
     Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),DataList$t_iz[,1]), FUN=mean)
     Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
@@ -129,8 +129,8 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     Map[["logsigmaB1"]] = factor( NA )
     Map[["beta1_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
   }
-  # Beta2 -- Fixed
-  if( RhoConfig["Beta2"]==0){
+  # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
+  if( RhoConfig["Beta2"] %in% c(0,6) ){
     Map[["Beta_mean2"]] = factor( NA )
     Map[["Beta_rho2"]] = factor( NA )
     Map[["logsigmaB2"]] = factor( NA )
@@ -152,12 +152,20 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     Map[["beta2_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
   }
   # Epsilon1 -- Fixed OR White-noise OR Random walk
-  if( RhoConfig["Epsilon1"] %in% c(0,1,2)){
-    Map[["Epsilon_rho1"]] = factor( NA )
+  if( RhoConfig["Epsilon1"] %in% c(0,1,2) ){
+    if( "Epsilon_rho1" %in% names(TmbParams) ) Map[["Epsilon_rho1"]] = factor( NA )
+    if( "Epsilon_rho1_f" %in% names(TmbParams) ) Map[["Epsilon_rho1_f"]] = factor( rep(NA,length(TmbParams$Epsilon_rho1_f)) )
   }
-  # Epsilon2 -- Fixed OR White-noise OR Random walk
-  if( RhoConfig["Epsilon2"] %in% c(0,1,2)){
-    Map[["Epsilon_rho2"]] = factor( NA )
+  if( RhoConfig["Epsilon1"] %in% c(4) ){
+    if( "Epsilon_rho1_f" %in% names(TmbParams) ) Map[["Epsilon_rho1_f"]] = factor( rep(1,length(TmbParams$Epsilon_rho1_f)) )
+  }
+  # Epsilon2 -- Fixed OR White-noise OR Random walk OR mirroring Epsilon_rho1_f
+  if( RhoConfig["Epsilon2"] %in% c(0,1,2,6) ){
+    if( "Epsilon_rho2" %in% names(TmbParams) ) Map[["Epsilon_rho2"]] = factor( NA )
+    if( "Epsilon_rho2_f" %in% names(TmbParams) ) Map[["Epsilon_rho2_f"]] = factor( rep(NA,length(TmbParams$Epsilon_rho2_f)) )
+  }
+  if( RhoConfig["Epsilon2"] %in% c(4) ){
+    if( "Epsilon_rho2_f" %in% names(TmbParams) ) Map[["Epsilon_rho2_f"]] = factor( rep(1,length(TmbParams$Epsilon_rho2_f)) )
   }
   # fix betas and/or epsilons for missing years if betas are fixed-effects
   #YearNotInData = !( (1:DataList$n_t) %in% (unique(DataList$t_i)+1) )
@@ -175,7 +183,6 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     # Beta1 -- White-noise
     if( RhoConfig["Beta1"]==1){
       # Don't fix because it would affect estimates of variance
-      #Map[["beta1_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=DataList$n_c) )
     }
     # Beta2 -- Fixed
     if( !("beta2_ct" %in% names(Map)) ){
@@ -185,7 +192,6 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
       # Beta2 -- White-noise
       if( RhoConfig["Beta2"]==1){
         # Don't fix because it would affect estimates of variance
-        #Map[["beta2_ct"]] = fixval_fn( fixvalTF=rep(YearNotInData,each=DataList$n_c) )
       }
     }
   }
@@ -244,6 +250,38 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
       Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
       Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
     }
+  }
+
+  # Npool option:
+  # Make all category-specific variances (SigmaM, Omega, Epsilon) constant for models with EncNum_a < Npool
+  if( Npool>0 ){
+    if( !all(DataList$FieldConfig %in% c(-2)) ){
+      stop("Npool should only be specified when using 'IID' variation for `FieldConfig`")
+    }
+  }
+  EncNum_ct = array(0, dim=c(DataList$n_c,DataList$n_t))
+  for( tz in 1:ncol(DataList$t_iz) ){
+    Temp = tapply( DataList$b_i, INDEX=list(factor(DataList$c_iz[,1],levels=1:DataList$n_c-1),factor(DataList$t_iz[,tz],levels=1:DataList$n_t-1)), FUN=function(vec){sum(vec>0,na.rm=TRUE)} )
+    Temp = ifelse( is.na(Temp), 0, Temp )
+    EncNum_ct = EncNum_ct + Temp
+  }
+  EncNum_c = rowSums( EncNum_ct )
+  if( any(EncNum_c < Npool) ){
+    pool = function(poolTF){
+      Return = 1:length(poolTF)
+      Return = ifelse( poolTF==TRUE, length(poolTF)+1, Return )
+      return(Return)
+    }
+    # Change SigmaM / L_omega1_z / L_omega2_z / L_epsilon1_z / L_epsilon2_z
+    Map[["logSigmaM"]] = array( as.numeric(Map$logSigmaM), dim=dim(TmbParams$logSigmaM) )
+    Map[["logSigmaM"]][ which(EncNum_c < Npool), ] = rep(1,sum(EncNum_c<Npool)) %o% Map[["logSigmaM"]][ which(EncNum_c < Npool)[1], ]
+    Map[["logSigmaM"]] = factor( Map[["logSigmaM"]] )
+    # Change Omegas
+    Map[["L_omega1_z"]] = factor(pool(EncNum_c<Npool))
+    Map[["L_omega2_z"]] = factor(pool(EncNum_c<Npool))
+    # Change Epsilons
+    Map[["L_epsilon1_z"]] = factor(pool(EncNum_c<Npool))
+    Map[["L_epsilon2_z"]] = factor(pool(EncNum_c<Npool))
   }
 
   # Static covariates

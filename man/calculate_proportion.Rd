@@ -12,7 +12,7 @@ calculate_proportion(TmbData, Index, Year_Set = NULL, Years2Include = NULL,
 \arguments{
 \item{TmbData}{Formatted data inputs, from `VAST::Data_Fn(...)`}
 
-\item{Index}{output from \code{FishStatsUtils::PlotIndex_Fn}}
+\item{Index}{output from \code{FishStatsUtils::plot_biomass_index}}
 
 \item{Year_Set}{Year names for labeling panels}
 
@@ -46,4 +46,3 @@ Tagged list of output
 \description{
 \code{calculate_proportion} takes output from a VAST run and calculates the proportion of biomass in different categories
 }
-

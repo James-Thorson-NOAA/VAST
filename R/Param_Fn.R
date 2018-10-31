@@ -101,6 +101,9 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   if(Version%in%c("VAST_v5_2_0","VAST_v5_1_0","VAST_v5_0_0")){
     Return = list("ln_H_input"=c(0,0), "Chi_fr"=rarray(dim=c(max(DataList$FieldConfig[2],1),DataList$VamConfig[2])), "Psi_fr"=rarray(dim=c(max(DataList$FieldConfig[2],1),DataList$VamConfig[2])), "beta1_ct"=NA, "gamma1_j"=rep(0,ncol(DataList$X_xj)), "gamma1_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda1_k"=rep(0,ncol(DataList$Q_ik)), "L1_z"=NA, "L_omega1_z"=NA, "L_epsilon1_z"=NA, "logkappa1"=log(0.9), "Beta_mean1"=0, "logsigmaB1"=log(1), "Beta_rho1"=0, "Epsilon_rho1"=0, "log_sigmaratio1_z"=rep(0,ncol(DataList$t_iz)), "eta1_vf"=NA, "Omegainput1_sf"=NA, "Epsiloninput1_sft"=NA, "beta2_ct"=NA, "gamma2_j"=rep(0,ncol(DataList$X_xj)), "gamma2_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda2_k"=rep(0,ncol(DataList$Q_ik)), "L2_z"=NA, "L_omega2_z"=NA, "L_epsilon2_z"=NA, "logkappa2"=log(0.9), "Beta_mean2"=0, "logsigmaB2"=log(1), "Beta_rho2"=0, "Epsilon_rho2"=0, "log_sigmaratio2_z"=rep(0,ncol(DataList$t_iz)), "logSigmaM"=rep(1,DataList$n_e)%o%c(log(5),log(2),log(1)), "delta_i"=rnorm(n=ifelse(any(DataList$ObsModel_ez[,1]%in%c(11,14)),DataList$n_i,1),sd=0.1), "eta2_vf"=NA, "Omegainput2_sf"=NA, "Epsiloninput2_sft"=NA )
   }
+  if(Version%in%c("VAST_v5_3_0")){
+    Return = list("ln_H_input"=c(0,0), "Chi_fr"=rarray(dim=c(max(DataList$FieldConfig[2],1),DataList$VamConfig[2])), "Psi_fr"=rarray(dim=c(max(DataList$FieldConfig[2],1),DataList$VamConfig[2])), "beta1_ct"=NA, "gamma1_j"=rep(0,ncol(DataList$X_xj)), "gamma1_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda1_k"=rep(0,ncol(DataList$Q_ik)), "L1_z"=NA, "L_omega1_z"=NA, "L_epsilon1_z"=NA, "logkappa1"=log(0.9), "Beta_mean1"=0, "logsigmaB1"=log(1), "Beta_rho1"=0, "Epsilon_rho1_f"=NA, "log_sigmaratio1_z"=rep(0,ncol(DataList$t_iz)), "eta1_vf"=NA, "Omegainput1_sf"=NA, "Epsiloninput1_sft"=NA, "beta2_ct"=NA, "gamma2_j"=rep(0,ncol(DataList$X_xj)), "gamma2_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda2_k"=rep(0,ncol(DataList$Q_ik)), "L2_z"=NA, "L_omega2_z"=NA, "L_epsilon2_z"=NA, "logkappa2"=log(0.9), "Beta_mean2"=0, "logsigmaB2"=log(1), "Beta_rho2"=0, "Epsilon_rho2_f"=NA, "log_sigmaratio2_z"=rep(0,ncol(DataList$t_iz)), "logSigmaM"=rep(1,DataList$n_e)%o%c(log(5),log(2),log(1)), "delta_i"=rnorm(n=ifelse(any(DataList$ObsModel_ez[,1]%in%c(11,14)),DataList$n_i,1),sd=0.1), "eta2_vf"=NA, "Omegainput2_sf"=NA, "Epsiloninput2_sft"=NA )
+  }
   # Overdispersion
   if( "n_f_input" %in% names(DataList) ){
     if( "L1_z" %in% names(Return)) Return = Add_factor( List=Return, n_c=DataList$n_c, n_f=DataList$n_f_input, n_i=DataList$n_v, list_names=c("L1_z","eta1_vf"), sd=0 )
@@ -115,6 +118,9 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   if( "L_epsilon1_z" %in% names(Return)) Return = Add_factor( List=Return, n_c=DataList$n_c, n_f=DataList$FieldConfig[2], n_i=DataList$n_s, n_t=DataList$n_t, list_names=c("L_epsilon1_z","Epsiloninput1_sft"), sd=0 )
   if( "L_omega2_z" %in% names(Return)) Return = Add_factor( List=Return, n_c=DataList$n_c, n_f=DataList$FieldConfig[3], n_i=DataList$n_s, list_names=c("L_omega2_z","Omegainput2_sf"), sd=0 )
   if( "L_epsilon2_z" %in% names(Return)) Return = Add_factor( List=Return, n_c=DataList$n_c, n_f=DataList$FieldConfig[4], n_i=DataList$n_s, n_t=DataList$n_t, list_names=c("L_epsilon2_z","Epsiloninput2_sft"), sd=0 )
+  # Autocorrelation
+  if( "Epsilon_rho1_f" %in% names(Return)) Return[["Epsilon_rho1_f"]] = rep(0, ncol(Return[["Omegainput1_sf"]]))
+  if( "Epsilon_rho2_f" %in% names(Return)) Return[["Epsilon_rho2_f"]] = rep(0, ncol(Return[["Omegainput2_sf"]]))
   # Initial values
   if( all(DataList$ObsModel_ez[,2]%in%c(0,3)) ){
     Return[["beta1_ct"]] = qlogis(0.01*0.99*tapply(ifelse(DataList$b_i>0,1,0),INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),FUN=mean)) %o% rep(1,DataList$n_t)
@@ -130,13 +136,25 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   # If either beta or epsilon is a random-walk process, fix starting value at 1
   if( "Beta_rho1"%in%names(Return) && RhoConfig[["Beta1"]]==2 ) Return[["Beta_rho1"]] = 1
   if( "Beta_rho2"%in%names(Return) && RhoConfig[["Beta2"]]==2 ) Return[["Beta_rho2"]] = 1
-  if( "Epsilon_rho1"%in%names(Return) && RhoConfig[["Epsilon1"]]==2 ) Return[["Epsilon_rho1"]] = 1
-  if( "Epsilon_rho2"%in%names(Return) && RhoConfig[["Epsilon2"]]==2 ) Return[["Epsilon_rho2"]] = 1
+  if( RhoConfig[["Epsilon1"]] %in% c(2) ){
+    if( "Epsilon_rho1"%in%names(Return) ) Return[["Epsilon_rho1"]] = 1
+    if( "Epsilon_rho1_f"%in%names(Return) ) Return[["Epsilon_rho1_f"]][] = 1
+  }
+  if( RhoConfig[["Epsilon2"]] %in% c(2) ){
+    if( "Epsilon_rho2"%in%names(Return) ) Return[["Epsilon_rho2"]] = 1
+    if( "Epsilon_rho2_f"%in%names(Return) ) Return[["Epsilon_rho2_f"]][] = 1
+  }
   # If either beta or epsilon is a AR1 process, fix starting value at 0.01 to ensure a non-zero starting gradient
   if( "Beta_rho1"%in%names(Return) && RhoConfig[["Beta1"]]==4 ) Return[["Beta_rho1"]] = 0.01
   if( "Beta_rho2"%in%names(Return) && RhoConfig[["Beta2"]]==4 ) Return[["Beta_rho2"]] = 0.01
-  if( "Epsilon_rho1"%in%names(Return) && RhoConfig[["Epsilon1"]]==4 ) Return[["Epsilon_rho1"]] = 0.01
-  if( "Epsilon_rho2"%in%names(Return) && RhoConfig[["Epsilon2"]]==4 ) Return[["Epsilon_rho2"]] = 0.01
+  if( RhoConfig[["Epsilon1"]] %in% c(4,5) ){
+    if( "Epsilon_rho1"%in%names(Return) ) Return[["Epsilon_rho1"]] = 0.01
+    if( "Epsilon_rho1_f"%in%names(Return) ) Return[["Epsilon_rho1_f"]][] = 0.01
+  }
+  if( RhoConfig[["Epsilon2"]] %in% c(4,5) ){
+    if( "Epsilon_rho2"%in%names(Return) ) Return[["Epsilon_rho2"]] = 0.01
+    if( "Epsilon_rho2_f"%in%names(Return) ) Return[["Epsilon_rho2_f"]][] = 0.01
+  }
   # replace missing values function
   tmpfn = function( vec ){
     Return = ifelse( abs(vec)==Inf, NA, vec)
@@ -149,7 +167,9 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   if( "VamConfig"%in%names(DataList) & all(c("Chi_fr","Psi_fr")%in%names(Return)) ){
     Return[["Psi_fr"]][1:ncol(Return[["Psi_fr"]]),] = diag(nrow=ncol(Return[["Psi_fr"]]))
     if( DataList$VamConfig[1]==2 ){
-      Return[["Psi_fr"]][cbind(1:ncol(Return[["Psi_fr"]]),1:ncol(Return[["Psi_fr"]]))] = seq(0.2,0.9,length=ncol(Return[["Psi_fr"]])) - Return[["Epsilon_rho1"]]  # "diag" threw an error when ncol(Return[["Psi_fr"]])=1
+      if( "Epsilon_rho1" %in% names(Return) ) Mean = Return[["Epsilon_rho1"]]
+      if( "Epsilon_rho1_f" %in% names(Return) ) Mean = mean(Return[["Epsilon_rho1_f"]])
+      Return[["Psi_fr"]][cbind(1:ncol(Return[["Psi_fr"]]),1:ncol(Return[["Psi_fr"]]))] = seq(0.2,0.9,length=ncol(Return[["Psi_fr"]])) - Mean  # "diag" threw an error when ncol(Return[["Psi_fr"]])=1
     }
   }
 
