@@ -39,7 +39,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Method="Mesh", Npool=0,
   ConvergeTol=1, Use_REML=FALSE, loc_x=NULL, Parameters="generate", Random="generate", Map="generate",
   DiagnosticDir=NULL, TmbDir=system.file("executables",package="VAST"), RunDir=getwd(), build_model=TRUE ){
-                                            
+
   # Augment objects in TmbData (to deal with backwards compatibility)
   if( !("n_e" %in% names(TmbData)) ){
     TmbData[["n_e"]] = TmbData$n_c
@@ -125,11 +125,16 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
     }
     utils::write.table( matrix(Obj$par,nrow=1), row.names=FALSE, sep=",", col.names=FALSE, file=paste0(DiagnosticDir,"trace.csv"))
   }
-  
+
   # Local functions
   boundsifpresent_fn = function( par, map, name, lower, upper, bounds ){
     if( name %in% names(par) ){
-      bounds[grep(name,names(par)),c('Lower','Upper')] = rep(1,length(grep(name,names(par)))) %o% c(lower,upper)
+      lengths <- length(grep(name,names(par)))
+      if (length(lower) == lengths && length(upper) == lengths) {
+        bounds[grep(name,names(par)),c('Lower','Upper')] = cbind(lower,upper)
+      } else {
+        bounds[grep(name,names(par)),c('Lower','Upper')] = rep(1,lengths) %o% c(lower,upper)
+      }
     }
     return( bounds )
   }
@@ -168,6 +173,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
     if( TmbData[["OverdispersionConfig"]][1]==0 ) Bounds = boundsifpresent_fn( par=Obj$par, name="L1_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
     if( TmbData[["OverdispersionConfig"]][1]==0 ) Bounds = boundsifpresent_fn( par=Obj$par, name="L2_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
   }
+
   for(i in 1:4){
     if( TmbData[["FieldConfig"]][i]==0 ){
       Bounds = boundsifpresent_fn( par=Obj$par, name=c("L_omega1_z","L_epsilon1_z","L_omega2_z","L_epsilon2_z")[i], lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
