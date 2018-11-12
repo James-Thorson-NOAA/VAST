@@ -119,8 +119,8 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   if( "L_omega2_z" %in% names(Return)) Return = Add_factor( List=Return, n_c=DataList$n_c, n_f=DataList$FieldConfig[3], n_i=DataList$n_s, list_names=c("L_omega2_z","Omegainput2_sf"), sd=0 )
   if( "L_epsilon2_z" %in% names(Return)) Return = Add_factor( List=Return, n_c=DataList$n_c, n_f=DataList$FieldConfig[4], n_i=DataList$n_s, n_t=DataList$n_t, list_names=c("L_epsilon2_z","Epsiloninput2_sft"), sd=0 )
   # Autocorrelation
-  if( "Epsilon_rho1_f" %in% names(Return)) Return[["Epsilon_rho1_f"]] = rep(0, ncol(Return[["Omegainput1_sf"]]))
-  if( "Epsilon_rho2_f" %in% names(Return)) Return[["Epsilon_rho2_f"]] = rep(0, ncol(Return[["Omegainput2_sf"]]))
+  if( "Epsilon_rho1_f" %in% names(Return)) Return[["Epsilon_rho1_f"]] = rep(0, dim(Return[["Epsiloninput1_sft"]])[2])
+  if( "Epsilon_rho2_f" %in% names(Return)) Return[["Epsilon_rho2_f"]] = rep(0, dim(Return[["Epsiloninput2_sft"]])[2])
   # Initial values
   if( all(DataList$ObsModel_ez[,2]%in%c(0,3)) ){
     Return[["beta1_ct"]] = qlogis(0.01*0.99*tapply(ifelse(DataList$b_i>0,1,0),INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),FUN=mean)) %o% rep(1,DataList$n_t)
