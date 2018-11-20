@@ -181,6 +181,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     if( all(b_i>0) & all(ObsModel_ez[,1]==0) & !all(FieldConfig_input[1:2]==-1) ) stop("All data are positive and using a conventional delta-model, so please turn off `Omega1` and `Epsilon1` terms")
     if( !(all(ObsModel_ez[,1] %in% c(0,1,2,5,6,7,8,9,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
     if( !all(RhoConfig[1]%in%c(0,1,2,3,4)) | !all(RhoConfig[2]%in%c(0,1,2,3,4,6)) | !all(RhoConfig[3]%in%c(0,1,2,4,5)) | !all(RhoConfig[4]%in%c(0,1,2,4,5,6)) ) stop("Check `RhoConfig` inputs")
+    if( any(is.na(X_xtp)) ) stop("Some `X_xtp` is NA, and this is not allowed")
   }
 
   # Check for wrong dimensions
