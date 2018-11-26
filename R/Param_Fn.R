@@ -128,16 +128,19 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   if( all(DataList$ObsModel_ez[,2] %in% c(0,3)) ){
     Return[["beta1_ct"]] = qlogis(0.01*0.99*tapply(ifelse(DataList$b_i>0,1,0),INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),FUN=mean)) %o% rep(1,DataList$n_t)
     Return[["beta2_ct"]] = log(tapply(ifelse(DataList$b_i>0,DataList$b_i/DataList$a_i,NA),INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),FUN=mean,na.rm=TRUE)) %o% rep(1,DataList$n_t)
+  }else{
+    Return[["beta1_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
+    Return[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
   }
   if( all(DataList$ObsModel_ez[,2] %in% c(3)) ){
     Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),DataList$t_iz[,1]), FUN=mean)
-    Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
+    if( any(is.na(Tmp_ct) | Tmp_ct==1) ) Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
   }
   if( all(DataList$ObsModel_ez[,2] %in% c(4)) ){
     Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),DataList$t_iz[,1]), FUN=mean)
-    Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
-    Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = -20
-    Return[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = 0
+    if( any(is.na(Tmp_ct) | Tmp_ct==1) ) Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
+    if( any(is.na(Tmp_ct) | Tmp_ct==0) ) Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = -20
+    if( any(is.na(Tmp_ct) | Tmp_ct==0) ) Return[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = 0
   }
   if(length(Return[["beta1_ct"]])==1 && is.na(Return[["beta1_ct"]])) Return[["beta1_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
   if(length(Return[["beta2_ct"]])==1 && is.na(Return[["beta2_ct"]])) Return[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
