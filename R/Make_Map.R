@@ -111,49 +111,59 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
   # Anisotropy
   if(DataList[["Options_vec"]]["Aniso"]==0 | all(DataList[["FieldConfig"]] == -1)) Map[['ln_H_input']] = factor( rep(NA,2) )
   
-  # Beta1 -- Fixed
-  if( RhoConfig["Beta1"]==0){
-    Map[["Beta_mean1"]] = factor( NA )
-    Map[["Beta_rho1"]] = factor( NA )
-    Map[["logsigmaB1"]] = factor( NA )
+  # Hyperparameters for intercepts for <= V5.3.0
+  if( "Beta_mean1" %in% names(TmbParams) ){
+    if( RhoConfig["Beta1"]==0){
+      Map[["Beta_mean1"]] = factor( NA )
+      Map[["Beta_rho1"]] = factor( NA )
+      Map[["logsigmaB1"]] = factor( NA )
+    }
+    # Beta1 -- White-noise
+    if( RhoConfig["Beta1"]==1){
+      Map[["Beta_rho1"]] = factor( NA )
+    }
+    # Beta1 -- Random-walk
+    if( RhoConfig["Beta1"]==2){
+      Map[["Beta_mean1"]] = factor( NA )
+      Map[["Beta_rho1"]] = factor( NA )
+    }
+    # Beta1 -- Constant over time for each category
+    if( RhoConfig["Beta1"]==3){
+      Map[["Beta_mean1"]] = factor( NA )
+      Map[["Beta_rho1"]] = factor( NA )
+      Map[["logsigmaB1"]] = factor( NA )
+      Map[["beta1_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
+    }
+    # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
+    if( RhoConfig["Beta2"] %in% c(0,6) ){
+      Map[["Beta_mean2"]] = factor( NA )
+      Map[["Beta_rho2"]] = factor( NA )
+      Map[["logsigmaB2"]] = factor( NA )
+    }
+    # Beta2 -- White-noise
+    if( RhoConfig["Beta2"]==1){
+      Map[["Beta_rho2"]] = factor( NA )
+    }
+    # Beta2 -- Random-walk
+    if( RhoConfig["Beta2"]==2){
+      Map[["Beta_mean2"]] = factor( NA )
+      Map[["Beta_rho2"]] = factor( NA )
+    }
+    # Beta2 -- Constant over time for each category
+    if( RhoConfig["Beta2"]==3){
+      Map[["Beta_mean2"]] = factor( NA )
+      Map[["Beta_rho2"]] = factor( NA )
+      Map[["logsigmaB2"]] = factor( NA )
+      Map[["beta2_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
+    }
+    # Warnings
+    if( TmbData$n_c >= 2 ){
+      warnings( "This version of VAST has the same hyperparameters for the intercepts of all categories" )
+    }
   }
-  # Beta1 -- White-noise
-  if( RhoConfig["Beta1"]==1){
-    Map[["Beta_rho1"]] = factor( NA )
-  }
-  # Beta1 -- Random-walk
-  if( RhoConfig["Beta1"]==2){
-    Map[["Beta_mean1"]] = factor( NA )
-    Map[["Beta_rho1"]] = factor( NA )
-  }
-  # Beta1 -- Constant over time for each category
-  if( RhoConfig["Beta1"]==3){
-    Map[["Beta_mean1"]] = factor( NA )
-    Map[["Beta_rho1"]] = factor( NA )
-    Map[["logsigmaB1"]] = factor( NA )
-    Map[["beta1_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
-  }
-  # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
-  if( RhoConfig["Beta2"] %in% c(0,6) ){
-    Map[["Beta_mean2"]] = factor( NA )
-    Map[["Beta_rho2"]] = factor( NA )
-    Map[["logsigmaB2"]] = factor( NA )
-  }
-  # Beta2 -- White-noise
-  if( RhoConfig["Beta2"]==1){
-    Map[["Beta_rho2"]] = factor( NA )
-  }
-  # Beta2 -- Random-walk
-  if( RhoConfig["Beta2"]==2){
-    Map[["Beta_mean2"]] = factor( NA )
-    Map[["Beta_rho2"]] = factor( NA )
-  }
-  # Beta2 -- Constant over time for each category
-  if( RhoConfig["Beta2"]==3){
-    Map[["Beta_mean2"]] = factor( NA )
-    Map[["Beta_rho2"]] = factor( NA )
-    Map[["logsigmaB2"]] = factor( NA )
-    Map[["beta2_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
+  # Hyperparameters for intercepts for >= V5.4.0
+  if( "Beta_mean1_c" %in% names(TmbParams) ){
+    ############# MUST IMPLEMENT #################
   }
   # Epsilon1 -- Fixed OR White-noise OR Random walk
   if( RhoConfig["Epsilon1"] %in% c(0,1,2) ){
