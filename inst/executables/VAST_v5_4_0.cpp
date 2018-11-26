@@ -497,9 +497,9 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR(L_omega1_z);
   PARAMETER_VECTOR(L_epsilon1_z);
   PARAMETER(logkappa1);
-  PARAMETER(Beta_mean1);  // mean-reversion for beta1_t
-  PARAMETER(logsigmaB1);  // SD of beta1_t (default: not included in objective function)
-  PARAMETER(Beta_rho1);  // AR1 for positive catch Epsilon component, Default=0
+  PARAMETER_VECTOR(Beta_mean1_c);  // mean-reversion for beta1_t
+  PARAMETER_VECTOR(logsigmaB1_c);  // SD of beta1_t (default: not included in objective function)
+  PARAMETER_VECTOR(Beta_rho1_c);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER_VECTOR(Epsilon_rho1_f);  // AR1 for presence/absence Epsilon component, Default=0
   PARAMETER_VECTOR(log_sigmaratio1_z);  // Ratio of variance for columns of t_iz
 
@@ -517,9 +517,9 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR(L_omega2_z);
   PARAMETER_VECTOR(L_epsilon2_z);
   PARAMETER(logkappa2);
-  PARAMETER(Beta_mean2);  // mean-reversion for beta2_t
-  PARAMETER(logsigmaB2);  // SD of beta2_t (default: not included in objective function)
-  PARAMETER(Beta_rho2);  // AR1 for positive catch Epsilon component, Default=0
+  PARAMETER_VECTOR(Beta_mean2_c);  // mean-reversion for beta2_t
+  PARAMETER_VECTOR(logsigmaB2_c);  // SD of beta2_t (default: not included in objective function)
+  PARAMETER_VECTOR(Beta_rho2_c);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER_VECTOR(Epsilon_rho2_f);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER_VECTOR(log_sigmaratio2_z);  // Ratio of variance for columns of t_iz
 
@@ -830,20 +830,20 @@ Type objective_function<Type>::operator() ()
   if( (RhoConfig(0)==1) | (RhoConfig(0)==2) | (RhoConfig(0)==4) ){
     for(c=0; c<n_c; c++){
     for(t=1; t<n_t; t++){
-      jnll_comp(8) -= dnorm( beta1_ct(c,t), Beta_rho1*beta1_ct(c,t-1) + Beta_mean1, exp(logsigmaB1), true );
+      jnll_comp(8) -= dnorm( beta1_ct(c,t), Beta_rho1_c(c)*beta1_ct(c,t-1) + Beta_mean1_c(c), exp(logsigmaB1_c(c)), true );
       // Simulate new values when using obj.simulate()
       SIMULATE{
-        beta1_ct(c,t) = rnorm( Beta_rho1*beta1_ct(c,t-1) + Beta_mean1, exp(logsigmaB1) );
+        beta1_ct(c,t) = rnorm( Beta_rho1_c(c)*beta1_ct(c,t-1) + Beta_mean1_c(c), exp(logsigmaB1_c(c)) );
       }
     }}
   }
   if( (RhoConfig(1)==1) | (RhoConfig(1)==2) | (RhoConfig(1)==4) | (RhoConfig(1)==6) ){
     for(c=0; c<n_c; c++){
     for(t=1; t<n_t; t++){
-      jnll_comp(9) -= dnorm( beta2_ct(c,t), Beta_rho2*beta2_ct(c,t-1) + Beta_mean2, exp(logsigmaB2), true );
+      jnll_comp(9) -= dnorm( beta2_ct(c,t), Beta_rho2_c(c)*beta2_ct(c,t-1) + Beta_mean2_c(c), exp(logsigmaB2_c(c)), true );
       // Simulate new values when using obj.simulate()
       SIMULATE{
-        beta2_ct(c,t) = rnorm( Beta_rho2*beta2_ct(c,t-1) + Beta_mean2, exp(logsigmaB2) );
+        beta2_ct(c,t) = rnorm( Beta_rho2_c(c)*beta2_ct(c,t-1) + Beta_mean2_c(c), exp(logsigmaB2_c(c)) );
       }
     }}
   }
