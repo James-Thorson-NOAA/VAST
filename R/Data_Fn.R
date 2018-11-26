@@ -317,10 +317,10 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   }else{
     Network_sz = matrix( c(1,1,1), nrow=1, dimnames=list(NULL,c("parent_s","child_s","dist_s")) )
   }
-  if( RhoConfig[1:2]!=0 & any(ObsModel_ez[,2]==3) ){
+  if( any(RhoConfig[1:2]!=0) & any(ObsModel_ez[,2]==3) ){
     stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=3:  Other options are not coded to work together" )
   }
-  if( RhoConfig[1:2]!=0 & any(ObsModel_ez[,2]==4) ){
+  if( any(RhoConfig[1:2]!=0) & any(ObsModel_ez[,2]==4) ){
     stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=4:  Other options are not coded to work together" )
   }
 
