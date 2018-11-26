@@ -578,7 +578,7 @@ Type objective_function<Type>::operator() ()
 
   // Overwrite parameters when mirroring them
   if( RhoConfig(1)==6 ){
-    Beta_rho2 = Beta_rho1;
+    Beta_rho2_c = Beta_rho1_c;
   }
   if( RhoConfig(3)==6 ){
     Epsilon_rho2_f = Epsilon_rho1_f;
@@ -1553,9 +1553,9 @@ Type objective_function<Type>::operator() ()
   REPORT( iota_ct );
 
   REPORT( SigmaM );
-  REPORT( Beta_rho1 );
+  REPORT( Beta_rho1_c );
   REPORT( Epsilon_rho1_f );
-  REPORT( Beta_rho2 );
+  REPORT( Beta_rho2_c );
   REPORT( Epsilon_rho2_f );
   REPORT( Index_cyl );
   REPORT( D_xcy );
