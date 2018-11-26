@@ -160,9 +160,11 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     if( Options2use[12]==1 ){
       Prop_nonzero = Prop_nonzero[-1,]
     }
-    if( any(!is.na(Prop_nonzero) & (Prop_nonzero==0|Prop_nonzero==1)) & any(ObsModel_ez[,2]==0) ){
-      print( Prop_nonzero )
-      stop("Some years and/or categories have either all or no encounters, and this is not permissible when ObsModel_ez[,'Link']=0")
+    if( any(ObsModel_ez[,2]==0) ){
+      if( any(!is.na(Prop_nonzero) & (Prop_nonzero==0|Prop_nonzero==1)) ){
+        print( Prop_nonzero )
+        stop("Some years and/or categories have either all or no encounters, and this is not permissible when ObsModel_ez[,'Link']=0")
+      }
     }
     if( length(OverdispersionConfig)!=2 ) stop("length(OverdispersionConfig)!=2")
     if( ncol(yearbounds_zz)!=2 ) stop("yearbounds_zz must have two columns")
