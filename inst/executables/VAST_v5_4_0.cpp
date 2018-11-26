@@ -931,7 +931,7 @@ Type objective_function<Type>::operator() ()
         R1_i(i) = invlogit( P1_iz(i,0) );
         R2_i(i) = a_i(i) * exp( P2_iz(i,0) );
       }
-      if( ObsModel_ez(c_iz(i,0),1)==1 ){
+      if( (ObsModel_ez(c_iz(i,0),1)==1) | (ObsModel_ez(c_iz(i,0),1)==4) ){
         // Poisson-process link, where area-swept affects numbers density exp(P1_i(i))
         // P1_i: Log-numbers density;  R1_i:  Probability of occurrence
         // P2_i: Log-average weight;  R2_i:  Positive density prediction
@@ -1182,7 +1182,7 @@ Type objective_function<Type>::operator() ()
       R2_xcy(x,c,y) = exp( P2_xcy(x,c,y) );
       D_xcy(x,c,y) = R1_xcy(x,c,y) * R2_xcy(x,c,y);
     }
-    if( ObsModel_ez(c,1)==1 ){
+    if( (ObsModel_ez(c,1)==1) | (ObsModel_ez(c,1)==4) ){
       R1_xcy(x,c,y) = Type(1.0) - exp( -exp(P1_xcy(x,c,y)) );
       R2_xcy(x,c,y) = exp(P1_xcy(x,c,y)) / R1_xcy(x,c,y) * exp( P2_xcy(x,c,y) );
       D_xcy(x,c,y) = exp( P1_xcy(x,c,y) ) * exp( P2_xcy(x,c,y) );        // Use this line to prevent numerical over/underflow

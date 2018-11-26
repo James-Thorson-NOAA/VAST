@@ -97,12 +97,27 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
   }
 
   # Change beta1_ct if 100% encounters (not designed to work with seasonal models)
-  if( any(DataList$ObsModel_ez[,2]%in%c(3)) ){
+  if( any(DataList$ObsModel_ez[,2] %in% c(3)) ){
     if( ncol(DataList$t_iz)==1 ){
       Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),DataList$t_iz[,1]), FUN=mean)
       Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
       Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
       Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
+    }else{
+      stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
+    }
+  }
+
+  # Change beta1_ct if 0% or 100% encounters (not designed to work with seasonal models)
+  if( any(DataList$ObsModel_ez[,2] %in% c(4)) ){
+    if( ncol(DataList$t_iz)==1 ){
+      Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),DataList$t_iz[,1]), FUN=mean)
+      Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
+      Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1 | Tmp_ct==0)] = NA
+      Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
+      Map[["beta2_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
+      Map[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = NA
+      Map[["beta2_ct"]] = factor(Map[["beta2_ct"]])
     }else{
       stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
     }
