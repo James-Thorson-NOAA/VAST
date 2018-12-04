@@ -83,7 +83,7 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
 
         # Plot average factors across years
         Mat_sf = apply(Var_rot$Psi_rot, MARGIN=1:2, FUN=mean)
-        FishStatsUtils::PlotMap_Fn( MappingDetails=mapdetails_list[["MappingDetails"]], Mat=Mat_sf, PlotDF=mapdetails_list[["PlotDF"]], MapSizeRatio=mapdetails_list[["MapSizeRatio"]], Xlim=mapdetails_list[["Xlim"]], Ylim=mapdetails_list[["Ylim"]], FileName=paste0(plotdir,"Factor_maps--",Par_name), Year_Set=paste0("Factor_",1:ncol(Mat_sf)), Rotate=mapdetails_list[["Rotate"]], zone=mapdetails_list[["Zone"]], mar=c(0,0,2,0), oma=c(2.5,2.5,0,0), pch=20, Cex=0.01, mfrow=Dim_factor, Legend=mapdetails_list[["Legend"]], plot_legend_fig=FALSE, land_color=land_color)
+        FishStatsUtils::PlotMap_Fn( MappingDetails=mapdetails_list[["MappingDetails"]], Mat=Mat_sf, PlotDF=mapdetails_list[["PlotDF"]], MapSizeRatio=mapdetails_list[["MapSizeRatio"]], Xlim=mapdetails_list[["Xlim"]], Ylim=mapdetails_list[["Ylim"]], FileName=paste0(plotdir,"Factor_maps--",Par_name), Year_Set=paste0("Factor_",1:ncol(Mat_sf)), Rotate=mapdetails_list[["Rotate"]], zone=mapdetails_list[["Zone"]], mar=c(0,0,2,0), oma=c(2.5,2.5,0,0), pch=20, Cex=mapdetails_list[["Cex"]], mfrow=Dim_factor, Legend=mapdetails_list[["Legend"]], plot_legend_fig=FALSE, land_color=land_color)
       }
     }else{
       Psiprime_list[[i]] = Lprime_list[[i]] = L_list[[i]] = "Element not estimated, and therefore empty"
