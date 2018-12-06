@@ -322,7 +322,7 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
       Map[["eta1_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta1_vf"]])))
     }
     if( DataList[["OverdispersionConfig"]][2] == -1 ){
-      Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
+      Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L2_z"]])))
       Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
     }
   }
