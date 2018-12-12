@@ -128,7 +128,7 @@ Description of individual features
 * Thorson, J.T., Scheuerell, M.D., Olden, J.D., Schindler, D.E., 2018. Spatial heterogeneity contributes more to portfolio effects than species variability in bottom-associated marine fishes. Proc R Soc B 285, 20180915. https://doi.org/10.1098/rspb.2018.0915
 
 ### Forecasting future changes in distribution or abundance
-Thorson, In press. Forecast skill for predicting distribution shifts:  A retrospective experiment for marine fishes in the Eastern Bering Sea. Fish Fish.
+* Thorson, In press. Forecast skill for predicting distribution shifts:  A retrospective experiment for marine fishes in the Eastern Bering Sea. Fish Fish. https://doi.org/10.1111/faf.12330
 
 Funding and support for the tool
 =============
