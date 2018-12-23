@@ -22,7 +22,7 @@ Summarize = function( obj ){
   parhat = obj$env$parList()
 
   # Slots worth describing
-  D_xct = Report$D_xct
+  D_xct = report$D_xct
 
   # Bundle and return
   Return = list( "parhat"=parhat, "D_xct"=D_xct )

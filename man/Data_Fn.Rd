@@ -6,12 +6,12 @@
 \usage{
 Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
   ObsModel_ez = c(PosDist = 1, Link = 0), VamConfig = c(Method = 0, Rank =
-  0, Timing = 0, Estimate_B0 = 0), b_i, a_i, c_iz, s_i, t_iz, a_xl, MeshList,
-  GridList, Method, v_i = rep(0, length(b_i)), e_i = c_iz[, 1],
-  PredTF_i = rep(0, length(b_i)), X_xj = NULL, X_xtp = NULL,
-  Q_ik = NULL, Aniso = 1, Network_sz = NULL, F_ct = NULL, F_init = 1,
-  RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
-  t_yz = NULL, CheckForErrors = TRUE, yearbounds_zz = NULL,
+  0, Timing = 0), b_i, a_i, c_iz, s_i, t_iz, a_xl, MeshList, GridList, Method,
+  v_i = rep(0, length(b_i)), e_i = c_iz[, 1], PredTF_i = rep(0,
+  length(b_i)), X_xj = NULL, X_xtp = NULL, Q_ik = NULL, Aniso = 1,
+  Network_sz = NULL, F_ct = NULL, F_init = 1, RhoConfig = c(Beta1 = 0,
+  Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0), t_yz = NULL,
+  CheckForErrors = TRUE, yearbounds_zz = NULL,
   Options = c(SD_site_logdensity = 0, Calculate_Range = 0,
   Calculate_effective_area = 0, Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
   Calculate_proportion = 0))
@@ -39,9 +39,10 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
   \item{ObsModel_ez[e,1]=13}{Bernoilli distribution using complementary log-log (cloglog) link from the 1st linear predictor, to be used in combination with the Poisson-link delta model for combining multiple data types}
   \item{ObsModel_ez[e,1]=14}{Similar to 12, but also including lognormal overdispersion}
   \item{ObsModel_ez[e,2]=0}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
-  \item{ObsModel_ez[e,2]=1}{Alternative delta-model using log-link for numbers-density and log-link for biomass per number}
+  \item{ObsModel_ez[e,2]=1}{Alternative "Poisson-link delta-model" using log-link for numbers-density and log-link for biomass per number}
   \item{ObsModel_ez[e,2]=2}{Link function for Tweedie distribution, necessary for \code{ObsModel_ez[e,1]=8} or \code{ObsModel_ez[e,1]=10}}
   \item{ObsModel_ez[e,2]=3}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
+  \item{ObsModel_ez[e,2]=4}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the species and encounter probability=0 for any year where no samples encounter the species}
 }}
 
 \item{VamConfig}{Options to estimate interactions, where first slot selects method for forming interaction matrix, the second indicates rank, the third indicates whether to incorporate effect of \code{F_ct}, and the fourth indicates whether to add a new "t=0" year (while incrementing all \code{t_i} inputs) which represents B0}

@@ -22,9 +22,10 @@
 #'   \item{ObsModel_ez[e,1]=13}{Bernoilli distribution using complementary log-log (cloglog) link from the 1st linear predictor, to be used in combination with the Poisson-link delta model for combining multiple data types}
 #'   \item{ObsModel_ez[e,1]=14}{Similar to 12, but also including lognormal overdispersion}
 #'   \item{ObsModel_ez[e,2]=0}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
-#'   \item{ObsModel_ez[e,2]=1}{Alternative delta-model using log-link for numbers-density and log-link for biomass per number}
+#'   \item{ObsModel_ez[e,2]=1}{Alternative "Poisson-link delta-model" using log-link for numbers-density and log-link for biomass per number}
 #'   \item{ObsModel_ez[e,2]=2}{Link function for Tweedie distribution, necessary for \code{ObsModel_ez[e,1]=8} or \code{ObsModel_ez[e,1]=10}}
 #'   \item{ObsModel_ez[e,2]=3}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
+#'   \item{ObsModel_ez[e,2]=4}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the species and encounter probability=0 for any year where no samples encounter the species}
 #' }
 #' @param RhoConfig OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)
 #' @param VamConfig Options to estimate interactions, where first slot selects method for forming interaction matrix, the second indicates rank, the third indicates whether to incorporate effect of \code{F_ct}, and the fourth indicates whether to add a new "t=0" year (while incrementing all \code{t_i} inputs) which represents B0
@@ -160,9 +161,11 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     if( Options2use[12]==1 ){
       Prop_nonzero = Prop_nonzero[-1,]
     }
-    if( any(!is.na(Prop_nonzero) & (Prop_nonzero==0|Prop_nonzero==1)) & any(ObsModel_ez[,2]==0) ){
-      print( Prop_nonzero )
-      stop("Some years and/or categories have either all or no encounters, and this is not permissible when ObsModel_ez[,'Link']=0")
+    if( any(ObsModel_ez[,2]==0) ){
+      if( any(!is.na(Prop_nonzero) & (Prop_nonzero==0|Prop_nonzero==1)) ){
+        print( Prop_nonzero )
+        stop("Some years and/or categories have either all or no encounters, and this is not permissible when ObsModel_ez[,'Link']=0")
+      }
     }
     if( length(OverdispersionConfig)!=2 ) stop("length(OverdispersionConfig)!=2")
     if( ncol(yearbounds_zz)!=2 ) stop("yearbounds_zz must have two columns")
@@ -180,6 +183,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
     }
     if( all(b_i>0) & all(ObsModel_ez[,1]==0) & !all(FieldConfig_input[1:2]==-1) ) stop("All data are positive and using a conventional delta-model, so please turn off `Omega1` and `Epsilon1` terms")
     if( !(all(ObsModel_ez[,1] %in% c(0,1,2,5,6,7,8,9,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
+    if( !(all(ObsModel_ez[,2] %in% c(0,1,2,3,4))) ) stop("Please check `ObsModel_ez[,2]` input")
     if( !all(RhoConfig[1]%in%c(0,1,2,3,4)) | !all(RhoConfig[2]%in%c(0,1,2,3,4,6)) | !all(RhoConfig[3]%in%c(0,1,2,4,5)) | !all(RhoConfig[4]%in%c(0,1,2,4,5,6)) ) stop("Check `RhoConfig` inputs")
     if( any(is.na(X_xtp)) ) stop("Some `X_xtp` is NA, and this is not allowed")
   }
@@ -313,8 +317,11 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   }else{
     Network_sz = matrix( c(1,1,1), nrow=1, dimnames=list(NULL,c("parent_s","child_s","dist_s")) )
   }
-  if( RhoConfig[1]!=0 & any(ObsModel_ez[,2]==3) ){
-    stop( "RhoConfig[1] must be 0 when using ObsModel[2]=3:  Other options are not coded to work together" )
+  if( any(RhoConfig[1:2]!=0) & any(ObsModel_ez[,2]==3) ){
+    stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=3:  Other options are not coded to work together" )
+  }
+  if( any(RhoConfig[1:2]!=0) & any(ObsModel_ez[,2]==4) ){
+    stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=4:  Other options are not coded to work together" )
   }
 
   # switch defaults if necessary
@@ -387,7 +394,7 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   if(Version%in%c("VAST_v5_2_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
-  if(Version%in%c("VAST_v5_3_0")){
+  if(Version%in%c("VAST_v5_4_0","VAST_v5_3_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if( is.null(Return) ) stop("`Version` provided does not match the list of possible values")
