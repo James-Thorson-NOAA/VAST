@@ -40,7 +40,17 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   ConvergeTol=1, Use_REML=FALSE, loc_x=NULL, Parameters="generate", Random="generate", Map="generate",
   DiagnosticDir=NULL, TmbDir=system.file("executables",package="VAST"), RunDir=getwd(), build_model=TRUE ){
                                             
-  # Augment objects in TmbData (to deal with backwards compatibility)
+  # Extract Options and Options_vec (depends upon version)
+  if( all(c("Options","Options_vec") %in% names(TmbData)) ){
+    Options_vec = TmbData$Options_vec
+    Options = TmbData$Options
+  }
+  if( "Options_list" %in% names(TmbData) ){
+    Options_vec = TmbData$Options_list$Options_vec
+    Options = TmbData$Options_list$Options
+  }
+
+# Augment objects in TmbData (to deal with backwards compatibility)
   if( !("n_e" %in% names(TmbData)) ){
     TmbData[["n_e"]] = TmbData$n_c
   }
@@ -66,7 +76,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   compile( paste0(Version,".cpp") )
 
   # Parameters
-    # DataList=TmbData
+    # TmbData=TmbData
   if( length(Parameters)==1 && Parameters=="generate" ) Parameters = Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
 
   # Which parameters are turned off
@@ -105,7 +115,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   Obj$control <- list(parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 
   # Add normalization in
-  if(Version %in% c("VAST_v5_3_0","VAST_v5_2_0","VAST_v5_1_0","VAST_v5_0_0","VAST_v4_4_0","VAST_v4_3_0","VAST_v4_2_0","VAST_v4_1_0") & TmbData$Options['normalize_GMRF_in_CPP']==FALSE ){
+  if(Version %in% c("VAST_v5_5_0","VAST_v5_4_0","VAST_v5_3_0","VAST_v5_2_0","VAST_v5_1_0","VAST_v5_0_0","VAST_v4_4_0","VAST_v4_3_0","VAST_v4_2_0","VAST_v4_1_0") & Options['normalize_GMRF_in_CPP']==FALSE ){
     message("Normalizing GMRF in R using `TMB::normalize` feature")
     Obj = TMB::normalize(Obj, flag="include_data", value=FALSE)
   }
@@ -140,12 +150,12 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   Bounds[,'Upper'] = rep( Inf, length(Obj$par))
   Bounds[grep("SigmaM",names(Obj$par)),'Upper'] = 10 # ZINB can crash if it gets > 20
   if( any(TmbData$ObsModel_ez[1,]==8) ) Bounds[grep("SigmaM",names(Obj$par)),'Upper'] = 3 # Tweedie can crash if logSigmaM gets too high
-  if( !is.null(loc_x) && !is.na(TmbData$Options_vec['Method']) && TmbData$Options_vec['Method']==0 && Method!="Spherical_mesh" ){
+  if( !is.null(loc_x) && !is.na(Options_vec['Method']) && Options_vec['Method']==0 && Method!="Spherical_mesh" ){
     Dist = stats::dist(loc_x)
     Bounds[grep("logkappa",names(Obj$par)),'Lower'] = log( sqrt(8)/max(Dist) ) # Range = nu*sqrt(8)/kappa
     Bounds[grep("logkappa",names(Obj$par)),'Upper'] = log( sqrt(8)/min(Dist) ) # Range = nu*sqrt(8)/kappa
   }
-  if( !is.na(TmbData$Options_vec['Method']) && TmbData$Options_vec['Method']==1 && Method!="Spherical_mesh" ){
+  if( !is.na(Options_vec['Method']) && Options_vec['Method']==1 && Method!="Spherical_mesh" ){
     Bounds[grep("logkappa",names(Obj$par)),'Upper'] = log(0.9999) # Must be negative, so that Rho<1
   }
   Bounds = boundsifpresent_fn( par=Obj$par, name="gamma1", lower=-20, upper=20, bounds=Bounds)

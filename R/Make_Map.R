@@ -12,6 +12,16 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
   }
   seq_pos <- function( length.out, from=1 ) seq(from=from, to=length.out, length.out=max(length.out,0))
 
+  # Extract Options and Options_vec (depends upon version)
+  if( all(c("Options","Options_vec") %in% names(DataList)) ){
+    Options_vec = DataList$Options_vec
+    Options = DataList$Options
+  }
+  if( "Options_list" %in% names(DataList) ){
+    Options_vec = DataList$Options_list$Options_vec
+    Options = DataList$Options_list$Options
+  }
+
   # Create tagged-list in TMB format for fixing parameters
   Map = list()
   # Configurations of spatial and spatiotemporal error
@@ -124,7 +134,7 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
   }
 
   # Anisotropy
-  if(DataList[["Options_vec"]]["Aniso"]==0 | all(DataList[["FieldConfig"]] == -1)) Map[['ln_H_input']] = factor( rep(NA,2) )
+  if(Options_vec["Aniso"]==0 | all(DataList[["FieldConfig"]] == -1)) Map[['ln_H_input']] = factor( rep(NA,2) )
   
   # Hyperparameters for intercepts for <= V5.3.0
   if( "Beta_mean1" %in% names(TmbParams) ){
