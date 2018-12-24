@@ -6,9 +6,13 @@ template<class Type>
 struct options_list {
   vector<int> Options_vec;
   vector<int> Options;
+  matrix<int> yearbounds_zz;
+  matrix<int> Expansion_cz;
   options_list(SEXP x){ // Constructor
     Options_vec = asVector<int>(getListElement(x,"Options_vec"));
     Options = asVector<int>(getListElement(x,"Options"));
+    yearbounds_zz = asMatrix<int>(getListElement(x,"yearbounds_zz"));
+    Expansion_cz = asMatrix<int>(getListElement(x,"Expansion_cz"));
   }
 };
 
@@ -446,6 +450,8 @@ Type objective_function<Type>::operator() ()
     // Slot 9: Include normalization in GMRF PDF
     // Slot 10: Calculate Fratio as F_ct divided by F achieving 40% of B0
     // Slot 11: Calculate B0 and Bratio
+  // Options_list.yearbounds_zz
+    // Two columns, and 1+ rows, specifying first and last t for each period used in calculating synchrony
   DATA_IVECTOR(FieldConfig);  // Input settings (vector, length 4)
   DATA_IVECTOR(RhoConfig);
   DATA_IVECTOR(OverdispersionConfig);          // Input settings (vector, length 2)
@@ -458,8 +464,6 @@ Type objective_function<Type>::operator() ()
   // Slot 1 -- rank of interaction matrix B_ff
   // Current implementation only makes sense when (1) intercepts are constant among years; (2) using a Poisson-link delta model; (3) n_f=n_c for spatio-temporal variation; (4) starts near equilibrium manifold
   DATA_INTEGER(include_data);   // Always use TRUE except for internal usage to extract GRMF normalization when turn off GMRF normalization in CPP
-  DATA_IMATRIX(yearbounds_zz);
-  // Two columns, and 1+ rows, specifying first and last t for each period used in calculating synchrony
 
   // Data vectors
   DATA_VECTOR(b_i);       	// Response (biomass) for each observation
@@ -573,6 +577,10 @@ Type objective_function<Type>::operator() ()
   Options_vec = Options_list.Options_vec;
   vector<int> Options( Options_list.Options.size() );
   Options = Options_list.Options;
+  matrix<int> yearbounds_zz( Options_list.yearbounds_zz.col(0).size(), 2 );
+  yearbounds_zz = Options_list.yearbounds_zz;
+  matrix<int> Expansion_cz( n_c, 2 );
+  Expansion_cz = Options_list.Expansion_cz;
 
   // Derived parameters
   Type Range_raw1, Range_raw2;
@@ -1217,14 +1225,27 @@ Type objective_function<Type>::operator() ()
   array<Type> Index_cyl(n_c, n_y, n_l);
   array<Type> ln_Index_cyl(n_c, n_y, n_l);
   Index_cyl.setZero();
-  for(int c=0; c<n_c; c++){
   for(int y=0; y<n_y; y++){
   for(int l=0; l<n_l; l++){
-    for(int x=0; x<n_x; x++){
-      Index_xcyl(x,c,y,l) = D_xcy(x,c,y) * a_xl(x,l) / 1000;  // Convert from kg to metric tonnes
-      Index_cyl(c,y,l) += Index_xcyl(x,c,y,l);
+    // Expand by area and convert from kg to metric tonnes
+    for(int c=0; c<n_c; c++){
+      if( Expansion_cz(c,0)==0 ){
+        for(int x=0; x<n_x; x++){
+          Index_xcyl(x,c,y,l) = D_xcy(x,c,y) * a_xl(x,l) / 1000;
+          Index_cyl(c,y,l) += Index_xcyl(x,c,y,l);
+        }
+      }
     }
-  }}}
+    // Expand by biomass for another category and convert from kg to metric tonnes
+    for(int c=0; c<n_c; c++){
+      if( Expansion_cz(c,0)==1 ){
+        for(int x=0; x<n_x; x++){
+          Index_xcyl(x,c,y,l) = D_xcy(x,c,y) * Index_xcyl(x,Expansion_cz(c,1)+1,y,l);
+          Index_cyl(c,y,l) += Index_xcyl(x,c,y,l);
+        }
+      }
+    }
+  }}
   ln_Index_cyl = log( Index_cyl );
 
   // Calculate B / B0
@@ -1597,6 +1618,8 @@ Type objective_function<Type>::operator() ()
   REPORT( jnll );
   REPORT( Options );
   REPORT( Options_vec );
+  REPORT( yearbounds_zz );
+  REPORT( Expansion_cz );
 
   ADREPORT( Range_raw1 );
   ADREPORT( Range_raw2 );
