@@ -133,11 +133,11 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
     Return[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
   }
   if( all(DataList$ObsModel_ez[,2] %in% c(3)) ){
-    Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),DataList$t_iz[,1]), FUN=mean)
+    Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
     if( any(is.na(Tmp_ct) | Tmp_ct==1) ) Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
   }
   if( all(DataList$ObsModel_ez[,2] %in% c(4)) ){
-    Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),DataList$t_iz[,1]), FUN=mean)
+    Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
     if( any(is.na(Tmp_ct) | Tmp_ct==1) ) Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
     if( any(is.na(Tmp_ct) | Tmp_ct==0) ) Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = -20
     if( any(is.na(Tmp_ct) | Tmp_ct==0) ) Return[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = 0
