@@ -424,57 +424,57 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
       Map[["beta2_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
     }
     # Warnings
-    if( TmbData$n_c >= 2 ){
+    if( DataList$n_c >= 2 ){
       warnings( "This version of VAST has the same hyperparameters for the intercepts of all categories.  Please use CPP version >=5.4.0 for different hyperparameters for each category." )
     }
   }
   # Hyperparameters for intercepts for >= V5.4.0
   if( "Beta_mean1_c" %in% names(TmbParams) ){
     if( RhoConfig["Beta1"]==0){
-      Map[["Beta_mean1_c"]] = factor( rep(NA,TmbData$n_c) )
-      Map[["Beta_rho1_c"]] = factor( rep(NA,TmbData$n_c) )
-      Map[["logsigmaB1_c"]] = factor( rep(NA,TmbData$n_c) )
+      Map[["Beta_mean1_c"]] = factor( rep(NA,DataList$n_c) )
+      Map[["Beta_rho1_c"]] = factor( rep(NA,DataList$n_c) )
+      Map[["logsigmaB1_c"]] = factor( rep(NA,DataList$n_c) )
     }
     # Beta1 -- White-noise
     if( RhoConfig["Beta1"]==1){
-      Map[["Beta_rho1_c"]] = factor( rep(NA,TmbData$n_c) )
+      Map[["Beta_rho1_c"]] = factor( rep(NA,DataList$n_c) )
     }
     # Beta1 -- Random-walk
     if( RhoConfig["Beta1"]==2){
-      Map[["Beta_mean1_c"]] = factor( rep(NA,TmbData$n_c) )
-      Map[["Beta_rho1_c"]] = factor( rep(NA,TmbData$n_c) )
+      Map[["Beta_mean1_c"]] = factor( rep(NA,DataList$n_c) )
+      Map[["Beta_rho1_c"]] = factor( rep(NA,DataList$n_c) )
     }
     # Beta1 -- Constant over time for each category
     if( RhoConfig["Beta1"]==3){
-      Map[["Beta_mean1_c"]] = factor( rep(NA,TmbData$n_c) )
-      Map[["Beta_rho1_c"]] = factor( rep(NA,TmbData$n_c) )
-      Map[["logsigmaB1_c"]] = factor( rep(NA,TmbData$n_c) )
+      Map[["Beta_mean1_c"]] = factor( rep(NA,DataList$n_c) )
+      Map[["Beta_rho1_c"]] = factor( rep(NA,DataList$n_c) )
+      Map[["logsigmaB1_c"]] = factor( rep(NA,DataList$n_c) )
       Map[["beta1_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
     }
     # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
     if( RhoConfig["Beta2"] %in% c(0,6) ){
-      Map[["Beta_mean2_c"]] = factor( rep(NA,TmbData$n_c) )
-      Map[["Beta_rho2_c"]] = factor( rep(NA,TmbData$n_c) )
-      Map[["logsigmaB2_c"]] = factor( rep(NA,TmbData$n_c) )
+      Map[["Beta_mean2_c"]] = factor( rep(NA,DataList$n_c) )
+      Map[["Beta_rho2_c"]] = factor( rep(NA,DataList$n_c) )
+      Map[["logsigmaB2_c"]] = factor( rep(NA,DataList$n_c) )
     }
     # Beta2 -- White-noise
     if( RhoConfig["Beta2"]==1){
-      Map[["Beta_rho2_c"]] = factor( rep(NA,TmbData$n_c) )
+      Map[["Beta_rho2_c"]] = factor( rep(NA,DataList$n_c) )
     }
     # Beta2 -- Random-walk
     if( RhoConfig["Beta2"]==2){
-      Map[["Beta_mean2_c"]] = factor( rep(NA,TmbData$n_c) )
-      Map[["Beta_rho2_c"]] = factor( rep(NA,TmbData$n_c) )
+      Map[["Beta_mean2_c"]] = factor( rep(NA,DataList$n_c) )
+      Map[["Beta_rho2_c"]] = factor( rep(NA,DataList$n_c) )
     }
     # Beta2 -- Constant over time for each category
     if( RhoConfig["Beta2"]==3){
-      Map[["Beta_mean2_c"]] = factor( rep(NA,TmbData$n_c) )
-      Map[["Beta_rho2_c"]] = factor( rep(NA,TmbData$n_c) )
-      Map[["logsigmaB2_c"]] = factor( rep(NA,TmbData$n_c) )
+      Map[["Beta_mean2_c"]] = factor( rep(NA,DataList$n_c) )
+      Map[["Beta_rho2_c"]] = factor( rep(NA,DataList$n_c) )
+      Map[["logsigmaB2_c"]] = factor( rep(NA,DataList$n_c) )
       Map[["beta2_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
     }
     # Warnings
-    if( TmbData$n_c >= 2 ){
+    if( DataList$n_c >= 2 ){
       warnings( "This version of VAST has different hyperparameters for each category. Default behavior for CPP version <=5.3.0 was to have the same hyperparameters for the intercepts of all categories." )
     }
   }
@@ -500,7 +500,7 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     # Add fixed values for lowest value of 2nd and higher columns
     for( zI in 2:ncol(DataList$t_iz) ){
       Which2Fix = min( DataList$t_iz[,zI] )
-      Which2Fix = matrix( 1:(TmbData$n_c*TmbData$n_t), ncol=TmbData$n_t, nrow=TmbData$n_c )[,Which2Fix+1]
+      Which2Fix = matrix( 1:(DataList$n_c*DataList$n_t), ncol=DataList$n_t, nrow=DataList$n_c )[,Which2Fix+1]
       Map[["beta1_ct"]][Which2Fix] = NA
       Map[["beta2_ct"]][Which2Fix] = NA
     }
