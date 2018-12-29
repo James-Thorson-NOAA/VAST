@@ -1,6 +1,6 @@
 #' @export
 Make_Map <-
-function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Npool=0 ){
+function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Npool=0 ){
 
   # Local functions
   fixval_fn <- function( fixvalTF ){
@@ -164,7 +164,6 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
     }
   }
 
-
   #########################
   # Npool options
   # Overwrites SigmaM, L_omega, and L_epsilon, so must come after them
@@ -206,16 +205,19 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
   #########################
 
   # Static covariates
-  Var_j = apply( DataList[["X_xj"]], MARGIN=2, FUN=var )
-  Map[["gamma1_j"]] = Map[["gamma2_j"]] = 1:ncol(DataList$X_xj)
-  for(j in 1:length(Var_j)){
-    if( Var_j[j]==0 || sum(CovConfig)==0 ){
-      Map[["gamma1_j"]][j] = NA
-      Map[["gamma2_j"]][j] = NA
+    # Deprecated >= V6.0.0
+  if( "X_xj" %in% names(DataList) ){
+    Var_j = apply( DataList[["X_xj"]], MARGIN=2, FUN=var )
+    Map[["gamma1_j"]] = Map[["gamma2_j"]] = 1:ncol(DataList$X_xj)
+    for(j in 1:length(Var_j)){
+      if( Var_j[j]==0 || sum(CovConfig)==0 ){
+        Map[["gamma1_j"]][j] = NA
+        Map[["gamma2_j"]][j] = NA
+      }
     }
+    Map[["gamma1_j"]] = factor(Map[["gamma1_j"]])
+    Map[["gamma2_j"]] = factor(Map[["gamma1_j"]])
   }
-  Map[["gamma1_j"]] = factor(Map[["gamma1_j"]])
-  Map[["gamma2_j"]] = factor(Map[["gamma1_j"]])
 
   # Catchability variables
   Var_k = apply( DataList[["Q_ik"]], MARGIN=2, FUN=var )
@@ -239,7 +241,7 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
       #  1.  turn off coefficient associated with variable having no variance across space and time
       #  2.  assume constant coefficient for all years of each variable and category
       for(p in 1:length(Var_p)){
-        if( Var_p[p]==0 || sum(DynCovConfig)==0 ){
+        if( Var_p[p]==0 ){
           Map[["gamma1_tp"]][,p] = NA
           Map[["gamma2_tp"]][,p] = NA
         }else{
@@ -256,7 +258,7 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
       #  1.  turn off coefficient associated with variable having no variance across space and time
       #  2.  assume constant coefficient for all years of each variable and category
       for(p in 1:length(Var_p)){
-        if( Var_p[p]==0 || sum(DynCovConfig)==0 ){
+        if( Var_p[p]==0 ){
           Map[["gamma1_ctp"]][,,p] = NA
           Map[["gamma2_ctp"]][,,p] = NA
         }else{
@@ -266,9 +268,32 @@ function( DataList, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE,
           }
         }
       }
+      if( "Xconfig_zcp" %in% names(DataList) ){
+        for(cI in 1:DataList$n_c){
+        for(pI in 1:DataList$n_p){
+          if( DataList$Xconfig_zcp[1,cI,pI]==0 ){
+            Map[["gamma1_ctp"]][cI,,pI] = NA
+          }
+          if( DataList$Xconfig_zcp[2,cI,pI]==0 ){
+            Map[["gamma2_ctp"]][cI,,pI] = NA
+          }
+        }}
+      }
       Map[["gamma1_ctp"]] = factor(Map[["gamma1_ctp"]])
       Map[["gamma2_ctp"]] = factor(Map[["gamma2_ctp"]])
     }
+  }
+
+  # Spatially varying coefficients
+  if( all(c("Xiinput1_scp","Xiinput2_scp") %in% names(TmbParams)) ){
+    Map[["Xiinput1_scp"]] = Map[["Xiinput2_scp"]] = array( 1:(DataList$n_s*DataList$n_c*DataList$n_p), dim=c(DataList$n_s,DataList$n_c,DataList$n_p) )
+    for(cI in 1:DataList$n_c){
+    for(pI in 1:DataList$n_p){
+      if(DataList$Xconfig_zcp[1,cI,pI]!=2) Map[["Xiinput1_scp"]][,cI,pI] = NA
+      if(DataList$Xconfig_zcp[2,cI,pI]!=2) Map[["Xiinput2_scp"]][,cI,pI] = NA
+    }}
+    Map[["Xiinput1_scp"]] = factor(Map[["Xiinput1_scp"]])
+    Map[["Xiinput2_scp"]] = factor(Map[["Xiinput2_scp"]])
   }
 
   #########################

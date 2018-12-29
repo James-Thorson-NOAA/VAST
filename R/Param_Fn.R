@@ -107,6 +107,9 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   if(Version%in%c("VAST_v5_5_0","VAST_v5_4_0")){
     Return = list("ln_H_input"=c(0,0), "Chi_fr"=rarray(dim=c(max(DataList$FieldConfig[2],1),DataList$VamConfig[2])), "Psi_fr"=rarray(dim=c(max(DataList$FieldConfig[2],1),DataList$VamConfig[2])), "beta1_ct"=NA, "gamma1_j"=rep(0,ncol(DataList$X_xj)), "gamma1_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda1_k"=rep(0,ncol(DataList$Q_ik)), "L1_z"=NA, "L_omega1_z"=NA, "L_epsilon1_z"=NA, "logkappa1"=log(0.9), "Beta_mean1_c"=rep(0,DataList$n_c), "logsigmaB1_c"=rep(log(1),DataList$n_c), "Beta_rho1_c"=rep(0,DataList$n_c), "Epsilon_rho1_f"=NA, "log_sigmaratio1_z"=rep(0,ncol(DataList$t_iz)), "eta1_vf"=NA, "Omegainput1_sf"=NA, "Epsiloninput1_sft"=NA, "beta2_ct"=NA, "gamma2_j"=rep(0,ncol(DataList$X_xj)), "gamma2_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda2_k"=rep(0,ncol(DataList$Q_ik)), "L2_z"=NA, "L_omega2_z"=NA, "L_epsilon2_z"=NA, "logkappa2"=log(0.9), "Beta_mean2_c"=rep(0,DataList$n_c), "logsigmaB2_c"=rep(log(1),DataList$n_c), "Beta_rho2_c"=rep(0,DataList$n_c), "Epsilon_rho2_f"=NA, "log_sigmaratio2_z"=rep(0,ncol(DataList$t_iz)), "logSigmaM"=rep(1,DataList$n_e)%o%c(log(5),log(2),log(1)), "delta_i"=rnorm(n=ifelse(any(DataList$ObsModel_ez[,1]%in%c(11,14)),DataList$n_i,1),sd=0.1), "eta2_vf"=NA, "Omegainput2_sf"=NA, "Epsiloninput2_sft"=NA )
   }
+  if(Version%in%c("VAST_v6_0_0")){
+    Return = list("ln_H_input"=c(0,0), "Chi_fr"=rarray(dim=c(max(DataList$FieldConfig[2],1),DataList$VamConfig[2])), "Psi_fr"=rarray(dim=c(max(DataList$FieldConfig[2],1),DataList$VamConfig[2])), "beta1_ct"=NA, "gamma1_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda1_k"=rep(0,ncol(DataList$Q_ik)), "L1_z"=NA, "L_omega1_z"=NA, "L_epsilon1_z"=NA, "logkappa1"=log(0.9), "Beta_mean1_c"=rep(0,DataList$n_c), "logsigmaB1_c"=rep(log(1),DataList$n_c), "Beta_rho1_c"=rep(0,DataList$n_c), "Epsilon_rho1_f"=NA, "log_sigmaratio1_z"=rep(0,ncol(DataList$t_iz)), "eta1_vf"=NA, "Xiinput1_scp"=array(0,dim=c(DataList$n_s,DataList$n_c,DataList$n_p)), "Omegainput1_sf"=NA, "Epsiloninput1_sft"=NA, "beta2_ct"=NA, "gamma2_ctp"=array(0,dim=c(DataList$n_c,DataList$n_t,DataList$n_p)), "lambda2_k"=rep(0,ncol(DataList$Q_ik)), "L2_z"=NA, "L_omega2_z"=NA, "L_epsilon2_z"=NA, "logkappa2"=log(0.9), "Beta_mean2_c"=rep(0,DataList$n_c), "logsigmaB2_c"=rep(log(1),DataList$n_c), "Beta_rho2_c"=rep(0,DataList$n_c), "Epsilon_rho2_f"=NA, "log_sigmaratio2_z"=rep(0,ncol(DataList$t_iz)), "logSigmaM"=rep(1,DataList$n_e)%o%c(log(5),log(2),log(1)), "delta_i"=rnorm(n=ifelse(any(DataList$ObsModel_ez[,1]%in%c(11,14)),DataList$n_i,1),sd=0.1), "eta2_vf"=NA, "Xiinput2_scp"=rarray(0,dim=c(DataList$n_s,DataList$n_c,DataList$n_p)), "Omegainput2_sf"=NA, "Epsiloninput2_sft"=NA )
+  }
   # Overdispersion
   if( "n_f_input" %in% names(DataList) ){
     if( "L1_z" %in% names(Return)) Return = Add_factor( List=Return, n_c=DataList$n_c, n_f=DataList$n_f_input, n_i=DataList$n_v, list_names=c("L1_z","eta1_vf"), sd=0 )
@@ -156,6 +159,7 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
     if( "Epsilon_rho2"%in%names(Return) ) Return[["Epsilon_rho2"]] = 1
     if( "Epsilon_rho2_f"%in%names(Return) ) Return[["Epsilon_rho2_f"]][] = 1
   }
+
   # If either beta or epsilon is a AR1 process, fix starting value at 0.01 to ensure a non-zero starting gradient
   if( "Beta_rho1"%in%names(Return) && RhoConfig[["Beta1"]]==4 ) Return[["Beta_rho1"]] = 0.01
   if( "Beta_rho2"%in%names(Return) && RhoConfig[["Beta2"]]==4 ) Return[["Beta_rho2"]] = 0.01
@@ -166,7 +170,22 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   if( RhoConfig[["Epsilon2"]] %in% c(4,5) ){
     if( "Epsilon_rho2"%in%names(Return) ) Return[["Epsilon_rho2"]] = 0.01
     if( "Epsilon_rho2_f"%in%names(Return) ) Return[["Epsilon_rho2_f"]][] = 0.01
+
   }
+
+  # If estimating spatially-varying covariates, start coefficient at nonzero value
+  if( "Xconfig_zcp" %in% names(DataList) ){
+    for(cI in 1:DataList$n_c){
+    for(pI in 1:DataList$n_p){
+      if( DataList$Xconfig_zcp[1,cI,pI]!=0 ){
+        Return[["gamma1_ctp"]][cI,,pI] = 0.1
+      }
+      if( DataList$Xconfig_zcp[2,cI,pI]!=0 ){
+        Return[["gamma2_ctp"]][cI,,pI] = 0.1
+      }
+    }}
+  }
+
   # replace missing values function
   tmpfn = function( vec ){
     Return = ifelse( abs(vec)==Inf, NA, vec)

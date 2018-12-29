@@ -48,7 +48,7 @@ Remotes:
 License: GPL-3
 LazyData: yes
 BuildVignettes: yes
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 URL: http://github.com/James-Thorson/VAST
 BugReports: http://github.com/James-Thorson/VAST/issues
 VignetteBuilder: R.rsp

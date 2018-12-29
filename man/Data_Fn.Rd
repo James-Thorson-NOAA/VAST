@@ -4,19 +4,34 @@
 \alias{Data_Fn}
 \title{Build data input for VAST model}
 \usage{
-Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
-  ObsModel_ez = c(PosDist = 1, Link = 0), VamConfig = c(Method = 0, Rank =
-  0, Timing = 0), b_i, a_i, c_iz, s_i, t_iz, a_xl, MeshList, GridList, Method,
-  v_i = rep(0, length(b_i)), e_i = c_iz[, 1], PredTF_i = rep(0,
-  length(b_i)), X_xj = NULL, X_xtp = NULL, Q_ik = NULL, Aniso = 1,
-  Network_sz = NULL, F_ct = NULL, F_init = 1, RhoConfig = c(Beta1 = 0,
-  Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0), t_yz = NULL,
-  CheckForErrors = TRUE, yearbounds_zz = NULL,
-  Options = c(SD_site_logdensity = 0, Calculate_Range = 0,
-  Calculate_effective_area = 0, Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
-  Calculate_proportion = 0))
+Data_Fn(b_i, a_i, c_iz, s_i, t_iz, e_i = c_iz[, 1], v_i = rep(0,
+  length(b_i)), Version, FieldConfig, OverdispersionConfig = c(eta1 = 0,
+  eta2 = 0), ObsModel_ez = c(PosDist = 1, Link = 0),
+  VamConfig = c(Method = 0, Rank = 0, Timing = 0), RhoConfig = c(Beta1
+  = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0), a_xl, MeshList, GridList,
+  Method, Aniso = 1, PredTF_i = rep(0, length(b_i)), X_xj = NULL,
+  X_xtp = NULL, Xconfig_zcp = NULL, Q_ik = NULL, Network_sz = NULL,
+  F_ct = NULL, F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
+  yearbounds_zz = NULL, Options = c(SD_site_logdensity = 0,
+  Calculate_Range = 0, Calculate_effective_area = 0, Calculate_Cov_SE = 0,
+  Calculate_Synchrony = 0, Calculate_proportion = 0),
+  Expansion_cz = NULL)
 }
 \arguments{
+\item{b_i}{Sampled biomass for each observation i}
+
+\item{a_i}{Sampled area for each observation i}
+
+\item{c_iz}{Category (e.g., species, length-bin) for each observation i}
+
+\item{s_i}{Spatial knot (e.g., grid cell) for each observation i}
+
+\item{t_iz}{Matrix where each row species the time for each observation i (if t_iz is a vector, it is coerced to a matrix with one column; if it is a matrix with two or more columns, it specifies multiple times for each observation, e.g., both year and season)}
+
+\item{e_i}{Error distribution for each observation i (by default \code{e_i=c_i})}
+
+\item{v_i}{OPTIONAL, sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i}
+
 \item{Version}{a version number (see example for current default).}
 
 \item{FieldConfig}{a vector of format c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10), where Omega refers to spatial variation, Epsilon refers to spatio-temporal variation, Omega1 refers to variation in encounter probability, and Omega2 refers to variation in positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance}
@@ -47,15 +62,7 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
 
 \item{VamConfig}{Options to estimate interactions, where first slot selects method for forming interaction matrix, the second indicates rank, the third indicates whether to incorporate effect of \code{F_ct}, and the fourth indicates whether to add a new "t=0" year (while incrementing all \code{t_i} inputs) which represents B0}
 
-\item{b_i}{Sampled biomass for each observation i}
-
-\item{a_i}{Sampled area for each observation i}
-
-\item{c_iz}{Category (e.g., species, length-bin) for each observation i}
-
-\item{s_i}{Spatial knot (e.g., grid cell) for each observation i}
-
-\item{t_iz}{Matrix where each row species the time for each observation i (if t_iz is a vector, it is coerced to a matrix with one column; if it is a matrix with two or more columns, it specifies multiple times for each observation, e.g., both year and season)}
+\item{RhoConfig}{OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)}
 
 \item{a_xl}{Area associated with each knot}
 
@@ -65,23 +72,15 @@ Data_Fn(Version, FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 = 0),
 
 \item{Method, }{character (either "Mesh" or "Grid") specifying hyperdistribution (Default="Mesh")}
 
-\item{v_i}{OPTIONAL, sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i}
-
-\item{e_i}{Error distribution for each observation i (by default \code{e_i=c_i})}
+\item{Aniso}{OPTIONAL, whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)}
 
 \item{PredTF_i}{OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)}
-
-\item{X_xj}{OPTIONAL, matrix of static density covariates (e.g., measured variables affecting density, as used when interpolating density for calculating an index of abundance)}
 
 \item{X_xtp}{OPTIONAL, array of dynamic (varying among time intervals) density covariates}
 
 \item{Q_ik}{OPTIONAL, matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i}
 
-\item{Aniso}{OPTIONAL, whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)}
-
 \item{F_ct}{OPTIONAL, matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)}
-
-\item{RhoConfig}{OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)}
 
 \item{t_yz}{OPTIONAL, matrix specifying combination of levels of \code{t_iz} to use when calculating different indices of abundance or range shifts}
 

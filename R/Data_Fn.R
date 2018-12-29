@@ -3,6 +3,13 @@
 #'
 #' \code{Data_Fn} builds a tagged list of data inputs used by TMB for running the model
 #'
+#' @param b_i Sampled biomass for each observation i
+#' @param a_i Sampled area for each observation i
+#' @param c_iz Category (e.g., species, length-bin) for each observation i
+#' @param s_i Spatial knot (e.g., grid cell) for each observation i
+#' @param t_iz Matrix where each row species the time for each observation i (if t_iz is a vector, it is coerced to a matrix with one column; if it is a matrix with two or more columns, it specifies multiple times for each observation, e.g., both year and season)
+#' @param v_i OPTIONAL, sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
+#' @param e_i Error distribution for each observation i (by default \code{e_i=c_i})
 #' @param Version a version number (see example for current default).
 #' @param FieldConfig a vector of format c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10), where Omega refers to spatial variation, Epsilon refers to spatio-temporal variation, Omega1 refers to variation in encounter probability, and Omega2 refers to variation in positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance
 #' @param OverdispersionConfig OPTIONAL, a vector of format c("eta1"=0, "eta2"="AR1") governing any correlated overdispersion among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance
@@ -29,19 +36,11 @@
 #' }
 #' @param RhoConfig OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)
 #' @param VamConfig Options to estimate interactions, where first slot selects method for forming interaction matrix, the second indicates rank, the third indicates whether to incorporate effect of \code{F_ct}, and the fourth indicates whether to add a new "t=0" year (while incrementing all \code{t_i} inputs) which represents B0
-#' @param b_i Sampled biomass for each observation i
-#' @param a_i Sampled area for each observation i
-#' @param c_iz Category (e.g., species, length-bin) for each observation i
-#' @param s_i Spatial knot (e.g., grid cell) for each observation i
-#' @param t_iz Matrix where each row species the time for each observation i (if t_iz is a vector, it is coerced to a matrix with one column; if it is a matrix with two or more columns, it specifies multiple times for each observation, e.g., both year and season)
 #' @param a_xl Area associated with each knot
 #' @param MeshList, tagged list representing location information for the SPDE mesh hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}
 #' @param GridList, tagged list representing location information for the 2D AR1 grid hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}
 #' @param Method, character (either "Mesh" or "Grid") specifying hyperdistribution (Default="Mesh")
-#' @param v_i OPTIONAL, sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
-#' @param e_i Error distribution for each observation i (by default \code{e_i=c_i})
 #' @param PredTF_i OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)
-#' @param X_xj OPTIONAL, matrix of static density covariates (e.g., measured variables affecting density, as used when interpolating density for calculating an index of abundance)
 #' @param X_xtp OPTIONAL, array of dynamic (varying among time intervals) density covariates
 #' @param Q_ik OPTIONAL, matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i
 #' @param Aniso OPTIONAL, whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)
@@ -55,10 +54,12 @@
 
 #' @export
 Data_Fn <-
-function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsModel_ez=c("PosDist"=1,"Link"=0), VamConfig=c("Method"=0,"Rank"=0,"Timing"=0),
-  b_i, a_i, c_iz, s_i, t_iz, a_xl, MeshList, GridList, Method, v_i=rep(0,length(b_i)), e_i=c_iz[,1],
-  PredTF_i=rep(0,length(b_i)), X_xj=NULL, X_xtp=NULL, Q_ik=NULL, Aniso=1, Network_sz=NULL, F_ct=NULL, F_init=1,
-  RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
+function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
+  Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsModel_ez=c("PosDist"=1,"Link"=0),
+  VamConfig=c("Method"=0,"Rank"=0,"Timing"=0), RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
+  a_xl, MeshList, GridList, Method, Aniso=1, PredTF_i=rep(0,length(b_i)),
+  X_xj=NULL, X_xtp=NULL, Xconfig_zcp=NULL, Q_ik=NULL, Network_sz=NULL, F_ct=NULL, F_init=1,
+  t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
   Options=c('SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_proportion'=0),
   Expansion_cz=NULL ){
 
@@ -102,15 +103,51 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   if( !is.matrix(ObsModel_ez) ) ObsModel_ez = matrix( ObsModel_ez, ncol=2, nrow=n_e, byrow=TRUE )
 
   # Covariates and defaults
-  if( is.null(X_xj) ) X_xj = matrix(0, nrow=n_x, ncol=1)
-  if( is.null(X_xtp) ) X_xtp = array(0, dim=c(n_x,n_t,1))
-  if( is.null(Q_ik) ) Q_ik = matrix(0, nrow=n_i, ncol=1)
-  if( is.null(yearbounds_zz)) yearbounds_zz = matrix(c(0,n_t-1),nrow=1)
+  if( is.null(X_xj) ){
+    X_xj = matrix(0, nrow=n_x, ncol=1)
+  }else{
+    if( !is.array(X_xj) || !(dim(X_xj)[1]==n_x) ){
+      stop("`X_xj` has wrong dimensions")
+    }
+  }
+  if( is.null(X_xtp) ){
+    X_xtp = array(0, dim=c(n_x,n_t,1))
+  }else{
+    if( !is.array(X_xtp) || !(all(dim(X_xtp)[1:2]==c(n_x,n_t))) ){
+      stop("`X_xtp` has wrong dimensions")
+    }
+  }
+  if( is.null(Q_ik) ){
+    Q_ik = matrix(0, nrow=n_i, ncol=1)
+  }else{
+    if( !is.array(Q_ik) || !(all(dim(Q_ik)[1]==c(n_i))) ){
+      stop("`Q_ik` has wrong dimensions")
+    }
+  }
+  if( is.null(yearbounds_zz)){
+    yearbounds_zz = matrix(c(0,n_t-1),nrow=1)
+  }else{
+    if( !is.array(yearbounds_zz) || !(all(dim(yearbounds_zz)[2]==2)) ){
+      stop("`yearbounds_zz` has wrong dimensions")
+    }
+  }
   if( is.null(t_yz) ){
     t_yz = matrix(0:max(tprime_iz[,1],na.rm=TRUE), ncol=1)
     for( cI in seq(2,ncol(tprime_iz),length=ncol(tprime_iz)-1)) t_yz = cbind(t_yz, min(tprime_iz[,cI],na.rm=TRUE))
   }
-  if( is.null(F_ct) ) F_ct = matrix(0, nrow=n_c, ncol=n_t)
+  n_j = ncol(X_xj)
+  n_p = dim(X_xtp)[3]
+  n_k = ncol(Q_ik)
+  n_y = nrow(t_yz)
+
+  # Other defaults
+  if( is.null(F_ct) ){
+    F_ct = matrix(0, nrow=n_c, ncol=n_t)
+  }else{
+    if( !is.array(F_ct) || !(all(dim(F_ct)==c(n_c,n_t))) ){
+      stop("`F_ct` has wrong dimensions")
+    }
+  }
   if( is.null(Expansion_cz) ){
     Expansion_cz = matrix( 0, nrow=n_c, ncol=2 )
   }else{
@@ -118,10 +155,13 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
       stop("`Expansion_cz` has wrong dimensions")
     }
   }
-  n_j = ncol(X_xj)
-  n_p = dim(X_xtp)[3]
-  n_k = ncol(Q_ik)
-  n_y = nrow(t_yz)
+  if( is.null(Xconfig_zcp) ){
+    Xconfig_zcp = array(1, dim=c(2,n_c,n_p))
+  }else{
+    if( !is.array(Xconfig_zcp) || !(all(dim(Xconfig_zcp)==c(2,n_c,n_p))) ){
+      stop("`Xconfig_zcp` has wrong dimensions")
+    }
+  }
 
   # Translate FieldConfig from input formatting to CPP formatting
   FieldConfig_input = rep(NA, length(FieldConfig))
@@ -407,6 +447,9 @@ function( Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsMo
   }
   if(Version%in%c("VAST_v5_5_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+  }
+  if(Version%in%c("VAST_v6_0_0")){
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "Xconfig_zcp"=Xconfig_zcp, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if( is.null(Return) ) stop("`Version` provided does not match the list of possible values")
   if( "spde" %in% names(Return) ) Return[['spde']] = MeshList$isotropic_spde$param.inla[c("M0","M1","M2")]
