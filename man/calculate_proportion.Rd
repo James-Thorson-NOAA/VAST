@@ -4,10 +4,11 @@
 \alias{calculate_proportion}
 \title{Calculate the compositional-expansion}
 \usage{
-calculate_proportion(TmbData, Index, Year_Set = NULL, Years2Include = NULL,
-  strata_names = NULL, category_names = NULL, plot_legend = TRUE,
-  DirName = paste0(getwd(), "/"), PlotName = "Proportion.png",
-  interval_width = 1, width = 6, height = 6, ...)
+calculate_proportion(TmbData, Index, Year_Set = NULL,
+  Years2Include = NULL, strata_names = NULL, category_names = NULL,
+  plot_legend = TRUE, DirName = paste0(getwd(), "/"),
+  PlotName = "Proportion.png", interval_width = 1, width = 6,
+  height = 6, ...)
 }
 \arguments{
 \item{TmbData}{Formatted data inputs, from `VAST::Data_Fn(...)`}

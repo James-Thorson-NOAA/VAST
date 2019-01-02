@@ -7,15 +7,15 @@
 Data_Fn(b_i, a_i, c_iz, s_i, t_iz, e_i = c_iz[, 1], v_i = rep(0,
   length(b_i)), Version, FieldConfig, OverdispersionConfig = c(eta1 = 0,
   eta2 = 0), ObsModel_ez = c(PosDist = 1, Link = 0),
-  VamConfig = c(Method = 0, Rank = 0, Timing = 0), RhoConfig = c(Beta1
-  = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0), a_xl, MeshList, GridList,
-  Method, Aniso = 1, PredTF_i = rep(0, length(b_i)), X_xj = NULL,
-  X_xtp = NULL, Xconfig_zcp = NULL, Q_ik = NULL, Network_sz = NULL,
-  F_ct = NULL, F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
-  yearbounds_zz = NULL, Options = c(SD_site_logdensity = 0,
-  Calculate_Range = 0, Calculate_effective_area = 0, Calculate_Cov_SE = 0,
-  Calculate_Synchrony = 0, Calculate_proportion = 0),
-  Expansion_cz = NULL)
+  RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
+  VamConfig = c(Method = 0, Rank = 0, Timing = 0), a_xl, MeshList,
+  GridList, Method, Aniso = TRUE, PredTF_i = rep(0, length(b_i)),
+  X_xj = NULL, X_xtp = NULL, Xconfig_zcp = NULL, Q_ik = NULL,
+  Network_sz = NULL, F_ct = NULL, F_init = 1, t_yz = NULL,
+  CheckForErrors = TRUE, yearbounds_zz = NULL,
+  Options = c(SD_site_logdensity = 0, Calculate_Range = 0,
+  Calculate_effective_area = 0, Calculate_Cov_SE = 0, Calculate_Synchrony =
+  0, Calculate_proportion = 0), Expansion_cz = NULL)
 }
 \arguments{
 \item{b_i}{Sampled biomass for each observation i}
@@ -60,9 +60,9 @@ Data_Fn(b_i, a_i, c_iz, s_i, t_iz, e_i = c_iz[, 1], v_i = rep(0,
   \item{ObsModel_ez[e,2]=4}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the species and encounter probability=0 for any year where no samples encounter the species}
 }}
 
-\item{VamConfig}{Options to estimate interactions, where first slot selects method for forming interaction matrix, the second indicates rank, the third indicates whether to incorporate effect of \code{F_ct}, and the fourth indicates whether to add a new "t=0" year (while incrementing all \code{t_i} inputs) which represents B0}
-
 \item{RhoConfig}{OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)}
+
+\item{VamConfig}{Options to estimate interactions, where first slot selects method for forming interaction matrix, the second indicates rank, the third indicates whether to incorporate effect of \code{F_ct}, and the fourth indicates whether to add a new "t=0" year (while incrementing all \code{t_i} inputs) which represents B0}
 
 \item{a_xl}{Area associated with each knot}
 
@@ -77,6 +77,14 @@ Data_Fn(b_i, a_i, c_iz, s_i, t_iz, e_i = c_iz[, 1], v_i = rep(0,
 \item{PredTF_i}{OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)}
 
 \item{X_xtp}{OPTIONAL, array of dynamic (varying among time intervals) density covariates}
+
+\item{Xconfig_zcp}{OPTIONAL, 3D array of settings for each dynamic density covariate, where the first dimension corresponds to 1st or 2nd linear predictors, second dimension corresponds to model category, and third dimension corresponds to each density covariate
+\describe{
+  \item{Xconfig_zcp[z,c,p]=0}{\code{X_xtp[,,p]} has no effect on linear predictor z for category c}
+  \item{Xconfig_zcp[z,c,p]=1}{\code{X_xtp[,,p]} has a linear effect on linear predictor z for category c}
+  \item{Xconfig_zcp[z,c,p]=2}{\code{X_xtp[,,p]} has a spatially varying, zero-centered linear effect on linear predictor z for category c}
+  \item{Xconfig_zcp[z,c,p]=3}{\code{X_xtp[,,p]} has a spatially varying linear effect on linear predictor z for category c}
+}}
 
 \item{Q_ik}{OPTIONAL, matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i}
 

@@ -8,8 +8,8 @@
 #' @param c_iz Category (e.g., species, length-bin) for each observation i
 #' @param s_i Spatial knot (e.g., grid cell) for each observation i
 #' @param t_iz Matrix where each row species the time for each observation i (if t_iz is a vector, it is coerced to a matrix with one column; if it is a matrix with two or more columns, it specifies multiple times for each observation, e.g., both year and season)
-#' @param v_i OPTIONAL, sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
 #' @param e_i Error distribution for each observation i (by default \code{e_i=c_i})
+#' @param v_i OPTIONAL, sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
 #' @param Version a version number (see example for current default).
 #' @param FieldConfig a vector of format c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10), where Omega refers to spatial variation, Epsilon refers to spatio-temporal variation, Omega1 refers to variation in encounter probability, and Omega2 refers to variation in positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance
 #' @param OverdispersionConfig OPTIONAL, a vector of format c("eta1"=0, "eta2"="AR1") governing any correlated overdispersion among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance
@@ -42,6 +42,13 @@
 #' @param Method, character (either "Mesh" or "Grid") specifying hyperdistribution (Default="Mesh")
 #' @param PredTF_i OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)
 #' @param X_xtp OPTIONAL, array of dynamic (varying among time intervals) density covariates
+#' @param Xconfig_zcp OPTIONAL, 3D array of settings for each dynamic density covariate, where the first dimension corresponds to 1st or 2nd linear predictors, second dimension corresponds to model category, and third dimension corresponds to each density covariate
+#' \describe{
+#'   \item{Xconfig_zcp[z,c,p]=0}{\code{X_xtp[,,p]} has no effect on linear predictor z for category c}
+#'   \item{Xconfig_zcp[z,c,p]=1}{\code{X_xtp[,,p]} has a linear effect on linear predictor z for category c}
+#'   \item{Xconfig_zcp[z,c,p]=2}{\code{X_xtp[,,p]} has a spatially varying, zero-centered linear effect on linear predictor z for category c}
+#'   \item{Xconfig_zcp[z,c,p]=3}{\code{X_xtp[,,p]} has a spatially varying linear effect on linear predictor z for category c}
+#' }
 #' @param Q_ik OPTIONAL, matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i
 #' @param Aniso OPTIONAL, whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)
 #' @param F_ct OPTIONAL, matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)
@@ -56,8 +63,8 @@
 Data_Fn <-
 function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsModel_ez=c("PosDist"=1,"Link"=0),
-  VamConfig=c("Method"=0,"Rank"=0,"Timing"=0), RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
-  a_xl, MeshList, GridList, Method, Aniso=1, PredTF_i=rep(0,length(b_i)),
+  RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), VamConfig=c("Method"=0,"Rank"=0,"Timing"=0),
+  a_xl, MeshList, GridList, Method, Aniso=TRUE, PredTF_i=rep(0,length(b_i)),
   X_xj=NULL, X_xtp=NULL, Xconfig_zcp=NULL, Q_ik=NULL, Network_sz=NULL, F_ct=NULL, F_init=1,
   t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
   Options=c('SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_proportion'=0),
@@ -160,6 +167,9 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   }else{
     if( !is.array(Xconfig_zcp) || !(all(dim(Xconfig_zcp)==c(2,n_c,n_p))) ){
       stop("`Xconfig_zcp` has wrong dimensions")
+    }
+    if( !all(Xconfig_zcp %in% c(0,1,2,3)) ){
+      stop("`Xconfig_zcp` has some wrong element(s)")
     }
   }
 

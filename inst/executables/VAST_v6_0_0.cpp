@@ -520,6 +520,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR(logsigmaB1_c);  // SD of beta1_t (default: not included in objective function)
   PARAMETER_VECTOR(Beta_rho1_c);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER_VECTOR(Epsilon_rho1_f);  // AR1 for presence/absence Epsilon component, Default=0
+  PARAMETER_ARRAY(log_sigmaXi1_cp);  // log-SD of Xi1_scp
   PARAMETER_VECTOR(log_sigmaratio1_z);  // Ratio of variance for columns of t_iz
 
   // -- presence/absence random effects
@@ -540,6 +541,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR(logsigmaB2_c);  // SD of beta2_t (default: not included in objective function)
   PARAMETER_VECTOR(Beta_rho2_c);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER_VECTOR(Epsilon_rho2_f);  // AR1 for positive catch Epsilon component, Default=0
+  PARAMETER_ARRAY(log_sigmaXi2_cp);  // log-SD of Xi2_scp
   PARAMETER_VECTOR(log_sigmaratio2_z);  // Ratio of variance for columns of t_iz
 
   // Error distribution parameters
@@ -603,7 +605,11 @@ Type objective_function<Type>::operator() ()
     Range_raw2 = log(0.1) / logkappa2;     // Range = approx. distance @ 10% correlation
   }
   array<Type> SigmaM( n_e, 3 );
+  array<Type> sigmaXi1_cp( n_c, n_p );
+  array<Type> sigmaXi2_cp( n_c, n_p );
   SigmaM = exp( logSigmaM );
+  sigmaXi1_cp = exp( log_sigmaXi1_cp );
+  sigmaXi2_cp = exp( log_sigmaXi2_cp );
 
   // Anisotropy elements
   matrix<Type> H(2,2);
@@ -809,22 +815,20 @@ Type objective_function<Type>::operator() ()
 
   // Xi1_scp
   array<Type> Ximean1_sc(n_s, 1);
-  Ximean1_sc.setZero();
   array<Type> Xi1_scp(n_s, n_c, n_p);
   vector<Type> Sigma1(1);
   array<Type> Tmp1_sc(n_s, 1);
+  Ximean1_sc.setZero();
+  Xi1_scp.setZero();
   for(p=0; p<n_p; p++){
   for(c=0; c<n_c; c++){
     // Hyperdistribution for spatially varying coefficients (uses IID option)
-    if( Xconfig_zcp(0,c,p)==2 ){
-      Sigma1(0) = Type(1.0);
+    if( (Xconfig_zcp(0,c,p)==2) | (Xconfig_zcp(0,c,p)==3) ){
+      Sigma1(0) = sigmaXi1_cp(c,p);
       Tmp1_sc.col(0) = Xiinput1_scp.col(p).col(c);
       Xi1_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), Options_vec(7), VamConfig(2), n_s, int(1), logkappa1, Tmp1_sc, Ximean1_sc, Sigma1, gmrf_Q, jnll_comp(14), this);
-    }else{
-      Xi1_scp.col(p).col(c) = exp(Ximean1_sc.col(0));
     }
   }}
-  REPORT( Tmp1_sc );
 
   /////
   // 2nd component
@@ -884,19 +888,18 @@ Type objective_function<Type>::operator() ()
 
   // Xi2_scp
   array<Type> Ximean2_sc(n_s, 1);
-  Ximean2_sc.setZero();
   array<Type> Xi2_scp(n_s, n_c, n_p);
   vector<Type> Sigma2(1);
   array<Type> Tmp2_sc(n_s, 1);
+  Ximean2_sc.setZero();
+  Xi2_scp.setZero();
   for(p=0; p<n_p; p++){
   for(c=0; c<n_c; c++){
     // Hyperdistribution for spatially varying coefficients (uses IID option)
-    if( Xconfig_zcp(1,c,p)==2 ){
+    if( (Xconfig_zcp(1,c,p)==2) | (Xconfig_zcp(1,c,p)==3) ){
       Tmp2_sc.col(0) = Xiinput2_scp.col(p).col(c);
-      Sigma2(0) = Type(1.0);
+      Sigma2(0) = sigmaXi2_cp(c,p);
       Xi2_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), Options_vec(7), VamConfig(2), n_s, int(1), logkappa2, Tmp2_sc, Ximean2_sc, Sigma2, gmrf_Q, jnll_comp(15), this);
-    }else{
-      Xi2_scp.col(p).col(c) = exp(Ximean2_sc.col(0));
     }
   }}
 
@@ -953,7 +956,7 @@ Type objective_function<Type>::operator() ()
   }
 
   ////////////////////////
-  // Covariates
+  // Covariate effects
   ////////////////////////
 
   vector<Type> zeta1_i = Q_ik * lambda1_k.matrix();
@@ -966,8 +969,8 @@ Type objective_function<Type>::operator() ()
   for(int c=0; c<n_c; c++){
   for(int t=0; t<n_t; t++){
   for(int p=0; p<n_p; p++){
-    eta1_xct(x,c,t) += gamma1_ctp(c,t,p) * Xi1_scp(x,c,p) * X_xtp(x,t,p);
-    eta2_xct(x,c,t) += gamma2_ctp(c,t,p) * Xi2_scp(x,c,p) * X_xtp(x,t,p);
+    eta1_xct(x,c,t) += (gamma1_ctp(c,t,p) + Xi1_scp(x,c,p)) * X_xtp(x,t,p);
+    eta2_xct(x,c,t) += (gamma2_ctp(c,t,p) + Xi2_scp(x,c,p)) * X_xtp(x,t,p);
   }}}}
 
   ////////////////////////
@@ -1669,6 +1672,8 @@ Type objective_function<Type>::operator() ()
   REPORT( iota_ct );
 
   REPORT( SigmaM );
+  REPORT( sigmaXi1_cp );
+  REPORT( sigmaXi2_cp );
   REPORT( Xi1_scp );
   REPORT( Xi2_scp );
   REPORT( Beta_rho1_c );

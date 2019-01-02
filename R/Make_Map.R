@@ -252,7 +252,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
       Map[["gamma1_tp"]] = factor(Map[["gamma1_tp"]])
       Map[["gamma2_tp"]] = factor(Map[["gamma2_tp"]])
     }
-    if( "gamma1_ctp" %in% names(TmbParams) ){
+    if( all(c("gamma1_ctp","gamma2_ctp") %in% names(TmbParams)) ){
       Map[["gamma1_ctp"]] = Map[["gamma2_ctp"]] = array( 1:(DataList$n_c*DataList$n_t*DataList$n_p), dim=c(DataList$n_c,DataList$n_t,DataList$n_p) )
       # By default:
       #  1.  turn off coefficient associated with variable having no variance across space and time
@@ -271,16 +271,30 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
       if( "Xconfig_zcp" %in% names(DataList) ){
         for(cI in 1:DataList$n_c){
         for(pI in 1:DataList$n_p){
-          if( DataList$Xconfig_zcp[1,cI,pI]==0 ){
+          if( DataList$Xconfig_zcp[1,cI,pI] %in% c(0,2) ){
             Map[["gamma1_ctp"]][cI,,pI] = NA
           }
-          if( DataList$Xconfig_zcp[2,cI,pI]==0 ){
+          if( DataList$Xconfig_zcp[2,cI,pI] %in% c(0,2) ){
             Map[["gamma2_ctp"]][cI,,pI] = NA
           }
         }}
       }
       Map[["gamma1_ctp"]] = factor(Map[["gamma1_ctp"]])
       Map[["gamma2_ctp"]] = factor(Map[["gamma2_ctp"]])
+    }
+    if( all(c("log_sigmaXi1_cp","log_sigmaXi2_cp") %in% names(TmbParams)) ){
+      Map[["log_sigmaXi1_cp"]] = Map[["log_sigmaXi2_cp"]] = array( 1:(DataList$n_c*DataList$n_p), dim=c(DataList$n_c,DataList$n_p) )
+      for(cI in 1:DataList$n_c){
+      for(pI in 1:DataList$n_p){
+        if( DataList$Xconfig_zcp[1,cI,pI] %in% c(0,1) ){
+          Map[["log_sigmaXi1_cp"]][cI,pI] = NA
+        }
+        if( DataList$Xconfig_zcp[2,cI,pI] %in% c(0,1) ){
+          Map[["log_sigmaXi2_cp"]][cI,pI] = NA
+        }
+      }}
+      Map[["log_sigmaXi1_cp"]] = factor(Map[["log_sigmaXi1_cp"]])
+      Map[["log_sigmaXi2_cp"]] = factor(Map[["log_sigmaXi2_cp"]])
     }
   }
 
@@ -289,8 +303,8 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     Map[["Xiinput1_scp"]] = Map[["Xiinput2_scp"]] = array( 1:(DataList$n_s*DataList$n_c*DataList$n_p), dim=c(DataList$n_s,DataList$n_c,DataList$n_p) )
     for(cI in 1:DataList$n_c){
     for(pI in 1:DataList$n_p){
-      if(DataList$Xconfig_zcp[1,cI,pI]!=2) Map[["Xiinput1_scp"]][,cI,pI] = NA
-      if(DataList$Xconfig_zcp[2,cI,pI]!=2) Map[["Xiinput2_scp"]][,cI,pI] = NA
+      if(DataList$Xconfig_zcp[1,cI,pI] %in% c(0,1)) Map[["Xiinput1_scp"]][,cI,pI] = NA
+      if(DataList$Xconfig_zcp[2,cI,pI] %in% c(0,1)) Map[["Xiinput2_scp"]][,cI,pI] = NA
     }}
     Map[["Xiinput1_scp"]] = factor(Map[["Xiinput1_scp"]])
     Map[["Xiinput2_scp"]] = factor(Map[["Xiinput2_scp"]])

@@ -4,9 +4,9 @@
 \alias{Plot_Overdispersion}
 \title{Plot estimated overdispersion}
 \usage{
-Plot_Overdispersion(filename1, filename2, Data, ParHat, Report, SD = NULL,
-  Map = NULL, ControlList1 = list(Width = 8, Height = 4, Res = 200, Units =
-  "in"), ControlList2 = ControlList1)
+Plot_Overdispersion(filename1, filename2, Data, ParHat, Report,
+  SD = NULL, Map = NULL, ControlList1 = list(Width = 8, Height = 4,
+  Res = 200, Units = "in"), ControlList2 = ControlList1)
 }
 \arguments{
 \item{filename1}{filename (including absolute path) for overdispersion for component #1}

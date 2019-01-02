@@ -4,7 +4,8 @@
 \alias{calc_synchrony}
 \title{Calculate synchrony among species or locations}
 \usage{
-calc_synchrony(Report, Data, yearbounds_zz = matrix(c(1, Data$n_t), nrow = 1))
+calc_synchrony(Report, Data, yearbounds_zz = matrix(c(1, Data$n_t), nrow
+  = 1))
 }
 \arguments{
 \item{Report}{output report, e.g., from \code{Report <- obj$report()}}

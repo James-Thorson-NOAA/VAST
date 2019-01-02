@@ -4,8 +4,8 @@
 \alias{Param_Fn}
 \title{Calculate parameter inputs for TMB}
 \usage{
-Param_Fn(Version, DataList, RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0,
-  Epsilon2 = 0))
+Param_Fn(Version, DataList, RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1
+  = 0, Epsilon2 = 0))
 }
 \arguments{
 \item{Version}{a version number (see example for current default).}
