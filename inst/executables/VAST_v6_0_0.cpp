@@ -818,12 +818,13 @@ Type objective_function<Type>::operator() ()
     // Hyperdistribution for spatially varying coefficients (uses IID option)
     if( Xconfig_zcp(0,c,p)==2 ){
       Sigma1(0) = Type(1.0);
-      Tmp1_sc = Xiinput1_scp.col(p).col(c);
+      Tmp1_sc.col(0) = Xiinput1_scp.col(p).col(c);
       Xi1_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), Options_vec(7), VamConfig(2), n_s, int(1), logkappa1, Tmp1_sc, Ximean1_sc, Sigma1, gmrf_Q, jnll_comp(14), this);
     }else{
       Xi1_scp.col(p).col(c) = exp(Ximean1_sc.col(0));
     }
   }}
+  REPORT( Tmp1_sc );
 
   /////
   // 2nd component
@@ -891,9 +892,9 @@ Type objective_function<Type>::operator() ()
   for(c=0; c<n_c; c++){
     // Hyperdistribution for spatially varying coefficients (uses IID option)
     if( Xconfig_zcp(1,c,p)==2 ){
-      Tmp2_sc = Xiinput2_scp.col(p).col(c);
+      Tmp2_sc.col(0) = Xiinput2_scp.col(p).col(c);
       Sigma2(0) = Type(1.0);
-      Xi2_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), Options_vec(7), VamConfig(2), n_s, int(1), logkappa1, Tmp2_sc, Ximean2_sc, Sigma2, gmrf_Q, jnll_comp(15), this);
+      Xi2_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), Options_vec(7), VamConfig(2), n_s, int(1), logkappa2, Tmp2_sc, Ximean2_sc, Sigma2, gmrf_Q, jnll_comp(15), this);
     }else{
       Xi2_scp.col(p).col(c) = exp(Ximean2_sc.col(0));
     }
