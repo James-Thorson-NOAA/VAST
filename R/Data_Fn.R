@@ -84,7 +84,7 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
 
   # Adds intercept defaults to FieldConfig if missing
   if( length(FieldConfig)==4 ){
-    FieldConfig = c( FieldConfig, "Beta1"=-2, "Beta2"=-2 )
+    FieldConfig = c( FieldConfig, "Beta1"="IID", "Beta2"="IID" )
   }
   if( !(length(FieldConfig) %in% c(4,6)) ){
     stop("`FieldConfig` has the wrong length")
