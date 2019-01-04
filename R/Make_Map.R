@@ -3,14 +3,16 @@ Make_Map <-
 function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Npool=0 ){
 
   # Local functions
-  fixval_fn <- function( fixvalTF ){
+  fix_value <- function( fixvalTF ){
     vec = rep(0,length(fixvalTF))
-    vec[which(fixvalTF)] = NA
-    vec[which(!is.na(vec))] = 1:sum(!is.na(vec))
+    if(sum(fixvalTF)>0) vec[which(fixvalTF==1)] = NA
+    if(sum(!fixvalTF)>0) vec[which(!is.na(vec))] = 1:sum(!is.na(vec))
     vec = factor( vec ) 
     return( vec )
   }
-  seq_pos <- function( length.out, from=1 ) seq(from=from, to=length.out, length.out=max(length.out,0))
+  seq_pos <- function( length.out, from=1 ){
+    seq(from=from, to=length.out, length.out=max(length.out,0))
+  }
 
   # Extract Options and Options_vec (depends upon version)
   if( all(c("Options","Options_vec") %in% names(DataList)) ){
@@ -27,6 +29,13 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
 
   # Anisotropy
   if(Options_vec["Aniso"]==0 | all(DataList[["FieldConfig"]] == -1)) Map[['ln_H_input']] = factor( rep(NA,2) )
+
+  # Function to identify elements of L_z corresponding to diagonal
+  identify_diagonal = function( n_c, n_f ){
+    M = diag(n_c)[1:n_f,,drop=FALSE]
+    diagTF = M[upper.tri(M,diag=TRUE)]
+    return(diagTF)
+  }
 
   #########################
   # 1. Residual variance ("logSigmaM")
@@ -359,24 +368,26 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   # Step 1: fix betas and/or epsilons for missing years if betas are fixed-effects
   #####
 
-  Num_ct = array(0, dim=c(DataList$n_c,DataList$n_t))
-  for( tz in 1:ncol(DataList$t_iz) ){
-    Temp = tapply( DataList$b_i, INDEX=list(factor(DataList$c_iz[,1],levels=1:DataList$n_c-1),factor(DataList$t_iz[,tz],levels=1:DataList$n_t-1)), FUN=function(vec){sum(!is.na(vec))} )
-    Temp = ifelse( is.na(Temp), 0, Temp )
-    Num_ct = Num_ct + Temp
-  }
-  if( sum(Num_ct==0)>0 ){
-    # Beta1 -- Fixed
-    if( RhoConfig["Beta1"]==0){
-      Map[["beta1_ct"]] = fixval_fn( fixvalTF=(Num_ct==0) )
-    }else{
-      # Don't fix because it would affect estimates of variance
+  if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
+    Num_ct = array(0, dim=c(DataList$n_c,DataList$n_t))
+    for( tz in 1:ncol(DataList$t_iz) ){
+      Temp = tapply( DataList$b_i, INDEX=list(factor(DataList$c_iz[,1],levels=1:DataList$n_c-1),factor(DataList$t_iz[,tz],levels=1:DataList$n_t-1)), FUN=function(vec){sum(!is.na(vec))} )
+      Temp = ifelse( is.na(Temp), 0, Temp )
+      Num_ct = Num_ct + Temp
     }
-    # Beta2 -- Fixed
-    if( RhoConfig["Beta2"]==0){
-      Map[["beta2_ct"]] = fixval_fn( fixvalTF=(Num_ct==0) )
-    }else{
-      # Don't fix because it would affect estimates of variance
+    if( sum(Num_ct==0)>0 ){
+      # Beta1 -- Fixed
+      if( RhoConfig["Beta1"]==0){
+        Map[["beta1_ct"]] = fix_value( fixvalTF=(Num_ct==0) )
+      }else{
+        # Don't fix because it would affect estimates of variance
+      }
+      # Beta2 -- Fixed
+      if( RhoConfig["Beta2"]==0){
+        Map[["beta2_ct"]] = fix_value( fixvalTF=(Num_ct==0) )
+      }else{
+        # Don't fix because it would affect estimates of variance
+      }
     }
   }
 
@@ -385,30 +396,32 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   # overwrite previous, but also re-checks for missing data
   #####
 
-  # Change beta1_ct if 100% encounters (not designed to work with seasonal models)
-  if( any(DataList$ObsModel_ez[,2] %in% c(3)) ){
-    if( ncol(DataList$t_iz)==1 ){
-      Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
-      Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
-      Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
-      Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
-    }else{
-      stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
+  if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
+    # Change beta1_ct if 100% encounters (not designed to work with seasonal models)
+    if( any(DataList$ObsModel_ez[,2] %in% c(3)) ){
+      if( ncol(DataList$t_iz)==1 ){
+        Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
+        Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
+        Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
+        Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
+      }else{
+        stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
+      }
     }
-  }
 
-  # Change beta1_ct and beta2_ct if 0% or 100% encounters (not designed to work with seasonal models)
-  if( any(DataList$ObsModel_ez[,2] %in% c(4)) ){
-    if( ncol(DataList$t_iz)==1 ){
-      Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
-      Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
-      Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1 | Tmp_ct==0)] = NA
-      Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
-      Map[["beta2_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
-      Map[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = NA
-      Map[["beta2_ct"]] = factor(Map[["beta2_ct"]])
-    }else{
-      stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
+    # Change beta1_ct and beta2_ct if 0% or 100% encounters (not designed to work with seasonal models)
+    if( any(DataList$ObsModel_ez[,2] %in% c(4)) ){
+      if( ncol(DataList$t_iz)==1 ){
+        Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
+        Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
+        Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1 | Tmp_ct==0)] = NA
+        Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
+        Map[["beta2_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
+        Map[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = NA
+        Map[["beta2_ct"]] = factor(Map[["beta2_ct"]])
+      }else{
+        stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
+      }
     }
   }
 
@@ -418,7 +431,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   #####
 
   # Hyperparameters for intercepts for <= V5.3.0
-  if( "Beta_mean1" %in% names(TmbParams) ){
+  if( all(c("Beta_mean1","Beta_mean2") %in% names(TmbParams)) ){
     if( RhoConfig["Beta1"]==0){
       Map[["Beta_mean1"]] = factor( NA )
       Map[["Beta_rho1"]] = factor( NA )
@@ -468,7 +481,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     }
   }
   # Hyperparameters for intercepts for >= V5.4.0
-  if( "Beta_mean1_c" %in% names(TmbParams) ){
+  if( all(c("Beta_mean1_c","Beta_mean2_c") %in% names(TmbParams)) ){
     if( RhoConfig["Beta1"]==0){
       Map[["Beta_mean1_c"]] = factor( rep(NA,DataList$n_c) )
       Map[["Beta_rho1_c"]] = factor( rep(NA,DataList$n_c) )
@@ -517,6 +530,56 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
       warnings( "This version of VAST has different hyperparameters for each category. Default behavior for CPP version <=5.3.0 was to have the same hyperparameters for the intercepts of all categories." )
     }
   }
+  # Hyperparameters for intercepts for >= V7.0.0
+  if( all(c("Beta_mean1_f","Beta_mean2_f") %in% names(TmbParams)) ){
+    if( RhoConfig["Beta1"]==0){
+      Map[["Beta_mean1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) )
+      Map[["Beta_rho1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) )
+      Map[["L_beta1_z"]] = factor( rep(NA,length(TmbParams$L_beta1_z)) ) # Turn off all because Data_Fn has thrown an error whenever not using IID
+    }
+    # Beta1 -- White-noise
+    if( RhoConfig["Beta1"]==1){
+      Map[["Beta_rho1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) )
+    }
+    # Beta1 -- Random-walk
+    if( RhoConfig["Beta1"]==2){
+      # Map[["Beta_mean1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) ) # Estimate Beta_mean1_f given RW, because RW in year t=0 starts as deviation from Beta_mean1_f
+      Map[["Beta_rho1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) )
+      warnings( "Version >=7.0.0 has different behavior for random-walk intercepts than <7.0.0, so results may not be identical. Consult James Thorson or code for details.")
+    }
+    # Beta1 -- Constant over time for each category
+    if( RhoConfig["Beta1"]==3){
+      Map[["Beta_mean1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) )
+      Map[["Beta_rho1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) )
+      Map[["beta1_tf"]] = factor( rep(1,DataList$n_t) %o% 1:ncol(TmbParams$beta1_tf) )
+    }
+    # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
+    if( RhoConfig["Beta2"] %in% c(0,6) ){
+      Map[["Beta_mean2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )
+      Map[["Beta_rho2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )
+      Map[["L_beta2_z"]] = factor( rep(NA,length(TmbParams$L_beta2_z)) )    # Turn off all because Data_Fn has thrown an error whenever not using IID
+    }
+    # Beta2 -- White-noise
+    if( RhoConfig["Beta2"]==1){
+      Map[["Beta_rho2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )
+    }
+    # Beta2 -- Random-walk
+    if( RhoConfig["Beta2"]==2){
+      #Map[["Beta_mean2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )  # # Estimate Beta_mean1_f given RW, because RW in year t=0 starts as deviation from Beta_mean1_f
+      Map[["Beta_rho2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )
+      warnings( "Version >=7.0.0 has different behavior for random-walk intercepts than <7.0.0, so results may not be identical. Consult James Thorson or code for details.")
+    }
+    # Beta2 -- Constant over time for each category
+    if( RhoConfig["Beta2"]==3){
+      Map[["Beta_mean2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )
+      Map[["Beta_rho2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )
+      Map[["beta2_tf"]] = factor( rep(1,DataList$n_t) %o% 1:ncol(TmbParams$beta2_tf) )
+    }
+    # Warnings
+    if( DataList$n_c >= 2 ){
+      warnings( "This version of VAST has different hyperparameters for each category. Default behavior for CPP version <=5.3.0 was to have the same hyperparameters for the intercepts of all categories." )
+    }
+  }
 
   #####
   # Step 4: Structure for seasonal models
@@ -525,27 +588,32 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
 
   # fix first level of 2nd and higher columns of t_iz
   if( "t_iz"%in%names(DataList) && ncol(DataList$t_iz)>=2 ){
-    # (Re)start map for intercepts
-    if( !("beta1_ct" %in% names(Map)) ){
-      Map[["beta1_ct"]] = 1:prod(dim(TmbParams[["beta1_ct"]]))
-    }else{
-      Map[["beta1_ct"]] = as.numeric(Map[["beta1_ct"]])
+    if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
+      # (Re)start map for intercepts
+      if( !("beta1_ct" %in% names(Map)) ){
+        Map[["beta1_ct"]] = 1:prod(dim(TmbParams[["beta1_ct"]]))
+      }else{
+        Map[["beta1_ct"]] = as.numeric(Map[["beta1_ct"]])
+      }
+      if( !("beta2_ct" %in% names(Map)) ){
+        Map[["beta2_ct"]] = 1:prod(dim(TmbParams[["beta2_ct"]]))
+      }else{
+        Map[["beta2_ct"]] = as.numeric(Map[["beta2_ct"]])
+      }
+      # Add fixed values for lowest value of 2nd and higher columns
+      for( zI in 2:ncol(DataList$t_iz) ){
+        Which2Fix = min( DataList$t_iz[,zI] )
+        Which2Fix = matrix( 1:(DataList$n_c*DataList$n_t), ncol=DataList$n_t, nrow=DataList$n_c )[,Which2Fix+1]
+        Map[["beta1_ct"]][Which2Fix] = NA
+        Map[["beta2_ct"]][Which2Fix] = NA
+      }
+      # Remake as factor
+      Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
+      Map[["beta2_ct"]] = factor(Map[["beta2_ct"]])
     }
-    if( !("beta2_ct" %in% names(Map)) ){
-      Map[["beta2_ct"]] = 1:prod(dim(TmbParams[["beta2_ct"]]))
-    }else{
-      Map[["beta2_ct"]] = as.numeric(Map[["beta2_ct"]])
+    if( all(c("beta1_tf","beta2_tf") %in% names(TmbParams)) ){
+      stop("Seasonal models are not implemented for V >= 7.0.0, check with package author James Thorson")
     }
-    # Add fixed values for lowest value of 2nd and higher columns
-    for( zI in 2:ncol(DataList$t_iz) ){
-      Which2Fix = min( DataList$t_iz[,zI] )
-      Which2Fix = matrix( 1:(DataList$n_c*DataList$n_t), ncol=DataList$n_t, nrow=DataList$n_c )[,Which2Fix+1]
-      Map[["beta1_ct"]][Which2Fix] = NA
-      Map[["beta2_ct"]][Which2Fix] = NA
-    }
-    # Remake as factor
-    Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
-    Map[["beta2_ct"]] = factor(Map[["beta2_ct"]])
   }
 
   # Return

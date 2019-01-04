@@ -82,6 +82,14 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     }
   }
 
+  # Adds intercept defaults to FieldConfig if missing
+  if( length(FieldConfig)==4 ){
+    FieldConfig = c( FieldConfig, "Beta1"=-2, "Beta2"=-2 )
+  }
+  if( !(length(FieldConfig) %in% c(4,6)) ){
+    stop("`FieldConfig` has the wrong length")
+  }
+
   # Rescale tprime_iz to start at 0
   tprime_iz = t_iz - min(t_iz,na.rm=TRUE)
 
@@ -208,7 +216,10 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     message( "Calculating range shift for stratum #1:",colnames(a_xl[1]))
   }
 
+  ###################
   # Check for bad data entry
+  ###################
+
   if( CheckForErrors==TRUE ){
     if( ncol(ObsModel_ez)!=2 | nrow(ObsModel_ez)!=n_e ) stop("Wrong dimensions for ObsModel_ez")
     if( !is.matrix(a_xl) | !is.matrix(X_xj) | !is.matrix(Q_ik) ) stop("a_xl, X_xj, and Q_ik should be matrices")
@@ -257,7 +268,10 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     if( nrow(F_ct)!=n_c | ncol(F_ct)!=n_t ) stop("F_ct has wrong dimensions")
   }
 
+  ###################
   # Check for incompatibilities amongst versions
+  ###################
+
   if( any(ObsModel_ez[,2]==1) ){
     # Versions 1.6.0 through 2.2.0 used a previous interpretation of area-swept for Poisson-link model and are not consistent with Q-Q plotting
     if( Version%in%c("VAST_v2_2_0","VAST_v2_1_0","VAST_v2_0_0","VAST_v1_9_0","VAST_v1_8_0","VAST_v1_7_0","VAST_v1_6_0") ){
@@ -294,7 +308,10 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     }
   }
 
-  ### Check for incompatible settings
+  ###################
+  # Check for incompatible settings
+  ###################
+
   # Seasonal models and intercepts
   if( ncol(tprime_iz)>=2 & any(RhoConfig[1:2]!=0) ){
     stop("Temporal structure on intercepts is not implemented for seasonal models")
@@ -382,7 +399,24 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=4:  Other options are not coded to work together" )
   }
 
+  # Factor model for intercepts + 0% or 100% encounter rate options
+  if( any(FieldConfig[5:6] != -2) & any(ObsModel_ez[,2] %in% c(3,4)) ){
+    stop( "Factor model for intercepts is incompatible  with ObsModel_ez[,2] being 3 or 4")
+  }
+
+  # Rank-reduced factor model for intercepts + fixed intercepts doesn't make sense
+  if( RhoConfig[1] == 0 ){
+    if( FieldConfig_input[5] != -2 ) stop("Using a factor model doesn't make sense using fixed-effect intercepts")
+  }
+  if( RhoConfig[2] == 0 ){
+    if( FieldConfig_input[6] != -2 ) stop("Using a factor model doesn't make sense using fixed-effect intercepts")
+  }
+
+
+  ###################
   # switch defaults if necessary
+  ###################
+
   if( Method=="Grid" ){
     Aniso = 0
     message("Using isotropic 2D AR1 hyperdistribution, so switching to Aniso=0")
@@ -409,7 +443,10 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     warning( "I highly recommend that you standardize each density covariate `X_xtp` to have a low standard deviation, to avoid numerical under/over-flow" )
   }
 
+  ###################
   # Output tagged list
+  ###################
+
   # CMP_xmax should be >100 and CMP_breakpoint should be 1 for Tweedie model
   Options_vec = c("Aniso"=Aniso, "R2_interpretation"=0, "Rho_beta1_TF"=ifelse(RhoConfig[1]%in%c(1,2,4),1,0), "Rho_beta2_TF"=ifelse(RhoConfig[2]%in%c(1,2,4),1,0), "AreaAbundanceCurveTF"=0, "CMP_xmax"=200, "CMP_breakpoint"=1, "Method"=switch(Method,"Mesh"=0,"Grid"=1,"Spherical_mesh"=0,"Stream_network"=2), "Include_F"=ifelse(all(F_ct==0),0,F_init) )
   Return = NULL
@@ -458,7 +495,7 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   if(Version%in%c("VAST_v5_5_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
-  if(Version%in%c("VAST_v6_0_0")){
+  if(Version%in%c("VAST_v7_0_0","VAST_v6_0_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "Xconfig_zcp"=Xconfig_zcp, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if( is.null(Return) ) stop("`Version` provided does not match the list of possible values")
