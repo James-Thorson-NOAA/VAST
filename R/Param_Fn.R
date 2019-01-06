@@ -166,31 +166,42 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
     }
   }
   if( Use_informative_starts==TRUE ){
+    # Temporary object for mapping
+    Params_tmp = list()
     if( all(DataList$ObsModel_ez[,2] %in% c(0,3)) ){
-      Return[["beta1_ct"]] = qlogis(0.01*0.99*tapply(ifelse(DataList$b_i>0,1,0),INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),FUN=mean)) %o% rep(1,DataList$n_t)
-      Return[["beta2_ct"]] = log(tapply(ifelse(DataList$b_i>0,DataList$b_i/DataList$a_i,NA),INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),FUN=mean,na.rm=TRUE)) %o% rep(1,DataList$n_t)
+      Params_tmp[["beta1_ct"]] = qlogis(0.01*0.99*tapply(ifelse(DataList$b_i>0,1,0),INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),FUN=mean)) %o% rep(1,DataList$n_t)
+      Params_tmp[["beta2_ct"]] = log(tapply(ifelse(DataList$b_i>0,DataList$b_i/DataList$a_i,NA),INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),FUN=mean,na.rm=TRUE)) %o% rep(1,DataList$n_t)
     }
     if( all(DataList$ObsModel_ez[,2] %in% c(1,2,4)) ){
-      Return[["beta1_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
-      Return[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
+      Params_tmp[["beta1_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
+      Params_tmp[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
     }
     # Over-ride starting values for 100% and 0% encounters
     if( all(DataList$ObsModel_ez[,2] %in% c(3)) ){
       Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
-      if( any(is.na(Tmp_ct) | Tmp_ct==1) ) Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
+      if( any(is.na(Tmp_ct) | Tmp_ct==1) ) Params_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
     }
     if( all(DataList$ObsModel_ez[,2] %in% c(4)) ){
       Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
-      if( any(is.na(Tmp_ct) | Tmp_ct==1) ) Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
-      if( any(is.na(Tmp_ct) | Tmp_ct==0) ) Return[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = -20
-      if( any(is.na(Tmp_ct) | Tmp_ct==0) ) Return[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = 0
+      if( any(is.na(Tmp_ct) | Tmp_ct==1) ) Params_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
+      if( any(is.na(Tmp_ct) | Tmp_ct==0) ) Params_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = -20
+      if( any(is.na(Tmp_ct) | Tmp_ct==0) ) Params_tmp[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = 0
     }
     # Deal with problems
-    if(length(Return[["beta1_ct"]])==1 && is.na(Return[["beta1_ct"]])){
-      Return[["beta1_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
+    if(length(Params_tmp[["beta1_ct"]])==1 && is.na(Params_tmp[["beta1_ct"]])){
+      Params_tmp[["beta1_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
     }
-    if(length(Return[["beta2_ct"]])==1 && is.na(Return[["beta2_ct"]])){
-      Return[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
+    if(length(Params_tmp[["beta2_ct"]])==1 && is.na(Params_tmp[["beta2_ct"]])){
+      Params_tmp[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
+    }
+    # Insert with name appropriate for a given version
+    if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
+      Return[["beta1_ct"]] = factor(Params_tmp[["beta1_ct"]])
+      Return[["beta2_ct"]] = factor(Params_tmp[["beta2_ct"]])
+    }
+    if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
+      Return[["beta1_ft"]] = factor(Params_tmp[["beta1_ct"]])
+      Return[["beta2_ft"]] = factor(Params_tmp[["beta2_ct"]])
     }
   }
 
