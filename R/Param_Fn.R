@@ -167,7 +167,8 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   }
   if( Use_informative_starts==TRUE ){
     # Temporary object for mapping
-    Params_tmp = list()
+    Params_tmp = list( "beta1_ct"=NA, "beta2_ct"=NA )
+    # Starting values
     if( all(DataList$ObsModel_ez[,2] %in% c(0,3)) ){
       Params_tmp[["beta1_ct"]] = qlogis(0.01*0.99*tapply(ifelse(DataList$b_i>0,1,0),INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),FUN=mean)) %o% rep(1,DataList$n_t)
       Params_tmp[["beta2_ct"]] = log(tapply(ifelse(DataList$b_i>0,DataList$b_i/DataList$a_i,NA),INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),FUN=mean,na.rm=TRUE)) %o% rep(1,DataList$n_t)
@@ -195,11 +196,11 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
       Params_tmp[["beta2_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
     }
     # Insert with name appropriate for a given version
-    if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
+    if( all(c("beta1_ct","beta2_ct") %in% names(Return)) ){
       Return[["beta1_ct"]] = factor(Params_tmp[["beta1_ct"]])
       Return[["beta2_ct"]] = factor(Params_tmp[["beta2_ct"]])
     }
-    if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
+    if( all(c("beta1_ft","beta2_ft") %in% names(Return)) ){
       Return[["beta1_ft"]] = factor(Params_tmp[["beta1_ct"]])
       Return[["beta2_ft"]] = factor(Params_tmp[["beta2_ct"]])
     }
