@@ -423,7 +423,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   }
   if( Use_informative_starts==TRUE ){
     # Temporary object for mapping
-    Map_tmp = list()
+    Map_tmp = list( "beta1_ct"=NA, "beta2_ct"=NA )
 
     # Change beta1_ct if 100% encounters (not designed to work with seasonal models)
     if( any(DataList$ObsModel_ez[,2] %in% c(3)) ){
@@ -451,12 +451,12 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
 
     # Insert with name appropriate for a given version
     if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
-      Map[["beta1_ct"]] = factor(Map_tmp[["beta1_ct"]])
-      Map[["beta2_ct"]] = factor(Map_tmp[["beta2_ct"]])
+      if( !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ct"]] = factor(Map_tmp[["beta1_ct"]])
+      if( !is.na(Map_tmp[["beta2_ct"]]) ) Map[["beta2_ct"]] = factor(Map_tmp[["beta2_ct"]])
     }
     if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
-      Map[["beta1_ft"]] = factor(Map_tmp[["beta1_ct"]])
-      Map[["beta2_ft"]] = factor(Map_tmp[["beta2_ct"]])
+      if( !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ft"]] = factor(Map_tmp[["beta1_ct"]])
+      if( !is.na(Map_tmp[["beta2_ct"]]) ) Map[["beta2_ft"]] = factor(Map_tmp[["beta2_ct"]])
     }
   }
 
