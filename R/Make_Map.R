@@ -608,7 +608,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     if( RhoConfig["Beta2"]==3){
       Map[["Beta_mean2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
       Map[["Beta_rho2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
-      Map[["beta2_tf"]] = factor( row(TmbParams$beta2_ft) )
+      Map[["beta2_ft"]] = factor( row(TmbParams$beta2_ft) )
     }
     # Warnings
     if( DataList$n_c >= 2 ){
