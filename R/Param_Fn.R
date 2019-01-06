@@ -188,7 +188,7 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
       if( any(is.na(Tmp_ct) | Tmp_ct==0) ) Params_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = -20
       if( any(is.na(Tmp_ct) | Tmp_ct==0) ) Params_tmp[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = 0
     }
-    # Deal with problems
+    # Deal with any potential problems
     if(length(Params_tmp[["beta1_ct"]])==1 && is.na(Params_tmp[["beta1_ct"]])){
       Params_tmp[["beta1_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
     }
@@ -197,12 +197,12 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
     }
     # Insert with name appropriate for a given version
     if( all(c("beta1_ct","beta2_ct") %in% names(Return)) ){
-      Return[["beta1_ct"]] = factor(Params_tmp[["beta1_ct"]])
-      Return[["beta2_ct"]] = factor(Params_tmp[["beta2_ct"]])
+      Return[["beta1_ct"]] = Params_tmp[["beta1_ct"]]
+      Return[["beta2_ct"]] = Params_tmp[["beta2_ct"]]
     }
     if( all(c("beta1_ft","beta2_ft") %in% names(Return)) ){
-      Return[["beta1_ft"]] = factor(Params_tmp[["beta1_ct"]])
-      Return[["beta2_ft"]] = factor(Params_tmp[["beta2_ct"]])
+      Return[["beta1_ft"]] = Params_tmp[["beta1_ct"]]
+      Return[["beta2_ft"]] = Params_tmp[["beta2_ct"]]
     }
   }
 
