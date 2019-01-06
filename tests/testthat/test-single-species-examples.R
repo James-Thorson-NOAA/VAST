@@ -35,7 +35,7 @@ test_that("Eastern Bering Sea pollock is working ", {
   on.exit( dyn.unload(paste0(test_path,"/",TMB::dynlib(Version_VAST))), add=TRUE )
   Opt = TMBhelper::Optimize( obj=TmbList[["Obj"]], getsd=FALSE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]] )  # , rel.tol=1e-20
   # Comparisons
-  Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_tf","logkappa1","beta2_ct","beta2_tf","logkappa1","logSigmaM")]
+  Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_ft","logkappa1","beta2_ct","beta2_ft","logkappa1","logSigmaM")]
   Par2 = opt$par[names(opt$par)%in%c("ln_H_input","beta1_t","logkappa1","beta2_t","logkappa1","logSigmaM")]
   expect_equal( as.vector(Par1), as.vector(Par2), tolerance=1e-3 )
 })
@@ -60,7 +60,7 @@ test_that("Chatham Rise hake is working ", {
   on.exit( dyn.unload(paste0(test_path,"/",TMB::dynlib(Version_VAST))), add=TRUE )
   Opt = TMBhelper::Optimize( obj=TmbList[["Obj"]], getsd=FALSE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]] )  # , rel.tol=1e-20
   # Comparisons
-  Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_tf","logkappa1","beta2_ct","beta2_tf","logkappa1","logSigmaM")]
+  Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_ft","logkappa1","beta2_ct","beta2_ft","logkappa1","logSigmaM")]
   Par2 = opt$par[names(opt$par)%in%c("ln_H_input","beta1_t","logkappa1","beta2_t","logkappa1","logSigmaM")]
   expect_equal( as.vector(Par1), as.vector(Par2), tolerance=1e-2 )
 })
@@ -85,7 +85,7 @@ test_that("West Coast groundfish bottom trawl survey, canary rockfish is working
   on.exit( dyn.unload(paste0(test_path,"/",TMB::dynlib(Version_VAST))), add=TRUE )
   Opt = TMBhelper::Optimize( obj=TmbList[["Obj"]], getsd=FALSE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]] )  # , rel.tol=1e-20
   # Comparisons
-  Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_tf","logkappa1","beta2_ct","beta2_tf","logkappa1","logSigmaM")]
+  Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_ft","logkappa1","beta2_ct","beta2_ft","logkappa1","logSigmaM")]
   Par2 = opt$par[names(opt$par)%in%c("ln_H_input","beta1_t","logkappa1","beta2_t","logkappa1","logSigmaM")]
   expect_equal( as.vector(Par1), as.vector(Par2), tolerance=1e-3 )
 })
@@ -111,7 +111,7 @@ test_that("Aleutian Islands groundfish bottom trawl survey, POP is working ", {
   on.exit( dyn.unload(paste0(test_path,"/",TMB::dynlib(Version_VAST))), add=TRUE )
   Opt = TMBhelper::Optimize( obj=TmbList[["Obj"]], getsd=FALSE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]] )  # , rel.tol=1e-20
   # Comparisons
-  Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_tf","logkappa1","beta2_ct","beta2_tf","logkappa1","logSigmaM")]
+  Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_ft","logkappa1","beta2_ct","beta2_ft","logkappa1","logSigmaM")]
   Par2 = opt$par[names(opt$par)%in%c("ln_H_input","beta1_t","logkappa1","beta2_t","logkappa1","logSigmaM")]
   expect_equal( as.vector(Par1), as.vector(Par2), tolerance=1e-3 )
 })

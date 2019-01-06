@@ -23,7 +23,7 @@ test_that("Eastern Bering Sea 3-species is working ", {
   on.exit( dyn.unload(paste0(test_path,"/",TMB::dynlib(Version_VAST))), add=TRUE )
   Opt = TMBhelper::Optimize( obj=TmbList[["Obj"]], getsd=FALSE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]] )
   # Comparisons
-  expect_equal( abs(Opt$par)[-which(names(Opt$par)%in%c("beta1_tf","beta2_tf"))], abs(opt$par)[-which(names(opt$par)%in%c("beta1_ct","beta2_ct"))], tolerance=1e-3 )
+  expect_equal( abs(Opt$par)[-which(names(Opt$par)%in%c("beta1_tf","beta2_tf","beta1_ct","beta2_ct","beta1_ft","beta2_ft"))], abs(opt$par)[-which(names(opt$par)%in%c("beta1_tf","beta2_tf","beta1_ct","beta2_ct","beta1_ft","beta2_ft"))], tolerance=1e-3 )
   expect_equal( Opt$objective, opt$objective, tolerance=1e-3 )
 })
 
@@ -47,7 +47,7 @@ test_that("Eastern Bering Sea 5-species is working ", {
   on.exit( dyn.unload(paste0(test_path,"/",TMB::dynlib(Version_VAST))), add=TRUE )
   Opt = TMBhelper::Optimize( obj=TmbList[["Obj"]], getsd=FALSE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]] )
   # Comparisons
-  expect_equal( abs(Opt$par)[-which(names(Opt$par)%in%c("beta1_tf","beta2_tf"))], abs(opt$par)[-which(names(opt$par)%in%c("beta1_ct","beta2_ct"))], tolerance=1e-3 )
+  expect_equal( abs(Opt$par)[-which(names(Opt$par)%in%c("beta1_tf","beta2_tf","beta1_ct","beta2_ct","beta1_ft","beta2_ft"))], abs(opt$par)[-which(names(opt$par)%in%c("beta1_tf","beta2_tf","beta1_ct","beta2_ct","beta1_ft","beta2_ft"))], tolerance=1e-3 )
   expect_equal( Opt$objective, opt$objective, tolerance=1e-3 )
 })
 

@@ -24,9 +24,10 @@ test_that("Male lingcod compositional expansion is working ", {
   on.exit( dyn.unload(paste0(test_path,"/",TMB::dynlib(Version_VAST))), add=TRUE )
   Opt = TMBhelper::Optimize( obj=TmbList[["Obj"]], getsd=TRUE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], newtonsteps=1 )  # , rel.tol=1e-20
   # Comparisons
-  Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_tf","logkappa1","beta2_ct","beta2_tf","logkappa1","logSigmaM")]
+  Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_ft","logkappa1","beta2_ct","beta2_ft","logkappa1","logSigmaM")]
   Par2 = opt$par[names(opt$par)%in%c("ln_H_input","beta1_ct","logkappa1","beta2_ct","logkappa1","logSigmaM")]
   expect_equal( as.vector(Par1), as.vector(Par2), tolerance=1e-3 )
+  expect_equal( opt$objective, Opt$objective, tolerance=1e-3 )
   # Get expanded composition estimates and input sample sizes
   #Index = plot_biomass_index( TmbData=TmbData, Sdreport=Opt$SD, DirName=test_path )
   #calculate_proportion( TmbData=TmbData, Index=Index, DirName=test_path, Year_Set=unique(Data_Geostat$Year) )

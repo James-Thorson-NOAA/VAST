@@ -368,26 +368,42 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   # Step 1: fix betas and/or epsilons for missing years if betas are fixed-effects
   #####
 
-  if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
-    Num_ct = array(0, dim=c(DataList$n_c,DataList$n_t))
-    for( tz in 1:ncol(DataList$t_iz) ){
-      Temp = tapply( DataList$b_i, INDEX=list(factor(DataList$c_iz[,1],levels=1:DataList$n_c-1),factor(DataList$t_iz[,tz],levels=1:DataList$n_t-1)), FUN=function(vec){sum(!is.na(vec))} )
-      Temp = ifelse( is.na(Temp), 0, Temp )
-      Num_ct = Num_ct + Temp
-    }
-    if( sum(Num_ct==0)>0 ){
-      # Beta1 -- Fixed
-      if( RhoConfig["Beta1"]==0){
+  Num_ct = array(0, dim=c(DataList$n_c,DataList$n_t))
+  for( tz in 1:ncol(DataList$t_iz) ){
+    Temp = tapply( DataList$b_i, INDEX=list(factor(DataList$c_iz[,1],levels=1:DataList$n_c-1),factor(DataList$t_iz[,tz],levels=1:DataList$n_t-1)), FUN=function(vec){sum(!is.na(vec))} )
+    Temp = ifelse( is.na(Temp), 0, Temp )
+    Num_ct = Num_ct + Temp
+  }
+  if( sum(Num_ct==0)>0 ){
+    # Beta1 -- Fixed
+    if( RhoConfig["Beta1"]==0 ){
+      if( "beta1_ct" %in% names(TmbParams) ){
         Map[["beta1_ct"]] = fix_value( fixvalTF=(Num_ct==0) )
-      }else{
-        # Don't fix because it would affect estimates of variance
       }
-      # Beta2 -- Fixed
-      if( RhoConfig["Beta2"]==0){
+      if( "beta1_ft" %in% names(TmbParams) ){
+        if( DataList[["FieldConfig"]]["Beta1"] == -2 ){
+          Map[["beta1_ft"]] = fix_value( fixvalTF=(Num_ct==0) )
+        }else{
+          stop( "Missing years may not work using a factor-model for intercepts" )
+        }
+      }
+    }else{
+      # Don't fix because it would affect estimates of variance
+    }
+    # Beta2 -- Fixed
+    if( RhoConfig["Beta2"]==0 ){
+      if( "beta2_ct" %in% names(TmbParams) ){
         Map[["beta2_ct"]] = fix_value( fixvalTF=(Num_ct==0) )
-      }else{
-        # Don't fix because it would affect estimates of variance
       }
+      if( "beta2_ft" %in% names(TmbParams) ){
+        if( DataList[["FieldConfig"]]["Beta2"] == -2 ){
+          Map[["beta2_ft"]] = fix_value( fixvalTF=(Num_ct==0) )
+        }else{
+          stop( "Missing years may not work using a factor-model for intercepts" )
+        }
+      }
+    }else{
+      # Don't fix because it would affect estimates of variance
     }
   }
 
@@ -396,14 +412,25 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   # overwrite previous, but also re-checks for missing data
   #####
 
+  Use_informative_starts = FALSE
   if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
+    Use_informative_starts = TRUE
+  }
+  if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
+    if( all(DataList$FieldConfig[c("Beta1","Beta2")] == -2) ){
+      Use_informative_starts = TRUE
+    }
+  }
+  if( Use_informative_starts==TRUE ){
+    # Temporary object for mapping
+    Map_tmp = list()
+
     # Change beta1_ct if 100% encounters (not designed to work with seasonal models)
     if( any(DataList$ObsModel_ez[,2] %in% c(3)) ){
       if( ncol(DataList$t_iz)==1 ){
         Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
-        Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
-        Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
-        Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
+        Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
+        Map_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
       }else{
         stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
       }
@@ -413,15 +440,23 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     if( any(DataList$ObsModel_ez[,2] %in% c(4)) ){
       if( ncol(DataList$t_iz)==1 ){
         Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
-        Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
-        Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1 | Tmp_ct==0)] = NA
-        Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
-        Map[["beta2_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
-        Map[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = NA
-        Map[["beta2_ct"]] = factor(Map[["beta2_ct"]])
+        Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
+        Map_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1 | Tmp_ct==0)] = NA
+        Map_tmp[["beta2_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
+        Map_tmp[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = NA
       }else{
         stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
       }
+    }
+
+    # Insert with name appropriate for a given version
+    if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
+      Map[["beta1_ct"]] = factor(Map_tmp[["beta1_ct"]])
+      Map[["beta2_ct"]] = factor(Map_tmp[["beta2_ct"]])
+    }
+    if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
+      Map[["beta1_ft"]] = factor(Map_tmp[["beta1_ct"]])
+      Map[["beta2_ft"]] = factor(Map_tmp[["beta2_ct"]])
     }
   }
 
@@ -533,47 +568,47 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   # Hyperparameters for intercepts for >= V7.0.0
   if( all(c("Beta_mean1_f","Beta_mean2_f") %in% names(TmbParams)) ){
     if( RhoConfig["Beta1"]==0){
-      Map[["Beta_mean1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) )
-      Map[["Beta_rho1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) )
+      Map[["Beta_mean1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) )
+      Map[["Beta_rho1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) )
       Map[["L_beta1_z"]] = factor( rep(NA,length(TmbParams$L_beta1_z)) ) # Turn off all because Data_Fn has thrown an error whenever not using IID
     }
     # Beta1 -- White-noise
     if( RhoConfig["Beta1"]==1){
-      Map[["Beta_rho1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) )
+      Map[["Beta_rho1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) )
     }
     # Beta1 -- Random-walk
     if( RhoConfig["Beta1"]==2){
-      # Map[["Beta_mean1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) ) # Estimate Beta_mean1_f given RW, because RW in year t=0 starts as deviation from Beta_mean1_f
-      Map[["Beta_rho1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) )
+      # Map[["Beta_mean1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) ) # Estimate Beta_mean1_f given RW, because RW in year t=0 starts as deviation from Beta_mean1_f
+      Map[["Beta_rho1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) )
       warnings( "Version >=7.0.0 has different behavior for random-walk intercepts than <7.0.0, so results may not be identical. Consult James Thorson or code for details.")
     }
     # Beta1 -- Constant over time for each category
     if( RhoConfig["Beta1"]==3){
-      Map[["Beta_mean1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) )
-      Map[["Beta_rho1_f"]] = factor( rep(NA,ncol(TmbParams$beta1_tf)) )
-      Map[["beta1_tf"]] = factor( rep(1,DataList$n_t) %o% 1:ncol(TmbParams$beta1_tf) )
+      Map[["Beta_mean1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) )
+      Map[["Beta_rho1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) )
+      Map[["beta1_ft"]] = factor( row(TmbParams$beta1_ft) )
     }
     # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
     if( RhoConfig["Beta2"] %in% c(0,6) ){
-      Map[["Beta_mean2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )
-      Map[["Beta_rho2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )
+      Map[["Beta_mean2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
+      Map[["Beta_rho2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
       Map[["L_beta2_z"]] = factor( rep(NA,length(TmbParams$L_beta2_z)) )    # Turn off all because Data_Fn has thrown an error whenever not using IID
     }
     # Beta2 -- White-noise
     if( RhoConfig["Beta2"]==1){
-      Map[["Beta_rho2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )
+      Map[["Beta_rho2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
     }
     # Beta2 -- Random-walk
     if( RhoConfig["Beta2"]==2){
-      #Map[["Beta_mean2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )  # # Estimate Beta_mean1_f given RW, because RW in year t=0 starts as deviation from Beta_mean1_f
-      Map[["Beta_rho2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )
+      #Map[["Beta_mean2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )  # # Estimate Beta_mean1_f given RW, because RW in year t=0 starts as deviation from Beta_mean1_f
+      Map[["Beta_rho2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
       warnings( "Version >=7.0.0 has different behavior for random-walk intercepts than <7.0.0, so results may not be identical. Consult James Thorson or code for details.")
     }
     # Beta2 -- Constant over time for each category
     if( RhoConfig["Beta2"]==3){
-      Map[["Beta_mean2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )
-      Map[["Beta_rho2_f"]] = factor( rep(NA,ncol(TmbParams$beta2_tf)) )
-      Map[["beta2_tf"]] = factor( rep(1,DataList$n_t) %o% 1:ncol(TmbParams$beta2_tf) )
+      Map[["Beta_mean2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
+      Map[["Beta_rho2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
+      Map[["beta2_tf"]] = factor( row(TmbParams$beta2_ft) )
     }
     # Warnings
     if( DataList$n_c >= 2 ){
@@ -611,7 +646,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
       Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
       Map[["beta2_ct"]] = factor(Map[["beta2_ct"]])
     }
-    if( all(c("beta1_tf","beta2_tf") %in% names(TmbParams)) ){
+    if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
       stop("Seasonal models are not implemented for V >= 7.0.0, check with package author James Thorson")
     }
   }

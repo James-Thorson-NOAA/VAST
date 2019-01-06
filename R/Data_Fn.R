@@ -322,6 +322,7 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   if( (FieldConfig_input[2]==(-1) & RhoConfig[3]!=0) | (FieldConfig_input[4]==(-1) & RhoConfig[4]!=0) ){
     stop("Spatio-temporal variation is turned off for a component with temporal structure, and this combination doesn't make sense")
   }
+
   # Interactions
   if( VamConfig[1]!=0 ){
     if( any(ObsModel_ez[,2]!=1) ){
@@ -340,12 +341,14 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
       stop("Can't simultaneously identify full-rank interactions and temporal correlation on spatio-temporal component for 1st linear predictor")
     }
   }
+
   # Mirroring
   if( RhoConfig[4]==6 ){
     if( FieldConfig[2]!=FieldConfig[4] ){
       stop("To fix 'Epsilon_rho2_f` equal to 'Epsilon_rho2_f`, you must specify the same rank using `FieldConfig[2]` equal to `FieldConfig[4]`")
     }
   }
+
   # Bratio reporting
   if( Options2use[12]!=0 ){
     if( FieldConfig_input[2]!=n_c ){
@@ -358,12 +361,14 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
       stop("Must use Poisson-link delta model when estimating interactions")
     }
   }
+
   # Fratio reporting
   if( Options2use[11]!=0 ){
     if( FieldConfig[4]!=0 & !(RhoConfig[4] %in% c(6)) ){
       stop("To estimate Fratio, either Epsilon2 must be turned off (i.e., `FieldConfig[4]=0`) or B2 must equal B1_cc (i.e., `RhoConfig[4]=6`)")
     }
   }
+
   # Fishing mortality
   if( any(F_ct!=0) ){
     if( any(ObsModel_ez[,2]!=1) ){
@@ -381,6 +386,7 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
       }
     }
   }
+
   # Stream network stuff
   if( Method=="Stream_network" ){
     if(is.null(Network_sz)){

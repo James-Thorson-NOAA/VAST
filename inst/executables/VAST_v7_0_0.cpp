@@ -525,7 +525,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_MATRIX(Psi_fr);   // error correction loadings, B_ff = Chi_fr %*% t(Psi_fr)
 
   //  -- presence/absence fixed effects
-  PARAMETER_MATRIX(beta1_tf);       // Year effect
+  PARAMETER_MATRIX(beta1_ft);       // Year effect
   PARAMETER_ARRAY(gamma1_ctp);       // Dynamic covariate effect
   PARAMETER_VECTOR(lambda1_k);       // Catchability coefficients
   PARAMETER_VECTOR(L1_z);          // Overdispersion parameters
@@ -533,7 +533,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR(L_epsilon1_z);
   PARAMETER_VECTOR(L_beta1_z);
   PARAMETER(logkappa1);
-  PARAMETER_VECTOR(Beta_mean1_f);  // mean-reversion for beta1_tf
+  PARAMETER_VECTOR(Beta_mean1_f);  // mean-reversion for beta1_ft
   PARAMETER_VECTOR(Beta_rho1_f);  // AR1 for presence/absence Beta component, Default=0
   PARAMETER_VECTOR(Epsilon_rho1_f);  // AR1 for presence/absence Epsilon component, Default=0
   PARAMETER_ARRAY(log_sigmaXi1_cp);  // log-SD of Xi1_scp
@@ -546,7 +546,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_ARRAY(Epsiloninput1_sft);   // Annual variation
 
   //  -- positive catch rates fixed effects
-  PARAMETER_MATRIX(beta2_tf);  // Year effect
+  PARAMETER_MATRIX(beta2_ft);  // Year effect
   PARAMETER_ARRAY(gamma2_ctp);       // Dynamic covariate effect
   PARAMETER_VECTOR(lambda2_k);       // Catchability coefficients
   PARAMETER_VECTOR(L2_z);          // Overdispersion parameters
@@ -952,8 +952,10 @@ Type objective_function<Type>::operator() ()
   // 1st component
   Type jnll_beta1 = 0;
   int n_beta_f1;
-  n_beta_f1 = beta1_tf.cols();
+  n_beta_f1 = beta1_ft.rows();
   matrix<Type> beta1_mean_tf(n_t, n_beta_f1);
+  matrix<Type> beta1_tf( n_t, n_beta_f1 );
+  beta1_tf = beta1_ft.transpose();
   for( int f=0; f<n_beta_f1; f++ ){
     beta1_mean_tf(0,f) = Beta_mean1_f(f);
     for( t=1; t<n_t; t++ ){
@@ -969,8 +971,10 @@ Type objective_function<Type>::operator() ()
   // 2nd component
   Type jnll_beta2 = 0;
   int n_beta_f2;
-  n_beta_f2 = beta2_tf.cols();
+  n_beta_f2 = beta2_ft.rows();
   matrix<Type> beta2_mean_tf(n_t, n_beta_f2);
+  matrix<Type> beta2_tf( n_t, n_beta_f2 );
+  beta2_tf = beta2_ft.transpose();
   for( int f=0; f<n_beta_f2; f++ ){
     beta2_mean_tf(0,f) = Beta_mean2_f(f);
     for( t=1; t<n_t; t++ ){
