@@ -587,6 +587,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
       Map[["Beta_mean1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) )
       Map[["Beta_rho1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) )
       Map[["beta1_ft"]] = factor( row(TmbParams$beta1_ft) )
+      Map[["L_beta1_z"]] = factor( rep(NA,length(TmbParams$L_beta1_z)) ) # Turn off all because Data_Fn has thrown an error whenever not using IID
     }
     # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
     if( RhoConfig["Beta2"] %in% c(0,6) ){
@@ -609,6 +610,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
       Map[["Beta_mean2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
       Map[["Beta_rho2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
       Map[["beta2_ft"]] = factor( row(TmbParams$beta2_ft) )
+      Map[["L_beta2_z"]] = factor( rep(NA,length(TmbParams$L_beta1_z)) ) # Turn off all because Data_Fn has thrown an error whenever not using IID
     }
     # Warnings
     if( DataList$n_c >= 2 ){
