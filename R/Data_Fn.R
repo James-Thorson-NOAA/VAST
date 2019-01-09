@@ -287,7 +287,7 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     }
   }
   if( any(FieldConfig_input == -2) ){
-    # Versions 2.6.0 was the first to allow "IID" setting for FieldConfig elements
+    # Versions 2.6.0 was the first to allow "IID" setting for FieldConfig_input elements
     if( Version%in%c("VAST_v2_5_0","VAST_v2_4_0","VAST_v2_3_0","VAST_v2_2_0","VAST_v2_1_0","VAST_v2_0_0","VAST_v1_9_0","VAST_v1_8_0","VAST_v1_7_0","VAST_v1_6_0","VAST_v1_5_0","VAST_v1_4_0","VAST_v1_3_0","VAST_v1_2_0","VAST_v1_1_0","VAST_v1_0_0") ){
       stop("Problem with 'IID' option for factors for VAST versions 1.0.0 through 2.6.0")
     }
@@ -344,8 +344,8 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
 
   # Mirroring
   if( RhoConfig[4]==6 ){
-    if( FieldConfig[2]!=FieldConfig[4] ){
-      stop("To fix 'Epsilon_rho2_f` equal to 'Epsilon_rho2_f`, you must specify the same rank using `FieldConfig[2]` equal to `FieldConfig[4]`")
+    if( FieldConfig_input[2]!=FieldConfig_input[4] ){
+      stop("To fix 'Epsilon_rho2_f` equal to 'Epsilon_rho2_f`, you must specify the same rank using `FieldConfig_input[2]` equal to `FieldConfig_input[4]`")
     }
   }
 
@@ -364,8 +364,8 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
 
   # Fratio reporting
   if( Options2use[11]!=0 ){
-    if( FieldConfig[4]!=0 & !(RhoConfig[4] %in% c(6)) ){
-      stop("To estimate Fratio, either Epsilon2 must be turned off (i.e., `FieldConfig[4]=0`) or B2 must equal B1_cc (i.e., `RhoConfig[4]=6`)")
+    if( FieldConfig_input[4]!=0 & !(RhoConfig[4] %in% c(6)) ){
+      stop("To estimate Fratio, either Epsilon2 must be turned off (i.e., `FieldConfig_input[4]=0`) or B2 must equal B1_cc (i.e., `RhoConfig[4]=6`)")
     }
   }
 
@@ -381,8 +381,8 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
       stop("`F_init` must be either 1 or 2")
     }
     if( F_init==2 ){
-      if( FieldConfig[4]!=0 & !(RhoConfig[4] %in% c(6)) ){
-        stop("To estimate stationary distribution for initial F, either Epsilon2 must be turned off (i.e., `FieldConfig[4]=0`) or B2 must equal B1_cc (i.e., `RhoConfig[4]=6`)")
+      if( FieldConfig_input[4]!=0 & !(RhoConfig[4] %in% c(6)) ){
+        stop("To estimate stationary distribution for initial F, either Epsilon2 must be turned off (i.e., `FieldConfig_input[4]=0`) or B2 must equal B1_cc (i.e., `RhoConfig[4]=6`)")
       }
     }
   }
@@ -406,7 +406,7 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   }
 
   # Factor model for intercepts + 0% or 100% encounter rate options
-  if( any(FieldConfig[5:6] != -2) & any(ObsModel_ez[,2] %in% c(3,4)) ){
+  if( any(FieldConfig_input[5:6] != -2) & any(ObsModel_ez[,2] %in% c(3,4)) ){
     stop( "Factor model for intercepts is incompatible  with ObsModel_ez[,2] being 3 or 4")
   }
 
