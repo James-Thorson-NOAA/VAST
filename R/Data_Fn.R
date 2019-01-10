@@ -88,6 +88,8 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   }else{
     if( !is.matrix(FieldConfig) || !all(dim(FieldConfig)==c(3,2)) ){
       stop("`FieldConfig` has the wrong dimensions in `Data_Fn`")
+    }else{
+      dimnames(FieldConfig) = list( c("Omega","Epsilon","Beta"), c("Component_1","Component_2") )
     }
   }
 
