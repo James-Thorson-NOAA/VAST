@@ -184,11 +184,11 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
     if( TmbData[["OverdispersionConfig"]][1]==0 ) Bounds = boundsifpresent_fn( par=Obj$par, name="L1_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
     if( TmbData[["OverdispersionConfig"]][1]==0 ) Bounds = boundsifpresent_fn( par=Obj$par, name="L2_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
   }
-  for(i in 1:4){
-    if( TmbData[["FieldConfig"]][i]==0 ){
-      Bounds = boundsifpresent_fn( par=Obj$par, name=c("L_omega1_z","L_epsilon1_z","L_omega2_z","L_epsilon2_z")[i], lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
-    }
-  }
+  #for(i in 1:4){
+  #  if( TmbData[["FieldConfig"]][i]==0 ){
+  #    Bounds = boundsifpresent_fn( par=Obj$par, name=c("L_omega1_z","L_epsilon1_z","L_omega2_z","L_epsilon2_z")[i], lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
+  #  }
+  #}
 
   # Change convergence tolerance
   Obj$env$inner.control$step.tol <- c(1e-8,1e-12,1e-15)[ConvergeTol] # Default : 1e-8  # Change in parameters limit inner optimization

@@ -16,6 +16,25 @@
 Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names=NULL, RotationMethod="PCA",
   mapdetails_list=NULL, Dim_year=NULL, Dim_species=NULL, plotdir=paste0(getwd(),"/"), land_color="grey" ){
 
+  # Extract Options and Options_vec (depends upon version)
+  if( all(c("Options","Options_vec") %in% names(TmbData)) ){
+    Options_vec = TmbData$Options_vec
+    Options = TmbData$Options
+  }
+  if( "Options_list" %in% names(TmbData) ){
+    Options_vec = TmbData$Options_list$Options_vec
+    Options = TmbData$Options_list$Options
+  }
+
+  # Adds intercept defaults to FieldConfig if missing
+  if( is.vector(Data[["FieldConfig"]]) && length(Data[["FieldConfig"]])==4 ){
+    Data[["FieldConfig"]] = rbind( matrix(Data[["FieldConfig"]],ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"="IID","Beta2"="IID") )
+  }else{
+    if( !is.matrix(Data[["FieldConfig"]]) || !all(dim(Data[["FieldConfig"]])==c(3,2)) ){
+      stop("`FieldConfig` has the wrong dimensions in `Summarize_Covariance`")
+    }
+  }
+
   # Fill in missing inputs
   if( "D_xct" %in% names(Report) ){
     if( is.null(Year_Set) ) Year_Set = 1:dim(Report$D_xct)[3]
@@ -39,37 +58,39 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
   Psiprime_list = Lprime_list = L_list = vector("list", length=4)    # Add names at end so that NULL doesn't interfere
 
   # Loop through
-  for(i in 1:4){
+  for(i in 1:6){
     # Variable names
-    Par_name = c("Omega1","Epsilon1","Omega2","Epsilon2")[i]
+    Par_name = c("Omega1", "Epsilon1", "Beta1", "Omega2", "Epsilon2", "Beta2")[i]
     if(Par_name == "Omega1") Var_name = "Omegainput1_sf"
     if(Par_name == "Epsilon1") Var_name = "Epsiloninput1_sft"
+    if(Par_name == "Beta1") Var_name = "Beta1_ft"
     if(Par_name == "Omega2") Var_name = "Omegainput2_sf"
     if(Par_name == "Epsilon2") Var_name = "Epsiloninput2_sft"
+    if(Par_name == "Beta2") Var_name = "Beta2_ft"
 
     # Continue if component is included
-    if( Data[["FieldConfig"]][[Par_name]]>0 ){
+    if( as.vector(Data[["FieldConfig"]])[i] > 0 ){
       # Get loadings matrix
-      L_list[[i]] = calc_cov( L_z=ParHat[[paste0("L_",tolower(Par_name),"_z")]], n_f=Data[["FieldConfig"]][[Par_name]], n_c=Data$n_c, returntype="loadings_matrix" )
+      L_list[[i]] = calc_cov( L_z=ParHat[[paste0("L_",tolower(Par_name),"_z")]], n_f=as.vector(Data[["FieldConfig"]])[i], n_c=Data$n_c, returntype="loadings_matrix" )
       rownames(L_list[[i]]) = category_names
 
       # Get covariance # SpatialDFA::
-      Psi_sjt = Report[[Var_name]]
+      Psi_sjt = ParHat[[Var_name]]
       tau = NULL
-      logkappa = unlist(ParHat[c('logkappa1','logkappa2')])[c(1,1,2,2)[i]]
-      if(Data$Options_vec[8]==0) tau = 1 / (exp(logkappa) * sqrt(4*pi));
-      if(Data$Options_vec[8]==1) tau = 1 / sqrt(1-exp(logkappa*2));
-      if( is.null(tau)) stop("Check 'Data$Options_vec[8]' for allowable entries")
+      logkappa = unlist(ParHat[c('logkappa1','logkappa2')])[c(1,1,1,2,2,3)[i]]
+      if(Options_vec[8]==0) tau = 1 / (exp(logkappa) * sqrt(4*pi));
+      if(Options_vec[8]==1) tau = 1 / sqrt(1-exp(logkappa*2));
+      if( is.null(tau)) stop("Check 'Options_vec[8]' for allowable entries")
       Var_rot = FishStatsUtils::Rotate_Fn( L_pj=L_list[[i]], Psi=Psi_sjt/tau, RotationMethod=RotationMethod, testcutoff=1e-4 )
       Lprime_list[[i]] = Var_rot$L_pj_rot
       rownames(Lprime_list[[i]]) = category_names
       Psiprime_list[[i]] = Var_rot$Psi_rot
 
       # Plot loadings
-      Dim_factor = Dim(Data[["FieldConfig"]][[Par_name]])
+      Dim_factor = Dim( as.vector(Data[["FieldConfig"]])[i] )
       png( file=paste0(plotdir,"Factor_loadings--",Par_name,".png"), width=Dim_factor[2]*4, height=Dim_factor[1]*4, units="in", res=200 )
         par( mfrow=Dim_factor, mar=c(0,2,2,0) )
-        for( cI in 1:Data[["FieldConfig"]][[Par_name]] ) FishStatsUtils::PlotLoadings( L_pj=Var_rot$L_pj_rot, whichfactor=cI )
+        for( cI in 1:as.vector(Data[["FieldConfig"]])[i] ) FishStatsUtils::PlotLoadings( L_pj=Var_rot$L_pj_rot, whichfactor=cI )
       dev.off()
 
       # Plot factors
@@ -78,7 +99,7 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
         if( Par_name %in% c("Epsilon1","Epsilon2")){
           # plot_set=3; MappingDetails; Report; Sdreport=NULL; Nknots=Inf; PlotDF; MapSizeRatio=c('Width(in)'=4,'Height(in)'=4); Xlim; Ylim; FileName=paste0(getwd(),"/"); Year_Set=NULL; Years2Include=NULL; Rescale=FALSE; Rotate=0; Format="png"; Res=200; zone=NA; Cex=0.01; add=FALSE; category_names=NULL; textmargin=NULL; pch=NULL; Legend=list("use"=FALSE,"x"=c(10,30),"y"=c(10,30)); mfrow=NULL; plot_legend_fig=TRUE
           # plot_set=c(NA,6,NA,7)[i]; MappingDetails=mapdetails_list[["MappingDetails"]]; Report=list("D_xct"=Report$D_xct,"Epsilon1_sct"=Var_rot$Psi_rot,"Epsilon2_sct"=Var_rot$Psi_rot); PlotDF=mapdetails_list[["PlotDF"]]; MapSizeRatio=mapdetails_list[["MapSizeRatio"]]; Xlim=mapdetails_list[["Xlim"]]; Ylim=mapdetails_list[["Ylim"]]; FileName=plotdir; Year_Set=Year_Set; Rotate=mapdetails_list[["Rotate"]]; category_names=paste0("Factor_",1:length(category_names)); mar=c(0,0,2,0); oma=c(1.5,1.5,0,0); Cex=mapdetails_list[["Cex"]]; cex=1.8; mfrow=Dim_year; cex.main=1.0; Legend=mapdetails_list[["Legend"]]; zone=mapdetails_list[["Zone"]]; plot_legend_fig=FALSE; land_color=land_color
-          FishStatsUtils::plot_maps(plot_set=c(NA,6,NA,7)[i], MappingDetails=mapdetails_list[["MappingDetails"]], Report=list("D_xct"=Var_rot$Psi_rot,"Epsilon1_sct"=Var_rot$Psi_rot,"Epsilon2_sct"=Var_rot$Psi_rot), PlotDF=mapdetails_list[["PlotDF"]], MapSizeRatio=mapdetails_list[["MapSizeRatio"]], Xlim=mapdetails_list[["Xlim"]], Ylim=mapdetails_list[["Ylim"]], FileName=plotdir, Year_Set=Year_Set, Rotate=mapdetails_list[["Rotate"]], category_names=paste0("Factor_",1:dim(Var_rot$Psi_rot)[2]), mar=c(0,0,2,0), oma=c(1.5,1.5,0,0), pch=20, Cex=mapdetails_list[["Cex"]], cex=1.8, mfrow=Dim_year, cex.main=1.0, Legend=mapdetails_list[["Legend"]], zone=mapdetails_list[["Zone"]], plot_legend_fig=FALSE, land_color=land_color)
+          FishStatsUtils::plot_maps(plot_set=c(NA,6,NA,NA,7,NA)[i], MappingDetails=mapdetails_list[["MappingDetails"]], Report=list("D_xct"=Var_rot$Psi_rot,"Epsilon1_sct"=Var_rot$Psi_rot,"Epsilon2_sct"=Var_rot$Psi_rot), PlotDF=mapdetails_list[["PlotDF"]], MapSizeRatio=mapdetails_list[["MapSizeRatio"]], Xlim=mapdetails_list[["Xlim"]], Ylim=mapdetails_list[["Ylim"]], FileName=plotdir, Year_Set=Year_Set, Rotate=mapdetails_list[["Rotate"]], category_names=paste0("Factor_",1:dim(Var_rot$Psi_rot)[2]), mar=c(0,0,2,0), oma=c(1.5,1.5,0,0), pch=20, Cex=mapdetails_list[["Cex"]], cex=1.8, mfrow=Dim_year, cex.main=1.0, Legend=mapdetails_list[["Legend"]], zone=mapdetails_list[["Zone"]], plot_legend_fig=FALSE, land_color=land_color)
         }  #
 
         # Plot average factors across years
@@ -91,7 +112,7 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
   }
 
   # Return stuff invisibly
-  names(Psiprime_list) = names(Lprime_list) = names(L_list) = c("Omega1", "Epsilon1", "Omega2", "Epsilon2")
+  names(Psiprime_list) = names(Lprime_list) = names(L_list) = c("Omega1", "Epsilon1", "Beta1", "Omega2", "Epsilon2", "Beta2")
   Return = list("Loadings"=L_list, "Rotated_loadings"=Lprime_list, "Rotated_factors"=Psiprime_list)
   return( invisible(Return) )
 }

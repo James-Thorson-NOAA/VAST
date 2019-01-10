@@ -83,11 +83,12 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   }
 
   # Adds intercept defaults to FieldConfig if missing
-  if( length(FieldConfig)==4 ){
-    FieldConfig = c( FieldConfig, "Beta1"="IID", "Beta2"="IID" )
-  }
-  if( !(length(FieldConfig) %in% c(4,6)) ){
-    stop("`FieldConfig` has the wrong length")
+  if( is.vector(FieldConfig) && length(FieldConfig)==4 ){
+    FieldConfig = rbind( matrix(FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"="IID","Beta2"="IID") )
+  }else{
+    if( !is.matrix(FieldConfig) || !all(dim(FieldConfig)==c(3,2)) ){
+      stop("`FieldConfig` has the wrong dimensions in `Data_Fn`")
+    }
   }
 
   # Rescale tprime_iz to start at 0
@@ -182,9 +183,8 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   }
 
   # Translate FieldConfig from input formatting to CPP formatting
-  FieldConfig_input = rep(NA, length(FieldConfig))
-  names(FieldConfig_input) = names(FieldConfig)
-  g = function(vec) suppressWarnings(as.numeric(vec))
+  FieldConfig_input = array(NA, dim=dim(FieldConfig), dimnames=dimnames(FieldConfig) )
+  g = function(mat) suppressWarnings( array(as.numeric(mat),dim=dim(mat)) )
   FieldConfig_input[] = ifelse( FieldConfig=="AR1", 0, FieldConfig_input)
   FieldConfig_input[] = ifelse( FieldConfig=="IID", -2, FieldConfig_input)
   FieldConfig_input[] = ifelse( !is.na(g(FieldConfig)) & g(FieldConfig)>0 & g(FieldConfig)<=n_c, g(FieldConfig), FieldConfig_input)
@@ -250,7 +250,7 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
       if( any(ObsModel_ez[,2] != 1) ) stop("If using `ObsModel_ez[e,1]` in {12,13,14} then must use `ObsModel_ez[e,2]=1`")
       if( !any(ObsModel_ez[,1] %in% c(0,1,2,3)) ) stop("Using `ObsModel_ez[e,1]` in {12,13,14} is only intended when combining data with biomass-sampling data")
     }
-    if( all(b_i>0) & all(ObsModel_ez[,1]==0) & !all(FieldConfig_input[1:2]==-1) ) stop("All data are positive and using a conventional delta-model, so please turn off `Omega1` and `Epsilon1` terms")
+    if( all(b_i>0) & all(ObsModel_ez[,1]==0) & !all(FieldConfig_input[1:2,1]==-1) ) stop("All data are positive and using a conventional delta-model, so please turn off `Omega1` and `Epsilon1` terms")
     if( !(all(ObsModel_ez[,1] %in% c(0,1,2,5,6,7,8,9,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
     if( !(all(ObsModel_ez[,2] %in% c(0,1,2,3,4))) ) stop("Please check `ObsModel_ez[,2]` input")
     if( !all(RhoConfig[1]%in%c(0,1,2,3,4)) | !all(RhoConfig[2]%in%c(0,1,2,3,4,6)) | !all(RhoConfig[3]%in%c(0,1,2,4,5)) | !all(RhoConfig[4]%in%c(0,1,2,4,5,6)) ) stop("Check `RhoConfig` inputs")
@@ -319,7 +319,7 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   if( ncol(tprime_iz)>=2 & any(VamConfig[1]!=0) ){
     stop("Species interactions are not implemented for seasonal models")
   }
-  if( (FieldConfig_input[2]==(-1) & RhoConfig[3]!=0) | (FieldConfig_input[4]==(-1) & RhoConfig[4]!=0) ){
+  if( (FieldConfig_input[2,1]==(-1) & RhoConfig[3]!=0) | (FieldConfig_input[2,2]==(-1) & RhoConfig[4]!=0) ){
     stop("Spatio-temporal variation is turned off for a component with temporal structure, and this combination doesn't make sense")
   }
 
@@ -331,27 +331,27 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     if( any(RhoConfig[1:2]!=3) ){
       #stop("Must use constant intercepts when estimating interactions")
     }
-    if( !(FieldConfig_input[2] %in% c(-2,-1,0,n_c)) & VamConfig[3]==1 ){
+    if( !(FieldConfig_input[2,1] %in% c(-2,-1,0,n_c)) & VamConfig[3]==1 ){
       stop("Spatio-temporal variation must either have full rank covariance or be turned off or IID for the 1st linear predictor for when using interactions and when VamConfig[`Timing`]==1")
     }
     if( VamConfig[2]>n_c | VamConfig[2]<0 ){
       stop("Rank for interactions must be an integer between 0 and `n_c`, inclusive")
     }
-    if( VamConfig[2]==FieldConfig_input[2] & RhoConfig[3]!=0 ){
+    if( VamConfig[2]==FieldConfig_input[2,1] & RhoConfig[3]!=0 ){
       stop("Can't simultaneously identify full-rank interactions and temporal correlation on spatio-temporal component for 1st linear predictor")
     }
   }
 
   # Mirroring
   if( RhoConfig[4]==6 ){
-    if( FieldConfig_input[2]!=FieldConfig_input[4] ){
-      stop("To fix 'Epsilon_rho2_f` equal to 'Epsilon_rho2_f`, you must specify the same rank using `FieldConfig_input[2]` equal to `FieldConfig_input[4]`")
+    if( FieldConfig_input[2,1]!=FieldConfig_input[2,2] ){
+      stop("To fix 'Epsilon_rho2_f` equal to 'Epsilon_rho2_f`, you must specify the same rank using `FieldConfig_input[2,1]` equal to `FieldConfig_input[2,2]`")
     }
   }
 
   # Bratio reporting
   if( Options2use[12]!=0 ){
-    if( FieldConfig_input[2]!=n_c ){
+    if( FieldConfig_input[2,1]!=n_c ){
       stop("Must have full-rank spatio-temporal component matrix to estimate B0 using `Options2use[12]=1`")
     }
     if( !(Options2use[12] %in% c(0,1)) ){
@@ -364,8 +364,8 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
 
   # Fratio reporting
   if( Options2use[11]!=0 ){
-    if( FieldConfig_input[4]!=0 & !(RhoConfig[4] %in% c(6)) ){
-      stop("To estimate Fratio, either Epsilon2 must be turned off (i.e., `FieldConfig_input[4]=0`) or B2 must equal B1_cc (i.e., `RhoConfig[4]=6`)")
+    if( FieldConfig_input[2,2]!=0 & !(RhoConfig[4] %in% c(6)) ){
+      stop("To estimate Fratio, either Epsilon2 must be turned off (i.e., `FieldConfig_input[2,2]=0`) or B2 must equal B1_cc (i.e., `RhoConfig[4]=6`)")
     }
   }
 
@@ -381,8 +381,8 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
       stop("`F_init` must be either 1 or 2")
     }
     if( F_init==2 ){
-      if( FieldConfig_input[4]!=0 & !(RhoConfig[4] %in% c(6)) ){
-        stop("To estimate stationary distribution for initial F, either Epsilon2 must be turned off (i.e., `FieldConfig_input[4]=0`) or B2 must equal B1_cc (i.e., `RhoConfig[4]=6`)")
+      if( FieldConfig_input[2,2]!=0 & !(RhoConfig[4] %in% c(6)) ){
+        stop("To estimate stationary distribution for initial F, either Epsilon2 must be turned off (i.e., `FieldConfig_input[2,2]=0`) or B2 must equal B1_cc (i.e., `RhoConfig[4]=6`)")
       }
     }
   }
@@ -405,17 +405,17 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=4:  Other options are not coded to work together" )
   }
 
-  # Factor model for intercepts + 0% or 100% encounter rate options
-  if( any(FieldConfig_input[5:6] != -2) & any(ObsModel_ez[,2] %in% c(3,4)) ){
+  # Factor model for intercepts + 0% or 100% encounter rate options doesn't make sense
+  if( any(FieldConfig_input[3,1:2] != -2) & any(ObsModel_ez[,2] %in% c(3,4)) ){
     stop( "Factor model for intercepts is incompatible  with ObsModel_ez[,2] being 3 or 4")
   }
 
   # Rank-reduced factor model for intercepts + fixed intercepts doesn't make sense
   if( RhoConfig[1] == 0 ){
-    if( FieldConfig_input[5] != -2 ) stop("Using a factor model doesn't make sense using fixed-effect intercepts")
+    if( FieldConfig_input[3,1] != -2 ) stop("Using a factor model doesn't make sense using fixed-effect intercepts")
   }
   if( RhoConfig[2] == 0 ){
-    if( FieldConfig_input[6] != -2 ) stop("Using a factor model doesn't make sense using fixed-effect intercepts")
+    if( FieldConfig_input[3,2] != -2 ) stop("Using a factor model doesn't make sense using fixed-effect intercepts")
   }
 
 
@@ -457,51 +457,54 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   Options_vec = c("Aniso"=Aniso, "R2_interpretation"=0, "Rho_beta1_TF"=ifelse(RhoConfig[1]%in%c(1,2,4),1,0), "Rho_beta2_TF"=ifelse(RhoConfig[2]%in%c(1,2,4),1,0), "AreaAbundanceCurveTF"=0, "CMP_xmax"=200, "CMP_breakpoint"=1, "Method"=switch(Method,"Mesh"=0,"Grid"=1,"Spherical_mesh"=0,"Stream_network"=2), "Include_F"=ifelse(all(F_ct==0),0,F_init) )
   Return = NULL
   if(Version%in%c("VAST_v1_1_0","VAST_v1_0_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_iz[,1], "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_iz[,1], "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
   if(Version%in%c("VAST_v1_4_0","VAST_v1_3_0","VAST_v1_2_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_f_input"=OverdispersionConfig_input[1], "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_iz[,1], "v_i"=match(v_i,sort(unique(v_i)))-1, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_f_input"=OverdispersionConfig_input[1], "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_iz[,1], "v_i"=match(v_i,sort(unique(v_i)))-1, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
   if(Version%in%c("VAST_v1_6_0","VAST_v1_5_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_f_input"=OverdispersionConfig_input[1], "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_iz[,1], "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_f_input"=OverdispersionConfig_input[1], "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_iz[,1], "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
   if(Version%in%c("VAST_v1_7_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_iz[,1], "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_iz[,1], "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
   if(Version%in%c("VAST_v1_8_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_iz[,1], "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_iz[,1], "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v1_9_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_iz[,1], "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_iz[,1], "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v2_8_0","VAST_v2_7_0","VAST_v2_6_0","VAST_v2_5_0","VAST_v2_4_0","VAST_v2_3_0","VAST_v2_2_0","VAST_v2_1_0","VAST_v2_0_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v3_0_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v4_0_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_j"=n_j, "n_p"=n_p, "n_k"=n_k, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v4_4_0","VAST_v4_3_0","VAST_v4_2_0","VAST_v4_1_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v5_0_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v5_1_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v5_2_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v5_4_0","VAST_v5_3_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input), "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v5_5_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=as.vector(FieldConfig_input), "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xj"=X_xj, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
-  if(Version%in%c("VAST_v7_0_0","VAST_v6_0_0")){
+  if(Version%in%c("VAST_v6_0_0")){
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=as.vector(FieldConfig_input), "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "Xconfig_zcp"=Xconfig_zcp, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+  }
+  if(Version%in%c("VAST_v7_0_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "Xconfig_zcp"=Xconfig_zcp, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_xl, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if( is.null(Return) ) stop("`Version` provided does not match the list of possible values")

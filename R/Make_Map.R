@@ -37,6 +37,15 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     return(diagTF)
   }
 
+  # Adds intercept defaults to FieldConfig if missing
+  if( is.vector(DataList$FieldConfig) && length(DataList$FieldConfig)==4 ){
+    DataList$FieldConfig = rbind( matrix(DataList$FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"="IID","Beta2"="IID") )
+  }else{
+    if( !is.matrix(DataList$FieldConfig) || !all(dim(DataList$FieldConfig)==c(3,2)) ){
+      stop("`FieldConfig` has the wrong dimensions in `Make_Map`")
+    }
+  }
+
   #########################
   # 1. Residual variance ("logSigmaM")
   # 2. Lognormal-Poisson overdispersion ("delta_i")
@@ -99,31 +108,31 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   #########################
 
   # Configurations of spatial and spatiotemporal error
-  if(DataList[["FieldConfig"]]['Omega1'] == -1){
+  if(DataList[["FieldConfig"]][1,1] == -1){
     if("Omegainput1_sc" %in% names(TmbParams)) Map[["Omegainput1_sc"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput1_sc"]])) )
     if("Omegainput1_sf" %in% names(TmbParams)) Map[["Omegainput1_sf"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput1_sf"]])) )
     if("L_omega1_z" %in% names(TmbParams)) Map[["L_omega1_z"]] = factor( rep(NA,length(TmbParams[["L_omega1_z"]])) )
   }
-  if(DataList[["FieldConfig"]]['Epsilon1'] == -1){
+  if(DataList[["FieldConfig"]][2,1] == -1){
     if("Epsiloninput1_sct" %in% names(TmbParams)) Map[["Epsiloninput1_sct"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sct"]])) )
     if("Epsiloninput1_sft" %in% names(TmbParams)) Map[["Epsiloninput1_sft"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sft"]])) )
     if("L_epsilon1_z" %in% names(TmbParams)) Map[["L_epsilon1_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon1_z"]])) )
   }
-  if(DataList[["FieldConfig"]]['Omega1'] == -1 & DataList[["FieldConfig"]]['Epsilon1'] == -1){
+  if(DataList[["FieldConfig"]][1,1] == -1 & DataList[["FieldConfig"]][2,1] == -1){
     Map[["logkappa1"]] = factor(NA)
     if("rho_c1" %in% names(TmbParams)) Map[["rho_c1"]] = factor(NA)
   }
-  if(DataList[["FieldConfig"]]['Omega2'] == -1){
+  if(DataList[["FieldConfig"]][1,2] == -1){
     if("Omegainput2_sc" %in% names(TmbParams)) Map[["Omegainput2_sc"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput2_sc"]])) )
     if("Omegainput2_sf" %in% names(TmbParams)) Map[["Omegainput2_sf"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput2_sf"]])) )
     if("L_omega2_z" %in% names(TmbParams)) Map[["L_omega2_z"]] = factor( rep(NA,length(TmbParams[["L_omega2_z"]])) )
   }
-  if(DataList[["FieldConfig"]]['Epsilon2'] == -1){
+  if(DataList[["FieldConfig"]][2,2] == -1){
     if("Epsiloninput2_sct" %in% names(TmbParams)) Map[["Epsiloninput2_sct"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sct"]])) )
     if("Epsiloninput2_sft" %in% names(TmbParams)) Map[["Epsiloninput2_sft"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sft"]])) )
     if("L_epsilon2_z" %in% names(TmbParams)) Map[["L_epsilon2_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon2_z"]])) )
   }
-  if(DataList[["FieldConfig"]]['Omega2'] == -1 & DataList[["FieldConfig"]]['Epsilon2'] == -1){
+  if(DataList[["FieldConfig"]][1,2] == -1 & DataList[["FieldConfig"]][2,2] == -1){
     Map[["logkappa2"]] = factor(NA)
     if("rho_c2" %in% names(TmbParams)) Map[["rho_c2"]] = factor(NA)
   }
@@ -381,7 +390,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
         Map[["beta1_ct"]] = fix_value( fixvalTF=(Num_ct==0) )
       }
       if( "beta1_ft" %in% names(TmbParams) ){
-        if( DataList[["FieldConfig"]]["Beta1"] == -2 ){
+        if( DataList[["FieldConfig"]][3,1] == -2 ){
           Map[["beta1_ft"]] = fix_value( fixvalTF=(Num_ct==0) )
         }else{
           stop( "Missing years may not work using a factor-model for intercepts" )
@@ -396,7 +405,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
         Map[["beta2_ct"]] = fix_value( fixvalTF=(Num_ct==0) )
       }
       if( "beta2_ft" %in% names(TmbParams) ){
-        if( DataList[["FieldConfig"]]["Beta2"] == -2 ){
+        if( DataList[["FieldConfig"]][3,2] == -2 ){
           Map[["beta2_ft"]] = fix_value( fixvalTF=(Num_ct==0) )
         }else{
           stop( "Missing years may not work using a factor-model for intercepts" )
@@ -417,7 +426,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     Use_informative_starts = TRUE
   }
   if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
-    if( all(DataList$FieldConfig[c("Beta1","Beta2")] == -2) ){
+    if( all(DataList$FieldConfig[3,1:2] == -2) ){
       Use_informative_starts = TRUE
     }
   }

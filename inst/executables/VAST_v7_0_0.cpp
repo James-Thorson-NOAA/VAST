@@ -149,7 +149,7 @@ matrix<Type> convert_upper_cov_to_cor( matrix<Type> cov ){
   return cov;
 }
 
-// Input: L_omega1_z, Q1, Omegainput1_sf, n_f, n_s, n_c, FieldConfig(0)
+// Input: L_omega1_z, Q1, Omegainput1_sf, n_f, n_s, n_c, FieldConfig(0,0)
 // Output: jnll_comp(0), Omega1_sc
 template<class Type>                                                                                        //
 matrix<Type> gmrf_by_category_nll( int n_f, int method, int timing, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, array<Type> gmrf_mean_sf, vector<Type> L_z, density::GMRF_t<Type> gmrf_Q, Type &jnll_pointer, objective_function<Type>* of){
@@ -470,7 +470,7 @@ Type objective_function<Type>::operator() ()
     // Two columns, and 1+ rows, specifying first and last t for each period used in calculating synchrony
   // Options_list.Expansion_cz
     // Two columns and n_c rows.  1st column:  Type of expansion (0=area-expansion; 1=biomass-expansion);  2nd column:  Category used for biomass-expansion
-  DATA_IVECTOR(FieldConfig);  // Input settings (vector, length 4)
+  DATA_IMATRIX(FieldConfig);  // Input settings (vector, length 4)
   DATA_IVECTOR(RhoConfig);
   DATA_IVECTOR(OverdispersionConfig);          // Input settings (vector, length 2)
   DATA_IMATRIX(ObsModel_ez);    // Observation model
@@ -666,7 +666,7 @@ Type objective_function<Type>::operator() ()
   covE1_cc.setZero();
   covE2_cc.setZero();
   // Calculate interaction matrix B_cc for categories if feasible
-  if( (n_c==n_f1) & (n_c==n_f2) & (FieldConfig(1)>0) & (FieldConfig(3)>0) ){
+  if( (n_c==n_f1) & (n_c==n_f2) & (FieldConfig(1,0)>0) & (FieldConfig(1,1)>0) ){
     matrix<Type> L_epsilon1_cf = loadings_matrix( L_epsilon1_z, n_c, n_f1 );
     matrix<Type> Cov_epsilon1_cc = L_epsilon1_cf * L_epsilon1_cf.transpose();
     matrix<Type> L_epsilon2_cf = loadings_matrix( L_epsilon2_z, n_c, n_f2 );
@@ -782,7 +782,7 @@ Type objective_function<Type>::operator() ()
   array<Type> Omegamean1_sf(n_s, Omegainput1_sf.cols() );
   Omegamean1_sf.setZero();
   array<Type> Omega1_sc(n_s, n_c);
-  Omega1_sc = gmrf_by_category_nll(FieldConfig(0), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_z, gmrf_Q, jnll_comp(0), this);
+  Omega1_sc = gmrf_by_category_nll(FieldConfig(0,0), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_z, gmrf_Q, jnll_comp(0), this);
 
   // Epsilon1
   array<Type> Epsilonmean1_sf(n_s, n_f1 );
@@ -796,7 +796,7 @@ Type objective_function<Type>::operator() ()
     // PDF for first year of autoregression
     if( t==(Options(11)+0) ){
       Epsilonmean1_sf.setZero();
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
     }
     // PDF for subsequent years of autoregression
     if( t>=(Options(11)+1) ){
@@ -825,7 +825,7 @@ Type objective_function<Type>::operator() ()
         }}}
       }
       // Hyperdistribution for spatio-temporal component
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, jnll_comp(1), this);
     }
   }
 
@@ -855,7 +855,7 @@ Type objective_function<Type>::operator() ()
   array<Type> Omegamean2_sf(n_s, Omegainput2_sf.cols() );
   Omegamean2_sf.setZero();
   array<Type> Omega2_sc(n_s, n_c);
-  Omega2_sc = gmrf_by_category_nll(FieldConfig(2), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_z, gmrf_Q, jnll_comp(2), this);
+  Omega2_sc = gmrf_by_category_nll(FieldConfig(0,1), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_z, gmrf_Q, jnll_comp(2), this);
 
   // Epsilon2
   array<Type> Epsilonmean2_sf(n_s, n_f2);
@@ -869,7 +869,7 @@ Type objective_function<Type>::operator() ()
     // PDF for first year of autoregression
     if( t==(Options(11)+0) ){
       Epsilonmean2_sf.setZero();
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
     // PDF for subsequent years of autoregression
     if( t>=(Options(11)+1) ){
@@ -898,7 +898,7 @@ Type objective_function<Type>::operator() ()
         }}}
       }
       // Hyperdistribution for spatio-temporal component
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(3), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, jnll_comp(3), this);
     }
   }
 
@@ -963,7 +963,7 @@ Type objective_function<Type>::operator() ()
     }
   }
   matrix<Type> beta1_tc(n_t, n_c);
-  beta1_tc = covariation_by_category_nll( FieldConfig(4), n_t, n_c, beta1_tf, beta1_mean_tf, L_beta1_z, jnll_beta1, this );
+  beta1_tc = covariation_by_category_nll( FieldConfig(2,0), n_t, n_c, beta1_tf, beta1_mean_tf, L_beta1_z, jnll_beta1, this );
   if( (RhoConfig(0)==1) | (RhoConfig(0)==2) | (RhoConfig(0)==4) ){
     jnll_comp(8) = jnll_beta1;
   }
@@ -982,7 +982,7 @@ Type objective_function<Type>::operator() ()
     }
   }
   matrix<Type> beta2_tc(n_t, n_c);
-  beta2_tc = covariation_by_category_nll( FieldConfig(5), n_t, n_c, beta2_tf, beta2_mean_tf, L_beta2_z, jnll_beta2, this );
+  beta2_tc = covariation_by_category_nll( FieldConfig(2,1), n_t, n_c, beta2_tf, beta2_mean_tf, L_beta2_z, jnll_beta2, this );
   if( (RhoConfig(1)==1) | (RhoConfig(1)==2) | (RhoConfig(1)==4) | (RhoConfig(1)==6) ){
     jnll_comp(9) = jnll_beta2;
   }
@@ -1437,33 +1437,47 @@ Type objective_function<Type>::operator() ()
 
   // Reporting and standard-errors for covariance and correlation matrices
   if( Options(5)==1 ){
-    if( FieldConfig(0)>0 ){
-      matrix<Type> L1_omega_cf = loadings_matrix( L_omega1_z, n_c, FieldConfig(0) );
+    if( FieldConfig(0,0)>0 ){
+      matrix<Type> L1_omega_cf = loadings_matrix( L_omega1_z, n_c, FieldConfig(0,0) );
       matrix<Type> lowercov_uppercor_omega1 = L1_omega_cf * L1_omega_cf.transpose();
       lowercov_uppercor_omega1 = convert_upper_cov_to_cor( lowercov_uppercor_omega1 );
       REPORT( lowercov_uppercor_omega1 );
       ADREPORT( lowercov_uppercor_omega1 );
     }
-    if( FieldConfig(1)>0 ){
-      matrix<Type> L1_epsilon_cf = loadings_matrix( L_epsilon1_z, n_c, FieldConfig(1) );
+    if( FieldConfig(1,0)>0 ){
+      matrix<Type> L1_epsilon_cf = loadings_matrix( L_epsilon1_z, n_c, FieldConfig(1,0) );
       matrix<Type> lowercov_uppercor_epsilon1 = L1_epsilon_cf * L1_epsilon_cf.transpose();
       lowercov_uppercor_epsilon1 = convert_upper_cov_to_cor( lowercov_uppercor_epsilon1 );
       REPORT( lowercov_uppercor_epsilon1 );
       ADREPORT( lowercov_uppercor_epsilon1 );
     }
-    if( FieldConfig(2)>0 ){
-      matrix<Type> L2_omega_cf = loadings_matrix( L_omega2_z, n_c, FieldConfig(2) );
+    if( FieldConfig(2,0)>0 ){
+      matrix<Type> L1_beta_cf = loadings_matrix( L_beta1_z, n_c, FieldConfig(2,0) );
+      matrix<Type> lowercov_uppercor_beta1 = L1_beta_cf * L1_beta_cf.transpose();
+      lowercov_uppercor_beta1 = convert_upper_cov_to_cor( lowercov_uppercor_beta1 );
+      REPORT( lowercov_uppercor_beta1 );
+      ADREPORT( lowercov_uppercor_beta1 );
+    }
+    if( FieldConfig(0,1)>0 ){
+      matrix<Type> L2_omega_cf = loadings_matrix( L_omega2_z, n_c, FieldConfig(0,1) );
       matrix<Type> lowercov_uppercor_omega2 = L2_omega_cf * L2_omega_cf.transpose();
       lowercov_uppercor_omega2 = convert_upper_cov_to_cor( lowercov_uppercor_omega2 );
       REPORT( lowercov_uppercor_omega2 );
       ADREPORT( lowercov_uppercor_omega2 );
     }
-    if( FieldConfig(3)>0 ){
-      matrix<Type> L2_epsilon_cf = loadings_matrix( L_epsilon2_z, n_c, FieldConfig(3) );
+    if( FieldConfig(1,1)>0 ){
+      matrix<Type> L2_epsilon_cf = loadings_matrix( L_epsilon2_z, n_c, FieldConfig(1,1) );
       matrix<Type> lowercov_uppercor_epsilon2 = L2_epsilon_cf * L2_epsilon_cf.transpose();
       lowercov_uppercor_epsilon2 = convert_upper_cov_to_cor( lowercov_uppercor_epsilon2 );
       REPORT( lowercov_uppercor_epsilon2 );
       ADREPORT( lowercov_uppercor_epsilon2 );
+    }
+    if( FieldConfig(2,1)>0 ){
+      matrix<Type> L1_beta_cf = loadings_matrix( L_beta2_z, n_c, FieldConfig(2,1) );
+      matrix<Type> lowercov_uppercor_beta2 = L1_beta_cf * L1_beta_cf.transpose();
+      lowercov_uppercor_beta2 = convert_upper_cov_to_cor( lowercov_uppercor_beta2 );
+      REPORT( lowercov_uppercor_beta2 );
+      ADREPORT( lowercov_uppercor_beta2 );
     }
   }
 
@@ -1638,8 +1652,8 @@ Type objective_function<Type>::operator() ()
     matrix<Type> CovHat( n_c, n_c );
     CovHat.setIdentity();
     CovHat *= pow(0.0001, 2);
-    if( FieldConfig(1)>0 ) CovHat += loadings_matrix(L_epsilon1_z, n_c, FieldConfig(1)) * loadings_matrix(L_epsilon1_z, n_c, FieldConfig(1)).transpose();
-    if( FieldConfig(3)>0 ) CovHat += loadings_matrix(L_epsilon2_z, n_c, FieldConfig(3)) * loadings_matrix(L_epsilon2_z, n_c, FieldConfig(3)).transpose();
+    if( FieldConfig(1,0)>0 ) CovHat += loadings_matrix(L_epsilon1_z, n_c, FieldConfig(1,0)) * loadings_matrix(L_epsilon1_z, n_c, FieldConfig(1,0)).transpose();
+    if( FieldConfig(1,1)>0 ) CovHat += loadings_matrix(L_epsilon2_z, n_c, FieldConfig(1,1)) * loadings_matrix(L_epsilon2_z, n_c, FieldConfig(1,1)).transpose();
     // Coherence ranges from 0 (all factors are equal) to 1 (first factor explains all variance)
     SelfAdjointEigenSolver<Matrix<Type,Dynamic,Dynamic> > es(CovHat);
     vector<Type> eigenvalues_c = es.eigenvalues();       // Ranked from lowest to highest for some reason
