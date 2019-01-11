@@ -39,7 +39,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
 
   # Adds intercept defaults to FieldConfig if missing
   if( is.vector(DataList$FieldConfig) && length(DataList$FieldConfig)==4 ){
-    DataList$FieldConfig = rbind( matrix(DataList$FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"="IID","Beta2"="IID") )
+    DataList$FieldConfig = rbind( matrix(DataList$FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"=-2,"Beta2"=-2) )
   }else{
     if( !is.matrix(DataList$FieldConfig) || !all(dim(DataList$FieldConfig)==c(3,2)) ){
       stop("`FieldConfig` has the wrong dimensions in `Make_Map`")
@@ -460,8 +460,8 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
 
     # Insert with name appropriate for a given version
     if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
-      if( !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ct"]] = factor(Map_tmp[["beta1_ct"]])
-      if( !is.na(Map_tmp[["beta2_ct"]]) ) Map[["beta2_ct"]] = factor(Map_tmp[["beta2_ct"]])
+      if( length(Map_tmp[["beta1_ct"]])>1 || !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ct"]] = factor(Map_tmp[["beta1_ct"]])
+      if( length(Map_tmp[["beta1_ct"]])>1 || !is.na(Map_tmp[["beta2_ct"]]) ) Map[["beta2_ct"]] = factor(Map_tmp[["beta2_ct"]])
     }
     if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
       if( length(Map_tmp[["beta1_ct"]])>1 || !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ft"]] = factor(Map_tmp[["beta1_ct"]])

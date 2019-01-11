@@ -75,7 +75,7 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
 
   # Adds intercept defaults to FieldConfig if missing
   if( is.vector(DataList$FieldConfig) && length(DataList$FieldConfig)==4 ){
-    DataList$FieldConfig = rbind( matrix(DataList$FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"="IID","Beta2"="IID") )
+    DataList$FieldConfig = rbind( matrix(DataList$FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"=-2,"Beta2"=-2) )
   }else{
     if( !is.matrix(DataList$FieldConfig) || !all(dim(DataList$FieldConfig)==c(3,2)) ){
       stop("`FieldConfig` has the wrong dimensions in `Param_Fn`")

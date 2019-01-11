@@ -22,7 +22,7 @@ Summarize_Covariance = function( Report, Data, ParHat, SD=NULL, category_order=1
 
   # Adds intercept defaults to FieldConfig if missing
   if( is.vector(Data[["FieldConfig"]]) && length(Data[["FieldConfig"]])==4 ){
-    Data[["FieldConfig"]] = rbind( matrix(Data[["FieldConfig"]],ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"="IID","Beta2"="IID") )
+    Data[["FieldConfig"]] = rbind( matrix(Data[["FieldConfig"]],ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"=-2,"Beta2"=-2) )
   }else{
     if( !is.matrix(Data[["FieldConfig"]]) || !all(dim(Data[["FieldConfig"]])==c(3,2)) ){
       stop("`FieldConfig` has the wrong dimensions in `Summarize_Covariance`")
