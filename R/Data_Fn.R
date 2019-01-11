@@ -232,10 +232,12 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     if( Options2use[12]==1 ){
       Prop_nonzero = Prop_nonzero[-1,]
     }
-    if( any(ObsModel_ez[,2]==0) ){
+    if( any(ObsModel_ez[,2] %in% c(0,1)) ){
       if( any(!is.na(Prop_nonzero) & (Prop_nonzero==0|Prop_nonzero==1)) ){
-        print( Prop_nonzero )
-        stop("Some years and/or categories have either all or no encounters, and this is not permissible when ObsModel_ez[,'Link']=0")
+        if( RhoConfig[1]==0 ){
+          print( Prop_nonzero )
+          stop("Some years and/or categories have either all or no encounters, and this requires either temporal structure of a different link-function")
+        }
       }
     }
     if( length(OverdispersionConfig)!=2 ) stop("length(OverdispersionConfig)!=2")
