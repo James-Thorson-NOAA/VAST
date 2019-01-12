@@ -461,7 +461,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     # Insert with name appropriate for a given version
     if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
       if( length(Map_tmp[["beta1_ct"]])>1 || !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ct"]] = factor(Map_tmp[["beta1_ct"]])
-      if( length(Map_tmp[["beta1_ct"]])>1 || !is.na(Map_tmp[["beta2_ct"]]) ) Map[["beta2_ct"]] = factor(Map_tmp[["beta2_ct"]])
+      if( length(Map_tmp[["beta2_ct"]])>1 || !is.na(Map_tmp[["beta2_ct"]]) ) Map[["beta2_ct"]] = factor(Map_tmp[["beta2_ct"]])
     }
     if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
       if( length(Map_tmp[["beta1_ct"]])>1 || !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ft"]] = factor(Map_tmp[["beta1_ct"]])
