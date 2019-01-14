@@ -1358,7 +1358,7 @@ Type objective_function<Type>::operator() ()
     for(int c=0; c<n_c; c++){
       if( Expansion_cz(c,0)==1 ){
         for(int x=0; x<n_x; x++){
-          Index_xcyl(x,c,y,l) = D_xcy(x,c,y) * Index_xcyl(x,Expansion_cz(c,1)+1,y,l);
+          Index_xcyl(x,c,y,l) = D_xcy(x,c,y) * Index_xcyl(x,Expansion_cz(c,1),y,l);    // Had Index_xcyl(x,Expansion_cz(c,1)+1,y,l) in original draft but I can't remember why
           Index_cyl(c,y,l) += Index_xcyl(x,c,y,l);
         }
       }
