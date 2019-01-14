@@ -24,11 +24,14 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     Options = DataList$Options_list$Options
   }
 
-  # Create tagged-list in TMB format for fixing parameters
-  Map = list()
-
-  # Anisotropy
-  if(Options_vec["Aniso"]==0 | all(DataList[["FieldConfig"]] == -1)) Map[['ln_H_input']] = factor( rep(NA,2) )
+  # Adds intercept defaults to FieldConfig if missing
+  if( is.vector(DataList$FieldConfig) && length(DataList$FieldConfig)==4 ){
+    DataList$FieldConfig = rbind( matrix(DataList$FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"=-2,"Beta2"=-2) )
+  }else{
+    if( !is.matrix(DataList$FieldConfig) || !all(dim(DataList$FieldConfig)==c(3,2)) ){
+      stop("`FieldConfig` has the wrong dimensions in `Make_Map`")
+    }
+  }
 
   # Function to identify elements of L_z corresponding to diagonal
   identify_diagonal = function( n_c, n_f ){
@@ -37,12 +40,16 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     return(diagTF)
   }
 
-  # Adds intercept defaults to FieldConfig if missing
-  if( is.vector(DataList$FieldConfig) && length(DataList$FieldConfig)==4 ){
-    DataList$FieldConfig = rbind( matrix(DataList$FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"=-2,"Beta2"=-2) )
-  }else{
-    if( !is.matrix(DataList$FieldConfig) || !all(dim(DataList$FieldConfig)==c(3,2)) ){
-      stop("`FieldConfig` has the wrong dimensions in `Make_Map`")
+  # Create tagged-list in TMB format for fixing parameters
+  Map = list()
+
+  # Turn off geometric anisotropy parameters
+  if( Options_vec["Aniso"]==0 ){
+    Map[['ln_H_input']] = factor( rep(NA,2) )
+  }
+  if( all(DataList[["FieldConfig"]][1:2,] == -1) ){
+    if( !( "Xconfig_zcp" %in% names(DataList) && any(DataList[["Xconfig_zcp"]][1,,] %in% c(2,3)) ) ){
+      Map[['ln_H_input']] = factor( rep(NA,2) )
     }
   }
 
@@ -118,9 +125,11 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     if("Epsiloninput1_sft" %in% names(TmbParams)) Map[["Epsiloninput1_sft"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sft"]])) )
     if("L_epsilon1_z" %in% names(TmbParams)) Map[["L_epsilon1_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon1_z"]])) )
   }
-  if(DataList[["FieldConfig"]][1,1] == -1 & DataList[["FieldConfig"]][2,1] == -1){
-    Map[["logkappa1"]] = factor(NA)
-    if("rho_c1" %in% names(TmbParams)) Map[["rho_c1"]] = factor(NA)
+  if( all(DataList[["FieldConfig"]][1:2,1] == -1) ){
+    if( !( "Xconfig_zcp" %in% names(DataList) && any(DataList[["Xconfig_zcp"]][1,,] %in% c(2,3)) ) ){
+      Map[["logkappa1"]] = factor(NA)
+      if("rho_c1" %in% names(TmbParams)) Map[["rho_c1"]] = factor(NA)
+    }
   }
   if(DataList[["FieldConfig"]][1,2] == -1){
     if("Omegainput2_sc" %in% names(TmbParams)) Map[["Omegainput2_sc"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput2_sc"]])) )
@@ -132,9 +141,11 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     if("Epsiloninput2_sft" %in% names(TmbParams)) Map[["Epsiloninput2_sft"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sft"]])) )
     if("L_epsilon2_z" %in% names(TmbParams)) Map[["L_epsilon2_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon2_z"]])) )
   }
-  if(DataList[["FieldConfig"]][1,2] == -1 & DataList[["FieldConfig"]][2,2] == -1){
-    Map[["logkappa2"]] = factor(NA)
-    if("rho_c2" %in% names(TmbParams)) Map[["rho_c2"]] = factor(NA)
+  if( all(DataList[["FieldConfig"]][1:2,2] == -1 )){
+    if( !( "Xconfig_zcp" %in% names(DataList) && any(DataList[["Xconfig_zcp"]][2,,] %in% c(2,3)) ) ){
+      Map[["logkappa2"]] = factor(NA)
+      if("rho_c2" %in% names(TmbParams)) Map[["rho_c2"]] = factor(NA)
+    }
   }
 
   # Epsilon1 -- Fixed OR White-noise OR Random walk
