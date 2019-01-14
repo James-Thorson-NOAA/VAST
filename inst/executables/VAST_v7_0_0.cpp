@@ -959,7 +959,7 @@ Type objective_function<Type>::operator() ()
   for( int f=0; f<n_beta_f1; f++ ){
     beta1_mean_tf(0,f) = Beta_mean1_f(f);
     for( t=1; t<n_t; t++ ){
-      beta1_mean_tf(t,f) = Beta_mean1_f(f) + beta1_tf(t-1,f) * Beta_rho1_f(f);
+      beta1_mean_tf(t,f) = Beta_mean1_f(f) + (beta1_tf(t-1,f)-Beta_mean1_f(f)) * Beta_rho1_f(f);
     }
   }
   matrix<Type> beta1_tc(n_t, n_c);
@@ -978,7 +978,7 @@ Type objective_function<Type>::operator() ()
   for( int f=0; f<n_beta_f2; f++ ){
     beta2_mean_tf(0,f) = Beta_mean2_f(f);
     for( t=1; t<n_t; t++ ){
-      beta2_mean_tf(t,f) = Beta_mean2_f(f) + beta2_tf(t-1,f) * Beta_rho2_f(f);
+      beta2_mean_tf(t,f) = Beta_mean2_f(f) + (beta2_tf(t-1,f)-Beta_mean2_f(f)) * Beta_rho2_f(f);
     }
   }
   matrix<Type> beta2_tc(n_t, n_c);
