@@ -533,7 +533,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR(L_epsilon1_z);
   PARAMETER_VECTOR(L_beta1_z);
   PARAMETER(logkappa1);
-  PARAMETER_VECTOR(Beta_mean1_f);  // mean-reversion for beta1_ft
+  PARAMETER_VECTOR(Beta_mean1_c);  // mean-reversion for beta1_ft
   PARAMETER_VECTOR(Beta_rho1_f);  // AR1 for presence/absence Beta component, Default=0
   PARAMETER_VECTOR(Epsilon_rho1_f);  // AR1 for presence/absence Epsilon component, Default=0
   PARAMETER_ARRAY(log_sigmaXi1_cp);  // log-SD of Xi1_scp
@@ -554,7 +554,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR(L_epsilon2_z);
   PARAMETER_VECTOR(L_beta2_z);
   PARAMETER(logkappa2);
-  PARAMETER_VECTOR(Beta_mean2_f);  // mean-reversion for beta2_t
+  PARAMETER_VECTOR(Beta_mean2_c);  // mean-reversion for beta2_t
   PARAMETER_VECTOR(Beta_rho2_f);  // AR1 for positive catch Beta component, Default=0
   PARAMETER_VECTOR(Epsilon_rho2_f);  // AR1 for positive catch Epsilon component, Default=0
   PARAMETER_ARRAY(log_sigmaXi2_cp);  // log-SD of Xi2_scp
@@ -957,13 +957,17 @@ Type objective_function<Type>::operator() ()
   matrix<Type> beta1_tf( n_t, n_beta_f1 );
   beta1_tf = beta1_ft.transpose();
   for( int f=0; f<n_beta_f1; f++ ){
-    beta1_mean_tf(0,f) = Beta_mean1_f(f);
+    beta1_mean_tf(0,f) = Type(0.0);
     for( t=1; t<n_t; t++ ){
-      beta1_mean_tf(t,f) = Beta_mean1_f(f) + (beta1_tf(t-1,f)-Beta_mean1_f(f)) * Beta_rho1_f(f);
+      beta1_mean_tf(t,f) = beta1_tf(t-1,f) * Beta_rho1_f(f);
     }
   }
   matrix<Type> beta1_tc(n_t, n_c);
   beta1_tc = covariation_by_category_nll( FieldConfig(2,0), n_t, n_c, beta1_tf, beta1_mean_tf, L_beta1_z, jnll_beta1, this );
+  for( c=0; c<n_c; c++ ){
+  for( t=0; t<n_t; t++ ){
+    beta1_tc(t,c) += beta_mean1_c(c);
+  }}
   if( (RhoConfig(0)==1) | (RhoConfig(0)==2) | (RhoConfig(0)==4) ){
     jnll_comp(8) = jnll_beta1;
   }
@@ -976,13 +980,17 @@ Type objective_function<Type>::operator() ()
   matrix<Type> beta2_tf( n_t, n_beta_f2 );
   beta2_tf = beta2_ft.transpose();
   for( int f=0; f<n_beta_f2; f++ ){
-    beta2_mean_tf(0,f) = Beta_mean2_f(f);
+    beta2_mean_tf(0,f) = Type(0.0);
     for( t=1; t<n_t; t++ ){
-      beta2_mean_tf(t,f) = Beta_mean2_f(f) + (beta2_tf(t-1,f)-Beta_mean2_f(f)) * Beta_rho2_f(f);
+      beta2_mean_tf(t,f) = beta2_tf(t-1,f) * Beta_rho2_f(f);
     }
   }
   matrix<Type> beta2_tc(n_t, n_c);
   beta2_tc = covariation_by_category_nll( FieldConfig(2,1), n_t, n_c, beta2_tf, beta2_mean_tf, L_beta2_z, jnll_beta2, this );
+  for( c=0; c<n_c; c++ ){
+  for( t=0; t<n_t; t++ ){
+    beta2_tc(t,c) += beta_mean2_c(c);
+  }}
   if( (RhoConfig(1)==1) | (RhoConfig(1)==2) | (RhoConfig(1)==4) | (RhoConfig(1)==6) ){
     jnll_comp(9) = jnll_beta2;
   }
@@ -1734,10 +1742,10 @@ Type objective_function<Type>::operator() ()
   REPORT( Xi1_scp );
   REPORT( Xi2_scp );
   REPORT( Beta_rho1_f );
-  REPORT( Beta_mean1_f );
+  REPORT( Beta_mean1_c );
   REPORT( Epsilon_rho1_f );
   REPORT( Beta_rho2_f );
-  REPORT( Beta_mean2_f );
+  REPORT( Beta_mean2_c );
   REPORT( Epsilon_rho2_f );
 
   REPORT( Index_cyl );
