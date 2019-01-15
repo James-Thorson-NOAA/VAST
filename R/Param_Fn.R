@@ -62,7 +62,7 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
     }
     # Turned off
     if( n_f== -1 ){
-      List[[which(names(List)==list_names[1])]] = 1  # Turn off SD when zero factors, i.e., n_f = -1
+      List[[which(names(List)==list_names[1])]] = 1  # Turn off SD when zero factors, i.e., n_f = -1, MUST BE 1.0 BY DEFAULT
       List[[which(names(List)==list_names[2])]] = rarray(dim=as.vector(na.omit(c(n_i,abs(n_f),n_t))), sd=sd)
     }
     # IID process

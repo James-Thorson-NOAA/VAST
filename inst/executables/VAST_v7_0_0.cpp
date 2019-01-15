@@ -966,7 +966,7 @@ Type objective_function<Type>::operator() ()
   beta1_tc = covariation_by_category_nll( FieldConfig(2,0), n_t, n_c, beta1_tf, beta1_mean_tf, L_beta1_z, jnll_beta1, this );
   for( c=0; c<n_c; c++ ){
   for( t=0; t<n_t; t++ ){
-    beta1_tc(t,c) += beta_mean1_c(c);
+    beta1_tc(t,c) += Beta_mean1_c(c);
   }}
   if( (RhoConfig(0)==1) | (RhoConfig(0)==2) | (RhoConfig(0)==4) ){
     jnll_comp(8) = jnll_beta1;
@@ -989,7 +989,7 @@ Type objective_function<Type>::operator() ()
   beta2_tc = covariation_by_category_nll( FieldConfig(2,1), n_t, n_c, beta2_tf, beta2_mean_tf, L_beta2_z, jnll_beta2, this );
   for( c=0; c<n_c; c++ ){
   for( t=0; t<n_t; t++ ){
-    beta2_tc(t,c) += beta_mean2_c(c);
+    beta2_tc(t,c) += Beta_mean2_c(c);
   }}
   if( (RhoConfig(1)==1) | (RhoConfig(1)==2) | (RhoConfig(1)==4) | (RhoConfig(1)==6) ){
     jnll_comp(9) = jnll_beta2;
