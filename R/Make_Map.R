@@ -486,7 +486,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   #####
 
   # Hyperparameters for intercepts for <= V5.3.0
-  if( all(c("Beta_mean1","Beta_mean2") %in% names(TmbParams)) ){
+  if( all(c("logsigmaB1","logsigmaB2") %in% names(TmbParams)) ){
     if( RhoConfig["Beta1"]==0){
       Map[["Beta_mean1"]] = factor( NA )
       Map[["Beta_rho1"]] = factor( NA )
@@ -535,8 +535,8 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
       warnings( "This version of VAST has the same hyperparameters for the intercepts of all categories.  Please use CPP version >=5.4.0 for different hyperparameters for each category." )
     }
   }
-  # Hyperparameters for intercepts for >= V5.4.0
-  if( all(c("Beta_mean1_c","Beta_mean2_c") %in% names(TmbParams)) ){
+  # Hyperparameters for intercepts for >= V5.4.0 & <7.0.0
+  if( all(c("logsigmaB1_c","logsigmaB2_c") %in% names(TmbParams)) ){
     if( RhoConfig["Beta1"]==0){
       Map[["Beta_mean1_c"]] = factor( rep(NA,DataList$n_c) )
       Map[["Beta_rho1_c"]] = factor( rep(NA,DataList$n_c) )
