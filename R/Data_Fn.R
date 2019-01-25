@@ -417,10 +417,10 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
 
   # Rank-reduced factor model for intercepts + fixed intercepts doesn't make sense
   if( RhoConfig[1] == 0 ){
-    if( FieldConfig_input[3,1] != -2 ) stop("Using a factor model doesn't make sense using fixed-effect intercepts")
+    if( FieldConfig_input[3,1] != -2 ) stop("Using a factor model doesn't make sense using fixed-effect intercepts.  If you want to use a factor model without temporal structure, please change `RhoConfig[1]=1` for covariance that is independent in each year, or use some other temporal structure on intercepts.")
   }
   if( RhoConfig[2] == 0 ){
-    if( FieldConfig_input[3,2] != -2 ) stop("Using a factor model doesn't make sense using fixed-effect intercepts")
+    if( FieldConfig_input[3,2] != -2 ) stop("Using a factor model doesn't make sense using fixed-effect intercepts.  If you want to use a factor model without temporal structure, please change `RhoConfig[2]=1` for covariance that is independent in each year, or use some other temporal structure on intercepts.")
   }
 
 
