@@ -110,7 +110,7 @@ ObsModel = c(2,0)
 ## Potential outputs
 The following settings define what types of output we want to calculate
 ```{r, tidy=TRUE}
-Options =  c("SD_site_density"=0, "SD_site_logdensity"=0, "Calculate_Range"=1, "Calculate_evenness"=0, "Calculate_effective_area"=1, "Calculate_Cov_SE"=0, 'Calculate_Synchrony'=0, 'Calculate_Coherence'=0, 'normalize_GMRF_in_CPP'=TRUE)
+Options =  c("SD_site_density"=FALSE, "SD_site_logdensity"=FALSE, "Calculate_Range"=TRUE, "Calculate_effective_area"=TRUE)
 ```
 
 ## Stratification for results
@@ -150,6 +150,8 @@ if( Data_Set %in% c("Iceland_cod")){
   strata.limits = data.frame( 'STRATA'="All_areas" )
   # Turn off all spatial, temporal, and spatio-temporal variation in probability of occurrence, because they occur almost everywhere
   FieldConfig = c("Omega1"=0, "Epsilon1"=0, "Omega2"=1, "Epsilon2"=1)
+  # Use an observation model that fixes encounter probability at 100% for years where its encoutered everywhere.
+  ObsModel = c(2,3)
 }
 ```
 
