@@ -252,7 +252,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   Var_k = apply( DataList[["Q_ik"]], MARGIN=2, FUN=var )
   Map[["lambda1_k"]] = Map[["lambda2_k"]] = 1:ncol(DataList$Q_ik)
   for(k in 1:length(Var_k)){
-    if( Var_k[k]==0 || sum(Q_Config)==0 ){
+    if( Var_k[k]==0 ){
       Map[["lambda1_k"]][k] = NA
       Map[["lambda2_k"]][k] = NA
     }
