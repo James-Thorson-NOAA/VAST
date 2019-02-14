@@ -7,6 +7,9 @@
   packageStartupMessage("Loading package VAST, developed by James Thorson for the Northwest Fisheries Science Center")
   packageStartupMessage("For details and citation guidance, please see http://github.com/james-thorson/VAST/")
   packageStartupMessage("###########################################################################################")
+  if( getOption("repos")["CRAN"] == "@CRAN@" ){
+    options(repos = c("CRAN" = "http://cran.us.r-project.org"))
+  }
   if( !"INLA" %in% utils::installed.packages()[,1] ){
     packageStartupMessage("Installing package: INLA...")
     #utils::install.packages("INLA", repos="https://www.math.ntnu.no/inla/R/stable")
