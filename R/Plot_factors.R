@@ -84,7 +84,7 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
       if(Options_vec[8]==0) tau = 1 / (exp(logkappa) * sqrt(4*pi));
       if(Options_vec[8]==1) tau = 1 / sqrt(1-exp(logkappa*2));
       if( is.null(tau)) stop("Check 'Options_vec[8]' for allowable entries")
-      Var_rot = Rotate_Fn( L_pj=L_list[[i]], Psi=Psi_sjt/tau, RotationMethod=RotationMethod, testcutoff=1e-4 )
+      Var_rot = FishStatsUtils::Rotate_Fn( L_pj=L_list[[i]], Psi=Psi_sjt/tau, RotationMethod=RotationMethod, testcutoff=1e-4 )
       Lprime_list[[i]] = Var_rot$L_pj_rot
       rownames(Lprime_list[[i]]) = category_names
       Psiprime_list[[i]] = Var_rot$Psi_rot
