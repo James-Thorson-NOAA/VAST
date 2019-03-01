@@ -64,7 +64,7 @@ library(VAST)
 
 ## Further information
 
-If you have further questions after reading this tutorial, please explore the [GitHub repo](https://github.com/james-thorson/VAST/#description) mainpage, wiki, and glossary.  Also please explore the R help files, e.g., e.g., `?Data_Fn` for explanation of data inputs, or `?Param_Fn` for explanation of parameters.
+If you have further questions after reading this tutorial, please explore the [GitHub repo](https://github.com/james-thorson/VAST/#description) mainpage, wiki, and glossary.  Also please explore the R help files, e.g., e.g., `?make_data` for explanation of data inputs, or `?Param_Fn` for explanation of parameters.
 
 ## Related tools
 
@@ -178,14 +178,14 @@ Data_Geostat = cbind( Data_Geostat, "knot_i"=Spatial_List$knot_i )
 
 ## Build model
 
-To estimate parameters, we first build a list of data-inputs used for parameter estimation.  `Data_Fn` has some simple checks for buggy inputs, but also please read the help file `?Data_Fn`.  
+To estimate parameters, we first build a list of data-inputs used for parameter estimation.  `make_data` has some simple checks for buggy inputs, but also please read the help file `?make_data`.  
 ```{r build_data, message=FALSE, tidy=TRUE, linewidth=60, results="hide"}
-TmbData = Data_Fn("Version"=Version, "FieldConfig"=FieldConfig, "OverdispersionConfig"=OverdispersionConfig, "RhoConfig"=RhoConfig, "ObsModel"=ObsModel, "c_i"=as.numeric(Data_Geostat[,'spp'])-1, "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(Data_Geostat[,'Vessel'])-1, "s_i"=Data_Geostat[,'knot_i']-1, "t_i"=Data_Geostat[,'Year'], "a_xl"=Spatial_List$a_xl, "MeshList"=Spatial_List$MeshList, "GridList"=Spatial_List$GridList, "Method"=Spatial_List$Method, "Options"=Options )
+TmbData = make_data("Version"=Version, "FieldConfig"=FieldConfig, "OverdispersionConfig"=OverdispersionConfig, "RhoConfig"=RhoConfig, "ObsModel"=ObsModel, "c_i"=as.numeric(Data_Geostat[,'spp'])-1, "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(Data_Geostat[,'Vessel'])-1, "s_i"=Data_Geostat[,'knot_i']-1, "t_i"=Data_Geostat[,'Year'], "a_xl"=Spatial_List$a_xl, "MeshList"=Spatial_List$MeshList, "GridList"=Spatial_List$GridList, "Method"=Spatial_List$Method, "Options"=Options )
 ```
 
 We then build the TMB object.
 ```{r build_object, message=FALSE, results="hide", tidy=TRUE}
-TmbList = Build_TMB_Fn("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x, "Method"=Method)
+TmbList = make_model("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x, "Method"=Method)
 Obj = TmbList[["Obj"]]
 ```
 
@@ -218,7 +218,7 @@ plot_data(Extrapolation_List=Extrapolation_List, Spatial_List=Spatial_List, Data
 ![Spatial distribution of catch-rate data](VAST_output/Data_by_year.png) 
 
 ## Convergence
-Here I print the diagnostics generated during parameter estimation, and I confirm that (1) no parameter is hitting an upper or lower bound and (2) the final gradient for each fixed-effect is close to zero. For explanation of parameters, please see `?Data_Fn`.
+Here I print the diagnostics generated during parameter estimation, and I confirm that (1) no parameter is hitting an upper or lower bound and (2) the final gradient for each fixed-effect is close to zero. For explanation of parameters, please see `?make_data`.
 ```{r print_results, results="asis"}
 pander::pandoc.table( Opt$diagnostics[,c('Param','Lower','MLE','Upper','final_gradient')] ) 
 ```

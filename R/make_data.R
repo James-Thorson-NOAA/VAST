@@ -1,7 +1,7 @@
 
 #' Build data input for VAST model
 #'
-#' \code{Data_Fn} builds a tagged list of data inputs used by TMB for running the model
+#' \code{make_data} builds a tagged list of data inputs used by TMB for running the model
 #'
 #' @param b_i Sampled biomass for each observation i
 #' @param a_i Sampled area for each observation i
@@ -60,7 +60,7 @@
 #' @return Tagged list containing inputs to function \code{VAST::Build_TMB_Fn()}
 
 #' @export
-Data_Fn <-
+make_data <-
 function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsModel_ez=c("PosDist"=1,"Link"=0),
   RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), VamConfig=c("Method"=0,"Rank"=0,"Timing"=0),
@@ -87,7 +87,7 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     FieldConfig = rbind( matrix(FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"="IID","Beta2"="IID") )
   }else{
     if( !is.matrix(FieldConfig) || !all(dim(FieldConfig)==c(3,2)) ){
-      stop("`FieldConfig` has the wrong dimensions in `Data_Fn`")
+      stop("`FieldConfig` has the wrong dimensions in `make_data`")
     }else{
       dimnames(FieldConfig) = list( c("Omega","Epsilon","Beta"), c("Component_1","Component_2") )
     }
