@@ -15,7 +15,6 @@
 #' @export
 Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names=NULL, RotationMethod="PCA",
   mapdetails_list=NULL, Dim_year=NULL, Dim_species=NULL, plotdir=paste0(getwd(),"/"), land_color="grey" ){
-
   # Extract Options and Options_vec (depends upon version)
   if( all(c("Options","Options_vec") %in% names(TmbData)) ){
     Options_vec = TmbData$Options_vec
@@ -63,10 +62,10 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
     Par_name = c("Omega1", "Epsilon1", "Beta1", "Omega2", "Epsilon2", "Beta2")[i]
     if(Par_name == "Omega1") Var_name = "Omegainput1_sf"
     if(Par_name == "Epsilon1") Var_name = "Epsiloninput1_sft"
-    if(Par_name == "Beta1") Var_name = "Beta1_ft"
+    if(Par_name == "Beta1") Var_name = "beta1_ft"
     if(Par_name == "Omega2") Var_name = "Omegainput2_sf"
     if(Par_name == "Epsilon2") Var_name = "Epsiloninput2_sft"
-    if(Par_name == "Beta2") Var_name = "Beta2_ft"
+    if(Par_name == "Beta2") Var_name = "beta2_ft"
 
     # Continue if component is included
     if( as.vector(Data[["FieldConfig"]])[i] > 0 ){
@@ -76,6 +75,13 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
 
       # Get covariance # SpatialDFA::
       Psi_sjt = ParHat[[Var_name]]
+      ## the betas are transposed compared to others so fix that here
+      if(Var_name %in% c("beta1_ft", "beta2_ft")){
+        Psi_sjt <- t(Psi_sjt)
+      }
+      if(is.null(Psi_sjt)){
+        stop(paste("Covariance is empty for parameter", Var_name))
+      }
       tau = NULL
       logkappa = unlist(ParHat[c('logkappa1','logkappa2')])[c(1,1,1,2,2,3)[i]]
       if(Options_vec[8]==0) tau = 1 / (exp(logkappa) * sqrt(4*pi));
@@ -97,14 +103,15 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
       if( !is.null(mapdetails_list) ){
         # Plot factors by year
         if( Par_name %in% c("Epsilon1","Epsilon2")){
-          # plot_set=3; MappingDetails; Report; Sdreport=NULL; Nknots=Inf; PlotDF; MapSizeRatio=c('Width(in)'=4,'Height(in)'=4); Xlim; Ylim; FileName=paste0(getwd(),"/"); Year_Set=NULL; Years2Include=NULL; Rescale=FALSE; Rotate=0; Format="png"; Res=200; zone=NA; Cex=0.01; add=FALSE; category_names=NULL; textmargin=NULL; pch=NULL; Legend=list("use"=FALSE,"x"=c(10,30),"y"=c(10,30)); mfrow=NULL; plot_legend_fig=TRUE
-          # plot_set=c(NA,6,NA,7)[i]; MappingDetails=mapdetails_list[["MappingDetails"]]; Report=list("D_xct"=Report$D_xct,"Epsilon1_sct"=Var_rot$Psi_rot,"Epsilon2_sct"=Var_rot$Psi_rot); PlotDF=mapdetails_list[["PlotDF"]]; MapSizeRatio=mapdetails_list[["MapSizeRatio"]]; Xlim=mapdetails_list[["Xlim"]]; Ylim=mapdetails_list[["Ylim"]]; FileName=plotdir; Year_Set=Year_Set; Rotate=mapdetails_list[["Rotate"]]; category_names=paste0("Factor_",1:length(category_names)); mar=c(0,0,2,0); oma=c(1.5,1.5,0,0); Cex=mapdetails_list[["Cex"]]; cex=1.8; mfrow=Dim_year; cex.main=1.0; Legend=mapdetails_list[["Legend"]]; zone=mapdetails_list[["Zone"]]; plot_legend_fig=FALSE; land_color=land_color
           FishStatsUtils::plot_maps(plot_set=c(NA,6,NA,NA,7,NA)[i], MappingDetails=mapdetails_list[["MappingDetails"]], Report=list("D_xct"=Var_rot$Psi_rot,"Epsilon1_sct"=Var_rot$Psi_rot,"Epsilon2_sct"=Var_rot$Psi_rot), PlotDF=mapdetails_list[["PlotDF"]], MapSizeRatio=mapdetails_list[["MapSizeRatio"]], Xlim=mapdetails_list[["Xlim"]], Ylim=mapdetails_list[["Ylim"]], FileName=plotdir, Year_Set=Year_Set, Rotate=mapdetails_list[["Rotate"]], category_names=paste0("Factor_",1:dim(Var_rot$Psi_rot)[2]), mar=c(0,0,2,0), oma=c(1.5,1.5,0,0), pch=20, Cex=mapdetails_list[["Cex"]], cex=1.8, mfrow=Dim_year, cex.main=1.0, Legend=mapdetails_list[["Legend"]], zone=mapdetails_list[["Zone"]], plot_legend_fig=FALSE, land_color=land_color)
         }  #
 
         # Plot average factors across years
-        Mat_sf = apply(Var_rot$Psi_rot, MARGIN=1:2, FUN=mean)
-        FishStatsUtils::PlotMap_Fn( MappingDetails=mapdetails_list[["MappingDetails"]], Mat=Mat_sf, PlotDF=mapdetails_list[["PlotDF"]], MapSizeRatio=mapdetails_list[["MapSizeRatio"]], Xlim=mapdetails_list[["Xlim"]], Ylim=mapdetails_list[["Ylim"]], FileName=paste0(plotdir,"Factor_maps--",Par_name), Year_Set=paste0("Factor_",1:ncol(Mat_sf)), Rotate=mapdetails_list[["Rotate"]], zone=mapdetails_list[["Zone"]], mar=c(0,0,2,0), oma=c(2.5,2.5,0,0), pch=20, Cex=mapdetails_list[["Cex"]], mfrow=Dim_factor, Legend=mapdetails_list[["Legend"]], plot_legend_fig=FALSE, land_color=land_color)
+        if( !Par_name %in% c("Beta1", "Beta2")){
+          ## Doesn't make sense to make maps of beta factors since they aren't spatial
+          Mat_sf = apply(Var_rot$Psi_rot, MARGIN=1:2, FUN=mean)
+          FishStatsUtils::PlotMap_Fn( MappingDetails=mapdetails_list[["MappingDetails"]], Mat=Mat_sf, PlotDF=mapdetails_list[["PlotDF"]], MapSizeRatio=mapdetails_list[["MapSizeRatio"]], Xlim=mapdetails_list[["Xlim"]], Ylim=mapdetails_list[["Ylim"]], FileName=paste0(plotdir,"Factor_maps--",Par_name), Year_Set=paste0("Factor_",1:ncol(Mat_sf)), Rotate=mapdetails_list[["Rotate"]], zone=mapdetails_list[["Zone"]], mar=c(0,0,2,0), oma=c(2.5,2.5,0,0), pch=20, Cex=mapdetails_list[["Cex"]], mfrow=Dim_factor, Legend=mapdetails_list[["Legend"]], plot_legend_fig=FALSE, land_color=land_color)
+        }
       }
     }else{
       Psiprime_list[[i]] = Lprime_list[[i]] = L_list[[i]] = "Element not estimated, and therefore empty"

@@ -293,7 +293,7 @@ TmbData = make_data("Version"=Version, "FieldConfig"=FieldConfig, "Overdispersio
 
 We then build the TMB object.
 ```{r build_object, message=FALSE, results="hide", tidy=TRUE}
-TmbList = make_model("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x, "Method"=Method)
+TmbList = make_model("TmbData"=TmbData, "RunDir"=DateFile, "Version"=Version, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x, "Method"=Spatial_List$Method)
 Obj = TmbList[["Obj"]]
 ```
 
