@@ -6,8 +6,7 @@
 \usage{
 Summarize_Covariance(Report, Data, ParHat, SD = NULL,
   category_order = 1:Data$n_c, category_names = 1:Data$n_c,
-  plotdir = paste0(getwd(), "/"), figname = "Cov", plotTF = c(Omega1
-  = TRUE, Epsilon1 = TRUE, Omega2 = TRUE, Epsilon2 = TRUE),
+  plotdir = paste0(getwd(), "/"), figname = "Cov", plotTF = NULL,
   plot_cor = TRUE, mgp = c(2, 0.5, 0), tck = -0.02, oma = c(0, 5,
   2, 0), ...)
 }

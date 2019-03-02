@@ -32,3 +32,26 @@
   #  devtools::install_github("kaskr/TMB_contrib_R/TMBhelper")
   #}
 }
+
+#' Copy of VAST::make_model
+#'
+#' Included for continuity when using old scripts
+#'
+#' Please use \code{?VAST::make_model} to see list of arguments and usage
+#' @export
+Build_TMB_Fn = function( ... ){
+  .Deprecated( new="VAST::make_model" )
+  VAST::make_model( ... )
+}
+
+#' Copy of VAST::make_data
+#'
+#' Included for continuity when using old scripts
+#'
+#' Please use \code{?VAST::make_data} to see list of arguments and usage
+#' @export
+Data_Fn = function( ... ){
+  .Deprecated( new="VAST::make_data" )
+  VAST::make_data( ... )
+}
+

@@ -23,8 +23,6 @@ Rerun_Fn(parhat0, turnoff_pars, loc_x,
 
 \item{figname}{name for figure to plot density in counter-factual scenario}
 
-\item{Map}{OPTIONAL, a tagged list of parameters to either mirror or turn off}
-
 \item{MapDetails_List}{output from \code{FishStatsUtils::MapDetails_Fn}}
 
 \item{year_set}{set of parameters to include}
