@@ -4,15 +4,11 @@
 \alias{Param_Fn}
 \title{Calculate parameter inputs for TMB}
 \usage{
-Param_Fn(Version, DataList, RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0,
-  Epsilon2 = 0))
+Param_Fn(Version, DataList, RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1
+  = 0, Epsilon2 = 0))
 }
 \arguments{
-\item{Version}{a version number (see example for current default).}
-
 \item{DataList}{list outputted from \code{VAST::Data_Fn}}
-
-\item{RhoConfig}{OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)}
 }
 \value{
 Tagged list containing starting values for all fixed effects (parameters) and random effects (coefficients)

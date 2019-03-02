@@ -17,15 +17,31 @@
 
 #' @export
 Summarize_Covariance = function( Report, Data, ParHat, SD=NULL, category_order=1:Data$n_c, category_names=1:Data$n_c,
-  plotdir=paste0(getwd(),"/"), figname="Cov", plotTF=c("Omega1"=TRUE,"Epsilon1"=TRUE,"Omega2"=TRUE,"Epsilon2"=TRUE), plot_cor=TRUE,
+  plotdir=paste0(getwd(),"/"), figname="Cov", plotTF=NULL, plot_cor=TRUE,
   mgp=c(2,0.5,0), tck=-0.02, oma=c(0,5,2,0), ...){
+
+  # Adds intercept defaults to FieldConfig if missing
+  if( is.vector(Data[["FieldConfig"]]) && length(Data[["FieldConfig"]])==4 ){
+    Data[["FieldConfig"]] = rbind( matrix(Data[["FieldConfig"]],ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"=-2,"Beta2"=-2) )
+  }else{
+    if( !is.matrix(Data[["FieldConfig"]]) || !all(dim(Data[["FieldConfig"]])==c(3,2)) ){
+      stop("`FieldConfig` has the wrong dimensions in `Summarize_Covariance`")
+    }
+  }
+
+  # Add default for plotTF, or coerce Data$FieldConfig to a vector
+  if( is.null(plotTF) ){
+    plotTF = as.vector( Data[["FieldConfig"]]>0 )
+  }else{
+    plotTF = as.vector(plotTF)
+  }
 
   # Object to return
   Return = list()
 
   # Extract
   for(i in which(Data[["FieldConfig"]]>=0) ){
-    Par_name = c("omega1", "epsilon1", "omega2", "epsilon2")[i]
+    Par_name = c("omega1", "epsilon1", "beta1", "omega2", "epsilon2", "beta2")[i]
     L_name = paste0("L_",Par_name,"_z")
 
     # Extract estimates and standard errors
@@ -55,7 +71,7 @@ Summarize_Covariance = function( Report, Data, ParHat, SD=NULL, category_order=1
     # Extract estimates
     if( is.null(Cov) | is.null(Cor) ){
       Cov = Cor = array( NA, dim=c(Data$n_c,Data$n_c,2), dimnames=list(category_names,category_names,c("Estimate","Std.Error") ) )
-      Cov[,,'Estimate'] = calc_cov( L_z=ParHat[[L_name]], n_f=Data$FieldConfig[i], n_c=Data$n_c )
+      Cov[,,'Estimate'] = calc_cov( L_z=ParHat[[L_name]], n_f=as.vector(Data[["FieldConfig"]])[i], n_c=Data$n_c )
       Cor[,,'Estimate'] = cov2cor( Cov[,,'Estimate'] )
     }                       #
 
@@ -68,10 +84,10 @@ Summarize_Covariance = function( Report, Data, ParHat, SD=NULL, category_order=1
   # Plot covariances
   if( !is.null(figname) ){
     # Work out dimensions
-    Dim = c(2,2)
+    Dim = c(3,2)
     if( sum(ifelse(plotTF>0,1,0))==1 ) Dim = c(1,1)
-    if( all(ifelse(plotTF>0,1,0)==c(1,1,0,0)) | all(ifelse(plotTF>0,1,0)==c(0,0,1,1)) ) Dim=c(1,2)
-    if( all(ifelse(plotTF>0,1,0)==c(1,0,1,0)) | all(ifelse(plotTF>0,1,0)==c(0,1,0,1)) ) Dim=c(2,1)
+    if( all(ifelse(plotTF>0,1,0)==c(1,1,0,0,0,0)) | all(ifelse(plotTF>0,1,0)==c(0,0,1,1,0,0)) ) Dim=c(1,2)
+    if( all(ifelse(plotTF>0,1,0)==c(1,0,1,0,0,0)) | all(ifelse(plotTF>0,1,0)==c(0,1,0,1,0,0)) ) Dim=c(2,1)
 
     # Conversion function
     if(plot_cor==TRUE){
@@ -83,14 +99,14 @@ Summarize_Covariance = function( Report, Data, ParHat, SD=NULL, category_order=1
     # Plot analytic
     ThorsonUtilities::save_fig( file=paste0(plotdir,figname,"--Analytic.png"), width=Dim[2]*4+1, height=Dim[1]*4, ... )
       par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
-      for(i in 1:4 ){      #
+      for(i in 1:6 ){      #
         if( i %in% which(plotTF>0) ){
-          Cov_cc = VAST:::calc_cov( L_z=ParHat[c('L_omega1_z','L_epsilon1_z','L_omega2_z','L_epsilon2_z')][[i]], n_f=Data$FieldConfig[i], n_c=Data$n_c )
+          Cov_cc = VAST:::calc_cov( L_z=ParHat[c('L_omega1_z','L_epsilon1_z','L_beta1_z','L_omega2_z','L_epsilon2_z','L_beta2_z')][[i]], n_f=as.vector(Data[["FieldConfig"]])[i], n_c=Data$n_c )
           plot_cov( Cov=convert(Cov_cc)[category_order,category_order], names=list(category_names[category_order],NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
-          if(i==1 | Dim[1]==1) mtext(side=3, text="Spatial", line=1.5, font=2)
-          if(i==2 | Dim[1]==1) mtext(side=3, text="Spatio-temporal", line=1.5, font=2)
-          if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text=ifelse(length(Data$ObsModel)==1||Data$ObsModel[2]==0,"Encounter probability","Component #1"), line=0.5, font=2)
-          if(i==4 | (Dim[2]==1&i==3)) mtext(side=4, text=ifelse(length(Data$ObsModel)==1||Data$ObsModel[2]==0,"Positive catch rate","Component #2"), line=0.5, font=2)
+          #if(i==1 | Dim[1]==1) mtext(side=3, text="Spatial", line=1.5, font=2)
+          #if(i==2 | Dim[1]==1) mtext(side=3, text="Spatio-temporal", line=1.5, font=2)
+          #if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text=ifelse(length(Data$ObsModel)==1||Data$ObsModel[2]==0,"Encounter probability","Component #1"), line=0.5, font=2)
+          #if(i==4 | (Dim[2]==1&i==3)) mtext(side=4, text=ifelse(length(Data$ObsModel)==1||Data$ObsModel[2]==0,"Positive catch rate","Component #2"), line=0.5, font=2)
         }
         #if( length(Return[[paste0( "Cov_", c("omega1", "epsilon1", "omega2", "epsilon2")[i])]])==0 ){
         #  Return[[paste0( "Cov_", c("omega1", "epsilon1", "omega2", "epsilon2")[i])]] = Cov_cc
@@ -99,21 +115,23 @@ Summarize_Covariance = function( Report, Data, ParHat, SD=NULL, category_order=1
       }
     dev.off()
 
-    # Plot sample
-    ThorsonUtilities::save_fig( file=paste0(plotdir,figname,"--Sample.png"), width=Dim[2]*4+1, height=Dim[1]*4, ... )
-      par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
-      for(i in which(plotTF>0) ){
-        if(i==1) Cov_cc = cov(Report$Omega1_sc)
-        if(i==2) Cov_cc = cov(apply(Report$Epsilon1_sct,MARGIN=2,FUN=as.vector))
-        if(i==3) Cov_cc = cov(Report$Omega2_sc)
-        if(i==4) Cov_cc = cov(apply(Report$Epsilon2_sct,MARGIN=2,FUN=as.vector))
-        plot_cov( Cov=convert(Cov_cc)[category_order,category_order], names=list(category_names[category_order],NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
-        if(i==1 | Dim[1]==1) mtext(side=3, text="Spatial", line=1.5, font=2)
-        if(i==2 | Dim[1]==1) mtext(side=3, text="Spatio-temporal", line=1.5, font=2)
-        if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text=ifelse(length(Data$ObsModel)==1||Data$ObsModel[2]==0,"Encounter probability","Component #1"), line=0.5, font=2)
-        if(i==4 | (Dim[2]==1&i==3)) mtext(side=4, text=ifelse(length(Data$ObsModel)==1||Data$ObsModel[2]==0,"Positive catch rate","Component #2"), line=0.5, font=2)
-      }
-    dev.off()
+#    # Plot sample
+#    ThorsonUtilities::save_fig( file=paste0(plotdir,figname,"--Sample.png"), width=Dim[2]*4+1, height=Dim[1]*4, ... )
+#      par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
+#      for(i in which(plotTF>0) ){
+#        if(i==1) Cov_cc = cov(Report$Omega1_sc)
+#        if(i==2) Cov_cc = cov(apply(Report$Epsilon1_sct,MARGIN=2,FUN=as.vector))
+#        if(i==3) Cov_cc =
+#        if(i==4) Cov_cc = cov(Report$Omega2_sc)
+#        if(i==5) Cov_cc = cov(apply(Report$Epsilon2_sct,MARGIN=2,FUN=as.vector))
+#        if(i==6)
+#        plot_cov( Cov=convert(Cov_cc)[category_order,category_order], names=list(category_names[category_order],NA)[[ifelse(i==1|i==3|Dim[2]==1,1,2)]], names2=list(1:nrow(Cov_cc),NA)[[ifelse(i==1|i==2,1,2)]], digits=1, font=2 )
+#        if(i==1 | Dim[1]==1) mtext(side=3, text="Spatial", line=1.5, font=2)
+#        if(i==2 | Dim[1]==1) mtext(side=3, text="Spatio-temporal", line=1.5, font=2)
+#        if(i==2 | (Dim[2]==1&i==1)) mtext(side=4, text=ifelse(length(Data$ObsModel)==1||Data$ObsModel[2]==0,"Encounter probability","Component #1"), line=0.5, font=2)
+#        if(i==4 | (Dim[2]==1&i==3)) mtext(side=4, text=ifelse(length(Data$ObsModel)==1||Data$ObsModel[2]==0,"Positive catch rate","Component #2"), line=0.5, font=2)
+#      }
+#    dev.off()
   }
 
   # Return

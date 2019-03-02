@@ -4,14 +4,13 @@
 \alias{calc_synchrony}
 \title{Calculate synchrony among species or locations}
 \usage{
-calc_synchrony(Report, Data, yearbounds_zz = matrix(c(1, Data$n_t), nrow = 1))
+calc_synchrony(Report, Data, yearbounds_zz = matrix(c(1, Data$n_t), nrow
+  = 1))
 }
 \arguments{
 \item{Report}{output report, e.g., from \code{Report <- obj$report()}}
 
 \item{Data}{tagged list of input data}
-
-\item{yearbounds_zz}{OPTIONAL, matrix with two columns, giving first and last years for defining one or more periods (rows) used to calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})}
 }
 \value{
 Tagged list containing measures of synchrony

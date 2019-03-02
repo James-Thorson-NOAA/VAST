@@ -13,8 +13,6 @@ Coherence(Report, Data, covhat = NULL, yearbounds_zz = matrix(c(1,
 \item{Data}{tagged list of input data}
 
 \item{covhat}{estimated covariance used for calculating coherence}
-
-\item{yearbounds_zz}{OPTIONAL, matrix with two columns, giving first and last years for defining one or more periods (rows) used to calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})}
 }
 \value{
 Tagged list containing measures of synchrony

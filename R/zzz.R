@@ -7,6 +7,9 @@
   packageStartupMessage("Loading package VAST, developed by James Thorson for the Northwest Fisheries Science Center")
   packageStartupMessage("For details and citation guidance, please see http://github.com/james-thorson/VAST/")
   packageStartupMessage("###########################################################################################")
+  if( getOption("repos")["CRAN"] == "@CRAN@" ){
+    options(repos = c("CRAN" = "http://cran.us.r-project.org"))
+  }
   if( !"INLA" %in% utils::installed.packages()[,1] ){
     packageStartupMessage("Installing package: INLA...")
     #utils::install.packages("INLA", repos="https://www.math.ntnu.no/inla/R/stable")
@@ -29,3 +32,26 @@
   #  devtools::install_github("kaskr/TMB_contrib_R/TMBhelper")
   #}
 }
+
+#' Copy of VAST::make_model
+#'
+#' Included for continuity when using old scripts
+#'
+#' Please use \code{?VAST::make_model} to see list of arguments and usage
+#' @export
+Build_TMB_Fn = function( ... ){
+  .Deprecated( new="VAST::make_model" )
+  VAST::make_model( ... )
+}
+
+#' Copy of VAST::make_data
+#'
+#' Included for continuity when using old scripts
+#'
+#' Please use \code{?VAST::make_data} to see list of arguments and usage
+#' @export
+Data_Fn = function( ... ){
+  .Deprecated( new="VAST::make_data" )
+  VAST::make_data( ... )
+}
+

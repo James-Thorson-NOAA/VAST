@@ -5,9 +5,9 @@
 \title{Plot factor-decomposition of covariance}
 \usage{
 Plot_factors(Report, ParHat, Data, SD, Year_Set = NULL,
-  category_names = NULL, RotationMethod = "PCA", mapdetails_list = NULL,
-  Dim_year = NULL, Dim_species = NULL, plotdir = paste0(getwd(), "/"),
-  land_color = "grey")
+  category_names = NULL, RotationMethod = "PCA",
+  mapdetails_list = NULL, Dim_year = NULL, Dim_species = NULL,
+  plotdir = paste0(getwd(), "/"), land_color = "grey")
 }
 \arguments{
 \item{Report}{output report, e.g., from \code{Report <- obj$report()}}

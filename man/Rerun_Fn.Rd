@@ -5,9 +5,9 @@
 \title{Explore counter-factual scenario}
 \usage{
 Rerun_Fn(parhat0, turnoff_pars, loc_x,
-  cov_to_turnoff = 1:dim(parhat0[["gamma2_ctp"]])[3], calculate_COG = TRUE,
-  figname = NULL, Map = "generate", MapDetails_List = NULL,
-  year_set = 1:ncol(parhat0[["beta1_ct"]]),
+  cov_to_turnoff = 1:dim(parhat0[["gamma2_ctp"]])[3],
+  calculate_COG = TRUE, figname = NULL, Map = "generate",
+  MapDetails_List = NULL, year_set = 1:ncol(parhat0[["beta1_ct"]]),
   c_set = 1:nrow(parhat0[["beta1_ct"]]), ...)
 }
 \arguments{
@@ -22,8 +22,6 @@ Rerun_Fn(parhat0, turnoff_pars, loc_x,
 \item{calculate_COG}{Boolean whether to calculate COG for each run}
 
 \item{figname}{name for figure to plot density in counter-factual scenario}
-
-\item{Map}{OPTIONAL, a tagged list of parameters to either mirror or turn off}
 
 \item{MapDetails_List}{output from \code{FishStatsUtils::MapDetails_Fn}}
 
