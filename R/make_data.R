@@ -279,36 +279,36 @@ function( b_i, a_i, c_iz, s_i, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
 
   if( any(ObsModel_ez[,2]==1) ){
     # Versions 1.6.0 through 2.2.0 used a previous interpretation of area-swept for Poisson-link model and are not consistent with Q-Q plotting
-    if( convert_version_name(Version) <= convert_version_name("VAST_v2_2_0") ){
+    if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v2_2_0") ){
       stop("Problem with Poisson-link model for VAST versions 1.6.0 through 2.2.0")
     }
     # Versions 1.0.0 through 1.5.0 don't have Poisson-link model
-    if( convert_version_name(Version) <= convert_version_name("VAST_v1_5_0") ){
+    if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v1_5_0") ){
       stop("Poisson-link model for VAST versions 1.0.0 through 1.5.0")
     }
     # Can't use multiple error distributions prior to version 3.0.0
-    if( convert_version_name(Version) <= convert_version_name("VAST_v2_8_0") ){
+    if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v2_8_0") ){
       if( length(unique(ObsModel_ez[,1]))>1 ) stop("Can't use multiple error distributions prior to version 3.0.0")
     }
   }
   if( any(FieldConfig_input == -2) ){
     # Versions 2.6.0 was the first to allow "IID" setting for FieldConfig_input elements
-    if( convert_version_name(Version) <= convert_version_name("VAST_v2_5_0") ){
+    if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v2_5_0") ){
       stop("Problem with 'IID' option for factors for VAST versions 1.0.0 through 2.6.0")
     }
   }
   if( ncol(c_iz)>1 ){
-    if( convert_version_name(Version) <= convert_version_name("VAST_v3_0_0") ){
+    if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v3_0_0") ){
       stop("Can't have observations assigned to more than one category prior to version 4.0.0")
     }
   }
   if( any(RhoConfig[1:2]==3) ){
-    if( convert_version_name(Version) <= convert_version_name("VAST_v4_1_0") ){
+    if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v4_1_0") ){
       stop("There was bug in specifying fixed intercepts among years for versions prior to V4.2.0")
     }
   }
   if( Options2use['SD_observation_density']==1 ){
-    if( convert_version_name(Version) <= convert_version_name("VAST_v4_1_0") ){
+    if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v4_1_0") ){
       stop("Calculating 'SD_observation_density' is not possible prior to V4.2.0")
     }
   }
