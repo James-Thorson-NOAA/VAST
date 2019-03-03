@@ -23,6 +23,7 @@
     devtools::install_github("james-thorson/FishStatsUtils", ref="development")
   }
   packageStartupMessage( "Loading package `FishStatsUtils`" )
+  library(FishStatsUtils)
 }
 
 #' Copy of VAST::make_model
