@@ -15,22 +15,14 @@
     #utils::install.packages("INLA", repos="https://www.math.ntnu.no/inla/R/stable")
     utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
   }
-  #if( !"SpatialDeltaGLMM"%in%utils::installed.packages()[,1] || utils::packageVersion("SpatialDeltaGLMM")<3.40 ){
-  #  packageStartupMessage("Installing package: SpatialDeltaGLMM...")
-  #  devtools::install_github("nwfsc-assess/geostatistical_delta-GLMM")
-  #}
-  #if( !"SpatialDFA"%in%utils::installed.packages()[,1] ){
-  #  packageStartupMessage("Installing package: SpatialDFA...")
-  #  devtools::install_github("james-thorson/spatial_DFA")
-  #}
-  #if( !"ThorsonUtilities"%in%utils::installed.packages()[,1] ){
-  #  packageStartupMessage("Installing package: ThorsonUtilities...")
-  #  devtools::install_github("james-thorson/utilities")
-  #}
-  #if( !"TMBhelper"%in%utils::installed.packages()[,1] ){
-  #  packageStartupMessage("Installing package: TMBhelper...")
-  #  devtools::install_github("kaskr/TMB_contrib_R/TMBhelper")
-  #}
+
+  # Load `FishStatsUtils` via .onAttach because importFrom wasn't working
+  # Also requries moving FishStatsUtils to SUGGESTS, so that it doesn't isntall main branch
+  if( utils::packageVersion("FishStatsUtils") < numeric_version("1.1.0") ){
+    packageStartupMessage("Updating package FishStatsUtils because previously using version < 1.1.0")
+    devtools::install_github("james-thorson/FishStatsUtils", ref="development")
+  }
+  packageStartupMessage( "Loading package `FishStatsUtils`" )
 }
 
 #' Copy of VAST::make_model

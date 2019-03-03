@@ -35,11 +35,11 @@ Imports:
     TMBhelper
 Depends:
     R (>= 3.1.0),
-    FishStatsUtils
 Suggests:
     testthat,
     knitr,
     rmarkdown,
+    FishStatsUtils,
     R.rsp
 Remotes:
     james-thorson/FishStatsUtils,
