@@ -320,6 +320,9 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   # Check for incompatibilities amongst versions
   ###################
 
+  if( FishStatsUtils::convert_version_name(Version) >= FishStatsUtils::convert_version_name("VAST_v8_0_0") ){
+    if( is.null(spatial_list) ) stop("Must provide `spatial_list` for Version >= 8.0.0")
+  }
   if( any(ObsModel_ez[,2]==1) ){
     # Versions 1.6.0 through 2.2.0 used a previous interpretation of area-swept for Poisson-link model and are not consistent with Q-Q plotting
     if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v2_2_0") ){

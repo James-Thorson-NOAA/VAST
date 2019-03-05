@@ -141,7 +141,7 @@ matrix<Type> covariation_by_category_nll( int n_f, int n_j, int n_c, matrix<Type
 
 template<class Type>                                                                                        //
 matrix<Type> convert_upper_cov_to_cor( matrix<Type> cov ){
-  int nrow = cov.row(0).size();
+  int nrow = cov.rows();
   for( int i=0; i<nrow; i++){
   for( int j=i+1; j<nrow; j++){
     cov(i,j) = cov(i,j) / pow(cov(i,i),0.5) / pow(cov(j,j),0.5);
@@ -613,7 +613,7 @@ Type objective_function<Type>::operator() ()
   Options_vec = Options_list.Options_vec;
   vector<int> Options( Options_list.Options.size() );
   Options = Options_list.Options;
-  matrix<int> yearbounds_zz( Options_list.yearbounds_zz.col(0).size(), 2 );
+  matrix<int> yearbounds_zz( Options_list.yearbounds_zz.rows(), 2 );
   yearbounds_zz = Options_list.yearbounds_zz;
   matrix<int> Expansion_cz( n_c, 2 );
   Expansion_cz = Options_list.Expansion_cz;
@@ -1226,7 +1226,8 @@ Type objective_function<Type>::operator() ()
     for( int zt=0; zt<t_iz.cols(); zt++ ){
       if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
       if( (t_iz(i,zt)>=0) & (t_iz(i,zt)<n_t) ){
-        eta1_izz(i,zc,zt) = (gamma1_ctp(c_iz(i,zc),t_iz(i,zt),p) + Xi1_izp(i,c_iz(i,zc),p)) * X_itp(i,t_iz(i,zt),p);
+        eta1_izz(i,zc,zt) += (gamma1_ctp(c_iz(i,zc),t_iz(i,zt),p) + Xi1_izp(i,zc,p)) * X_itp(i,t_iz(i,zt),p);
+        eta2_izz(i,zc,zt) += (gamma2_ctp(c_iz(i,zc),t_iz(i,zt),p) + Xi2_izp(i,zc,p)) * X_itp(i,t_iz(i,zt),p);
       }}
     }}}
   }
@@ -1240,7 +1241,7 @@ Type objective_function<Type>::operator() ()
   Type tmp_calc1;
   Type tmp_calc2;
   // Linear predictor (pre-link) for presence/absence component
-  matrix<Type> P1_iz(n_i,c_iz.row(0).size());
+  matrix<Type> P1_iz(n_i,c_iz.cols());
   // Response predictor (post-link)
   // ObsModel_ez(e,0) = 0:4 or 11:12: probability ("phi") that data is greater than zero
   // ObsModel_ez(e,0) = 5 (ZINB):  phi = 1-ZeroInflation_prob -> Pr[D=0] = NB(0|mu,var)*phi + (1-phi) -> Pr[D>0] = phi - NB(0|mu,var)*phi
@@ -1249,7 +1250,7 @@ Type objective_function<Type>::operator() ()
   vector<Type> log_R1_i(n_i);
   vector<Type> LogProb1_i(n_i);
   // Linear predictor (pre-link) for positive component
-  matrix<Type> P2_iz(n_i,c_iz.row(0).size());
+  matrix<Type> P2_iz(n_i,c_iz.cols());
   // Response predictor (post-link)
   // ObsModel_ez(e,0) = 0:3, 11:12:  expected value of data, given that data is greater than zero -> E[D] = mu*phi
   // ObsModel_ez(e,0) = 4 (ZANB):  expected value ("mu") of neg-bin PRIOR to truncating Pr[D=0] -> E[D] = mu/(1-NB(0|mu,var))*phi  ALSO  Pr[D] = NB(D|mu,var)/(1-NB(0|mu,var))*phi
@@ -1273,7 +1274,7 @@ Type objective_function<Type>::operator() ()
         if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
           P1_iz(i,zc) = Omega1_iz(i,zc) + zeta1_i(i) + eta1_vc(v_i(i),c_iz(i,zc));
           P2_iz(i,zc) = Omega2_iz(i,zc) + zeta2_i(i) + eta2_vc(v_i(i),c_iz(i,zc));
-          for( int zt=0; zt<t_iz.row(0).size(); zt++ ){
+          for( int zt=0; zt<t_iz.cols(); zt++ ){
             if( (t_iz(i,zt)>=0) & (t_iz(i,zt)<n_t) ){  // isNA doesn't seem to work for IMATRIX type
               P1_iz(i,zc) += beta1_tc(t_iz(i,zt),c_iz(i,zc)) + Epsilon1_izz(i,zc,zt)*exp(log_sigmaratio1_z(zt)) + eta1_izz(i,zc,zt) + iota_ct(c_iz(i,zc),t_iz(i,zt));
               P2_iz(i,zc) += beta2_tc(t_iz(i,zt),c_iz(i,zc)) + Epsilon2_izz(i,zc,zt)*exp(log_sigmaratio2_z(zt)) + eta2_izz(i,zc,zt);
@@ -1295,7 +1296,7 @@ Type objective_function<Type>::operator() ()
         // P2_i: Log-average weight;  R2_i:  Positive density prediction
         tmp_calc1 = 0;
         tmp_calc2 = 0;
-        for( int zc=0; zc<c_iz.row(0).size(); zc++ ){
+        for( int zc=0; zc<c_iz.cols(); zc++ ){
           if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
             tmp_calc1 += exp(P1_iz(i,zc));
             tmp_calc2 += exp(P1_iz(i,zc)) * exp(P2_iz(i,zc));
@@ -1513,7 +1514,7 @@ Type objective_function<Type>::operator() ()
   ////////////////////////
 
   // Number of output-years
-  int n_y = t_yz.col(0).size();
+  int n_y = t_yz.rows();
 
   // Predictive distribution -- ObsModel_ez(e,0)==4 isn't implemented (it had a bug previously)
   Type a_average = a_i.sum()/a_i.size();
@@ -1528,7 +1529,7 @@ Type objective_function<Type>::operator() ()
     // Calculate linear predictors
     P1_gcy(g,c,y) = Omega1_gc(g,c);
     P2_gcy(g,c,y) =  Omega2_gc(g,c);
-    for( int z=0; z<t_yz.row(0).size(); z++ ){
+    for( int z=0; z<t_yz.cols(); z++ ){
       if( (t_yz(y,z)>=0) & (t_yz(y,z)<n_t) ){    // isNA doesn't seem to work for IMATRIX type
         P1_gcy(g,c,y) += beta1_tc(t_yz(y,z),c) + Epsilon1_gct(g,c,t_yz(y,z))*exp(log_sigmaratio1_z(z)) + eta1_gct(g,c,t_yz(y,z)) + iota_ct(c,t_yz(y,z));
         P2_gcy(g,c,y) += beta2_tc(t_yz(y,z),c) + Epsilon2_gct(g,c,t_yz(y,z))*exp(log_sigmaratio2_z(z)) + eta2_gct(g,c,t_yz(y,z));
@@ -1697,7 +1698,7 @@ Type objective_function<Type>::operator() ()
 
   // Synchrony
   if( Options(6)==1 ){
-    int n_z = yearbounds_zz.col(0).size();
+    int n_z = yearbounds_zz.rows();
     // Density ("D") or area-expanded total biomass ("B") for each category (use B when summing across sites)
     matrix<Type> D_gy( n_g, n_y );
     matrix<Type> B_cy( n_c, n_y );
