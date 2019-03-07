@@ -35,14 +35,17 @@
 #'   \item{ObsModel_ez[e,2]=4}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the species and encounter probability=0 for any year where no samples encounter the species}
 #' }
 #' @param RhoConfig OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)
-#' @param VamConfig Options to estimate interactions, where first slot selects method for forming interaction matrix, the second indicates rank, the third indicates whether to incorporate effect of \code{F_ct}, and the fourth indicates whether to add a new "t=0" year (while incrementing all \code{t_i} inputs) which represents B0
+#' @param VamConfig Options to estimate interactions, containing three slots:
+#' \describe{
+#'   \item{VamConfig[0]}{selects method for forming interaction matrix; Turn off feature using 0, or I recommend using 2 by default}
+#'   \item{VamConfig[1]}{indicates the rank of the interaction matrix, indicating the number of community axes that have regulated dynamics}
+#'   \item{VamConfig[2]}{Indicates whether interactions occur before spatio-temporal variation (\code{VamConfig[2]=0}) or after \code{VamConfig[2]=1}}
+#' }
 #' @param spatial_list tagged list of locatoinal information from , i.e., from \code{FishStatsUtils::make_spatial_info}
-
 #' @param a_xl Area associated with each knot
 #' @param MeshList, tagged list representing location information for the SPDE mesh hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}
 #' @param GridList, tagged list representing location information for the 2D AR1 grid hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}
 #' @param Method, character (either "Mesh" or "Grid") specifying hyperdistribution (Default="Mesh")
-
 #' @param PredTF_i OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)
 #' @param X_xtp OPTIONAL, array of dynamic (varying among time intervals) density covariates
 #' @param Xconfig_zcp OPTIONAL, 3D array of settings for each dynamic density covariate, where the first dimension corresponds to 1st or 2nd linear predictors, second dimension corresponds to model category, and third dimension corresponds to each density covariate

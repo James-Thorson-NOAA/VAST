@@ -480,6 +480,7 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR(VamConfig);
   // Slot 0 -- method for calculating n_c-by-n_c interaction matrix, B_ff
   // Slot 1 -- rank of interaction matrix B_ff
+  // Slot 2 -- Timing of interactions;  0=Before correlated dynamics;  1=After correlated dynamics
   // Current implementation only makes sense when (1) intercepts are constant among years; (2) using a Poisson-link delta model; (3) n_f=n_c for spatio-temporal variation; (4) starts near equilibrium manifold
   DATA_IARRAY(Xconfig_zcp);
   // Row 0 -- Methods for 1st component for each covariate in X_xtp (0=Off;  1=Estimate;  2=Estimate with spatially varying coefficient)

@@ -4,18 +4,21 @@
 \alias{make_data}
 \title{Build data input for VAST model}
 \usage{
-make_data(b_i, a_i, c_iz, s_i, t_iz, e_i = c_iz[, 1], v_i = rep(0,
+make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
   length(b_i)), Version, FieldConfig, OverdispersionConfig = c(eta1 = 0,
   eta2 = 0), ObsModel_ez = c(PosDist = 1, Link = 0),
   RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
-  VamConfig = c(Method = 0, Rank = 0, Timing = 0), a_xl, MeshList,
-  GridList, Method, Aniso = TRUE, PredTF_i = rep(0, length(b_i)),
-  X_xj = NULL, X_xtp = NULL, Xconfig_zcp = NULL, Q_ik = NULL,
-  Network_sz = NULL, F_ct = NULL, F_init = 1, t_yz = NULL,
-  CheckForErrors = TRUE, yearbounds_zz = NULL,
-  Options = c(SD_site_logdensity = 0, Calculate_Range = 0,
-  Calculate_effective_area = 0, Calculate_Cov_SE = 0, Calculate_Synchrony =
-  0, Calculate_proportion = 0), Expansion_cz = NULL)
+  VamConfig = c(Method = 0, Rank = 0, Timing = 0), spatial_list = NULL,
+  a_xl = NULL, MeshList = spatial_list$MeshList,
+  GridList = spatial_list$GridList, Method = spatial_list$Method,
+  s_i = spatial_list$knot_i - 1, Aniso = TRUE, PredTF_i = rep(0,
+  length(b_i)), X_xj = NULL, X_xtp = NULL, Xconfig_zcp = NULL,
+  X_gtp = NULL, X_itp = NULL, Q_ik = NULL, Network_sz = NULL,
+  F_ct = NULL, F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
+  yearbounds_zz = NULL, Options = c(SD_site_logdensity = 0,
+  Calculate_Range = 0, Calculate_effective_area = 0, Calculate_Cov_SE = 0,
+  Calculate_Synchrony = 0, Calculate_proportion = 0),
+  Expansion_cz = NULL)
 }
 \arguments{
 \item{b_i}{Sampled biomass for each observation i}
@@ -23,8 +26,6 @@ make_data(b_i, a_i, c_iz, s_i, t_iz, e_i = c_iz[, 1], v_i = rep(0,
 \item{a_i}{Sampled area for each observation i}
 
 \item{c_iz}{Category (e.g., species, length-bin) for each observation i}
-
-\item{s_i}{Spatial knot (e.g., grid cell) for each observation i}
 
 \item{t_iz}{Matrix where each row species the time for each observation i (if t_iz is a vector, it is coerced to a matrix with one column; if it is a matrix with two or more columns, it specifies multiple times for each observation, e.g., both year and season)}
 
@@ -62,7 +63,14 @@ make_data(b_i, a_i, c_iz, s_i, t_iz, e_i = c_iz[, 1], v_i = rep(0,
 
 \item{RhoConfig}{OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)}
 
-\item{VamConfig}{Options to estimate interactions, where first slot selects method for forming interaction matrix, the second indicates rank, the third indicates whether to incorporate effect of \code{F_ct}, and the fourth indicates whether to add a new "t=0" year (while incrementing all \code{t_i} inputs) which represents B0}
+\item{VamConfig}{Options to estimate interactions, containing three slots:
+\describe{
+  \item{VamConfig[0]}{selects method for forming interaction matrix; Turn off feature using 0, or I recommend using 2 by default}
+  \item{VamConfig[1]}{indicates the rank of the interaction matrix, indicating the number of community axes that have regulated dynamics}
+  \item{VamConfig[2]}{Indicates whether interactions occur before spatio-temporal variation (\code{VamConfig[2]=0}) or after \code{VamConfig[2]=1}}
+}}
+
+\item{spatial_list}{tagged list of locatoinal information from , i.e., from \code{FishStatsUtils::make_spatial_info}}
 
 \item{a_xl}{Area associated with each knot}
 
@@ -71,6 +79,8 @@ make_data(b_i, a_i, c_iz, s_i, t_iz, e_i = c_iz[, 1], v_i = rep(0,
 \item{GridList, }{tagged list representing location information for the 2D AR1 grid hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}}
 
 \item{Method, }{character (either "Mesh" or "Grid") specifying hyperdistribution (Default="Mesh")}
+
+\item{s_i}{Spatial knot (e.g., grid cell) for each observation i}
 
 \item{Aniso}{OPTIONAL, whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)}
 
