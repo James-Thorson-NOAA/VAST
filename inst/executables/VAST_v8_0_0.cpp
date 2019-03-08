@@ -149,6 +149,25 @@ matrix<Type> convert_upper_cov_to_cor( matrix<Type> cov ){
   return cov;
 }
 
+// Input:  n_g, n_f, n_t, logical_flag, Ags_ij, Ags_x, Mat_sc
+template<class Type>                                                                                        //
+array<Type> project_knots( int n_g, int n_f, int n_t, int is_epsilon, array<Type> Mat_sft, matrix<int> A_ij, vector<Type> A_x ){
+  array<Type> Mat_gf(n_g, n_f);
+  array<Type> Mat_gft(n_g, n_f, n_t);
+  if( is_epsilon!=1 ) Mat_gf.setZero();
+  if( is_epsilon==1 ) Mat_gft.setZero();
+  for( int t=0; t<n_t; t++ ){
+  for( int Arow=0; Arow<A_ij.rows(); Arow++ ){
+  for( int f=0; f<n_f; f++ ){
+    int g = A_ij(Arow,0);
+    int s = A_ij(Arow,1);
+    if( is_epsilon!=1 ) Mat_gf(g,f) += A_x(Arow) * Mat_sft(s,f);
+    if( is_epsilon==1 ) Mat_gft(g,f,t) += A_x(Arow) * Mat_sft(s,f,t);
+  }}}
+  if( is_epsilon!=1 ){return Mat_gf;}else{return Mat_gft;}
+}
+
+
 // Input: L_omega1_z, Q1, Omegainput1_sf, n_f, n_s, n_c, FieldConfig(0,0)
 // Output: jnll_comp(0), Omega1_sc
 template<class Type>                                                                                        //
@@ -466,6 +485,7 @@ Type objective_function<Type>::operator() ()
     // Slot 9: Include normalization in GMRF PDF
     // Slot 10: Calculate Fratio as F_ct divided by F achieving 40% of B0
     // Slot 11: Calculate B0 and Bratio
+    // Slot 12: Calculate Omegainput1_gf, Omegainput2_gf, Epsiloninput1_gft, Epsiloninput1_gft
   // Options_list.yearbounds_zz
     // Two columns, and 1+ rows, specifying first and last t for each period used in calculating synchrony
   // Options_list.Expansion_cz
@@ -806,19 +826,7 @@ Type objective_function<Type>::operator() ()
       Omega1_iz(i,zc) += Ais_x(Arow) * Omega1_sc(s,c_iz(i,zc));
     }
   }}
-  //for( i=0; i<n_i; i++ ){
-  //for( int zc=0; zc<c_iz.cols(); zc++ ){
-  //  if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
-  //    Omega1_iz(i,c_iz(i,zc)) = A_is.row(i) * Omega1_sc.col(c_iz(i,zc)).matrix();
-  //  }
-  //}}
-  for( int Arow=0; Arow<Ags_ij.rows(); Arow++ ){
-  for( c=0; c<n_c; c++ ){
-    g = Ags_ij(Arow,0);
-    s = Ags_ij(Arow,1);
-    Omega1_gc(g,c) += Ags_x(Arow) * Omega1_sc(s,c);
-  }}
-  //Omega1_gc = A_gs * Omega1_sc.matrix();
+  Omega1_gc = project_knots( n_g, n_c, int(1), int(0), Omega1_sc, Ags_ij, Ags_x );
 
   // Epsilon1
   array<Type> Epsilonmean1_sf(n_s, n_f1 );
@@ -880,24 +888,7 @@ Type objective_function<Type>::operator() ()
       Epsilon1_izz(i,zc,zt) = Ais_x(Arow) * Epsilon1_sct(s,c_iz(i,zc),t_iz(i,zt));
     }}
   }}}
-  //for( i=0; i<n_i; i++ ){
-  //for( int zc=0; zc<c_iz.cols(); zc++ ){
-  //for( int zt=0; zt<t_iz.cols(); zt++ ){
-  //  if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
-  //  if( (t_iz(i,zt)>=0) & (t_iz(i,zt)<n_t) ){
-  //    Epsilon1_izz(i,c_iz(i,zc),t_iz(i,zt)) = A_is.row(i) * Epsilon1_sct.col(t_iz(i,zt)).col(c_iz(i,zc)).matrix();
-  //  }}
-  //}}}
-  for( int Arow=0; Arow<Ags_ij.rows(); Arow++ ){
-  for( c=0; c<n_c; c++ ){
-  for( t=0; t<n_t; t++ ){
-    g = Ags_ij(Arow,0);
-    s = Ags_ij(Arow,1);
-    Epsilon1_gct(g,c,t) += Ags_x(Arow) * Epsilon1_sct(s,c,t);
-  }}}
-  //for(t=0; t<n_t; t++){
-  //  Epsilon1_gct.col(t) = A_gs * Epsilon1_sct.col(t).matrix();
-  //}
+  Epsilon1_gct = project_knots( n_g, n_c, n_t, int(1), Epsilon1_sct, Ags_ij, Ags_x );
 
   // Xi1_scp
   array<Type> Ximean1_sc(n_s, 1);
@@ -930,23 +921,7 @@ Type objective_function<Type>::operator() ()
       Xi1_izp(i,zc,p) += Ais_x(Arow) * Xi1_scp(s,c_iz(i,zc),p);
     }
   }}}
-  //for( i=0; i<n_i; i++ ){
-  //for( int zc=0; zc<c_iz.cols(); zc++ ){
-  //for( p=0; p<n_p; p++ ){
-  //  if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
-  //    Xi1_izp(i,c_iz(i,zc),p) = A_is.row(i) * Xi1_scp.col(p).col(c_iz(i,zc)).matrix();
-  //  }
-  //}}}
-  for( int Arow=0; Arow<Ags_ij.rows(); Arow++ ){
-  for( c=0; c<n_c; c++ ){
-  for( p=0; p<n_p; p++ ){
-    g = Ags_ij(Arow,0);
-    s = Ags_ij(Arow,1);
-    Xi1_gcp(g,c,p) += Ags_x(Arow) * Xi1_scp(s,c,p);
-  }}}
-  //for(p=0; p<n_p; p++){
-  //  Xi1_gcp.col(p) = A_gs * Xi1_scp.col(p).matrix();
-  //}
+  Xi1_gcp = project_knots( n_g, n_c, n_p, int(1), Xi1_scp, Ags_ij, Ags_x );
 
   /////
   // 2nd component
@@ -972,19 +947,7 @@ Type objective_function<Type>::operator() ()
       Omega2_iz(i,zc) += Ais_x(Arow) * Omega2_sc(s,c_iz(i,zc));
     }
   }}
-  //for( i=0; i<n_i; i++ ){
-  //for( int zc=0; zc<c_iz.cols(); zc++ ){
-  //  if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
-  //    Omega2_iz(i,c_iz(i,zc)) = A_is.row(i) * Omega2_sc.col(c_iz(i,zc)).matrix();
-  //  }
-  //}}
-  for( int Arow=0; Arow<Ags_ij.rows(); Arow++ ){
-  for( c=0; c<n_c; c++ ){
-    g = Ags_ij(Arow,0);
-    s = Ags_ij(Arow,1);
-    Omega2_gc(g,c) += Ags_x(Arow) * Omega2_sc(s,c);
-  }}
-  //Omega2_gc = A_gs * Omega2_sc.matrix();
+  Omega2_gc = project_knots( n_g, n_c, int(1), int(0), Omega2_sc, Ags_ij, Ags_x );
 
   // Epsilon2
   array<Type> Epsilonmean2_sf(n_s, n_f2);
@@ -1046,24 +1009,7 @@ Type objective_function<Type>::operator() ()
       Epsilon2_izz(i,zc,zt) = Ais_x(Arow) * Epsilon2_sct(s,c_iz(i,zc),t_iz(i,zt));
     }}
   }}}
-  //for( i=0; i<n_i; i++ ){
-  //for( int zc=0; zc<c_iz.cols(); zc++ ){
-  //for( int zt=0; zt<t_iz.cols(); zt++ ){
-  //  if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
-  //  if( (t_iz(i,zt)>=0) & (t_iz(i,zt)<n_t) ){
-  //    Epsilon2_izz(i,c_iz(i,zc),t_iz(i,zt)) = A_is.row(i) * Epsilon2_sct.col(t_iz(i,zt)).col(c_iz(i,zc)).matrix();
-  //  }}
-  //}}}
-  for( int Arow=0; Arow<Ags_ij.rows(); Arow++ ){
-  for( c=0; c<n_c; c++ ){
-  for( t=0; t<n_t; t++ ){
-    g = Ags_ij(Arow,0);
-    s = Ags_ij(Arow,1);
-    Epsilon2_gct(g,c,t) += Ags_x(Arow) * Epsilon2_sct(s,c,t);
-  }}}
-  //for(t=0; t<n_t; t++){
-  //  Epsilon2_gct.col(t) = A_gs * Epsilon2_sct.col(t).matrix();
-  //}
+  Epsilon2_gct = project_knots( n_g, n_c, n_t, int(1), Epsilon2_sct, Ags_ij, Ags_x );
 
   // Xi2_scp
   array<Type> Ximean2_sc(n_s, 1);
@@ -1096,23 +1042,7 @@ Type objective_function<Type>::operator() ()
       Xi2_izp(i,zc,p) += Ais_x(Arow) * Xi2_scp(s,c_iz(i,zc),p);
     }
   }}}
-  //for( i=0; i<n_i; i++ ){
-  //for( int zc=0; zc<c_iz.cols(); zc++ ){
-  //for( p=0; p<n_p; p++ ){
-  //  if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
-  //    Xi2_izp(i,c_iz(i,zc),p) = A_is.row(i) * Xi2_scp.col(p).col(c_iz(i,zc)).matrix();
-  //  }
-  //}}}
-  for( int Arow=0; Arow<Ags_ij.rows(); Arow++ ){
-  for( c=0; c<n_c; c++ ){
-  for( p=0; p<n_p; p++ ){
-    g = Ags_ij(Arow,0);
-    s = Ags_ij(Arow,1);
-    Xi2_gcp(g,c,p) += Ags_x(Arow) * Xi2_scp(s,c,p);
-  }}}
-  //for(p=0; p<n_p; p++){
-  //  Xi2_gcp.col(p) = A_gs * Xi2_scp.col(p).matrix();
-  //}
+  Xi2_gcp = project_knots( n_g, n_c, n_p, int(1), Xi2_scp, Ags_ij, Ags_x );
 
   // Normalization of GMRFs to normalize during outer-optimization step in R
   Type jnll_GMRF = jnll_comp(0) + jnll_comp(1) + jnll_comp(2) + jnll_comp(3);
@@ -2010,6 +1940,22 @@ Type objective_function<Type>::operator() ()
     D_i = R1_i * R2_i;
     ADREPORT( D_i );
   }
+  // Calculate value of vactors at extrapolation-grid cells (e.g., for use when visualizing estimated or rotated factor estimates)
+  if( Options(12)==1 ){
+    array<Type> Omegainput1_gf( n_g, Omegainput1_sf.cols() );
+    array<Type> Epsiloninput1_gft( n_g, Epsiloninput1_sft.col(0).cols(), n_t );
+    array<Type> Omegainput2_gf( n_g, Omegainput2_sf.cols() );
+    array<Type> Epsiloninput2_gft( n_g, Epsiloninput2_sft.col(0).cols(), n_t );
+    Omegainput1_gf = project_knots( n_g, Omegainput1_sf.cols(), int(1), int(0), Omegainput1_sf, Ags_ij, Ags_x );
+    Epsiloninput1_gft = project_knots( n_g, Epsiloninput1_sft.col(0).cols(), n_t, int(1), Epsiloninput1_sft, Ags_ij, Ags_x );
+    Omegainput2_gf = project_knots( n_g, Omegainput2_sf.cols(), int(1), int(0), Omegainput2_sf, Ags_ij, Ags_x );
+    Epsiloninput2_gft = project_knots( n_g, Epsiloninput2_sft.col(0).cols(), n_t, int(1), Epsiloninput2_sft, Ags_ij, Ags_x );
+    REPORT( Omegainput1_gf );
+    REPORT( Epsiloninput1_gft );
+    REPORT( Omegainput2_gf );
+    REPORT( Epsiloninput2_gft );
+  }
+
 
   return jnll;
 }

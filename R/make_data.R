@@ -75,13 +75,13 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   X_xj=NULL, X_xtp=NULL, Xconfig_zcp=NULL, X_gtp=NULL, X_itp=NULL,
   Q_ik=NULL, Network_sz=NULL, F_ct=NULL, F_init=1,
   t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
-  Options=c('SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_proportion'=0),
+  Options=c('SD_site_logdensity'=FALSE,'Calculate_Range'=FALSE,'Calculate_effective_area'=FALSE,'Calculate_Cov_SE'=FALSE),
   Expansion_cz=NULL ){
 
   # Specify default values for `Options`
-  Options2use = c('SD_site_density'=0, 'SD_site_logdensity'=0, 'Calculate_Range'=0, 'SD_observation_density'=0, 'Calculate_effective_area'=0,
-    'Calculate_Cov_SE'=0, 'Calculate_Synchrony'=0, 'Calculate_Coherence'=0, 'Calculate_proportion'=0, 'normalize_GMRF_in_CPP'=TRUE,
-    'Calculate_Fratio'=0, 'Estimate_B0'=0 )
+  Options2use = c('SD_site_density'=FALSE, 'SD_site_logdensity'=FALSE, 'Calculate_Range'=FALSE, 'SD_observation_density'=FALSE, 'Calculate_effective_area'=FALSE,
+    'Calculate_Cov_SE'=FALSE, 'Calculate_Synchrony'=FALSE, 'Calculate_Coherence'=FALSE, 'Calculate_proportion'=FALSE, 'normalize_GMRF_in_CPP'=TRUE,
+    'Calculate_Fratio'=FALSE, 'Estimate_B0'=FALSE, 'Project_factors'=FALSE )
 
   # Replace defaults for `Options` with provided values (if any)
   for( i in 1:length(Options)){
