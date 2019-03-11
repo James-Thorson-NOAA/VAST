@@ -1171,6 +1171,7 @@ Type objective_function<Type>::operator() ()
   vector<Type> var_i(n_i);
   Type tmp_calc1;
   Type tmp_calc2;
+  Type log_tmp_calc2;
   // Linear predictor (pre-link) for presence/absence component
   matrix<Type> P1_iz(n_i,c_iz.cols());
   // Response predictor (post-link)
@@ -1187,6 +1188,7 @@ Type objective_function<Type>::operator() ()
   // ObsModel_ez(e,0) = 4 (ZANB):  expected value ("mu") of neg-bin PRIOR to truncating Pr[D=0] -> E[D] = mu/(1-NB(0|mu,var))*phi  ALSO  Pr[D] = NB(D|mu,var)/(1-NB(0|mu,var))*phi
   // ObsModel_ez(e,0) = 5 (ZINB):  expected value of data for non-zero-inflation component -> E[D] = mu*phi
   vector<Type> R2_i(n_i);
+  vector<Type> log_R2_i(n_i);
   vector<Type> LogProb2_i(n_i);
   vector<Type> maxJ_i(n_i);
   vector<Type> diag_z(4);
@@ -1220,6 +1222,10 @@ Type objective_function<Type>::operator() ()
         // P2_i: Log-Positive density prediction;  R2_i:  Positive density prediction
         R1_i(i) = invlogit( P1_iz(i,0) );
         R2_i(i) = a_i(i) * exp( P2_iz(i,0) );
+        // Calulate in logspace to prevent numerical over/under-flow
+        log_R1_i(i) = log(Type(1.0)) - logspace_add( log(Type(1.0)), -1.0*P1_iz(i,0) );
+        log_one_minus_R1_i(i) = log(Type(1.0)) - logspace_add( log(Type(1.0)), P1_iz(i,0) );
+        log_R2_i(i) = log(a_i(i)) + P2_iz(i,0);
       }
       if( (ObsModel_ez(c_iz(i,0),1)==1) | (ObsModel_ez(c_iz(i,0),1)==4) ){
         // Poisson-process link, where area-swept affects numbers density exp(P1_i(i))
@@ -1227,17 +1233,21 @@ Type objective_function<Type>::operator() ()
         // P2_i: Log-average weight;  R2_i:  Positive density prediction
         tmp_calc1 = 0;
         tmp_calc2 = 0;
+        log_tmp_calc2 = 0;
         for( int zc=0; zc<c_iz.cols(); zc++ ){
           if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
             tmp_calc1 += exp(P1_iz(i,zc));
             tmp_calc2 += exp(P1_iz(i,zc)) * exp(P2_iz(i,zc));
+            if( zc==0 ) log_tmp_calc2 = P1_iz(i,zc) + P2_iz(i,zc);
+            if( zc>=1 ) log_tmp_calc2 = logspace_add( log_tmp_calc2, P1_iz(i,zc) + P2_iz(i,zc) );
           }
         }
         R1_i(i) = Type(1.0) - exp( -1*a_i(i)*tmp_calc1 );
         R2_i(i) = a_i(i) * tmp_calc2 / R1_i(i);
         // Calulate in logspace to prevent numerical over/under-flow
-        log_one_minus_R1_i(i) = -1*a_i(i)*tmp_calc1;
         log_R1_i(i) = logspace_sub( log(Type(1.0)), -1*a_i(i)*tmp_calc1 );
+        log_one_minus_R1_i(i) = -1*a_i(i)*tmp_calc1;
+        log_R2_i(i) = log(a_i(i)) + log_tmp_calc2 - log_R1_i(i);
       }
       if( ObsModel_ez(c_iz(i,0),1)==2 ){
         // Tweedie link, where area-swept affects numbers density exp(P1_i(i))
@@ -1245,11 +1255,14 @@ Type objective_function<Type>::operator() ()
         // P2_i: Log-average weight;  R2_i:  Expected average weight
         R1_i(i) = a_i(i) * exp( P1_iz(i,0) );
         R2_i(i) = exp( P2_iz(i,0) );
+        // Calulate in logspace to prevent numerical over/under-flow
+        log_R1_i(i) = log(a_i(i)) + P1_iz(i,0);
+        log_R2_i(i) = P2_iz(i,0);
       }
       // Likelihood for delta-models with continuous positive support
       if( (ObsModel_ez(e_i(i),0)==0) | (ObsModel_ez(e_i(i),0)==1) | (ObsModel_ez(e_i(i),0)==2) ){
         // Presence-absence likelihood
-        if( ObsModel_ez(e_i(i),1)==1 ){
+        if( (ObsModel_ez(e_i(i),1)==0) | (ObsModel_ez(e_i(i),1)==1) | (ObsModel_ez(e_i(i),1)==3) | (ObsModel_ez(e_i(i),1)==4) ){
           if( b_i(i) > 0 ){
             LogProb1_i(i) = log_R1_i(i);
           }else{
@@ -1276,10 +1289,10 @@ Type objective_function<Type>::operator() ()
             }
           }
           if(ObsModel_ez(e_i(i),0)==1){
-            LogProb2_i(i) = dlnorm(b_i(i), log(R2_i(i))-pow(SigmaM(e_i(i),0),2)/2, SigmaM(e_i(i),0), true); // log-space
+            LogProb2_i(i) = dlnorm(b_i(i), log_R2_i(i)-pow(SigmaM(e_i(i),0),2)/2, SigmaM(e_i(i),0), true); // log-space
             // Simulate new values when using obj.simulate()
             SIMULATE{
-              b_i(i) = exp(rnorm( log(R2_i(i))-pow(SigmaM(e_i(i),0),2)/2, SigmaM(e_i(i),0) ));
+              b_i(i) = exp(rnorm( log_R2_i(i)-pow(SigmaM(e_i(i),0),2)/2, SigmaM(e_i(i),0) ));
             }
           }
           if(ObsModel_ez(e_i(i),0)==2){
