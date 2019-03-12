@@ -15,6 +15,7 @@
 #' @export
 Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names=NULL, RotationMethod="PCA",
   mapdetails_list=NULL, Dim_year=NULL, Dim_species=NULL, plotdir=paste0(getwd(),"/"), land_color="grey" ){
+
   # Extract Options and Options_vec (depends upon version)
   if( all(c("Options","Options_vec") %in% names(TmbData)) ){
     Options_vec = TmbData$Options_vec
@@ -24,6 +25,8 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
     Options_vec = TmbData$Options_list$Options_vec
     Options = TmbData$Options_list$Options
   }
+
+
 
   # Adds intercept defaults to FieldConfig if missing
   if( is.vector(Data[["FieldConfig"]]) && length(Data[["FieldConfig"]])==4 ){
@@ -54,18 +57,18 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
   #Cov_List = Summarize_Covariance( Report=Report, ParHat=ParHat, Data=Data, SD=SD, category_names=category_names, figname=NULL )
 
   # Extract loadings matrices (more numerically stable than extracting covariances, and then re-creating Cholesky)
-  Psiprime_list = Lprime_list = L_list = vector("list", length=4)    # Add names at end so that NULL doesn't interfere
+  Psi2prime_list = Psiprime_list = Lprime_list = L_list = vector("list", length=6)    # Add names at end so that NULL doesn't interfere
 
   # Loop through
   for(i in 1:6){
     # Variable names
     Par_name = c("Omega1", "Epsilon1", "Beta1", "Omega2", "Epsilon2", "Beta2")[i]
-    if(Par_name == "Omega1") Var_name = "Omegainput1_sf"
-    if(Par_name == "Epsilon1") Var_name = "Epsiloninput1_sft"
-    if(Par_name == "Beta1") Var_name = "beta1_ft"
-    if(Par_name == "Omega2") Var_name = "Omegainput2_sf"
-    if(Par_name == "Epsilon2") Var_name = "Epsiloninput2_sft"
-    if(Par_name == "Beta2") Var_name = "beta2_ft"
+    if(Par_name == "Omega1"){ Var_name = "Omegainput1_sf"; Var2_name = "Omegainput1_gf" }
+    if(Par_name == "Epsilon1"){ Var_name = "Epsiloninput1_sft"; Var2_name = "Epsiloninput1_gft" }
+    if(Par_name == "Beta1"){ Var_name = "beta1_ft"; Var2_name = "missing" }
+    if(Par_name == "Omega2"){ Var_name = "Omegainput2_sf"; Var2_name = "Omegainput2_gf" }
+    if(Par_name == "Epsilon2"){ Var_name = "Epsiloninput2_sft"; Var2_name = "Epsiloninput2_gft" }
+    if(Par_name == "Beta2"){ Var_name = "beta2_ft"; Var2_name = "missing" }
 
     # Continue if component is included
     if( as.vector(Data[["FieldConfig"]])[i] > 0 ){
@@ -75,6 +78,7 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
 
       # Get covariance # SpatialDFA::
       Psi_sjt = ParHat[[Var_name]]
+      Psi_gjt = Report[[Var2_name]]
       ## the betas are transposed compared to others so fix that here
       if(Var_name %in% c("beta1_ft", "beta2_ft")){
         Psi_sjt <- t(Psi_sjt)
@@ -83,7 +87,7 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
         stop(paste("Covariance is empty for parameter", Var_name))
       }
       tau = NULL
-      logkappa = unlist(ParHat[c('logkappa1','logkappa2')])[c(1,1,1,2,2,3)[i]]
+      logkappa = unlist(ParHat[c('logkappa1','logkappa2')])[c(1,1,1,2,2,2)[i]]
       if(Options_vec[8]==0) tau = 1 / (exp(logkappa) * sqrt(4*pi));
       if(Options_vec[8]==1) tau = 1 / sqrt(1-exp(logkappa*2));
       if( is.null(tau)) stop("Check 'Options_vec[8]' for allowable entries")
@@ -91,6 +95,12 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
       Lprime_list[[i]] = Var_rot$L_pj_rot
       rownames(Lprime_list[[i]]) = category_names
       Psiprime_list[[i]] = Var_rot$Psi_rot
+
+      # Extract projected factors is available
+      if( !is.null(Psi_gjt) ){
+        Var2_rot = FishStatsUtils::Rotate_Fn( L_pj=L_list[[i]], Psi=Psi_gjt/tau, RotationMethod=RotationMethod, testcutoff=1e-4 )
+        Psi2prime_list[[i]] = Var2_rot$Psi_rot
+      }
 
       # Plot loadings
       Dim_factor = Dim( as.vector(Data[["FieldConfig"]])[i] )
@@ -114,12 +124,12 @@ Plot_factors = function( Report, ParHat, Data, SD, Year_Set=NULL, category_names
         }
       }
     }else{
-      Psiprime_list[[i]] = Lprime_list[[i]] = L_list[[i]] = "Element not estimated, and therefore empty"
+      Psi2prime_list[[i]] = Psiprime_list[[i]] = Lprime_list[[i]] = L_list[[i]] = "Element not estimated, and therefore empty"
     }
   }
 
   # Return stuff invisibly
-  names(Psiprime_list) = names(Lprime_list) = names(L_list) = c("Omega1", "Epsilon1", "Beta1", "Omega2", "Epsilon2", "Beta2")
-  Return = list("Loadings"=L_list, "Rotated_loadings"=Lprime_list, "Rotated_factors"=Psiprime_list)
+  names(Psi2prime_list) = names(Psiprime_list) = names(Lprime_list) = names(L_list) = c("Omega1", "Epsilon1", "Beta1", "Omega2", "Epsilon2", "Beta2")
+  Return = list("Loadings"=L_list, "Rotated_loadings"=Lprime_list, "Rotated_factors"=Psiprime_list, "Rotated_projected_factors"=Psi2prime_list)
   return( invisible(Return) )
 }
