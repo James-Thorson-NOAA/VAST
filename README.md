@@ -56,8 +56,8 @@ Note: at the moment, TMB and INLA can be installed using the commands
 
     # devtools command to get TMB from GitHub
     install_github("kaskr/adcomp/TMB") 
-    # source script to get INLA from the web
-    source("http://www.math.ntnu.no/inla/givemeINLA.R")  
+    # Install INLA using currently recommended method
+    utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
     
 Next, please install the VAST package from this GitHub repository using a function in the "devtools" package:
 
