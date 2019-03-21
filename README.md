@@ -54,8 +54,8 @@ Second, please install the following:
 
 Note: at the moment, TMB and INLA can be installed using the commands 
 
-    # devtools command to get TMB from GitHub
-    install_github("kaskr/adcomp/TMB") 
+    # Install TMB from CRAN
+    install.packages("TMB") 
     # Install INLA using currently recommended method
     install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
     
