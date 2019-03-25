@@ -15,10 +15,9 @@ make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
   length(b_i)), X_xj = NULL, X_xtp = NULL, Xconfig_zcp = NULL,
   X_gtp = NULL, X_itp = NULL, Q_ik = NULL, Network_sz = NULL,
   F_ct = NULL, F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
-  yearbounds_zz = NULL, Options = c(SD_site_logdensity = 0,
-  Calculate_Range = 0, Calculate_effective_area = 0, Calculate_Cov_SE = 0,
-  Calculate_Synchrony = 0, Calculate_proportion = 0),
-  Expansion_cz = NULL)
+  yearbounds_zz = NULL, Options = c(SD_site_logdensity = FALSE,
+  Calculate_Range = FALSE, Calculate_effective_area = FALSE,
+  Calculate_Cov_SE = FALSE), Expansion_cz = NULL)
 }
 \arguments{
 \item{b_i}{Sampled biomass for each observation i}
