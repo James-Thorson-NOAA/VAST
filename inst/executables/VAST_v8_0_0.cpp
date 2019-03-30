@@ -885,7 +885,7 @@ Type objective_function<Type>::operator() ()
     s = Ais_ij(Arow,1);
     if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
     if( (t_iz(i,zt)>=0) & (t_iz(i,zt)<n_t) ){
-      Epsilon1_izz(i,zc,zt) = Ais_x(Arow) * Epsilon1_sct(s,c_iz(i,zc),t_iz(i,zt));
+      Epsilon1_izz(i,zc,zt) += Ais_x(Arow) * Epsilon1_sct(s,c_iz(i,zc),t_iz(i,zt));
     }}
   }}}
   Epsilon1_gct = project_knots( n_g, n_c, n_t, int(1), Epsilon1_sct, Ags_ij, Ags_x );
@@ -1006,7 +1006,7 @@ Type objective_function<Type>::operator() ()
     s = Ais_ij(Arow,1);
     if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
     if( (t_iz(i,zt)>=0) & (t_iz(i,zt)<n_t) ){
-      Epsilon2_izz(i,zc,zt) = Ais_x(Arow) * Epsilon2_sct(s,c_iz(i,zc),t_iz(i,zt));
+      Epsilon2_izz(i,zc,zt) += Ais_x(Arow) * Epsilon2_sct(s,c_iz(i,zc),t_iz(i,zt));
     }}
   }}}
   Epsilon2_gct = project_knots( n_g, n_c, n_t, int(1), Epsilon2_sct, Ags_ij, Ags_x );
