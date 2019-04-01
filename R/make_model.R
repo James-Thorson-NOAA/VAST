@@ -172,6 +172,8 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
   Bounds = boundsifpresent_fn( par=Obj$par, name="lambda2", lower=-20, upper=20, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="Beta_rho1", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="Beta_rho2", lower=-0.99, upper=0.99, bounds=Bounds)
+  Bounds = boundsifpresent_fn( par=Obj$par, name="Beta_rho1_f", lower=-0.99, upper=0.99, bounds=Bounds)
+  Bounds = boundsifpresent_fn( par=Obj$par, name="Beta_rho2_f", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="Epsilon_rho1", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="Epsilon_rho2", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="Epsilon_rho1_f", lower=-0.99, upper=0.99, bounds=Bounds)
