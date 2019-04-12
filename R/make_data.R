@@ -34,7 +34,7 @@
 #'   \item{ObsModel_ez[e,2]=3}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
 #'   \item{ObsModel_ez[e,2]=4}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the species and encounter probability=0 for any year where no samples encounter the species}
 #' }
-#' @param RhoConfig OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)
+#' @param RhoConfig vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process);  If missing, assumed to be zero for each element
 #' @param VamConfig Options to estimate interactions, containing three slots:
 #' \describe{
 #'   \item{VamConfig[0]}{selects method for forming interaction matrix; Turn off feature using 0, or I recommend using 2 by default}
@@ -47,7 +47,7 @@
 #' @param GridList, tagged list representing location information for the 2D AR1 grid hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}
 #' @param Method, character (either "Mesh" or "Grid") specifying hyperdistribution (Default="Mesh")
 #' @param PredTF_i OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)
-#' @param X_xtp OPTIONAL, array of dynamic (varying among time intervals) density covariates
+#' @param X_xtp array of dynamic (varying among time intervals) density covariates; if missing, assumed to not include covariates
 #' @param Xconfig_zcp OPTIONAL, 3D array of settings for each dynamic density covariate, where the first dimension corresponds to 1st or 2nd linear predictors, second dimension corresponds to model category, and third dimension corresponds to each density covariate
 #' \describe{
 #'   \item{Xconfig_zcp[z,c,p]=0}{\code{X_xtp[,,p]} has no effect on linear predictor z for category c}
@@ -55,13 +55,13 @@
 #'   \item{Xconfig_zcp[z,c,p]=2}{\code{X_xtp[,,p]} has a spatially varying, zero-centered linear effect on linear predictor z for category c}
 #'   \item{Xconfig_zcp[z,c,p]=3}{\code{X_xtp[,,p]} has a spatially varying linear effect on linear predictor z for category c}
 #' }
-#' @param Q_ik OPTIONAL, matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i
-#' @param Aniso OPTIONAL, whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)
-#' @param F_ct OPTIONAL, matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)
-#' @param t_yz OPTIONAL, matrix specifying combination of levels of \code{t_iz} to use when calculating different indices of abundance or range shifts
-#' @param Options OPTIONAL, a vector of form c('SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_proportion'=0), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied
-#' @param yearbounds_zz OPTIONAL, matrix with two columns, giving first and last years for defining one or more periods (rows) used to calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})
-#' @param CheckForErrors OPTIONAL, whether to check for errors in input (NOTE: when CheckForErrors=TRUE, the function will throw an error if it detects a problem with inputs.  However, failing to throw an error is no guaruntee that the inputs are all correct)
+#' @param Q_ik matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i
+#' @param Aniso whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)
+#' @param F_ct matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)
+#' @param t_yz matrix specifying combination of levels of \code{t_iz} to use when calculating different indices of abundance or range shifts
+#' @param Options a vector of form c('SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_proportion'=0), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied
+#' @param yearbounds_zz matrix with two columns, giving first and last years for defining one or more periods (rows) used to calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})
+#' @param CheckForErrors whether to check for errors in input (NOTE: when CheckForErrors=TRUE, the function will throw an error if it detects a problem with inputs.  However, failing to throw an error is no guaruntee that the inputs are all correct)
 
 #' @return Tagged list containing inputs to function \code{VAST::Build_TMB_Fn()}
 

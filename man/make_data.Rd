@@ -60,7 +60,7 @@ make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
   \item{ObsModel_ez[e,2]=4}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the species and encounter probability=0 for any year where no samples encounter the species}
 }}
 
-\item{RhoConfig}{OPTIONAL, vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process)}
+\item{RhoConfig}{vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process);  If missing, assumed to be zero for each element}
 
 \item{VamConfig}{Options to estimate interactions, containing three slots:
 \describe{
@@ -81,11 +81,11 @@ make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
 
 \item{s_i}{Spatial knot (e.g., grid cell) for each observation i}
 
-\item{Aniso}{OPTIONAL, whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)}
+\item{Aniso}{whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)}
 
 \item{PredTF_i}{OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)}
 
-\item{X_xtp}{OPTIONAL, array of dynamic (varying among time intervals) density covariates}
+\item{X_xtp}{array of dynamic (varying among time intervals) density covariates; if missing, assumed to not include covariates}
 
 \item{Xconfig_zcp}{OPTIONAL, 3D array of settings for each dynamic density covariate, where the first dimension corresponds to 1st or 2nd linear predictors, second dimension corresponds to model category, and third dimension corresponds to each density covariate
 \describe{
@@ -95,17 +95,17 @@ make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
   \item{Xconfig_zcp[z,c,p]=3}{\code{X_xtp[,,p]} has a spatially varying linear effect on linear predictor z for category c}
 }}
 
-\item{Q_ik}{OPTIONAL, matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i}
+\item{Q_ik}{matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i}
 
-\item{F_ct}{OPTIONAL, matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)}
+\item{F_ct}{matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)}
 
-\item{t_yz}{OPTIONAL, matrix specifying combination of levels of \code{t_iz} to use when calculating different indices of abundance or range shifts}
+\item{t_yz}{matrix specifying combination of levels of \code{t_iz} to use when calculating different indices of abundance or range shifts}
 
-\item{CheckForErrors}{OPTIONAL, whether to check for errors in input (NOTE: when CheckForErrors=TRUE, the function will throw an error if it detects a problem with inputs.  However, failing to throw an error is no guaruntee that the inputs are all correct)}
+\item{CheckForErrors}{whether to check for errors in input (NOTE: when CheckForErrors=TRUE, the function will throw an error if it detects a problem with inputs.  However, failing to throw an error is no guaruntee that the inputs are all correct)}
 
-\item{yearbounds_zz}{OPTIONAL, matrix with two columns, giving first and last years for defining one or more periods (rows) used to calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})}
+\item{yearbounds_zz}{matrix with two columns, giving first and last years for defining one or more periods (rows) used to calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})}
 
-\item{Options}{OPTIONAL, a vector of form c('SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_proportion'=0), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied}
+\item{Options}{a vector of form c('SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_proportion'=0), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied}
 }
 \value{
 Tagged list containing inputs to function \code{VAST::Build_TMB_Fn()}
