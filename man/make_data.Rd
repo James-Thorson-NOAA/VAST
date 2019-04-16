@@ -5,19 +5,20 @@
 \title{Build data input for VAST model}
 \usage{
 make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
-  length(b_i)), Version, FieldConfig, OverdispersionConfig = c(eta1 = 0,
-  eta2 = 0), ObsModel_ez = c(PosDist = 1, Link = 0),
-  RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
-  VamConfig = c(Method = 0, Rank = 0, Timing = 0), spatial_list = NULL,
-  a_xl = NULL, MeshList = spatial_list$MeshList,
-  GridList = spatial_list$GridList, Method = spatial_list$Method,
-  s_i = spatial_list$knot_i - 1, Aniso = TRUE, PredTF_i = rep(0,
-  length(b_i)), X_xj = NULL, X_xtp = NULL, Xconfig_zcp = NULL,
-  X_gtp = NULL, X_itp = NULL, Q_ik = NULL, Network_sz = NULL,
-  F_ct = NULL, F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
-  yearbounds_zz = NULL, Options = c(SD_site_logdensity = FALSE,
-  Calculate_Range = FALSE, Calculate_effective_area = FALSE,
-  Calculate_Cov_SE = FALSE), Expansion_cz = NULL)
+  length(b_i)), FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 =
+  0), ObsModel_ez = c(PosDist = 1, Link = 0), RhoConfig = c(Beta1 = 0,
+  Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0), VamConfig = c(Method = 0, Rank
+  = 0, Timing = 0), spatial_list = NULL, a_xl = NULL,
+  MeshList = spatial_list$MeshList, GridList = spatial_list$GridList,
+  Method = spatial_list$Method, s_i = spatial_list$knot_i - 1,
+  Aniso = TRUE, PredTF_i = rep(0, length(b_i)), X_xj = NULL,
+  X_xtp = NULL, Xconfig_zcp = NULL, X_gtp = NULL, X_itp = NULL,
+  Q_ik = NULL, Network_sz = NULL, F_ct = NULL, F_init = 1,
+  t_yz = NULL, CheckForErrors = TRUE, yearbounds_zz = NULL,
+  Options = c(SD_site_logdensity = FALSE, Calculate_Range = FALSE,
+  Calculate_effective_area = FALSE, Calculate_Cov_SE = FALSE),
+  Expansion_cz = NULL,
+  Version = FishStatsUtils::get_latest_version(package = "VAST"))
 }
 \arguments{
 \item{b_i}{Sampled biomass for each observation i}
@@ -31,8 +32,6 @@ make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
 \item{e_i}{Error distribution for each observation i (by default \code{e_i=c_i})}
 
 \item{v_i}{OPTIONAL, sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i}
-
-\item{Version}{a version number (see example for current default).}
 
 \item{FieldConfig}{a vector of format c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10), where Omega refers to spatial variation, Epsilon refers to spatio-temporal variation, Omega1 refers to variation in encounter probability, and Omega2 refers to variation in positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance}
 
@@ -106,6 +105,8 @@ make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
 \item{yearbounds_zz}{matrix with two columns, giving first and last years for defining one or more periods (rows) used to calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})}
 
 \item{Options}{a vector of form c('SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_proportion'=0), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied}
+
+\item{Version}{a version number;  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}}
 }
 \value{
 Tagged list containing inputs to function \code{VAST::Build_TMB_Fn()}

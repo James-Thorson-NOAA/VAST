@@ -33,6 +33,8 @@ make_model(TmbData, Version, RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1
 \item{TmbDir}{OPTIONAL, a directory where the CPP file for the VAST model can be found locally}
 
 \item{RunDir}{OPTIONAL, a directory where the CPP file is copied, copiled, and run (must have write privileges or else the function will crash)}
+
+\item{build_model}{Boolean indicating whether to build the model, \code{build_model=TRUE}, or simply build the inputs, \code{build_model=FALSE}}
 }
 \value{
 Tagged list containing objects for running a VAST model

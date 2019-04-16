@@ -10,7 +10,7 @@
 #' @param t_iz Matrix where each row species the time for each observation i (if t_iz is a vector, it is coerced to a matrix with one column; if it is a matrix with two or more columns, it specifies multiple times for each observation, e.g., both year and season)
 #' @param e_i Error distribution for each observation i (by default \code{e_i=c_i})
 #' @param v_i OPTIONAL, sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
-#' @param Version a version number (see example for current default).
+#' @param Version a version number;  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}
 #' @param FieldConfig a vector of format c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10), where Omega refers to spatial variation, Epsilon refers to spatio-temporal variation, Omega1 refers to variation in encounter probability, and Omega2 refers to variation in positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance
 #' @param OverdispersionConfig OPTIONAL, a vector of format c("eta1"=0, "eta2"="AR1") governing any correlated overdispersion among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance
 #' @param ObsModel_ez an optional matrix with two columns where first column specifies the distribution for positive catch rates, and second element specifies the functional form for encounter probabilities
@@ -68,7 +68,7 @@
 #' @export
 make_data <-
 function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
-  Version, FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsModel_ez=c("PosDist"=1,"Link"=0),
+  FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsModel_ez=c("PosDist"=1,"Link"=0),
   RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), VamConfig=c("Method"=0,"Rank"=0,"Timing"=0),
   spatial_list=NULL, a_xl=NULL, MeshList=spatial_list$MeshList, GridList=spatial_list$GridList,
   Method=spatial_list$Method, s_i=spatial_list$knot_i-1, Aniso=TRUE, PredTF_i=rep(0,length(b_i)),
@@ -76,7 +76,7 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   Q_ik=NULL, Network_sz=NULL, F_ct=NULL, F_init=1,
   t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
   Options=c('SD_site_logdensity'=FALSE,'Calculate_Range'=FALSE,'Calculate_effective_area'=FALSE,'Calculate_Cov_SE'=FALSE),
-  Expansion_cz=NULL ){
+  Expansion_cz=NULL, Version=FishStatsUtils::get_latest_version(package="VAST") ){
 
   # Specify default values for `Options`
   Options2use = c('SD_site_density'=FALSE, 'SD_site_logdensity'=FALSE, 'Calculate_Range'=FALSE, 'SD_observation_density'=FALSE, 'Calculate_effective_area'=FALSE,
@@ -84,7 +84,7 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     'Calculate_Fratio'=FALSE, 'Estimate_B0'=FALSE, 'Project_factors'=FALSE )
 
   # Replace defaults for `Options` with provided values (if any)
-  for( i in 1:length(Options)){
+  for( i in seq_along(Options) ){
     if(tolower(names(Options)[i]) %in% tolower(names(Options2use))){
       Options2use[[match(tolower(names(Options)[i]),tolower(names(Options2use)))]] = Options[[i]]
     }
