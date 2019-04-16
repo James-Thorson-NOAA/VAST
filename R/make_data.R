@@ -102,7 +102,9 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     warning("Please consider using input `a_gl`; `a_xl` is still available for backwards compatiblity but only `a_gl` will be used")
   }
   if( FishStatsUtils::convert_version_name(Version) >= FishStatsUtils::convert_version_name("VAST_v8_0_0") ){
-    if( !is.null(X_xtp) ) stop("`X_xtp` is not used in version >= 8.0.0")
+    if( !is.null(X_xtp) ){
+      stop("`X_xtp` is not used in version >= 8.0.0")
+    }
   }
   if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v7_0_0") ){
     if( !is.null(X_gtp) | !is.null(X_itp) ) stop("`X_gtp` and `X_itp` are not used in version <= 7.0.0")
@@ -195,7 +197,11 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     for( cI in seq(2,ncol(tprime_iz),length=ncol(tprime_iz)-1)) t_yz = cbind(t_yz, min(tprime_iz[,cI],na.rm=TRUE))
   }
   n_j = ncol(X_xj)
-  n_p = dim(X_xtp)[3]
+  if( FishStatsUtils::convert_version_name(Version) >= FishStatsUtils::convert_version_name("VAST_v8_0_0") ){
+    n_p = dim(X_gtp)[3]
+  }else{
+    n_p = dim(X_xtp)[3]
+  }
   n_k = ncol(Q_ik)
   n_y = nrow(t_yz)
 
@@ -268,7 +274,7 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   if( CheckForErrors==TRUE ){
     if( ncol(ObsModel_ez)!=2 | nrow(ObsModel_ez)!=n_e ) stop("Wrong dimensions for ObsModel_ez")
     if( !is.matrix(a_gl) | !is.matrix(X_xj) | !is.matrix(Q_ik) ) stop("a_gl, X_xj, and Q_ik should be matrices")
-    if( !is.array(X_xtp) | !is.array(X_gtp) | !is.array(X_itp) ) stop( "X_xtp, X_gtp, and X_itp should be matrices")
+    if( !is.array(X_xtp) | !is.array(X_gtp) | !is.array(X_itp) ) stop( "X_xtp, X_gtp, and X_itp should be arrays")
     if( (max(s_i)-1)>n_x | min(s_i)<0 ) stop("s_i exceeds bounds in MeshList")
     if( any(a_i<=0) ) stop("a_i must be greater than zero for all observations, and at least one value of a_i is not")
     # Warnings about all positive or zero
@@ -314,7 +320,12 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     if( nrow(a_gl)!=n_x | ncol(a_gl)!=n_l ) stop("a_xl has wrong dimensions")
     if( nrow(X_xj)!=n_x | ncol(X_xj)!=n_j ) stop("X_xj has wrong dimensions")
     if( nrow(Q_ik)!=n_i | ncol(Q_ik)!=n_k ) stop("Q_ik has wrong dimensions")
-    if( dim(X_xtp)[1]!=n_x | dim(X_xtp)[2]!=n_t | dim(X_xtp)[3]!=n_p ) stop("X_xtp has wrong dimensions")
+    if( FishStatsUtils::convert_version_name(Version) >= FishStatsUtils::convert_version_name("VAST_v8_0_0") ){
+      if( dim(X_gtp)[1]!=n_g | dim(X_gtp)[2]!=n_t | dim(X_gtp)[3]!=n_p ) stop("X_gtp has wrong dimensions")
+      if( dim(X_itp)[1]!=n_i | dim(X_itp)[2]!=n_t | dim(X_itp)[3]!=n_p ) stop("X_itp has wrong dimensions")
+    }else{
+      if( dim(X_xtp)[1]!=n_x | dim(X_xtp)[2]!=n_t | dim(X_xtp)[3]!=n_p ) stop("X_xtp has wrong dimensions")
+    }
     if( ncol(c_iz)>1 & any(ObsModel_ez[,2]!=1) ) stop("Using multiple columnns in `c_iz` only makes sense using a Poisson-link delta model via `ObsModel[2]=1`")
     if( nrow(F_ct)!=n_c | ncol(F_ct)!=n_t ) stop("F_ct has wrong dimensions")
   }
