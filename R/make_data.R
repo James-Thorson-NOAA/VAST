@@ -81,7 +81,7 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   # Specify default values for `Options`
   Options2use = c('SD_site_density'=FALSE, 'SD_site_logdensity'=FALSE, 'Calculate_Range'=FALSE, 'SD_observation_density'=FALSE, 'Calculate_effective_area'=FALSE,
     'Calculate_Cov_SE'=FALSE, 'Calculate_Synchrony'=FALSE, 'Calculate_Coherence'=FALSE, 'Calculate_proportion'=FALSE, 'normalize_GMRF_in_CPP'=TRUE,
-    'Calculate_Fratio'=FALSE, 'Estimate_B0'=FALSE, 'Project_factors'=FALSE )
+    'Calculate_Fratio'=FALSE, 'Estimate_B0'=FALSE, 'Project_factors'=FALSE, 'treat_nonencounter_as_zero'=FALSE )
 
   # Replace defaults for `Options` with provided values (if any)
   for( i in seq_along(Options) ){
@@ -148,6 +148,15 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
 
   # Coerce ObsModel_ez to be a matrix
   if( !is.matrix(ObsModel_ez) ) ObsModel_ez = matrix( ObsModel_ez, ncol=2, nrow=n_e, byrow=TRUE )
+
+  # if Options2use['treat_nonencounter_as_zero']==TRUE, then replace b_i for all year-categories with all zeros with NAs
+  if( Options2use['treat_nonencounter_as_zero']==TRUE ){
+    # Determine year-category pairs with no data
+    Index = list( factor(c_iz[,1],levels=0:max(c_iz[,1])), factor(tprime_iz[,1],levels=0:max(tprime_iz[,1])) )
+    Num_ct = tapply( b_i, INDEX=Index, FUN=function(vec){sum(vec>0)} )
+    Num_ct = ifelse( is.na(Num_ct), 0, Num_ct )
+    b_i = ifelse( Num_ct[cbind(as.numeric(Index[[1]]),as.numeric(Index[[2]]))]==0, NA, b_i )
+  }
 
   # Covariates and defaults
   if( is.null(X_xj) ){
@@ -283,10 +292,14 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
       Prop_nonzero = Prop_nonzero[-1,]
     }
     if( any(ObsModel_ez[,2] %in% c(0,1)) ){
-      if( any(!is.na(Prop_nonzero) & (Prop_nonzero==0|Prop_nonzero==1)) ){
-        if( RhoConfig[1]==0 ){
+      if( RhoConfig[1]==0 ){
+        if( any(!is.na(Prop_nonzero) & (Prop_nonzero==1)) ){
           print( Prop_nonzero )
-          stop("Some years and/or categories have either all or no encounters, and this requires either temporal structure of a different link-function")
+          stop("Some years and/or categories have 100% encounters, and this requires either temporal structure of a different link-function")
+        }
+        if( any(!is.na(Prop_nonzero) & (Prop_nonzero==0)) & Options2use['treat_nonencounter_as_zero']==FALSE ){
+          print( Prop_nonzero )
+          stop("Some years and/or categories have 0% encounters, and this requires either temporal structure of a different link-function")
         }
       }
     }
@@ -581,7 +594,7 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
 
   # Check for NAs
   if( CheckForErrors==TRUE ){
-    NoNAs = setdiff( names(Return), c("t_iz","t_yz","c_iz","Network_sz") )
+    NoNAs = setdiff( names(Return), c("t_iz","t_yz","c_iz","Network_sz","b_i") )
     if( any(sapply(Return[NoNAs], FUN=function(Array){any(is.na(Array))})==TRUE) ) stop("Please find and eliminate the NA from your inputs")
   }
 
