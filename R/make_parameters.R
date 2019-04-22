@@ -1,9 +1,9 @@
 #' Calculate parameter inputs for TMB
 #'
-#' \code{Param_Fn} generates the \code{parameters} input for \code{TMB::MakeADFun}
+#' \code{make_parameters} generates the \code{parameters} input for \code{TMB::MakeADFun}
 #'
-#' @param DataList list outputted from \code{VAST::Data_Fn}
-#' @inheritParams Data_Fn
+#' @param DataList list outputted from \code{make_data}
+#' @inheritParams make_data
 
 #' @return Tagged list containing starting values for all fixed effects (parameters) and random effects (coefficients)
 #' \describe{
@@ -42,7 +42,7 @@
 #' }
 
 #' @export
-Param_Fn <-
+make_parameters <-
 function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) ){
 
   # Local function to make a random array

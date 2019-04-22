@@ -92,3 +92,26 @@ Summarize = function( ... ){
   VAST::summarize_results( ... )
 }
 
+#' Copy of make_map
+#'
+#' Included for continuity when using old scripts
+#'
+#' Please use \code{?make_map} to see list of arguments and usage
+#' @export
+Make_Map = function( ... ){
+  .Deprecated( new="make_map" )
+  make_map( ... )
+}
+
+#' Copy of make_parameters
+#'
+#' Included for continuity when using old scripts
+#'
+#' Please use \code{?make_parameters} to see list of arguments and usage
+#' @export
+Param_Fn = function( ... ){
+  .Deprecated( new="make_parameters" )
+  make_parameters( ... )
+}
+
+
