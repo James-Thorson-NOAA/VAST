@@ -48,3 +48,47 @@ Data_Fn = function( ... ){
   VAST::make_data( ... )
 }
 
+#' Copy of FishStatsUtils::plot_factors
+#'
+#' Included for continuity when using old scripts
+#'
+#' Please use \code{?FishStatsUtils::plot_factors} to see list of arguments and usage
+#' @export
+Plot_factors = function( ... ){
+  .Deprecated( new="FishStatsUtils::plot_factors" )
+  FishStatsUtils::plot_factors( ... )
+}
+
+#' Copy of FishStatsUtils::plot_overdispersion
+#'
+#' Included for continuity when using old scripts
+#'
+#' Please use \code{?FishStatsUtils::plot_overdispersion} to see list of arguments and usage
+#' @export
+Plot_Overdispersion = function( ... ){
+  .Deprecated( new="FishStatsUtils::plot_overdispersion" )
+  FishStatsUtils::plot_overdispersion( ... )
+}
+
+#' Copy of FishStatsUtils::summarize_covariace
+#'
+#' Included for continuity when using old scripts
+#'
+#' Please use \code{?FishStatsUtils::summarize_covariace} to see list of arguments and usage
+#' @export
+Summarize_Covariance = function( ... ){
+  .Deprecated( new="FishStatsUtils::summarize_covariace" )
+  FishStatsUtils::summarize_covariace( ... )
+}
+
+#' Copy of VAST::summarize_results
+#'
+#' Included for continuity when using old scripts
+#'
+#' Please use \code{?VAST::summarize_results} to see list of arguments and usage
+#' @export
+Summarize = function( ... ){
+  .Deprecated( new="VAST::summarize_results" )
+  VAST::summarize_results( ... )
+}
+

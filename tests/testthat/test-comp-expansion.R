@@ -25,6 +25,7 @@ test_that("Male lingcod compositional expansion is working ", {
   expect_equal( as.vector(Par1), as.vector(Par2), tolerance=1e-3 )
   expect_equal( opt$objective, Opt$objective, tolerance=1e-3 )
   # Get expanded composition estimates and input sample sizes
+  #Opt = TMBhelper::Optimize( obj=TmbList[["Obj"]], startpar=Opt$par, getsd=TRUE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], newtonsteps=0 )
   #Index = plot_biomass_index( TmbData=TmbData, Sdreport=Opt$SD, DirName=test_path )
   #calculate_proportion( TmbData=TmbData, Index=Index, DirName=test_path, Year_Set=unique(Data_Geostat$Year) )
 })

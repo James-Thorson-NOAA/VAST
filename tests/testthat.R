@@ -1,4 +1,5 @@
 
+# devtools::install_github("james-thorson/FishStatsUtils", ref="development")
 # devtools::install_github("james-thorson/VAST", ref="development")
 
 library(testthat)
