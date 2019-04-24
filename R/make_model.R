@@ -65,6 +65,10 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
     TmbData[["t_iz"]] = matrix( TmbData$t_i, ncol=1 )
   }
 
+  # Save package version info
+  capture.output( packageDescription("VAST"), file=paste0(RunDir,"/packageDescription.txt") )
+  capture.output( packageDescription("FishStatsUtils"), file=paste0(RunDir,"/packageDescription.txt"), append=TRUE )
+
   # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
   file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(RunDir,"/",Version,".cpp"), overwrite=FALSE)
