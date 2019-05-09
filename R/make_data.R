@@ -95,7 +95,7 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     if( !is.null(spatial_list$a_gl) ){
       a_gl = a_xl = spatial_list$a_gl
     }else{
-      stop("Must provide `a_gl` and/or `a_gl`")
+      stop("Must provide `a_gl` and/or `a_xl`")
     }
   }else{
     a_gl = a_xl
@@ -269,10 +269,15 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   # by default, add nothing as Z_xl
   if( Options2use['Calculate_Range']==FALSE ){
     Z_gm = Z_xm = matrix(0, nrow=nrow(a_gl), ncol=ncol(a_gl) ) # Size so that it works for Version 3g-3j
-
   }else{
-    Z_xm = spatial_list$loc_x
-    Z_gm = spatial_list$loc_g
+    if( is.null(spatial_list) ){
+      # Maintain backwards compatibility with Version < 8.0.0
+      Z_xm = Z_gm = MeshList$loc_x
+    }else{
+      # Improved interface used for Version >= 8.0.0
+      Z_xm = spatial_list$loc_x
+      Z_gm = spatial_list$loc_g
+    }
     message( "Calculating range shift for stratum #1:",colnames(a_gl[1]))
   }
 
