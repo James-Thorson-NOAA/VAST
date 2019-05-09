@@ -1,8 +1,8 @@
 Package: VAST
 Type: Package
 Title: Vector-autoregressive spatio-temporal (VAST) model
-Version: 2.1.0
-Date: 2019-03-01
+Version: 3.0.0
+Date: 2019-05-09
 Authors@R: person("James","Thorson", email="James.Thorson@noaa.gov", role=c("aut","cre"))
 Maintainer: James Thorson <James.Thorson@noaa.gov>
 Description: VAST is an R package for conducting spatio-temporal analysis

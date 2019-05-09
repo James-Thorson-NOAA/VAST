@@ -8,17 +8,12 @@ make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
   length(b_i)), FieldConfig, OverdispersionConfig = c(eta1 = 0, eta2 =
   0), ObsModel_ez = c(PosDist = 1, Link = 0), RhoConfig = c(Beta1 = 0,
   Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0), VamConfig = c(Method = 0, Rank
-  = 0, Timing = 0), spatial_list = NULL, a_xl = NULL,
-  MeshList = spatial_list$MeshList, GridList = spatial_list$GridList,
-  Method = spatial_list$Method, s_i = spatial_list$knot_i - 1,
-  Aniso = TRUE, PredTF_i = rep(0, length(b_i)), X_xj = NULL,
-  X_xtp = NULL, Xconfig_zcp = NULL, X_gtp = NULL, X_itp = NULL,
-  Q_ik = NULL, Network_sz = NULL, F_ct = NULL, F_init = 1,
-  t_yz = NULL, CheckForErrors = TRUE, yearbounds_zz = NULL,
-  Options = c(SD_site_logdensity = FALSE, Calculate_Range = FALSE,
-  Calculate_effective_area = FALSE, Calculate_Cov_SE = FALSE),
-  Expansion_cz = NULL,
-  Version = FishStatsUtils::get_latest_version(package = "VAST"))
+  = 0, Timing = 0), spatial_list = NULL, Aniso = TRUE,
+  PredTF_i = rep(0, length(b_i)), Xconfig_zcp = NULL, X_gtp = NULL,
+  X_itp = NULL, Q_ik = NULL, Network_sz = NULL, F_ct = NULL,
+  F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
+  yearbounds_zz = NULL, Options = c(), Expansion_cz = NULL,
+  Version = FishStatsUtils::get_latest_version(package = "VAST"), ...)
 }
 \arguments{
 \item{b_i}{Sampled biomass for each observation i}
@@ -70,29 +65,21 @@ make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
 
 \item{spatial_list}{tagged list of locatoinal information from , i.e., from \code{FishStatsUtils::make_spatial_info}}
 
-\item{a_xl}{Area associated with each knot}
-
-\item{MeshList, }{tagged list representing location information for the SPDE mesh hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}}
-
-\item{GridList, }{tagged list representing location information for the 2D AR1 grid hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}}
-
-\item{Method, }{character (either "Mesh" or "Grid") specifying hyperdistribution (Default="Mesh")}
-
-\item{s_i}{Spatial knot (e.g., grid cell) for each observation i}
-
 \item{Aniso}{whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)}
 
 \item{PredTF_i}{OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)}
 
-\item{X_xtp}{array of dynamic (varying among time intervals) density covariates; if missing, assumed to not include covariates}
-
 \item{Xconfig_zcp}{OPTIONAL, 3D array of settings for each dynamic density covariate, where the first dimension corresponds to 1st or 2nd linear predictors, second dimension corresponds to model category, and third dimension corresponds to each density covariate
 \describe{
-  \item{Xconfig_zcp[z,c,p]=0}{\code{X_xtp[,,p]} has no effect on linear predictor z for category c}
-  \item{Xconfig_zcp[z,c,p]=1}{\code{X_xtp[,,p]} has a linear effect on linear predictor z for category c}
-  \item{Xconfig_zcp[z,c,p]=2}{\code{X_xtp[,,p]} has a spatially varying, zero-centered linear effect on linear predictor z for category c}
-  \item{Xconfig_zcp[z,c,p]=3}{\code{X_xtp[,,p]} has a spatially varying linear effect on linear predictor z for category c}
+  \item{Xconfig_zcp[z,c,p]=0}{\code{X_itp[,,p]} has no effect on linear predictor z for category c}
+  \item{Xconfig_zcp[z,c,p]=1}{\code{X_itp[,,p]} has a linear effect on linear predictor z for category c}
+  \item{Xconfig_zcp[z,c,p]=2}{\code{X_itp[,,p]} has a spatially varying, zero-centered linear effect on linear predictor z for category c}
+  \item{Xconfig_zcp[z,c,p]=3}{\code{X_itp[,,p]} has a spatially varying linear effect on linear predictor z for category c}
 }}
+
+\item{X_gtp}{array of density covariates for each extrapolation-grid cell g, time t, and covariate p; if missing, assumed to not include covariates}
+
+\item{X_itp}{array of density covariates for each extrapolation-grid cell i, time t, and covariate p}
 
 \item{Q_ik}{matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i}
 
@@ -104,9 +91,19 @@ make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
 
 \item{yearbounds_zz}{matrix with two columns, giving first and last years for defining one or more periods (rows) used to calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})}
 
-\item{Options}{a vector of form c('SD_site_logdensity'=0,'Calculate_Range'=0,'Calculate_effective_area'=0,'Calculate_Cov_SE'=0,'Calculate_Synchrony'=0,'Calculate_proportion'=0), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied}
+\item{Options}{a vector of form c('SD_site_logdensity'=FALSE,'Calculate_Range'=FALSE,'Calculate_effective_area'=FALSE,'Calculate_Cov_SE'=FALSE,'Calculate_Synchrony'=FALSE,'Calculate_proportion'=FALSE), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied}
 
 \item{Version}{a version number;  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}}
+
+\item{s_i}{Spatial knot (e.g., grid cell) for each observation i}
+
+\item{a_xl}{Area associated with each knot}
+
+\item{MeshList, }{tagged list representing location information for the SPDE mesh hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}}
+
+\item{GridList, }{tagged list representing location information for the 2D AR1 grid hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}}
+
+\item{Method, }{character (either "Mesh" or "Grid") specifying hyperdistribution (Default="Mesh")}
 }
 \value{
 Tagged list containing inputs to function \code{VAST::Build_TMB_Fn()}
