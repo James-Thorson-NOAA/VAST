@@ -1,5 +1,5 @@
 #' @export
-Make_Map <-
+make_map <-
 function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Npool=0 ){
 
   # Local functions
@@ -262,9 +262,15 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   Map[["lambda2_k"]] = factor(Map[["lambda2_k"]])
 
   # Dynamic covariates
-  if( "X_xtp" %in% names(DataList) ){
-    Var_p = apply( DataList[["X_xtp"]], MARGIN=3, FUN=function(array){var(as.vector(array))})
-    Var_tp = apply( DataList[["X_xtp"]], MARGIN=2:3, FUN=var )
+  if( any(c("X_xtp","X_itp") %in% names(DataList)) ){
+    if( "X_xtp" %in% names(DataList) ){
+      Var_p = apply( DataList[["X_xtp"]], MARGIN=3, FUN=function(array){var(as.vector(array))})
+      Var_tp = apply( DataList[["X_xtp"]], MARGIN=2:3, FUN=var )
+    }
+    if( "X_itp" %in% names(DataList) ){
+      Var_p = apply( DataList[["X_itp"]], MARGIN=3, FUN=function(array){var(as.vector(array))})
+      Var_tp = apply( DataList[["X_itp"]], MARGIN=2:3, FUN=var )
+    }
     if( "gamma1_tp" %in% names(TmbParams) ){
       Map[["gamma1_tp"]] = Map[["gamma2_tp"]] = matrix( 1:(DataList$n_t*DataList$n_p), nrow=DataList$n_t, ncol=DataList$n_p )
       # By default:

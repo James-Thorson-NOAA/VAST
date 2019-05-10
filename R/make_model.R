@@ -14,6 +14,7 @@
 #' @param DiagnosticDir OPTIONAL, a directory where diagonstic runtime information should be stored
 #' @param TmbDir OPTIONAL, a directory where the CPP file for the VAST model can be found locally
 #' @param RunDir OPTIONAL, a directory where the CPP file is copied, copiled, and run (must have write privileges or else the function will crash)
+#' @param build_model Boolean indicating whether to build the model, \code{build_model=TRUE}, or simply build the inputs, \code{build_model=FALSE}
 #' @inheritParams Data_Fn
 
 #' @return Tagged list containing objects for running a VAST model
@@ -64,6 +65,10 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
     TmbData[["t_iz"]] = matrix( TmbData$t_i, ncol=1 )
   }
 
+  # Save package version info
+  capture.output( packageDescription("VAST"), file=paste0(RunDir,"/packageDescription.txt") )
+  capture.output( packageDescription("FishStatsUtils"), file=paste0(RunDir,"/packageDescription.txt"), append=TRUE )
+
   # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
   file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(RunDir,"/",Version,".cpp"), overwrite=FALSE)
@@ -74,10 +79,10 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
 
   # Parameters
     # TmbData=TmbData
-  if( length(Parameters)==1 && Parameters=="generate" ) Parameters = Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
+  if( length(Parameters)==1 && Parameters=="generate" ) Parameters = make_parameters( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
 
   # Which parameters are turned off
-  if( length(Map)==1 && Map=="generate" ) Map = Make_Map( DataList=TmbData, TmbParams=Parameters, RhoConfig=RhoConfig, Npool=Npool )
+  if( length(Map)==1 && Map=="generate" ) Map = make_map( DataList=TmbData, TmbParams=Parameters, RhoConfig=RhoConfig, Npool=Npool )
 
   # Which are random
   if( length(Random)==1 && Random=="generate" ){
@@ -121,9 +126,11 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
   Obj$control <- list(parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 
   # Add normalization in
-  if(Version %in% c("VAST_v7_0_0","VAST_v6_0_0","VAST_v5_5_0","VAST_v5_4_0","VAST_v5_3_0","VAST_v5_2_0","VAST_v5_1_0","VAST_v5_0_0","VAST_v4_4_0","VAST_v4_3_0","VAST_v4_2_0","VAST_v4_1_0") & Options['normalize_GMRF_in_CPP']==FALSE ){
-    message("Normalizing GMRF in R using `TMB::normalize` feature")
-    Obj = TMB::normalize(Obj, flag="include_data", value=FALSE)
+  if( FishStatsUtils::convert_version_name(Version) >= FishStatsUtils::convert_version_name("VAST_v4_1_0") ){
+    if( Options['normalize_GMRF_in_CPP']==FALSE ){
+      message("Normalizing GMRF in R using `TMB::normalize` feature")
+      Obj = TMB::normalize(Obj, flag="include_data", value=FALSE)
+    }
   }
 
   # Diagnostic functions (optional)
@@ -170,6 +177,8 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
   Bounds = boundsifpresent_fn( par=Obj$par, name="lambda2", lower=-20, upper=20, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="Beta_rho1", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="Beta_rho2", lower=-0.99, upper=0.99, bounds=Bounds)
+  Bounds = boundsifpresent_fn( par=Obj$par, name="Beta_rho1_f", lower=-0.99, upper=0.99, bounds=Bounds)
+  Bounds = boundsifpresent_fn( par=Obj$par, name="Beta_rho2_f", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="Epsilon_rho1", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="Epsilon_rho2", lower=-0.99, upper=0.99, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="Epsilon_rho1_f", lower=-0.99, upper=0.99, bounds=Bounds)
