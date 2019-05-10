@@ -114,11 +114,13 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   # Check for backwards-compatibility issues
   if( FishStatsUtils::convert_version_name(Version) >= FishStatsUtils::convert_version_name("VAST_v8_0_0") ){
     if( !is.null(X_xtp) ){
-      stop("`X_xtp` is not used in version >= 8.0.0")
+      stop("`X_xtp` is not used in version >= 8.0.0. If you'd like to specify covariates using input `X_xtp` please use `Version='VAST_v7_0_0'`")
     }
   }
   if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v7_0_0") ){
-    if( !is.null(X_gtp) | !is.null(X_itp) ) stop("`X_gtp` and `X_itp` are not used in version <= 7.0.0")
+    if( !is.null(X_gtp) | !is.null(X_itp) ){
+      stop("`X_gtp` and `X_itp` are not used in version <= 7.0.0. If you'd like to specify covariates using input `X_gtp` and `X_itp` please use `Version='VAST_v8_0_0'` or higher")
+    }
   }
 
   # Adds intercept defaults to FieldConfig if missing
