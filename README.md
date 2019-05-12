@@ -133,6 +133,9 @@ Funding and support for the tool
 * Ongoing:  Support from Fisheries Resource Analysis and Monitoring Division (FRAM), Northwest Fisheries Science Center, National Marine Fisheries Service, NOAA
 * Ongoing:  Support from Danish Technical University (in particular Kasper Kristensen) for  development of Template Model Builder software, URL: https://www.jstatsoft.org/article/view/v070i05
 * Generous support from people knowledgeable about each region and survey! Specific contributions are listed [here](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/blob/master/shiny/Acknowledgements_for_regional_inputs.csv).
+* Hoff, G., Thorson, J., and Punt, A.  2018. Spatio-temporal dynamics of groundfish availability to EBS bottom trawl surveys and abundance estimate uncertainties.  North Pacific Research Board (NPRB) 2018 RFP.   
+* Rooper, C., Thorson, J., and Boldt, J.  2017. Detecting changes in life history traits and distribution shifts in eastern Bering Sea fishes in response to climate change.  Habitat Information for Stock Assessments 2016 RFP.  
+* Ianelli, J., Thorson, J., Kotwicki, S. 2017. Combining acoustic and bottom-trawl data in a spatio-temporal index standardization model for Eastern Bering Sea pollock.  Improve a Stock Assessment 2017 RFP. 
 * Thorson, J., Ianelli, J., and O’Brien, L.  2015.  Distribution and application of a new geostatistical index standardization and habitat modeling tool for stock assessments and essential fish habitat designation in Alaska and Northwest Atlantic regions.  Habitat Assessment Improvement Plan 2014 RFP.  URL: https://www.st.nmfs.noaa.gov/ecosystems/habitat/funding/projects/project15-027
 
 =============
