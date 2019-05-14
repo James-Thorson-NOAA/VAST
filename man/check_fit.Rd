@@ -4,12 +4,12 @@
 \alias{check_fit}
 \title{Check fit for VAST model}
 \usage{
-check_fit(parameter_estimates, check_bounds = FALSE, quiet = FALSE)
+check_fit(parameter_estimates, check_gradients = FALSE, quiet = FALSE)
 }
 \arguments{
 \item{parameter_estimates}{output from \code{TMBhelper::fit_tmb}}
 
-\item{check_bounds}{Boolean stating whether to check bounds as well as other issues}
+\item{check_gradients}{Boolean stating whether to check bounds as well as other issues}
 
 \item{quiet}{Boolean stating whether to print warnings to terminal}
 }

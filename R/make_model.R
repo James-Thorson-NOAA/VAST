@@ -171,6 +171,7 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
   if( !is.na(Options_vec['Method']) && Options_vec['Method']==1 && Method!="Spherical_mesh" ){
     Bounds[grep("logkappa",names(Obj$par)),'Upper'] = log(0.9999) # Must be negative, so that Rho<1
   }
+  Bounds = boundsifpresent_fn( par=Obj$par, name="ln_H_input", lower=-5, upper=5, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="gamma1", lower=-20, upper=20, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="gamma2", lower=-20, upper=20, bounds=Bounds)
   Bounds = boundsifpresent_fn( par=Obj$par, name="lambda1", lower=-20, upper=20, bounds=Bounds)

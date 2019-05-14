@@ -3,12 +3,12 @@
 #' \code{check_fit} checks bounds and throws an informative message if any look bad
 #'
 #' @param parameter_estimates output from \code{TMBhelper::fit_tmb}
-#' @param check_bounds Boolean stating whether to check bounds as well as other issues
+#' @param check_gradients Boolean stating whether to check bounds as well as other issues
 #' @param quiet Boolean stating whether to print warnings to terminal
 #' @return Did an automated check find an obvious problem code (TRUE is bad; FALSE is good)
 
 #' @export
-check_fit = function( parameter_estimates, check_bounds=FALSE, quiet=FALSE ){
+check_fit = function( parameter_estimates, check_gradients=FALSE, quiet=FALSE ){
 
   # Initialize code for good model
   problem_found = FALSE
@@ -38,7 +38,7 @@ check_fit = function( parameter_estimates, check_bounds=FALSE, quiet=FALSE ){
 
   # Check bad gradients
   Bad_gradient = ifelse( abs(parameter_estimates$diagnostics[,'final_gradient']) > 0.001, TRUE, FALSE )
-  if( check_bounds==TRUE && any(Bad_gradient) ){
+  if( check_gradients==TRUE && any(Bad_gradient) ){
     problem_found = TRUE
     if(quiet==FALSE){
       message("\nThe following parameters has a bad final gradient:")
