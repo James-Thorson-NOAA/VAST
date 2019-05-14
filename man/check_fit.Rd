@@ -4,15 +4,17 @@
 \alias{check_fit}
 \title{Check fit for VAST model}
 \usage{
-check_fit(parameter_estimates, quiet = FALSE)
+check_fit(parameter_estimates, check_bounds = FALSE, quiet = FALSE)
 }
 \arguments{
 \item{parameter_estimates}{output from \code{TMBhelper::fit_tmb}}
 
+\item{check_bounds}{Boolean stating whether to check bounds as well as other issues}
+
 \item{quiet}{Boolean stating whether to print warnings to terminal}
 }
 \value{
-Return Error code (TRUE is good; FALSE is bad)
+Did an automated check find an obvious problem code (TRUE is bad; FALSE is good)
 }
 \description{
 \code{check_fit} checks bounds and throws an informative message if any look bad
