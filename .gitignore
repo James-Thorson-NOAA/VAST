@@ -2,4 +2,6 @@
 *.dll
 *.so
 *.docx
+packageDescription.txt
+settings.txt
 
