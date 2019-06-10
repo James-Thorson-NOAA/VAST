@@ -689,7 +689,7 @@ Type objective_function<Type>::operator() ()
     }
     // If Timing=0, transform from interaction among factors to interaction among categories
     if( VamConfig(2)==0 ){
-      Btemp_cc = L_epsilon2_cf * B1_cc;
+      Btemp_cc = L_epsilon2_cf * B2_cc;
       B2_cc = Btemp_cc * L_epsilon2_cf.inverse();
     }
     REPORT( B1_cc );
