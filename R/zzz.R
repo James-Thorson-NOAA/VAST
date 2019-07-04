@@ -22,7 +22,7 @@
     packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.1.0")
     devtools::install_github("james-thorson/FishStatsUtils", ref="2.1.0")
   }
-  packageStartupMessage( "Loading package `FishStatsUtils`" )
+  packageStartupMessage( "Loading package `FishStatsUtils` version ", packageVersion("FishStatsUtils") )
   library(FishStatsUtils)
 }
 

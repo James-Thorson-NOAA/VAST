@@ -494,6 +494,8 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   }else{
     Network_sz = matrix( c(1,1,1), nrow=1, dimnames=list(NULL,c("parent_s","child_s","dist_s")) )
   }
+
+  # Check incompatibility of constant intercept + 0/100% encounter option
   if( any(RhoConfig[1:2]!=0) & any(ObsModel_ez[,2]==3) ){
     stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=3:  Other options are not coded to work together" )
   }
@@ -617,5 +619,28 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   }
 
   # Return
+  class(Return) = "make_data"
   return( Return )
 }
+
+#' Print data fitted by \code{\link{VAST}}
+#'
+#' @title Print data
+#' @param x Output from \code{\link{make_data}}
+#' @param ... Not used
+#' @return NULL
+#' @method print make_data
+#' @export
+print.make_data <- function(x, ...)
+{
+  Samples_iz = data.frame( "b_i"=x$b_i, "a_i"=x$a_i, "c_iz"=x$c_iz, "t_iz"=x$t_iz, "e_i"=x$e_i, "v_i"=x$v_i, "PredTF_i"=x$PredTF_i )
+  cat("make_data(.) result\n")
+  cat( paste0("`n_i = `", x$n_i, " samples\n") )
+  cat( "`summary(.)` of sampling data\n" )
+  print( summary(Samples_iz) )
+
+  invisible(Samples_iz)
+}
+
+
+
