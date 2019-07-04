@@ -419,6 +419,13 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
     stop("Spatio-temporal variation is turned off for a component with temporal structure, and this combination doesn't make sense")
   }
 
+  # Prohibitively slow
+  if( !is.null(spatial_list$fine_scale) && spatial_list$fine_scale==TRUE ){
+    if( Options2use['SD_site_density']==TRUE | Options2use['SD_site_logdensity']==TRUE ){
+      warning("'SD_site_density' and 'SD_site_logdensity' are very slow when using `fine_scale=TRUE`")
+    }
+  }
+
   # Interactions
   if( VamConfig[1]!=0 ){
     if( any(ObsModel_ez[,2]!=1) ){
