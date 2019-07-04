@@ -121,7 +121,7 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
   }
 
   # Build object
-  TMB::dyn.load( paste0(RunDir,"/",TMB::dynlib(Version)) ) # random=Random,
+  dyn.load( paste0(RunDir,"/",TMB::dynlib(Version)) ) # random=Random,
   Obj <- TMB::MakeADFun(data=TmbData, parameters=Parameters, hessian=FALSE, map=Map, random=Random, inner.method="newton", DLL=Version)  #
   Obj$control <- list(parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 
