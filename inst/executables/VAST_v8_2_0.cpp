@@ -1898,6 +1898,48 @@ Type objective_function<Type>::operator() ()
       ADREPORT( PropIndex_cyl );
       ADREPORT( ln_PropIndex_cyl );
     }
+
+    REPORT( Index_cyl );
+    REPORT( a_average );
+    REPORT( P1_gcy );
+    REPORT( P2_gcy );
+    REPORT( eta1_gct );
+    REPORT( eta2_gct );
+    REPORT( Xi1_gcp );
+    REPORT( Xi2_gcp );
+    REPORT( D_gcy );
+    REPORT( R1_gcy );
+    REPORT( R2_gcy );
+    REPORT( Index_gcyl );
+    REPORT( Epsilon1_gct );
+    REPORT( Epsilon2_gct );
+    REPORT( Omega1_gc );
+    REPORT( Omega2_gc );
+    ADREPORT( Index_cyl );
+    ADREPORT( ln_Index_cyl );
+
+    // Additional miscellaneous outputs
+    if( Options(0)==1 ){
+      ADREPORT( Index_gcyl );
+    }
+    if( Options(1)==1 ){
+      ADREPORT( log(Index_gcyl) );
+    }
+    // Calculate value of vactors at extrapolation-grid cells (e.g., for use when visualizing estimated or rotated factor estimates)
+    if( Options(12)==1 ){
+      array<Type> Omegainput1_gf( n_g, Omegainput1_sf.cols() );
+      array<Type> Epsiloninput1_gft( n_g, Epsiloninput1_sft.col(0).cols(), n_t );
+      array<Type> Omegainput2_gf( n_g, Omegainput2_sf.cols() );
+      array<Type> Epsiloninput2_gft( n_g, Epsiloninput2_sft.col(0).cols(), n_t );
+      Omegainput1_gf = project_knots( n_g, Omegainput1_sf.cols(), int(1), int(0), Omegainput1_sf, Ags_ij, Ags_x );
+      Epsiloninput1_gft = project_knots( n_g, Epsiloninput1_sft.col(0).cols(), n_t, int(1), Epsiloninput1_sft, Ags_ij, Ags_x );
+      Omegainput2_gf = project_knots( n_g, Omegainput2_sf.cols(), int(1), int(0), Omegainput2_sf, Ags_ij, Ags_x );
+      Epsiloninput2_gft = project_knots( n_g, Epsiloninput2_sft.col(0).cols(), n_t, int(1), Epsiloninput2_sft, Ags_ij, Ags_x );
+      REPORT( Omegainput1_gf );
+      REPORT( Epsiloninput1_gft );
+      REPORT( Omegainput2_gf );
+      REPORT( Epsiloninput2_gft );
+    }
   }
 
   ////////////////////////
@@ -1914,7 +1956,6 @@ Type objective_function<Type>::operator() ()
   REPORT( var_i );
   REPORT( LogProb1_i );
   REPORT( LogProb2_i );
-  REPORT( a_average );
   REPORT( eta1_vc );
   REPORT( eta2_vc );
   REPORT( eta1_vf );
@@ -1935,7 +1976,6 @@ Type objective_function<Type>::operator() ()
   REPORT( Beta_mean2_c );
   REPORT( Epsilon_rho2_f );
 
-  REPORT( Index_cyl );
   REPORT( Omega1_sc );
   REPORT( Omega2_sc );
   REPORT( Omegainput1_sf );
@@ -1960,58 +2000,16 @@ Type objective_function<Type>::operator() ()
 
   ADREPORT( Range_raw1 );
   ADREPORT( Range_raw2 );
-  ADREPORT( Index_cyl );
-  ADREPORT( ln_Index_cyl );
 
-  SIMULATE{
-    REPORT( b_i );
-  }
-
-  if( n_g > 0 ){
-    REPORT( P1_gcy );
-    REPORT( P2_gcy );
-    REPORT( eta1_gct );
-    REPORT( eta2_gct );
-    REPORT( Xi1_gcp );
-    REPORT( Xi2_gcp );
-    REPORT( D_gcy );
-    REPORT( R1_gcy );
-    REPORT( R2_gcy );
-    REPORT( Index_gcyl );
-    REPORT( Epsilon1_gct );
-    REPORT( Epsilon2_gct );
-    REPORT( Omega1_gc );
-    REPORT( Omega2_gc );
-  }
-
-  // Additional miscellaneous outputs
-  if( Options(0)==1 ){
-    ADREPORT( Index_gcyl );
-  }
-  if( Options(1)==1 ){
-    ADREPORT( log(Index_gcyl) );
-  }
   if( Options(3)==1 ){
     vector<Type> D_i( n_i );
     D_i = R1_i * R2_i;
     ADREPORT( D_i );
   }
-  // Calculate value of vactors at extrapolation-grid cells (e.g., for use when visualizing estimated or rotated factor estimates)
-  if( Options(12)==1 ){
-    array<Type> Omegainput1_gf( n_g, Omegainput1_sf.cols() );
-    array<Type> Epsiloninput1_gft( n_g, Epsiloninput1_sft.col(0).cols(), n_t );
-    array<Type> Omegainput2_gf( n_g, Omegainput2_sf.cols() );
-    array<Type> Epsiloninput2_gft( n_g, Epsiloninput2_sft.col(0).cols(), n_t );
-    Omegainput1_gf = project_knots( n_g, Omegainput1_sf.cols(), int(1), int(0), Omegainput1_sf, Ags_ij, Ags_x );
-    Epsiloninput1_gft = project_knots( n_g, Epsiloninput1_sft.col(0).cols(), n_t, int(1), Epsiloninput1_sft, Ags_ij, Ags_x );
-    Omegainput2_gf = project_knots( n_g, Omegainput2_sf.cols(), int(1), int(0), Omegainput2_sf, Ags_ij, Ags_x );
-    Epsiloninput2_gft = project_knots( n_g, Epsiloninput2_sft.col(0).cols(), n_t, int(1), Epsiloninput2_sft, Ags_ij, Ags_x );
-    REPORT( Omegainput1_gf );
-    REPORT( Epsiloninput1_gft );
-    REPORT( Omegainput2_gf );
-    REPORT( Epsiloninput2_gft );
-  }
 
+  SIMULATE{
+    REPORT( b_i );
+  }
 
   return jnll;
 }
