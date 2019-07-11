@@ -249,14 +249,15 @@ function( Version, DataList, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsil
   }
 
   # If estimating habitat-covariates, start coefficient at nonzero value
+  # THIS HAS BEEN CHANGED BACK TO STARTING AT 0.0 TO AVOID ISSUES WHEN PEOPLE MAP THESE OFF BY HAND
   if( "Xconfig_zcp" %in% names(DataList) ){
     for(cI in 1:DataList$n_c){
     for(pI in 1:DataList$n_p){
       if( DataList$Xconfig_zcp[1,cI,pI] %in% c(1,3) ){
-        Return[["gamma1_ctp"]][cI,,pI] = 0.1
+        #Return[["gamma1_ctp"]][cI,,pI] = 0.1
       }
       if( DataList$Xconfig_zcp[2,cI,pI] %in% c(1,3) ){
-        Return[["gamma2_ctp"]][cI,,pI] = 0.1
+        #Return[["gamma2_ctp"]][cI,,pI] = 0.1
       }
     }}
   }

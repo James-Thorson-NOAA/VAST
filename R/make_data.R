@@ -6,13 +6,12 @@
 #' @param b_i Sampled biomass for each observation i
 #' @param a_i Sampled area for each observation i
 #' @param c_iz Category (e.g., species, length-bin) for each observation i
-#' @param s_i Spatial knot (e.g., grid cell) for each observation i
 #' @param t_iz Matrix where each row species the time for each observation i (if t_iz is a vector, it is coerced to a matrix with one column; if it is a matrix with two or more columns, it specifies multiple times for each observation, e.g., both year and season)
 #' @param e_i Error distribution for each observation i (by default \code{e_i=c_i})
-#' @param v_i OPTIONAL, sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
+#' @param v_i sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i (by default \code{v_i=0} for all samples, which will not affect things given the default values for \code{OverdispersionConfig})
 #' @param Version a version number;  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}
 #' @param FieldConfig a vector of format c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10), where Omega refers to spatial variation, Epsilon refers to spatio-temporal variation, Omega1 refers to variation in encounter probability, and Omega2 refers to variation in positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance
-#' @param OverdispersionConfig OPTIONAL, a vector of format c("eta1"=0, "eta2"="AR1") governing any correlated overdispersion among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance
+#' @param OverdispersionConfig a vector of format c("eta1"=0, "eta2"="AR1") governing any correlated overdispersion among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance (by default, c("eta1"=0, "eta2"=0) and this turns off overdispersion)
 #' @param ObsModel_ez an optional matrix with two columns where first column specifies the distribution for positive catch rates, and second element specifies the functional form for encounter probabilities
 #' \describe{
 #'   \item{ObsModel_ez[e,1]=0}{Normal}
@@ -42,10 +41,6 @@
 #'   \item{VamConfig[2]}{Indicates whether interactions occur before spatio-temporal variation (\code{VamConfig[2]=0}) or after \code{VamConfig[2]=1}}
 #' }
 #' @param spatial_list tagged list of locatoinal information from , i.e., from \code{FishStatsUtils::make_spatial_info}
-#' @param a_xl Area associated with each knot
-#' @param MeshList, tagged list representing location information for the SPDE mesh hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}
-#' @param GridList, tagged list representing location information for the 2D AR1 grid hyperdistribution, i.e., from \code{SpatialDeltaGLMM::Spatial_Information_Fn}
-#' @param Method, character (either "Mesh" or "Grid") specifying hyperdistribution (Default="Mesh")
 #' @param PredTF_i OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)
 #' @param X_gtp array of density covariates for each extrapolation-grid cell g, time t, and covariate p; if missing, assumed to not include covariates
 #' @param X_itp array of density covariates for each extrapolation-grid cell i, time t, and covariate p
@@ -58,20 +53,22 @@
 #' }
 #' @param Q_ik matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i
 #' @param Aniso whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)
+#' @param Expansion_cz matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.  The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates, where density is weighted by area ("area-weighted expansion", \code{Expansion[c,1]=0}, the default) or where density is weighted by the expanded value for another category ("abundance weighted expansion" \code{Expansion[c1,1]=1}).  The 2nd column is only used when \code{Expansion[c1,1]=1}, and specifies the category to use for abundance-weighted expansion, where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.
 #' @param F_ct matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)
 #' @param t_yz matrix specifying combination of levels of \code{t_iz} to use when calculating different indices of abundance or range shifts
 #' @param Options a vector of form c('SD_site_logdensity'=FALSE,'Calculate_Range'=FALSE,'Calculate_effective_area'=FALSE,'Calculate_Cov_SE'=FALSE,'Calculate_Synchrony'=FALSE,'Calculate_proportion'=FALSE), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied
 #' @param yearbounds_zz matrix with two columns, giving first and last years for defining one or more periods (rows) used to calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})
 #' @param CheckForErrors whether to check for errors in input (NOTE: when CheckForErrors=TRUE, the function will throw an error if it detects a problem with inputs.  However, failing to throw an error is no guaruntee that the inputs are all correct)
+#' @param ... interface to pass deprecated inputs, included for backwards compatibility with previous versions which specified elements of \code{spatial_list} individually instead of as a single object
 
-#' @return Tagged list containing inputs to function \code{VAST::Build_TMB_Fn()}
+#' @return Object of class \code{make_data}, containing inputs to function \code{VAST::Build_TMB_Fn()}
 
 #' @export
 make_data <-
 function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
-  FieldConfig, OverdispersionConfig=c("eta1"=0,"eta2"=0), ObsModel_ez=c("PosDist"=1,"Link"=0),
-  RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), VamConfig=c("Method"=0,"Rank"=0,"Timing"=0),
-  spatial_list=NULL, Aniso=TRUE, PredTF_i=rep(0,length(b_i)),
+  FieldConfig, spatial_list, ObsModel_ez=c("PosDist"=1,"Link"=0),
+  OverdispersionConfig=c("eta1"=0,"eta2"=0), RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
+  VamConfig=c("Method"=0,"Rank"=0,"Timing"=0), Aniso=TRUE, PredTF_i=rep(0,length(b_i)),
   Xconfig_zcp=NULL, X_gtp=NULL, X_itp=NULL,
   Q_ik=NULL, Network_sz=NULL, F_ct=NULL, F_init=1,
   t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
@@ -81,7 +78,7 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   # Deprecated inputs for backwards compatibility in transition from Version < 8.0.0 to >= 8.0.0
   deprecated_inputs = list( ... )
   X_xtp = deprecated_inputs[["X_xtp"]]
-  if( is.null(spatial_list) ){
+  if( is.missing(spatial_list) ){
     warning("Consider changing use of `make_data` to include `spatial_list` as input")
     a_xl = a_gl = deprecated_inputs[["a_xl"]]
     MeshList = deprecated_inputs[["MeshList"]]

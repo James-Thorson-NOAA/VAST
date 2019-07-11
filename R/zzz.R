@@ -81,17 +81,6 @@ Summarize_Covariance = function( ... ){
   FishStatsUtils::summarize_covariace( ... )
 }
 
-#' Copy of VAST::summarize_results
-#'
-#' Included for continuity when using old scripts
-#'
-#' Please use \code{?VAST::summarize_results} to see list of arguments and usage
-#' @export
-Summarize = function( ... ){
-  .Deprecated( new="VAST::summarize_results" )
-  VAST::summarize_results( ... )
-}
-
 #' Copy of make_map
 #'
 #' Included for continuity when using old scripts

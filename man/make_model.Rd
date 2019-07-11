@@ -37,7 +37,7 @@ make_model(TmbData, Version, RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1
 \item{build_model}{Boolean indicating whether to build the model, \code{build_model=TRUE}, or simply build the inputs, \code{build_model=FALSE}}
 }
 \value{
-Tagged list containing objects for running a VAST model
+Object of class \code{make_model}, containing objects for running a VAST model
 \describe{
   \item{Obj}{The built TMB object}
   \item{Upper}{A vector of upper bounds for parameters, optionally for use during optimization}

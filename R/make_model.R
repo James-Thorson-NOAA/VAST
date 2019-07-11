@@ -17,7 +17,7 @@
 #' @param build_model Boolean indicating whether to build the model, \code{build_model=TRUE}, or simply build the inputs, \code{build_model=FALSE}
 #' @inheritParams Data_Fn
 
-#' @return Tagged list containing objects for running a VAST model
+#' @return Object of class \code{make_model}, containing objects for running a VAST model
 #' \describe{
 #'   \item{Obj}{The built TMB object}
 #'   \item{Upper}{A vector of upper bounds for parameters, optionally for use during optimization}
@@ -82,7 +82,11 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
   if( length(Parameters)==1 && Parameters=="generate" ) Parameters = make_parameters( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
 
   # Which parameters are turned off
-  if( length(Map)==1 && Map=="generate" ) Map = make_map( DataList=TmbData, TmbParams=Parameters, RhoConfig=RhoConfig, Npool=Npool )
+  if( length(Map)==1 && Map=="generate" ){
+    Map = make_map( DataList=TmbData, TmbParams=Parameters, RhoConfig=RhoConfig, Npool=Npool )
+  }else{
+    warning( "Please carefully check starting values for all parameters to ensure that mapping off parameters will work as expected.")
+  }
 
   # Which are random
   if( length(Random)==1 && Random=="generate" ){
