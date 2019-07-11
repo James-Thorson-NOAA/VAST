@@ -78,7 +78,7 @@ function( b_i, a_i, c_iz, t_iz, e_i=c_iz[,1], v_i=rep(0,length(b_i)),
   # Deprecated inputs for backwards compatibility in transition from Version < 8.0.0 to >= 8.0.0
   deprecated_inputs = list( ... )
   X_xtp = deprecated_inputs[["X_xtp"]]
-  if( is.missing(spatial_list) ){
+  if( missing(spatial_list) ){
     warning("Consider changing use of `make_data` to include `spatial_list` as input")
     a_xl = a_gl = deprecated_inputs[["a_xl"]]
     MeshList = deprecated_inputs[["MeshList"]]
