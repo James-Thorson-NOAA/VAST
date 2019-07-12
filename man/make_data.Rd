@@ -79,7 +79,7 @@ make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
 
 \item{X_gtp}{array of density covariates for each extrapolation-grid cell g, time t, and covariate p; if missing, assumed to not include covariates}
 
-\item{X_itp}{array of density covariates for each extrapolation-grid cell i, time t, and covariate p}
+\item{X_itp}{array of density covariates for each observation i, time t, and covariate p}
 
 \item{Q_ik}{matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i}
 

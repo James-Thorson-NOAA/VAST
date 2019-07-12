@@ -43,7 +43,7 @@
 #' @param spatial_list tagged list of locatoinal information from , i.e., from \code{FishStatsUtils::make_spatial_info}
 #' @param PredTF_i OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)
 #' @param X_gtp array of density covariates for each extrapolation-grid cell g, time t, and covariate p; if missing, assumed to not include covariates
-#' @param X_itp array of density covariates for each extrapolation-grid cell i, time t, and covariate p
+#' @param X_itp array of density covariates for each observation i, time t, and covariate p
 #' @param Xconfig_zcp OPTIONAL, 3D array of settings for each dynamic density covariate, where the first dimension corresponds to 1st or 2nd linear predictors, second dimension corresponds to model category, and third dimension corresponds to each density covariate
 #' \describe{
 #'   \item{Xconfig_zcp[z,c,p]=0}{\code{X_itp[,,p]} has no effect on linear predictor z for category c}
