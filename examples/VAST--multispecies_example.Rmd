@@ -247,7 +247,7 @@ Finally, we visualize residuals on a map.  To do so, we first define years to pl
 useful plots by first determining which years to plot (`Years2Include`), and labels for each plotted year (`Year_Set`)
 ```{r plot_years}
 # Get region-specific settings for plots
-MapDetails_List = make_map_info( "Region"=Region, "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap, "Extrapolation_List"=Extrapolation_List )
+MapDetails_List = make_map_info( "Region"=Region, "spatial_list"=Spatial_List, "Extrapolation_List"=Extrapolation_List )
 # Decide which years to plot                                                   
 Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
 Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
