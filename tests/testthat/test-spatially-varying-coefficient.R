@@ -22,7 +22,7 @@ test_that("Spatially varying coefficient example is working ", {
     "c_i"=rep(0,nrow(Data$sampling_data)), "b_i"=Data$sampling_data[,'Catch_KG'],
     "a_i"=Data$sampling_data[,'AreaSwept_km2'], "v_i"=Data$sampling_data[,'Vessel'],
     "X_gtp"=Data$X_gtp, "X_itp"=Data$X_itp, "Xconfig_zcp"=Data$Xconfig_zcp, optimize_args=list("getsd"=FALSE),
-    "working_dir"=test_path )
+    "working_dir"=test_path, "test_fit"=FALSE )
 
   # Comparisons
   Par1 = fit$parameter_estimates$par[names(fit$parameter_estimates$par)%in%c("ln_H_input","beta1_ft","logkappa1","gamma2_ctp","beta2_ft","logkappa2","log_sigmaXi2_cp","logSigmaM")]
