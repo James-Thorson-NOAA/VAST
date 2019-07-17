@@ -8,7 +8,7 @@ test_that("Spatially varying coefficient example is working ", {
   # Prepping
   test_path = file.path(multispecies_example_path,"Spatially_varying_coefficient")
   load( file=file.path(test_path,"Data.RData") )
-  load( file.path(test_path,"parameter_estimates.RData") )
+  load( file.path(test_path,"saved_estimates.RData") )
   load( file.path(test_path,"settings.RData") )
   attach(settings)
   on.exit( detach(settings) )
