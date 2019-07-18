@@ -4,7 +4,7 @@
 
 .onAttach <- function(libname, pkgname) {
   packageStartupMessage("###########################################################################################")
-  packageStartupMessage("Loading package VAST version", packageVersion("VAST") )
+  packageStartupMessage("Loading package VAST version ", packageVersion("VAST") )
   packageStartupMessage("For information and examples, please see http://github.com/james-thorson/VAST/")
   packageStartupMessage("###########################################################################################")
   if( getOption("repos")["CRAN"] == "@CRAN@" ){
