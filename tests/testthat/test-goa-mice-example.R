@@ -26,6 +26,6 @@ test_that("Gulf of Alaska MICE-in-space example is working ", {
   #Par2 = parameter_estimates$par[names(parameter_estimates$par)%in%c("ln_H_input","beta1_ft","logkappa1","gamma2_ctp","beta2_ft","logkappa2","log_sigmaXi2_cp","logSigmaM")]
   #expect_equal( as.vector(Par1), as.vector(Par2), tolerance=1e-3 )
   Obj = Fit$tmb_list$Obj$fn( parameter_estimates$par )
-  expect_equal( parameter_estimates$objective, Obj, tolerance=1e-3 )
+  expect_equal( parameter_estimates$objective, as.numeric(Obj), tolerance=1e-3 )
 })
 
