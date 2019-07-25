@@ -4,8 +4,8 @@
 
 .onAttach <- function(libname, pkgname) {
   packageStartupMessage("###########################################################################################")
-  packageStartupMessage("Loading package VAST, developed by James Thorson for the Northwest Fisheries Science Center")
-  packageStartupMessage("For details and citation guidance, please see http://github.com/james-thorson/VAST/")
+  packageStartupMessage("Loading package VAST version ", packageVersion("VAST") )
+  packageStartupMessage("For information and examples, please see http://github.com/james-thorson/VAST/")
   packageStartupMessage("###########################################################################################")
   if( getOption("repos")["CRAN"] == "@CRAN@" ){
     options(repos = c("CRAN" = "http://cran.us.r-project.org"))
@@ -18,11 +18,11 @@
 
   # Load `FishStatsUtils` via .onAttach because importFrom wasn't working
   # Also requries moving FishStatsUtils to SUGGESTS, so that it doesn't isntall main branch
-  if( !"FishStatsUtils" %in% utils::installed.packages()[,1] || utils::packageVersion("FishStatsUtils") < numeric_version("2.1.0") ){
-    packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.1.0")
-    devtools::install_github("james-thorson/FishStatsUtils", ref="2.1.0")
+  if( !"FishStatsUtils" %in% utils::installed.packages()[,1] || utils::packageVersion("FishStatsUtils") < numeric_version("2.2.0") ){
+    packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.2.0")
+    devtools::install_github("james-thorson/FishStatsUtils", ref="2.2.0")
   }
-  packageStartupMessage( "Loading package `FishStatsUtils`" )
+  packageStartupMessage( "Loading package `FishStatsUtils` version ", packageVersion("FishStatsUtils") )
   library(FishStatsUtils)
 }
 
@@ -79,17 +79,6 @@ Plot_Overdispersion = function( ... ){
 Summarize_Covariance = function( ... ){
   .Deprecated( new="FishStatsUtils::summarize_covariace" )
   FishStatsUtils::summarize_covariace( ... )
-}
-
-#' Copy of VAST::summarize_results
-#'
-#' Included for continuity when using old scripts
-#'
-#' Please use \code{?VAST::summarize_results} to see list of arguments and usage
-#' @export
-Summarize = function( ... ){
-  .Deprecated( new="VAST::summarize_results" )
-  VAST::summarize_results( ... )
 }
 
 #' Copy of make_map
