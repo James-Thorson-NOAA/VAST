@@ -69,7 +69,8 @@ Next, please install the VAST package from this GitHub repository using a functi
 
 Known installation/usage issues
 =============
-none
+
+1.  If using a NOAA laptop, sometimes the PATH for Rtools is not correctly specified during installation. In those cases, please follow instructions [here](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/issues/50)
 
 References
 =============
