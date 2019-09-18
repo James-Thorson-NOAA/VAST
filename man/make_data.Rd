@@ -4,14 +4,14 @@
 \alias{make_data}
 \title{Build data input for VAST model}
 \usage{
-make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
-  length(b_i)), FieldConfig, spatial_list, ObsModel_ez = c(PosDist = 1,
-  Link = 0), OverdispersionConfig = c(eta1 = 0, eta2 = 0),
-  RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
-  VamConfig = c(Method = 0, Rank = 0, Timing = 0), Aniso = TRUE,
-  PredTF_i = rep(0, length(b_i)), Xconfig_zcp = NULL, X_gtp = NULL,
-  X_itp = NULL, Q_ik = NULL, Network_sz = NULL, F_ct = NULL,
-  F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
+make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
+  v_i = rep(0, length(b_i)), FieldConfig, spatial_list,
+  ObsModel_ez = c(PosDist = 1, Link = 0), OverdispersionConfig = c(eta1
+  = 0, eta2 = 0), RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0,
+  Epsilon2 = 0), VamConfig = c(Method = 0, Rank = 0, Timing = 0),
+  Aniso = TRUE, PredTF_i = rep(0, length(b_i)), Xconfig_zcp = NULL,
+  covariate_data, formula, Q_ik = NULL, Network_sz = NULL,
+  F_ct = NULL, F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
   yearbounds_zz = NULL, Options = c(), Expansion_cz = NULL,
   Version = FishStatsUtils::get_latest_version(package = "VAST"), ...)
 }
@@ -20,9 +20,9 @@ make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
 
 \item{a_i}{Sampled area for each observation i}
 
-\item{c_iz}{Category (e.g., species, length-bin) for each observation i}
-
 \item{t_iz}{Matrix where each row species the time for each observation i (if t_iz is a vector, it is coerced to a matrix with one column; if it is a matrix with two or more columns, it specifies multiple times for each observation, e.g., both year and season)}
+
+\item{c_iz}{Category (e.g., species, length-bin) for each observation i}
 
 \item{e_i}{Error distribution for each observation i (by default \code{e_i=c_i})}
 
@@ -77,9 +77,12 @@ make_data(b_i, a_i, c_iz, t_iz, e_i = c_iz[, 1], v_i = rep(0,
   \item{Xconfig_zcp[z,c,p]=3}{\code{X_itp[,,p]} has a spatially varying linear effect on linear predictor z for category c}
 }}
 
-\item{X_gtp}{array of density covariates for each extrapolation-grid cell g, time t, and covariate p; if missing, assumed to not include covariates}
+\item{covariate_data}{data frame of covariate values with columns \code{Lat}, \code{Lon}, and \code{Year}, and other columns matching names in \code{formula}}
 
-\item{X_itp}{array of density covariates for each observation i, time t, and covariate p}
+\item{formula}{an object of class \code{"\link{formula}"} (or one that
+    can be coerced to that class): a symbolic description of the
+    model to be fitted.  The details of model specification are given
+    under \sQuote{Details}.}
 
 \item{Q_ik}{matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i}
 

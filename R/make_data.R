@@ -3,6 +3,7 @@
 #'
 #' \code{make_data} builds a tagged list of data inputs used by TMB for running the model
 #'
+#' @inheritParams FishStatsUtils::make_covariates
 #' @param b_i Sampled biomass for each observation i
 #' @param a_i Sampled area for each observation i
 #' @param c_iz Category (e.g., species, length-bin) for each observation i
@@ -42,8 +43,6 @@
 #' }
 #' @param spatial_list tagged list of locatoinal information from , i.e., from \code{FishStatsUtils::make_spatial_info}
 #' @param PredTF_i OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)
-#' @param X_gtp array of density covariates for each extrapolation-grid cell g, time t, and covariate p; if missing, assumed to not include covariates
-#' @param X_itp array of density covariates for each observation i, time t, and covariate p
 #' @param Xconfig_zcp OPTIONAL, 3D array of settings for each dynamic density covariate, where the first dimension corresponds to 1st or 2nd linear predictors, second dimension corresponds to model category, and third dimension corresponds to each density covariate
 #' \describe{
 #'   \item{Xconfig_zcp[z,c,p]=0}{\code{X_itp[,,p]} has no effect on linear predictor z for category c}
@@ -69,7 +68,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   FieldConfig, spatial_list, ObsModel_ez=c("PosDist"=1,"Link"=0),
   OverdispersionConfig=c("eta1"=0,"eta2"=0), RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
   VamConfig=c("Method"=0,"Rank"=0,"Timing"=0), Aniso=TRUE, PredTF_i=rep(0,length(b_i)),
-  Xconfig_zcp=NULL, X_gtp=NULL, X_itp=NULL,
+  Xconfig_zcp=NULL, covariate_data=NULL, formula=~0,
   Q_ik=NULL, Network_sz=NULL, F_ct=NULL, F_init=1,
   t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
   Options=c(), Expansion_cz=NULL,
@@ -78,6 +77,9 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   # Deprecated inputs for backwards compatibility in transition from Version < 8.0.0 to >= 8.0.0
   deprecated_inputs = list( ... )
   X_xtp = deprecated_inputs[["X_xtp"]]
+  X_gtp = deprecated_inputs[["X_gtp"]]
+  X_itp = deprecated_inputs[["X_itp"]]
+  X_xj = deprecated_inputs[["X_xj"]]
   if( missing(spatial_list) ){
     warning("Consider changing use of `make_data` to include `spatial_list` as input")
     a_xl = a_gl = deprecated_inputs[["a_xl"]]
@@ -92,9 +94,6 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
     a_xl = a_gl = spatial_list[["a_gl"]]
     s_i = spatial_list[["knot_i"]] - 1
   }
-
-  # Deprecated inputs for backwards compatibility with earlier versions
-  X_xj = deprecated_inputs[["X_xj"]]
 
   # Specify default values for `Options`
   Options2use = c('SD_site_density'=FALSE, 'SD_site_logdensity'=FALSE, 'Calculate_Range'=FALSE, 'SD_observation_density'=FALSE, 'Calculate_effective_area'=FALSE,
@@ -135,6 +134,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   tprime_iz = t_iz - min(t_iz,na.rm=TRUE)
 
   # Coerce tprime_iz to be a matrix
+  if( !is.matrix(t_iz) ) t_iz = matrix(t_iz,ncol=1)
   if( !is.matrix(tprime_iz) ) tprime_iz = matrix(tprime_iz,ncol=1)
 
   # Increment first tprime_iz if t=0 corresponds to B0
@@ -168,7 +168,8 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
     b_i = ifelse( Num_ct[cbind(as.numeric(Index[[1]]),as.numeric(Index[[2]]))]==0, NA, b_i )
   }
 
-  # Covariates and defaults
+  # Deprecated inputs for covariates
+  # Stil included for backwards compatibility
   if( is.null(X_xj) ){
     X_xj = matrix(0, nrow=n_x, ncol=1)
   }else{
@@ -183,20 +184,38 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
       stop("`X_xtp` has wrong dimensions")
     }
   }
-  if( is.null(X_gtp) ){
-    X_gtp = array(0, dim=c(n_g,n_t,1))
-  }else{
+
+  # Density covariates
+  # Use X_gtp and X_itp preferentially, to maintain backwards compatibility
+  Works = FALSE
+  if( is.null(X_gtp) & is.null(X_itp) ){
+    if( is.null(covariate_data) ){
+      X_gtp = array(0, dim=c(n_g,n_t,1))
+      X_itp = array(0, dim=c(n_i,n_t,1))
+      Works = TRUE
+    }
+    if( !is.null(covariate_data) ){
+      covariate_list = make_covariates( formula=formula, covariate_data=covariate_data, Year_i=t_iz[,1],
+        spatial_list=spatial_list, extrapolation_list=extrapolation_list )
+      X_gtp = covariate_list$X_gtp
+      X_itp = covariate_list$X_itp
+      if( dim(X_gtp)[3]==0 ) X_gtp = array(0, dim=c(n_g,n_t,1))
+      if( dim(X_itp)[3]==0 ) X_itp = array(0, dim=c(n_i,n_t,1))
+      Works = TRUE
+    }
+  }
+  if( !is.null(X_gtp) & !is.null(X_itp) ){
     if( !is.array(X_gtp) || !(all(dim(X_gtp)[1:2]==c(n_g,n_t))) ){
       stop("`X_gtp` has wrong dimensions")
     }
-  }
-  if( is.null(X_itp) ){
-    X_itp = array(0, dim=c(n_i,n_t,1))
-  }else{
     if( !is.array(X_itp) || !(all(dim(X_itp)[1:2]==c(n_i,n_t))) ){
       stop("`X_itp` has wrong dimensions")
     }
+    Works = TRUE
   }
+  if( Works==FALSE ) stop("Report problem with covariate asembly to package developer")
+
+  # Catchability covariates
   if( is.null(Q_ik) ){
     Q_ik = matrix(0, nrow=n_i, ncol=1)
   }else{
@@ -204,6 +223,8 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
       stop("`Q_ik` has wrong dimensions")
     }
   }
+
+  # more defaults
   if( is.null(yearbounds_zz)){
     yearbounds_zz = matrix(c(0,n_t-1),nrow=1)
   }else{
