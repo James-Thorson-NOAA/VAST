@@ -122,6 +122,7 @@ References
 
 ### Estimating species interactions using multispecies Gompertz model
 * Thorson, J. T., Munch, S. B., and Swain, D. P. 2017. Estimating partial regulation in spatiotemporal models of community dynamics. Ecology, 98: 1277–1289. doi:10.1002/ecy.1760. URL: https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1002/ecy.1760
+* Thorson, J.T., Adams, G., Holsman, K., In press. Spatio-temporal models of intermediate complexity for ecosystem assessments: A new tool for spatial fisheries management. Fish and Fisheries. https://doi.org/10.1111/faf.12398
 
 ### Estimating synchrony among species and locations as measure of risk-exposure
 * Thorson, J.T., Scheuerell, M.D., Olden, J.D., Schindler, D.E., 2018. Spatial heterogeneity contributes more to portfolio effects than species variability in bottom-associated marine fishes. Proc R Soc B 285, 20180915. https://doi.org/10.1098/rspb.2018.0915
