@@ -1946,24 +1946,15 @@ Type objective_function<Type>::operator() ()
   // Diagnostic outputs
   ////////////////////////
 
-  REPORT( Q1 );
-  REPORT( Q2 );
+  /// Important outputs
   REPORT( B_ff );
   REPORT( P1_iz );
   REPORT( P2_iz );
   REPORT( R1_i );
   REPORT( R2_i );
-  REPORT( var_i );
-  REPORT( LogProb1_i );
-  REPORT( LogProb2_i );
   REPORT( eta1_vc );
   REPORT( eta2_vc );
-  REPORT( eta1_vf );
-  REPORT( eta2_vf );
-  REPORT( zeta1_i );
-  REPORT( zeta2_i );
   REPORT( iota_ct );
-
   REPORT( SigmaM );
   REPORT( sigmaXi1_cp );
   REPORT( sigmaXi2_cp );
@@ -1975,31 +1966,43 @@ Type objective_function<Type>::operator() ()
   REPORT( Beta_rho2_f );
   REPORT( Beta_mean2_c );
   REPORT( Epsilon_rho2_f );
-
   REPORT( Omega1_sc );
   REPORT( Omega2_sc );
-  REPORT( Omegainput1_sf );
-  REPORT( Omegainput2_sf );
   REPORT( Epsilon1_sct );
   REPORT( Epsilon2_sct );
-  REPORT( Epsiloninput1_sft );
-  REPORT( Epsiloninput2_sft );
   REPORT( H );
   REPORT( Range_raw1 );
   REPORT( Range_raw2 );
-  REPORT( beta1_mean_tf );
-  REPORT( beta2_mean_tf );
   REPORT( beta1_tc );
   REPORT( beta2_tc );
-  REPORT( jnll_comp );
   REPORT( jnll );
-  REPORT( Options );
-  REPORT( Options_vec );
-  REPORT( yearbounds_zz );
-  REPORT( Expansion_cz );
 
   ADREPORT( Range_raw1 );
   ADREPORT( Range_raw2 );
+
+  /// Optional outputs
+  if( true ){
+    REPORT( Q1 );
+    REPORT( Q2 );
+    REPORT( var_i );
+    REPORT( LogProb1_i );
+    REPORT( LogProb2_i );
+    REPORT( eta1_vf );
+    REPORT( eta2_vf );
+    REPORT( zeta1_i );
+    REPORT( zeta2_i );
+    REPORT( Omegainput1_sf );
+    REPORT( Omegainput2_sf );
+    REPORT( Epsiloninput1_sft );
+    REPORT( Epsiloninput2_sft );
+    REPORT( beta1_mean_tf );
+    REPORT( beta2_mean_tf );
+    REPORT( jnll_comp );
+    REPORT( Options );
+    REPORT( Options_vec );
+    REPORT( yearbounds_zz );
+    REPORT( Expansion_cz );
+  }
 
   if( Options(3)==1 ){
     vector<Type> D_i( n_i );
