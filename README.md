@@ -72,6 +72,10 @@ Known installation/usage issues
 
 1.  If using a NOAA laptop, sometimes the PATH for Rtools is not correctly specified during installation. In those cases, please follow instructions [here](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/issues/50)
 
+2.  Some versions of R are having problems downloading dependencies from GitHub, see details [here](https://github.com/James-Thorson-NOAA/FishStatsUtils/issues/21)
+
+3.  People using R version 3.6.0 or MRAN 3.5.3 are having a problem with changing standards for package namespaces, see details [here](https://github.com/James-Thorson-NOAA/VAST/issues/189), which appears to be particularly a problem with loading INLA due to install issues with that package.
+
 References
 =============
 ### Core functionality
