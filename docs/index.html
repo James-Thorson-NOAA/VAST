@@ -14,12 +14,8 @@
               Vector Autoregressive Spatio-Temporal Model
             </div>
 
-              <div class = "badge" data-md-tooltip="Limited Support" id="greybadge">
-              <!-- &#10039; -->
-              </div>
 
-
-              <div class = "badge" data-md-tooltip="Not Validated" id="greycheck">
+              <div class = "badge" data-md-tooltip=external_active id = external_active >
               <!-- &#10039; -->
               </div>
 
@@ -39,7 +35,7 @@
 
 
 
-              <a href= "https://github.com/James-Thorson-NOAA/VAST#user-resources-for-learning-about-vast" target="_blank" title="link to documentation">
+              <a href= "https://github.com/James-Thorson/VAST#user-resources-for-learning-about-vast" target="_blank" title="link to documentation">
                 <button class = "codelink">
                 Documentation
                 </button>
@@ -53,8 +49,7 @@
                 </button>
               </a>
 
-              <button class = "IconButton" title="need support?">
-                ?
+              <button class = "IconButton" title="e-mail fisheries.toolbox@noaa.gov" id ="email" onclick='location.href= "mailto:fisheries.toolbox@noaa.gov;"'>
               </button>
 
         </div>
@@ -71,26 +66,31 @@
 
 
 
-              <!-- <a class = "githubIcon" href="https://github.com/James-Thorson/VAST" target="_blank"></a> -->
 
-              <button class = "versionButton">
-              Version 2.1.0
-              </button>
+
+
+
+              <img class = "versionButton" alt="GitHub release (latest by date)" src= https://img.shields.io/github/v/release/James-Thorson-NOAA/VAST?color=%230093D0&include_prereleases&label=%20>
+
+
+
         </div>
+
         <div class ="label">
 
-             <!-- Type: -->
+             Type:
 
         </div>
 
         <div class = "authName">
-         author: James T Thorson
+         Author: James T Thorson
 
         </div >
 
         <div class ="mainText">
           The Vector Autoregressive Spatio-Temporal (VAST) model assimilates biomass, count, and/or encounter/non-encounter data to estimate population density across space and time for multiple categories simultaneously.  Multivariate data arise in age/size-structured samples, multispecies models, and multi-modal sampling (e.g., combining stomach and bottom trawl samples).  Models can be specified with different levels of structure across time: no temporal structure (for index standardization), temporal autocorrelation (for forecasting and spatial allocation in unsampled years), or vector autocorrelation (to approximate species interactions).  Models can also be specified with different structure across categories: rank-reduced (for improved estimates of data-poor categories), or independent (to minimize assumptions). New data sets can be simulated based on estimated parameters, and simulated data can be re-analyzed to explore estimation performance (for alternative model specifications) or sampling design performance (when dropping subsets of data).  Results can be used to: generate abundance indices; generate age/length composition; conduct model selection, hypothesis testing, and cross-validation;  identify distribution shifts and range expansion/contraction; identify species assemblages having similar spatial, temporal, or spatio-temporal patterns; forecast and interpolate distribution under new environmental conditions; attribute changes to local or regional covariates; explore sampling or estimation performance using VAST as an operating model; inter-calibrate data from multiple survey gear and/or different measurement types; and estimate proportions of density within spatial substrata or belonging to individual categories.
         </div>
+
         <div class="mainText">
 
           <div class = "ref">
@@ -98,30 +98,52 @@
           </div>
             <ul>
 
-              <li>Please see up-to-date list of references on the  <a class ="mylink" href= "https://github.com/James-Thorson-NOAA/VAST#references"> VAST GitHub main-page</a></li>
-
+              <li>Please see up-to-date list of references on the  <a href="https://github.com/James-Thorson/VAST#references"><i>VAST GitHub main-page</i></a></li>
             </ul>
+
 
 
 
           <div class = "ref">
             Associated Tools
           </div>
-            <ul>
+            <ul id = "assocaited_tools">
 
-              <li><a class ="mylink" href= "https://github.com/nwfsc-assess/VASTWestCoast">VASTWestCoast</a></li>
+                <li><a href="https://github.com/nwfsc-assess/VASTWestCoast"><i>VASTWestCoast</i></a></li>
 
-              <li>VASTGAP:  AFSC internal analysis tool</li>
+                <li>VASTGAP: AFSC internal analysis tool</li>
 
             </ul>
 
-            </div>
+
+
+              <div class = "ref">
+            Code Repository Badges
+          </div>
+
+
+
+              <img src="https://img.shields.io/github/last-commit/James-Thorson-NOAA/VAST.svg?style=plastic">
+
+              <img src="">
+
+
+
+          </div>
       </div>
 
       <div class = "divider"></div>
-<!--         <footer><a class ="mylink" href="https://www.commerce.gov/">U.S. Department of Commerce</a>
-    <a class ="mylink" href="https://www.noaa.gov">National Oceanographic and Atmospheric Administration</a>
-    <a class ="mylink" href="https://www.fisheries.noaa.gov/">NOAA Fisheries</a></footer> -->
+
+        <footer >
+             <img src="./static/noaa-fisheries-rgb-2line-horizontal-small.png" height="75px">
+         <div class="mywrap_center">
+          <a class ="mylink" id = "line" href="https://www.commerce.gov/">U.S. Department of Commerce</a>
+         <a class ="mylink" id = "line" href="https://www.noaa.gov">National Oceanographic and Atmospheric Administration</a>
+         <a class ="mylink" href="https://www.fisheries.noaa.gov/">NOAA Fisheries</a>
+         </div>
+
+        </footer>
+        <div class ="attribution">Icons by icons8 https://icons8.com/</div>
 
     </div>
 
