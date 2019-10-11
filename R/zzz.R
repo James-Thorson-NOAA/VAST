@@ -25,9 +25,9 @@
 
   # Load `FishStatsUtils` via .onAttach because importFrom wasn't working
   # Also requries moving FishStatsUtils to SUGGESTS, so that it doesn't isntall main branch
-  if( !"FishStatsUtils" %in% utils::installed.packages()[,1] || utils::packageVersion("FishStatsUtils") < numeric_version("2.3.0") ){
-    packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.3.0")
-    devtools::install_github("james-thorson/FishStatsUtils", ref="2.3.0")
+  if( !"FishStatsUtils" %in% utils::installed.packages()[,1] || utils::packageVersion("FishStatsUtils") < numeric_version("2.3.2") ){
+    packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.3.2")
+    devtools::install_github("james-thorson/FishStatsUtils", ref="2.3.2")
   }
   packageStartupMessage( "Loading package `FishStatsUtils` version ", packageVersion("FishStatsUtils") )
   library(FishStatsUtils)
