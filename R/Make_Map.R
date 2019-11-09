@@ -65,7 +65,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     Map[["delta_i"]] = rep(NA, length(TmbParams[["delta_i"]]) )
   }
   for( eI in 1:DataList$n_e ){
-    if(DataList$ObsModel_ez[eI,1]%in%c(0,1,2)){
+    if(DataList$ObsModel_ez[eI,1]%in%c(0,1,2,3)){
       if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA )
       if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA, NA )
     }

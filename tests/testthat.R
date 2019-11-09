@@ -14,6 +14,10 @@ TmbDir = system.file("executables", package="VAST")
 singlespecies_example_path <- system.file("extdata", package="SpatialDeltaGLMM")
 multispecies_example_path <- system.file("extdata", package="VAST")
 
+# Check that single-species results are available locally
+test_path = file.path(singlespecies_example_path,"EBS_pollock")
+file.exists( file.path(test_path,"opt.RData") )
+
 # Run tests for VAST
 #setwd(system.file("tests", package="VAST"))
 testthat::test_check("VAST")

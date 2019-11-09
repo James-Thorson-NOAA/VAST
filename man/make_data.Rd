@@ -10,9 +10,10 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
   = 0, eta2 = 0), RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0,
   Epsilon2 = 0), VamConfig = c(Method = 0, Rank = 0, Timing = 0),
   Aniso = TRUE, PredTF_i = rep(0, length(b_i)), Xconfig_zcp = NULL,
-  covariate_data, formula, Q_ik = NULL, Network_sz = NULL,
-  F_ct = NULL, F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
-  yearbounds_zz = NULL, Options = c(), Expansion_cz = NULL,
+  covariate_data = NULL, formula = ~0, Q_ik = NULL,
+  Network_sz = NULL, F_ct = NULL, F_init = 1, t_yz = NULL,
+  CheckForErrors = TRUE, yearbounds_zz = NULL, Options = c(),
+  Expansion_cz = NULL, Z_gm = NULL,
   Version = FishStatsUtils::get_latest_version(package = "VAST"), ...)
 }
 \arguments{
@@ -37,6 +38,7 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
   \item{ObsModel_ez[e,1]=0}{Normal}
   \item{ObsModel_ez[e,1]=1}{Lognormal}
   \item{ObsModel_ez[e,1]=2}{Gamma}
+  \item{ObsModel_ez[e,1]=3}{Inverse-Gaussian}
   \item{ObsModel_ez[e,1]=5}{Negative binomial}
   \item{ObsModel_ez[e,1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
   \item{ObsModel_ez[e,1]=7}{Poisson (more numerically stable than negative-binomial)}
@@ -77,12 +79,9 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
   \item{Xconfig_zcp[z,c,p]=3}{\code{X_itp[,,p]} has a spatially varying linear effect on linear predictor z for category c}
 }}
 
-\item{covariate_data}{data frame of covariate values with columns \code{Lat}, \code{Lon}, and \code{Year}, and other columns matching names in \code{formula}}
+\item{covariate_data}{data frame of covariate values with columns \code{Lat}, \code{Lon}, and \code{Year}, and other columns matching names in \code{formula}; \code{Year=NA} can be used for covariates that do not change among years (e.g., depth)}
 
-\item{formula}{an object of class \code{"\link{formula}"} (or one that
-    can be coerced to that class): a symbolic description of the
-    model to be fitted.  The details of model specification are given
-    under \sQuote{Details}.}
+\item{formula}{an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted. Similar specification to \code{\link{stats::lm}}}
 
 \item{Q_ik}{matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i}
 
@@ -97,6 +96,8 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
 \item{Options}{a vector of form c('SD_site_logdensity'=FALSE,'Calculate_Range'=FALSE,'Calculate_effective_area'=FALSE,'Calculate_Cov_SE'=FALSE,'Calculate_Synchrony'=FALSE,'Calculate_proportion'=FALSE), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied}
 
 \item{Expansion_cz}{matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.  The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates, where density is weighted by area ("area-weighted expansion", \code{Expansion[c,1]=0}, the default) or where density is weighted by the expanded value for another category ("abundance weighted expansion" \code{Expansion[c1,1]=1}).  The 2nd column is only used when \code{Expansion[c1,1]=1}, and specifies the category to use for abundance-weighted expansion, where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.}
+
+\item{Z_gm}{matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics. Defaults to eastings and northings for each knots or extrapolation-grid cell.}
 
 \item{Version}{a version number;  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}}
 
