@@ -7,6 +7,7 @@ test_that("Stream network example is working ", {
   test_path = file.path(multispecies_example_path,"Stream_network")
   load( file.path(test_path,"parameter_estimates.RData") )
   load( file.path(test_path, "settings.RData"))
+  settings$Version = FishStatsUtils::get_latest_version()
   attach(settings)
   on.exit( detach(settings) )
 
