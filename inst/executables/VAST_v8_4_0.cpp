@@ -526,6 +526,7 @@ Type objective_function<Type>::operator() ()
     // Slot 12: Calculate Omegainput1_gf, Omegainput2_gf, Epsiloninput1_gft, Epsiloninput1_gft
     // Slot 13: Calculate Treat year-category combinations with 0% encounters as 0 abundance (used for pre-processing, and doesn't affect CPP)
     // Slot 14: Does bootstrap simulator simulate new realizations of random effects (default) or condition on estimated values for random effects
+    // Slot 15: Use CV for observation errors (default) or SD
   // Options_list.yearbounds_zz
     // Two columns, and 1+ rows, specifying first and last t for each period used in calculating synchrony
   // Options_list.Expansion_cz
@@ -1309,16 +1310,27 @@ Type objective_function<Type>::operator() ()
           }
           // Gamma;  mean, CV parameterization (converting to shape, scale)
           if(ObsModel_ez(e_i(i),0)==2){
-            // shape = 1/CV^2;   scale = mean*CV^2
-            LogProb2_i(i) = dgamma(b_i(i), 1/square(SigmaM(e_i(i),0)), R2_i(i)*square(SigmaM(e_i(i),0)), true);
-            // Simulate new values when using obj.simulate()
-            SIMULATE{
-              b_i(i) = rgamma( 1/square(SigmaM(e_i(i),0)), R2_i(i)*square(SigmaM(e_i(i),0)) );
+            if( Options(15)==1 ){
+              // shape = 1/CV^2;   scale = mean*CV^2
+              LogProb2_i(i) = dgamma(b_i(i), 1/square(SigmaM(e_i(i),0)), R2_i(i)*square(SigmaM(e_i(i),0)), true);
+              SIMULATE{
+                b_i(i) = rgamma( 1/square(SigmaM(e_i(i),0)), R2_i(i)*square(SigmaM(e_i(i),0)) );
+              }
+            }else{
+              // shape = mean^2 / sd^2;   scale = sd^2 / mean
+              LogProb2_i(i) = dgamma(b_i(i), square(R2_i(i))/square(SigmaM(e_i(i),0)), square(SigmaM(e_i(i),0))/R2_i(i), true);
+              SIMULATE{
+                b_i(i) = rgamma( square(R2_i(i))/square(SigmaM(e_i(i),0)), square(SigmaM(e_i(i),0))/R2_i(i) );
+              }
             }
           }
           // Inverse-Gaussian;  mean, CV parameterization
           if(ObsModel_ez(e_i(i),0)==3){
-            LogProb2_i(i) = dinverse_gaussian(b_i(i), R2_i(i), SigmaM(e_i(i),0), true);
+            if( Options(15)==1 ){
+              LogProb2_i(i) = dinverse_gaussian(b_i(i), R2_i(i), SigmaM(e_i(i),0), true);
+            }else{
+              LogProb2_i(i) = dinverse_gaussian(b_i(i), R2_i(i), SigmaM(e_i(i),0)/R2_i(i), true);
+            }
             // Simulate new values when using obj.simulate()
             SIMULATE{
               b_i(i) = 0;
@@ -1326,9 +1338,14 @@ Type objective_function<Type>::operator() ()
           }
           // Lognormal;  mean, CV (in logspace) parameterization
           if(ObsModel_ez(e_i(i),0)==4){
-            // CV = sqrt( exp(logsd^2)-1 ), therefore
-            // logSD = sqrt( log(CV^2 + 1) ) = sqrt(log(square(SigmaM(e_i(i),0))+1))
-            logsd = sqrt( log(square(SigmaM(e_i(i),0))+1) );
+            if( Options(15)==1 ){
+              // CV = sqrt( exp(logsd^2)-1 ), therefore
+              // logSD = sqrt( log(CV^2 + 1) ) = sqrt(log(square(SigmaM(e_i(i),0))+1))
+              logsd = sqrt( log(square(SigmaM(e_i(i),0))+1) );
+            }else{
+              // CV = sd / mean, therefore
+              logsd = sqrt( log(square( SigmaM(e_i(i),0) / R2_i(i) )+1) );
+            }
             LogProb2_i(i) = dlnorm(b_i(i), log_R2_i(i)-square(logsd)/2, logsd, true); // log-space
             // Simulate new values when using obj.simulate()
             SIMULATE{

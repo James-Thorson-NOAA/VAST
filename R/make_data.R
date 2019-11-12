@@ -101,7 +101,8 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   # Specify default values for `Options`
   Options2use = c('SD_site_density'=FALSE, 'SD_site_logdensity'=FALSE, 'Calculate_Range'=FALSE, 'SD_observation_density'=FALSE, 'Calculate_effective_area'=FALSE,
     'Calculate_Cov_SE'=FALSE, 'Calculate_Synchrony'=FALSE, 'Calculate_Coherence'=FALSE, 'Calculate_proportion'=FALSE, 'normalize_GMRF_in_CPP'=TRUE,
-    'Calculate_Fratio'=FALSE, 'Estimate_B0'=FALSE, 'Project_factors'=FALSE, 'treat_nonencounter_as_zero'=FALSE, 'simulate_random_effects'=TRUE )
+    'Calculate_Fratio'=FALSE, 'Estimate_B0'=FALSE, 'Project_factors'=FALSE, 'treat_nonencounter_as_zero'=FALSE, 'simulate_random_effects'=TRUE,
+    'observation_error_as_CV'=TRUE )
 
   # Replace defaults for `Options` with provided values (if any)
   for( i in seq_along(Options) ){
@@ -557,6 +558,15 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   }
   if( RhoConfig[2] == 0 ){
     if( FieldConfig_input[3,2] != -2 ) stop("Using a factor model doesn't make sense using fixed-effect intercepts.  If you want to use a factor model without temporal structure, please change `RhoConfig[2]=1` for covariance that is independent in each year, or use some other temporal structure on intercepts.")
+  }
+
+  # Check for CV vs. variance parameterization for positive catch rates
+  if( Options2use["observation_error_as_CV"]==FALSE ){
+    if( !all(ObsModel_ez[,1] %in% c(2,3,4)) ){
+      stop("Options['observation_error_as_CV']==FALSE only works with some observation distributions")
+    }else{
+      warning("Options['observation_error_as_CV']==FALSE is experimental; please use at your own risk"))
+    }
   }
 
 
