@@ -1328,7 +1328,7 @@ Type objective_function<Type>::operator() ()
           if(ObsModel_ez(e_i(i),0)==4){
             // CV = sqrt( exp(logsd^2)-1 ), therefore
             // logSD = sqrt( log(CV^2 + 1) ) = sqrt(log(square(SigmaM(e_i(i),0))+1))
-            logsd = sqrt( log(square(SigmaM(e_i(i),0))+1) )
+            logsd = sqrt( log(square(SigmaM(e_i(i),0))+1) );
             LogProb2_i(i) = dlnorm(b_i(i), log_R2_i(i)-square(logsd)/2, logsd, true); // log-space
             // Simulate new values when using obj.simulate()
             SIMULATE{
