@@ -36,9 +36,10 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
 \item{ObsModel_ez}{an optional matrix with two columns where first column specifies the distribution for positive catch rates, and second element specifies the functional form for encounter probabilities
 \describe{
   \item{ObsModel_ez[e,1]=0}{Normal}
-  \item{ObsModel_ez[e,1]=1}{Lognormal}
+  \item{ObsModel_ez[e,1]=1}{Lognormal, using mean and sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4} instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
   \item{ObsModel_ez[e,1]=2}{Gamma}
   \item{ObsModel_ez[e,1]=3}{Inverse-Gaussian}
+  \item{ObsModel_ez[e,1]=4}{Lornormal, using mean and coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
   \item{ObsModel_ez[e,1]=5}{Negative binomial}
   \item{ObsModel_ez[e,1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
   \item{ObsModel_ez[e,1]=7}{Poisson (more numerically stable than negative-binomial)}
