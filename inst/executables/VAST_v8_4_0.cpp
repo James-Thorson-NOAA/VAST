@@ -1373,7 +1373,7 @@ Type objective_function<Type>::operator() ()
         LogProb1_i(i) = 0;
         // dtweedie( Type y, Type mu, Type phi, Type p, int give_log=0 )
         // R1*R2 = mean
-        LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(SigmaM(e_i(i),0))+1.0, true );
+        LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0), true );
         // Simulate new values when using obj.simulate()
         SIMULATE{
           b_i(i) = 0;   // Option not available

@@ -36,7 +36,8 @@
 make_model <-
 function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Method="Mesh", Npool=0,
   ConvergeTol=1, Use_REML=FALSE, loc_x=NULL, Parameters="generate", Random="generate", Map="generate",
-  DiagnosticDir=NULL, TmbDir=system.file("executables",package="VAST"), RunDir=getwd(), build_model=TRUE ){
+  DiagnosticDir=NULL, TmbDir=system.file("executables",package="VAST"), RunDir=getwd(), CompileDir=RunDir,
+  build_model=TRUE ){
                                             
   # Extract Options and Options_vec (depends upon version)
   if( all(c("Options","Options_vec") %in% names(TmbData)) ){
@@ -71,10 +72,10 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
 
   # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
-  file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(RunDir,"/",Version,".cpp"), overwrite=FALSE)
+  file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(CompileDir,"/",Version,".cpp"), overwrite=FALSE)
   origwd = getwd()
   on.exit(setwd(origwd),add=TRUE)
-  setwd( RunDir )
+  setwd( CompileDir )
   TMB::compile( paste0(Version,".cpp") )
 
   # Parameters
@@ -125,7 +126,7 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
   }
 
   # Build object
-  dyn.load( paste0(RunDir,"/",TMB::dynlib(Version)) ) # random=Random,
+  dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version)) ) # random=Random,
   Obj <- TMB::MakeADFun(data=TmbData, parameters=Parameters, hessian=FALSE, map=Map, random=Random, inner.method="newton", DLL=Version)  #
   Obj$control <- list(parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 

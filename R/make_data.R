@@ -565,7 +565,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
     if( !all(ObsModel_ez[,1] %in% c(2,3,4)) ){
       stop("Options['observation_error_as_CV']==FALSE only works with some observation distributions")
     }else{
-      warning("Options['observation_error_as_CV']==FALSE is experimental; please use at your own risk"))
+      warning("Options['observation_error_as_CV']==FALSE is experimental; please use at your own risk")
     }
   }
 
@@ -598,6 +598,13 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   SD_p = apply( X_xtp, MARGIN=3, FUN=sd )
   if( any(SD_p>3) ){
     warning( "I highly recommend that you standardize each density covariate `X_xtp` to have a low standard deviation, to avoid numerical under/over-flow" )
+  }
+
+  # Tweedie bug
+  if( any(ObsModel_ez[,1]==10) ){
+    if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v8_3_0") ){
+      warning("CPP versions prior to 8.4.0 had a bug in dtweedie, where the power parameter xi was mistakenly constrained to range from 1.5 to 2.0 (rather than 1.0 to 2.0). This bug either had no effect, or resulted in the parameter hitting a bound and impaired model fit.")
+    }
   }
 
   ###################
