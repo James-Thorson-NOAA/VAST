@@ -22,7 +22,7 @@ There are eight main resources for learning about VAST:
 *  *High-level wrapper functions*:  I have recently added high-level wrapper functions, which provide a [gentle introduction](https://github.com/James-Thorson/VAST/wiki/Simple-example) to running `VAST`
 *  *Examples*:  Please see [examples folder](https://github.com/James-Thorson/VAST/tree/master/examples) for annoted Rmarkdown scripts that run single-species or multi-species examples using lower-level functions for a variety of regions.
 *  *R-help documentation*:  Please see the standard R-help documentation, e.g., by typing `?VAST::Data_Fn` in the R-terminal after installing the package.
-*  *Publications*:  Please see the [publications list](https://github.com/James-Thorson/VAST#description-of-individual-features) to identify peer-reviewed publications regarding individual features.  These publications include statistical theory and model testing.
+*  *Publications*:  Please see the [publications list](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/wiki/Applications) to identify peer-reviewed publications regarding individual features.  These publications include statistical theory and model testing.
 *  *List-serv*: Consider joining the [FishStats listserve](https://groups.google.com/forum/#!forum/fishstats-listserv) for 4-6 updates per year, including training classes.
 *  *Issue-tracker*:  Before posting new issues, users should explore the previous issues in the github issue tracker for [VAST](https://github.com/James-Thorson/VAST/issues), [SpatialDeltaGLMM](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/issues), and [FishStatsUtils](https://github.com/james-thorson/FishStatsUtils/issues), including a search for old and closed issues.
 *  *Wiki*:  Users should read and are encouraged to actively contribute to the wiki, which is housed at [the github for SpatialDeltaGLMM](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/wiki)
@@ -49,23 +49,23 @@ First, install the "devtools" package from CRAN
     install.packages("devtools")
     library("devtools")
 
-Second, please install the following:
-* TMB (Template Model Builder): https://github.com/kaskr/adcomp
-* INLA (integrated nested Laplace approximations): http://www.r-inla.org/download
-
-Note: at the moment, TMB and INLA can be installed using the commands
-
-    # Install TMB from CRAN
-    install.packages("TMB")
-    # Install INLA using currently recommended method
-    install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
-
 Next, please install the VAST package from this GitHub repository using a function in the "devtools" package.  This may require using the `INSTALL_opts` option depending upon your version of R:
 
     # Install package
     install_github("james-thorson/VAST", INSTALL_opts="--no-staged-install")
     # Load package
     library(VAST)
+
+If you are having problems with installation, please consider installing dependencies individually, e.g. using:
+
+    # Install TMB from CRAN
+    install.packages("TMB")
+    # Install INLA using currently recommended method
+    install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
+    # Install TMB from CRAN
+    install.github("james-thorson/FishStatsUtils", INSTALL_opts="--no-staged-install")
+
+
 
 Known installation/usage issues
 =============
@@ -137,6 +137,8 @@ References
 ### Combining multiple types of data (e.g., biomass, count, encounter)
 * Grüss, A., Thorson, J.T., In press. Developing spatio-temporal models using multiple data types for evaluating population trends and habitat usage. ICES J. Mar. Sci. https://doi.org/10.1093/icesjms/fsz075
 
+### Spatially varying coefficient models and their use for fisheries oceanography
+* Thorson, J.T., 2019. Measuring the impact of oceanographic indices on species distribution shifts: The spatially varying effect of cold-pool extent in the eastern Bering Sea. Limnol. Oceanogr. 64, 2632–2645. https://doi.org/10.1002/lno.11238
 
 Funding and support for the tool
 =============
