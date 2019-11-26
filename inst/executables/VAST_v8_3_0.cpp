@@ -1080,7 +1080,7 @@ Type objective_function<Type>::operator() ()
   matrix<Type> eta2_mean_vf(n_v, n_eta_f2);
   eta2_mean_vf.setZero();
   matrix<Type> eta2_vc(n_v, n_c);
-  eta2_vc = covariation_by_category_nll( OverdispersionConfig(1), n_v, n_c, eta2_vf, eta1_mean_vf, L2_z, Options(14), jnll_comp(5), this );
+  eta2_vc = covariation_by_category_nll( OverdispersionConfig(1), n_v, n_c, eta2_vf, eta2_mean_vf, L2_z, Options(14), jnll_comp(5), this );
 
   ////// Probability of correlated innovations on intercepts
   // 1st component
