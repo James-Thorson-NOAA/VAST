@@ -458,6 +458,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
         Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
         Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
         Map_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
+        # MAYBE ADD FEATURE TO TURN OFF FOR Tmp_ct==0
       }else{
         stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
       }

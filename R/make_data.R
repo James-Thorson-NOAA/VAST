@@ -337,6 +337,11 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
           print( Prop_nonzero )
           stop("Some years and/or categories have 100% encounters, and this requires either temporal structure of a different link-function")
         }
+      }
+    }
+    if( any(ObsModel_ez[,2] %in% c(0,1,3,4)) ){
+      # Require Options2use['treat_nonencounter_as_zero']=TRUE to use any standard link function without temporal smoother given that there's 0% encounters
+      if( RhoConfig[1]==0 ){
         if( any(!is.na(Prop_nonzero) & (Prop_nonzero==0)) & Options2use['treat_nonencounter_as_zero']==FALSE ){
           print( Prop_nonzero )
           stop("Some years and/or categories have 0% encounters, and this requires either temporal structure of a different link-function")
