@@ -138,7 +138,7 @@ References
 * Thorson, 2019. Forecast skill for predicting distribution shifts:  A retrospective experiment for marine fishes in the Eastern Bering Sea. Fish Fish. 20(1): 159-173. https://doi.org/10.1111/faf.12330
 
 ### Combining multiple types of data (e.g., biomass, count, encounter)
-* Grüss, A., Thorson, J.T., In press. Developing spatio-temporal models using multiple data types for evaluating population trends and habitat usage. ICES J. Mar. Sci. https://doi.org/10.1093/icesjms/fsz075
+* Grüss, A. and Thorson, J.T. (2019) Developing spatio-temporal models using multiple data types for evaluating population trends and habitat usage. ICES Journal of Marine Science 76, 1748–1761. doi:10.1093/icesjms/fsz075.
 
 ### Spatially varying coefficient models and their use for fisheries oceanography
 * Thorson, J.T., 2019. Measuring the impact of oceanographic indices on species distribution shifts: The spatially varying effect of cold-pool extent in the eastern Bering Sea. Limnol. Oceanogr. 64, 2632–2645. https://doi.org/10.1002/lno.11238
