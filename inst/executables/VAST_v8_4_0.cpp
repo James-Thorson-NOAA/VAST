@@ -1333,7 +1333,7 @@ Type objective_function<Type>::operator() ()
             }
             // Simulate new values when using obj.simulate()
             SIMULATE{
-              b_i(i) = 0;
+              b_i(i) = Type(1.0);   // Simulate as 1.0 so b_i distinguishes between simulated encounter/non-encounters
             }
           }
           // Lognormal;  mean, CV (in logspace) parameterization
