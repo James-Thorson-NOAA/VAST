@@ -71,7 +71,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   FieldConfig, spatial_list, ObsModel_ez=c("PosDist"=1,"Link"=0),
   OverdispersionConfig=c("eta1"=0,"eta2"=0), RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
   VamConfig=c("Method"=0,"Rank"=0,"Timing"=0), Aniso=TRUE, PredTF_i=rep(0,length(b_i)),
-  Xconfig_zcp=NULL, covariate_data=NULL, formula=~0,
+  Xconfig_zcp=NULL, covariate_data=NULL, formula,
   Q_ik=NULL, Network_sz=NULL, F_ct=NULL, F_init=1,
   t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
   Options=c(), Expansion_cz=NULL, Z_gm=NULL,
@@ -199,6 +199,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
       Works = TRUE
     }
     if( !is.null(covariate_data) ){
+      if(missing(formula)) stop("Must supply `formula` when specifying `covariate_data`")
       covariate_list = make_covariates( formula=formula, covariate_data=covariate_data, Year_i=t_iz[,1],
         spatial_list=spatial_list, extrapolation_list=extrapolation_list )
       X_gtp = covariate_list$X_gtp
