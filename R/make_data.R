@@ -312,7 +312,11 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
     }else{
       # Improved interface used for Version >= 8.0.0
       Z_xm = spatial_list$loc_x
-      if(is.null(Z_gm)) Z_gm = spatial_list$loc_g
+      if(is.null(Z_gm)){
+        Z_gm = spatial_list$loc_g
+      }else{
+        if(nrow(Z_gm)!=nrow(spatial_list$loc_g)) stop("Check dimensions for input `Z_gm`")
+      }
     }
     message( "Calculating range shift for stratum #1:",colnames(a_gl[1]))
   }
