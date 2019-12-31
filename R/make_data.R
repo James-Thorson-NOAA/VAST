@@ -465,7 +465,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
 
   # Recommend against dlnorm with mean+sd parameterization
   if( any(ObsModel_ez[,1]==1) ){
-    warning("the package author recommends using the lognormal mean-CV parameterization, `ObsModel_ez[,1]=4` instead of the mean-SD parameterization, `ObsModel_ez[,1]=1`")
+    #warning("the package author recommends using the lognormal mean-CV parameterization, `ObsModel_ez[,1]=4` instead of the mean-SD parameterization, `ObsModel_ez[,1]=1`")
   }
   if( any(ObsModel_ez[,1]==3) ){
     if( Version=="VAST_v8_3_0" ){

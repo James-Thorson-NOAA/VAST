@@ -10,11 +10,11 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
   = 0, eta2 = 0), RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0,
   Epsilon2 = 0), VamConfig = c(Method = 0, Rank = 0, Timing = 0),
   Aniso = TRUE, PredTF_i = rep(0, length(b_i)), Xconfig_zcp = NULL,
-  covariate_data = NULL, formula = ~0, Q_ik = NULL,
-  Network_sz = NULL, F_ct = NULL, F_init = 1, t_yz = NULL,
-  CheckForErrors = TRUE, yearbounds_zz = NULL, Options = c(),
-  Expansion_cz = NULL, Z_gm = NULL,
-  Version = FishStatsUtils::get_latest_version(package = "VAST"), ...)
+  covariate_data = NULL, formula, Q_ik = NULL, Network_sz = NULL,
+  F_ct = NULL, F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
+  yearbounds_zz = NULL, Options = c(), Expansion_cz = NULL,
+  Z_gm = NULL, Version = FishStatsUtils::get_latest_version(package =
+  "VAST"), ...)
 }
 \arguments{
 \item{b_i}{Sampled biomass for each observation i}
@@ -36,10 +36,10 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
 \item{ObsModel_ez}{an optional matrix with two columns where first column specifies the distribution for positive catch rates, and second element specifies the functional form for encounter probabilities
 \describe{
   \item{ObsModel_ez[e,1]=0}{Normal}
-  \item{ObsModel_ez[e,1]=1}{Lognormal, using mean and sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4} instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
+  \item{ObsModel_ez[e,1]=1}{Lognormal, using mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4} instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
   \item{ObsModel_ez[e,1]=2}{Gamma}
   \item{ObsModel_ez[e,1]=3}{Inverse-Gaussian}
-  \item{ObsModel_ez[e,1]=4}{Lornormal, using mean and coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
+  \item{ObsModel_ez[e,1]=4}{Lornormal, using mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
   \item{ObsModel_ez[e,1]=5}{Negative binomial}
   \item{ObsModel_ez[e,1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
   \item{ObsModel_ez[e,1]=7}{Poisson (more numerically stable than negative-binomial)}
@@ -79,10 +79,6 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
   \item{Xconfig_zcp[z,c,p]=2}{\code{X_itp[,,p]} has a spatially varying, zero-centered linear effect on linear predictor z for category c}
   \item{Xconfig_zcp[z,c,p]=3}{\code{X_itp[,,p]} has a spatially varying linear effect on linear predictor z for category c}
 }}
-
-\item{covariate_data}{data frame of covariate values with columns \code{Lat}, \code{Lon}, and \code{Year}, and other columns matching names in \code{formula}; \code{Year=NA} can be used for covariates that do not change among years (e.g., depth)}
-
-\item{formula}{an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted. Similar specification to \code{\link{stats::lm}}}
 
 \item{Q_ik}{matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i}
 
