@@ -645,6 +645,10 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
       warnings( "This version of VAST has different hyperparameters for each category. Default behavior for CPP version <=5.3.0 was to have the same hyperparameters for the intercepts of all categories." )
     }
   }
+  if( all(c("Beta_mean1_t","Beta_mean2_t") %in% names(TmbParams)) ){
+    Map[["Beta_mean1_t"]] = factor( rep(NA,DataList$n_t) )
+    Map[["Beta_mean2_t"]] = factor( rep(NA,DataList$n_t) )
+  }
 
   #####
   # Step 4: Structure for seasonal models
