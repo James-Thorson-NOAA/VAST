@@ -65,7 +65,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     Map[["delta_i"]] = rep(NA, length(TmbParams[["delta_i"]]) )
   }
   for( eI in 1:DataList$n_e ){
-    if(DataList$ObsModel_ez[eI,1]%in%c(0,1,2,3)){
+    if(DataList$ObsModel_ez[eI,1]%in%c(0,1,2,3,4)){
       if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA )
       if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA, NA )
     }
@@ -458,6 +458,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
         Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
         Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
         Map_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
+        # MAYBE ADD FEATURE TO TURN OFF FOR Tmp_ct==0
       }else{
         stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
       }
@@ -643,6 +644,10 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     if( DataList$n_c >= 2 ){
       warnings( "This version of VAST has different hyperparameters for each category. Default behavior for CPP version <=5.3.0 was to have the same hyperparameters for the intercepts of all categories." )
     }
+  }
+  if( all(c("Beta_mean1_t","Beta_mean2_t") %in% names(TmbParams)) ){
+    Map[["Beta_mean1_t"]] = factor( rep(NA,DataList$n_t) )
+    Map[["Beta_mean2_t"]] = factor( rep(NA,DataList$n_t) )
   }
 
   #####

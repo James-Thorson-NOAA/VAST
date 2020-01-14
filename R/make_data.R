@@ -16,9 +16,10 @@
 #' @param ObsModel_ez an optional matrix with two columns where first column specifies the distribution for positive catch rates, and second element specifies the functional form for encounter probabilities
 #' \describe{
 #'   \item{ObsModel_ez[e,1]=0}{Normal}
-#'   \item{ObsModel_ez[e,1]=1}{Lognormal}
+#'   \item{ObsModel_ez[e,1]=1}{Lognormal, using mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4} instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
 #'   \item{ObsModel_ez[e,1]=2}{Gamma}
 #'   \item{ObsModel_ez[e,1]=3}{Inverse-Gaussian}
+#'   \item{ObsModel_ez[e,1]=4}{Lornormal, using mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
 #'   \item{ObsModel_ez[e,1]=5}{Negative binomial}
 #'   \item{ObsModel_ez[e,1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
 #'   \item{ObsModel_ez[e,1]=7}{Poisson (more numerically stable than negative-binomial)}
@@ -70,7 +71,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   FieldConfig, spatial_list, ObsModel_ez=c("PosDist"=1,"Link"=0),
   OverdispersionConfig=c("eta1"=0,"eta2"=0), RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
   VamConfig=c("Method"=0,"Rank"=0,"Timing"=0), Aniso=TRUE, PredTF_i=rep(0,length(b_i)),
-  Xconfig_zcp=NULL, covariate_data=NULL, formula=~0,
+  Xconfig_zcp=NULL, covariate_data=NULL, formula,
   Q_ik=NULL, Network_sz=NULL, F_ct=NULL, F_init=1,
   t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
   Options=c(), Expansion_cz=NULL, Z_gm=NULL,
@@ -100,7 +101,8 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   # Specify default values for `Options`
   Options2use = c('SD_site_density'=FALSE, 'SD_site_logdensity'=FALSE, 'Calculate_Range'=FALSE, 'SD_observation_density'=FALSE, 'Calculate_effective_area'=FALSE,
     'Calculate_Cov_SE'=FALSE, 'Calculate_Synchrony'=FALSE, 'Calculate_Coherence'=FALSE, 'Calculate_proportion'=FALSE, 'normalize_GMRF_in_CPP'=TRUE,
-    'Calculate_Fratio'=FALSE, 'Estimate_B0'=FALSE, 'Project_factors'=FALSE, 'treat_nonencounter_as_zero'=FALSE, 'simulate_random_effects'=TRUE )
+    'Calculate_Fratio'=FALSE, 'Estimate_B0'=FALSE, 'Project_factors'=FALSE, 'treat_nonencounter_as_zero'=FALSE, 'simulate_random_effects'=TRUE,
+    'observation_error_as_CV'=TRUE )
 
   # Replace defaults for `Options` with provided values (if any)
   for( i in seq_along(Options) ){
@@ -197,6 +199,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
       Works = TRUE
     }
     if( !is.null(covariate_data) ){
+      if(missing(formula)) stop("Must supply `formula` when specifying `covariate_data`")
       covariate_list = make_covariates( formula=formula, covariate_data=covariate_data, Year_i=t_iz[,1],
         spatial_list=spatial_list, extrapolation_list=extrapolation_list )
       X_gtp = covariate_list$X_gtp
@@ -309,7 +312,11 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
     }else{
       # Improved interface used for Version >= 8.0.0
       Z_xm = spatial_list$loc_x
-      if(is.null(Z_gm)) Z_gm = spatial_list$loc_g
+      if(is.null(Z_gm)){
+        Z_gm = spatial_list$loc_g
+      }else{
+        if(nrow(Z_gm)!=nrow(spatial_list$loc_g)) stop("Check dimensions for input `Z_gm`")
+      }
     }
     message( "Calculating range shift for stratum #1:",colnames(a_gl[1]))
   }
@@ -335,6 +342,11 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
           print( Prop_nonzero )
           stop("Some years and/or categories have 100% encounters, and this requires either temporal structure of a different link-function")
         }
+      }
+    }
+    if( any(ObsModel_ez[,2] %in% c(0,1,3,4)) ){
+      # Require Options2use['treat_nonencounter_as_zero']=TRUE to use any standard link function without temporal smoother given that there's 0% encounters
+      if( RhoConfig[1]==0 ){
         if( any(!is.na(Prop_nonzero) & (Prop_nonzero==0)) & Options2use['treat_nonencounter_as_zero']==FALSE ){
           print( Prop_nonzero )
           stop("Some years and/or categories have 0% encounters, and this requires either temporal structure of a different link-function")
@@ -353,10 +365,10 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
     if( any(OverdispersionConfig>0) & length(unique(v_i))==1 ) stop("It doesn't make sense to use use `OverdispersionConfig` when using only one level of `v_i`")
     if( any(ObsModel_ez[,1] %in% c(12,13,14)) ){
       if( any(ObsModel_ez[,2] != 1) ) stop("If using `ObsModel_ez[e,1]` in {12,13,14} then must use `ObsModel_ez[e,2]=1`")
-      if( !any(ObsModel_ez[,1] %in% c(0,1,2,3)) ) stop("Using `ObsModel_ez[e,1]` in {12,13,14} is only intended when combining data with biomass-sampling data")
+      if( !any(ObsModel_ez[,1] %in% c(0,1,2,3,4)) ) stop("Using `ObsModel_ez[e,1]` in {12,13,14} is only intended when combining data with biomass-sampling data")
     }
     if( all(b_i>0) & all(ObsModel_ez[,1]==0) & !all(FieldConfig_input[1:2,1]==-1) ) stop("All data are positive and using a conventional delta-model, so please turn off `Omega1` and `Epsilon1` terms")
-    if( !(all(ObsModel_ez[,1] %in% c(0,1,2,3,5,6,7,8,9,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
+    if( !(all(ObsModel_ez[,1] %in% c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
     if( !(all(ObsModel_ez[,2] %in% c(0,1,2,3,4))) ) stop("Please check `ObsModel_ez[,2]` input")
     if( !all(RhoConfig[1]%in%c(0,1,2,3,4)) | !all(RhoConfig[2]%in%c(0,1,2,3,4,6)) | !all(RhoConfig[3]%in%c(0,1,2,4,5)) | !all(RhoConfig[4]%in%c(0,1,2,4,5,6)) ) stop("Check `RhoConfig` inputs")
     if( any(is.na(X_xtp)) ) stop("Some `X_xtp` is NA, and this is not allowed")
@@ -448,6 +460,16 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   if( !is.null(spatial_list$fine_scale) && spatial_list$fine_scale==TRUE ){
     if( Options2use['SD_site_density']==TRUE | Options2use['SD_site_logdensity']==TRUE ){
       warning("'SD_site_density' and 'SD_site_logdensity' are very slow when using `fine_scale=TRUE`")
+    }
+  }
+
+  # Recommend against dlnorm with mean+sd parameterization
+  if( any(ObsModel_ez[,1]==1) ){
+    #warning("the package author recommends using the lognormal mean-CV parameterization, `ObsModel_ez[,1]=4` instead of the mean-SD parameterization, `ObsModel_ez[,1]=1`")
+  }
+  if( any(ObsModel_ez[,1]==3) ){
+    if( Version=="VAST_v8_3_0" ){
+      warning("Version `VAST_v8_3_0` used a mean-sd parameterization for the Inverse-Gaussian, while later versions use a mean-CV parameterization to match the Gamma distribution")
     }
   }
 
@@ -548,6 +570,15 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
     if( FieldConfig_input[3,2] != -2 ) stop("Using a factor model doesn't make sense using fixed-effect intercepts.  If you want to use a factor model without temporal structure, please change `RhoConfig[2]=1` for covariance that is independent in each year, or use some other temporal structure on intercepts.")
   }
 
+  # Check for CV vs. variance parameterization for positive catch rates
+  if( Options2use["observation_error_as_CV"]==FALSE ){
+    if( !all(ObsModel_ez[,1] %in% c(2,3,4)) ){
+      stop("Options['observation_error_as_CV']==FALSE only works with some observation distributions")
+    }else{
+      warning("Options['observation_error_as_CV']==FALSE is experimental; please use at your own risk")
+    }
+  }
+
 
   ###################
   # switch defaults if necessary
@@ -577,6 +608,13 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   SD_p = apply( X_xtp, MARGIN=3, FUN=sd )
   if( any(SD_p>3) ){
     warning( "I highly recommend that you standardize each density covariate `X_xtp` to have a low standard deviation, to avoid numerical under/over-flow" )
+  }
+
+  # Tweedie bug
+  if( any(ObsModel_ez[,1]==10) ){
+    if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v8_3_0") ){
+      warning("CPP versions prior to 8.4.0 had a bug in dtweedie, where the power parameter xi was mistakenly constrained to range from 1.5 to 2.0 (rather than 1.0 to 2.0). This bug either had no effect, or resulted in the parameter hitting a bound and impaired model fit.")
+    }
   }
 
   ###################
@@ -637,7 +675,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   if(Version%in%c("VAST_v7_0_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "Xconfig_zcp"=Xconfig_zcp, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
-  if(Version%in%c("VAST_v8_3_0","VAST_v8_2_0","VAST_v8_1_0","VAST_v8_0_0")){
+  if(Version%in%c("VAST_v8_5_0","VAST_v8_4_0","VAST_v8_3_0","VAST_v8_2_0","VAST_v8_1_0","VAST_v8_0_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_g"=n_g, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_gm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "Xconfig_zcp"=Xconfig_zcp, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_gl"=a_gl, "X_itp"=X_itp, "X_gtp"=X_gtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_gm"=Z_gm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2, "Ais_ij"=cbind(spatial_list$A_is@i,spatial_list$A_is@j), "Ais_x"=spatial_list$A_is@x, "Ags_ij"=cbind(spatial_list$A_gs@i,spatial_list$A_gs@j), "Ags_x"=spatial_list$A_gs@x )
   }
   if( is.null(Return) ) stop("`Version` provided does not match the list of possible values")

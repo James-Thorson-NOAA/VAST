@@ -56,6 +56,18 @@ Type var( array<Type> vec ){
   return res;
 }
 
+// square
+template<class Type>
+Type square(Type x){
+  return pow(x,2);
+}
+
+// sqrt
+template<class Type>
+Type sqrt(Type x){
+  return pow(x,0.5);
+}
+
 // dlnorm
 template<class Type>
 Type dlnorm(Type x, Type meanlog, Type sdlog, int give_log=0){
@@ -66,8 +78,9 @@ Type dlnorm(Type x, Type meanlog, Type sdlog, int give_log=0){
 
 // dinverse_gaussian
 template<class Type>
-Type dinverse_gaussian(Type x, Type mean, Type sd, int give_log=0){
+Type dinverse_gaussian(Type x, Type mean, Type cv, int give_log=0){
   //return sqrt(lambda/(2*M_PI*pow(x,3))) * exp( -1.0 * lambda*pow(x-mean,2) / (2*pow(mean,2)*x) );
+  Type sd = cv * mean;
   Type lambda = pow(mean,3) / pow(sd,2);
   Type logres = 0.5*(log(lambda) - 3.0*log(x) - log(2*M_PI)) - ( lambda*pow(x-mean,2) / (2*pow(mean,2)*x) );
   if(give_log) return logres; else return exp(logres);
@@ -513,6 +526,7 @@ Type objective_function<Type>::operator() ()
     // Slot 12: Calculate Omegainput1_gf, Omegainput2_gf, Epsiloninput1_gft, Epsiloninput1_gft
     // Slot 13: Calculate Treat year-category combinations with 0% encounters as 0 abundance (used for pre-processing, and doesn't affect CPP)
     // Slot 14: Does bootstrap simulator simulate new realizations of random effects (default) or condition on estimated values for random effects
+    // Slot 15: Use CV for observation errors (default) or SD
   // Options_list.yearbounds_zz
     // Two columns, and 1+ rows, specifying first and last t for each period used in calculating synchrony
   // Options_list.Expansion_cz
@@ -1196,6 +1210,7 @@ Type objective_function<Type>::operator() ()
   // Likelihood contribution from observations
   LogProb1_i.setZero();
   LogProb2_i.setZero();
+  Type logsd;
   for(i=0; i<n_i; i++){
     if( !isNA(b_i(i)) ){
       // Linear predictors
@@ -1212,7 +1227,7 @@ Type objective_function<Type>::operator() ()
         }
       }
       // Apply link function to calculate responses
-      if( (ObsModel_ez(c_iz(i,0),1)==0) | (ObsModel_ez(c_iz(i,0),1)==3) ){
+      if( (ObsModel_ez(e_i(i),1)==0) | (ObsModel_ez(e_i(i),1)==3) ){
         // Log and logit-link, where area-swept only affects positive catch rate exp(P2_i(i))
         // P1_i: Logit-Probability of occurrence;  R1_i:  Probability of occurrence
         // P2_i: Log-Positive density prediction;  R2_i:  Positive density prediction
@@ -1223,7 +1238,7 @@ Type objective_function<Type>::operator() ()
         log_one_minus_R1_i(i) = log(Type(1.0)) - logspace_add( log(Type(1.0)), P1_iz(i,0) );
         log_R2_i(i) = log(a_i(i)) + P2_iz(i,0);
       }
-      if( (ObsModel_ez(c_iz(i,0),1)==1) | (ObsModel_ez(c_iz(i,0),1)==4) ){
+      if( (ObsModel_ez(e_i(i),1)==1) | (ObsModel_ez(e_i(i),1)==4) ){
         // Poisson-process link, where area-swept affects numbers density exp(P1_i(i))
         // P1_i: Log-numbers density;  R1_i:  Probability of occurrence
         // P2_i: Log-average weight;  R2_i:  Positive density prediction
@@ -1245,7 +1260,7 @@ Type objective_function<Type>::operator() ()
         log_one_minus_R1_i(i) = -1*a_i(i)*tmp_calc1;
         log_R2_i(i) = log(a_i(i)) + log_tmp_calc2 - log_R1_i(i);
       }
-      if( ObsModel_ez(c_iz(i,0),1)==2 ){
+      if( ObsModel_ez(e_i(i),1)==2 ){
         // Tweedie link, where area-swept affects numbers density exp(P1_i(i))
         // P1_i: Log-numbers density;  R1_i:  Expected numbers
         // P2_i: Log-average weight;  R2_i:  Expected average weight
@@ -1256,7 +1271,7 @@ Type objective_function<Type>::operator() ()
         log_R2_i(i) = P2_iz(i,0);
       }
       // Likelihood for delta-models with continuous positive support
-      if( (ObsModel_ez(e_i(i),0)==0) | (ObsModel_ez(e_i(i),0)==1) | (ObsModel_ez(e_i(i),0)==2) | (ObsModel_ez(e_i(i),0)==3) ){
+      if( (ObsModel_ez(e_i(i),0)==0) | (ObsModel_ez(e_i(i),0)==1) | (ObsModel_ez(e_i(i),0)==2) | (ObsModel_ez(e_i(i),0)==3) | (ObsModel_ez(e_i(i),0)==4) ){
         // Presence-absence likelihood
         if( (ObsModel_ez(e_i(i),1)==0) | (ObsModel_ez(e_i(i),1)==1) | (ObsModel_ez(e_i(i),1)==3) | (ObsModel_ez(e_i(i),1)==4) ){
           if( b_i(i) > 0 ){
@@ -1277,6 +1292,7 @@ Type objective_function<Type>::operator() ()
         }
         // Positive density likelihood -- models with continuous positive support
         if( b_i(i) > 0 ){    // 1e-500 causes overflow on laptop
+          // Normal distribution
           if(ObsModel_ez(e_i(i),0)==0){
             LogProb2_i(i) = dnorm(b_i(i), R2_i(i), SigmaM(e_i(i),0), true);
             // Simulate new values when using obj.simulate()
@@ -1284,25 +1300,56 @@ Type objective_function<Type>::operator() ()
               b_i(i) = rnorm( R2_i(i), SigmaM(e_i(i),0) );
             }
           }
+          // Lognormal;  mean, sd (in log-space) parameterization
           if(ObsModel_ez(e_i(i),0)==1){
-            LogProb2_i(i) = dlnorm(b_i(i), log_R2_i(i)-pow(SigmaM(e_i(i),0),2)/2, SigmaM(e_i(i),0), true); // log-space
+            LogProb2_i(i) = dlnorm(b_i(i), log_R2_i(i)-square(SigmaM(e_i(i),0))/2, SigmaM(e_i(i),0), true); // log-space
             // Simulate new values when using obj.simulate()
             SIMULATE{
-              b_i(i) = exp(rnorm( log_R2_i(i)-pow(SigmaM(e_i(i),0),2)/2, SigmaM(e_i(i),0) ));
+              b_i(i) = exp(rnorm( log_R2_i(i)-square(SigmaM(e_i(i),0))/2, SigmaM(e_i(i),0) ));
             }
           }
+          // Gamma;  mean, CV parameterization (converting to shape, scale)
           if(ObsModel_ez(e_i(i),0)==2){
-            LogProb2_i(i) = dgamma(b_i(i), 1/pow(SigmaM(e_i(i),0),2), R2_i(i)*pow(SigmaM(e_i(i),0),2), true); // shape = 1/CV^2, scale = mean*CV^2
-            // Simulate new values when using obj.simulate()
-            SIMULATE{
-              b_i(i) = rgamma( 1/pow(SigmaM(e_i(i),0),2), R2_i(i)*pow(SigmaM(e_i(i),0),2) );
+            if( Options(15)==1 ){
+              // shape = 1/CV^2;   scale = mean*CV^2
+              LogProb2_i(i) = dgamma(b_i(i), 1/square(SigmaM(e_i(i),0)), R2_i(i)*square(SigmaM(e_i(i),0)), true);
+              SIMULATE{
+                b_i(i) = rgamma( 1/square(SigmaM(e_i(i),0)), R2_i(i)*square(SigmaM(e_i(i),0)) );
+              }
+            }else{
+              // shape = mean^2 / sd^2;   scale = sd^2 / mean
+              LogProb2_i(i) = dgamma(b_i(i), square(R2_i(i))/square(SigmaM(e_i(i),0)), square(SigmaM(e_i(i),0))/R2_i(i), true);
+              SIMULATE{
+                b_i(i) = rgamma( square(R2_i(i))/square(SigmaM(e_i(i),0)), square(SigmaM(e_i(i),0))/R2_i(i) );
+              }
             }
           }
+          // Inverse-Gaussian;  mean, CV parameterization
           if(ObsModel_ez(e_i(i),0)==3){
-            LogProb2_i(i) = dinverse_gaussian(b_i(i), R2_i(i), SigmaM(e_i(i),0), true);
+            if( Options(15)==1 ){
+              LogProb2_i(i) = dinverse_gaussian(b_i(i), R2_i(i), SigmaM(e_i(i),0), true);
+            }else{
+              LogProb2_i(i) = dinverse_gaussian(b_i(i), R2_i(i), SigmaM(e_i(i),0)/R2_i(i), true);
+            }
             // Simulate new values when using obj.simulate()
             SIMULATE{
-              b_i(i) = 0;
+              b_i(i) = Type(1.0);   // Simulate as 1.0 so b_i distinguishes between simulated encounter/non-encounters
+            }
+          }
+          // Lognormal;  mean, CV (in logspace) parameterization
+          if(ObsModel_ez(e_i(i),0)==4){
+            if( Options(15)==1 ){
+              // CV = sqrt( exp(logsd^2)-1 ), therefore
+              // logSD = sqrt( log(CV^2 + 1) ) = sqrt(log(square(SigmaM(e_i(i),0))+1))
+              logsd = sqrt( log(square(SigmaM(e_i(i),0))+1) );
+            }else{
+              // CV = sd / mean, therefore
+              logsd = sqrt( log(square( SigmaM(e_i(i),0) / R2_i(i) )+1) );
+            }
+            LogProb2_i(i) = dlnorm(b_i(i), log_R2_i(i)-square(logsd)/2, logsd, true); // log-space
+            // Simulate new values when using obj.simulate()
+            SIMULATE{
+              b_i(i) = exp(rnorm( log_R2_i(i)-square(logsd)/2, logsd ));
             }
           }
         }else{
@@ -1326,7 +1373,7 @@ Type objective_function<Type>::operator() ()
         LogProb1_i(i) = 0;
         // dtweedie( Type y, Type mu, Type phi, Type p, int give_log=0 )
         // R1*R2 = mean
-        LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(SigmaM(e_i(i),0))+1.0, true );
+        LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0), true );
         // Simulate new values when using obj.simulate()
         SIMULATE{
           b_i(i) = 0;   // Option not available
@@ -1512,7 +1559,7 @@ Type objective_function<Type>::operator() ()
     // Number of output-years
     int n_y = t_yz.rows();
 
-    // Predictive distribution -- ObsModel_ez(e,0)==4 isn't implemented (it had a bug previously)
+    // Predictive distribution
     Type a_average = a_i.sum()/a_i.size();
     array<Type> P1_gcy(n_g, n_c, n_y);
     array<Type> R1_gcy(n_g, n_c, n_y);
