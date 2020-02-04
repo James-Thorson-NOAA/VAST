@@ -11,7 +11,7 @@
 #' @param loc_x OPTIONAL, location for each sample used to generate plausible bounds for scale parameter
 #' @param Parameters OPTIONAL, a tagged list of starting parameters
 #' @param Random OPTIONAL, a character vector of random effects
-#' @param Map OPTIONAL, a tagged list of parameters to either mirror or turn off
+#' @param Map OPTIONAL, a tagged list of parameters to either mirror or turn off, using standard TMB interface. This input is useful, e.g., to build a model without estimating parameters, extracting Map from the list of outputs, modifying it manually, and then passing it explicitly, \code{make_model(Map=NewMap)}
 #' @param DiagnosticDir OPTIONAL, a directory where diagonstic runtime information should be stored
 #' @param TmbDir OPTIONAL, a directory where the CPP file for the VAST model can be found locally
 #' @param RunDir OPTIONAL, a directory where model results are written; by default uses the working directory

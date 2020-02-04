@@ -26,7 +26,7 @@ make_model(TmbData, Version, RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1
 
 \item{Random}{OPTIONAL, a character vector of random effects}
 
-\item{Map}{OPTIONAL, a tagged list of parameters to either mirror or turn off}
+\item{Map}{OPTIONAL, a tagged list of parameters to either mirror or turn off, using standard TMB interface. This input is useful, e.g., to build a model without estimating parameters, extracting Map from the list of outputs, modifying it manually, and then passing it explicitly, \code{make_model(Map=NewMap)}}
 
 \item{DiagnosticDir}{OPTIONAL, a directory where diagonstic runtime information should be stored}
 

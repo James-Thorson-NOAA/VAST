@@ -80,6 +80,10 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
   \item{Xconfig_zcp[z,c,p]=3}{\code{X_itp[,,p]} has a spatially varying linear effect on linear predictor z for category c}
 }}
 
+\item{covariate_data}{data frame of covariate values with columns \code{Lat}, \code{Lon}, and \code{Year}, and other columns matching names in \code{formula}; \code{Year=NA} can be used for covariates that do not change among years (e.g., depth)}
+
+\item{formula}{an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted. Similar specification to \code{\link{stats::lm}}}
+
 \item{Q_ik}{matrix of catchability covariates (e.g., measured variables affecting catch rates but not caused by variation in species density) for each observation i}
 
 \item{F_ct}{matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)}
