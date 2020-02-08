@@ -123,16 +123,21 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
     }
   }
 
-  # Adds intercept defaults to FieldConfig if missing
+  #### Deals with backwards compatibility for FieldConfig
+  # Converts from 4-vector to 3-by-2 matrix
   if( is.vector(FieldConfig) && length(FieldConfig)==4 ){
-    FieldConfig = rbind( matrix(FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"="IID","Beta2"="IID") )
-  }else{
-    if( !is.matrix(FieldConfig) || !all(dim(FieldConfig)==c(3,2)) ){
-      stop("`FieldConfig` has the wrong dimensions in `make_data`")
-    }else{
-      dimnames(FieldConfig) = list( c("Omega","Epsilon","Beta"), c("Component_1","Component_2") )
-    }
+    FieldConfig = rbind( matrix(FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("IID","IID") )
   }
+  # Converts from 3-by-2 matrix to 4-by-2 matrix
+  if( is.matrix(FieldConfig) & all(dim(FieldConfig)==c(3,2)) ){
+    FieldConfig = rbind( FieldConfig, "Epsilon_time"=c("Identity","Identity") )
+  }
+  # Checks for errors
+  if( !is.matrix(FieldConfig) || !all(dim(FieldConfig)==c(4,2)) ){
+    stop("`FieldConfig` has the wrong dimensions in `make_data`")
+  }
+  # Renames
+  dimnames(FieldConfig) = list( c("Omega","Epsilon","Beta","Epsilon_time"), c("Component_1","Component_2") )
 
   # Rescale tprime_iz to start at 0
   tprime_iz = t_iz - min(t_iz,na.rm=TRUE)
@@ -279,9 +284,11 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   # Translate FieldConfig from input formatting to CPP formatting
   FieldConfig_input = array(NA, dim=dim(FieldConfig), dimnames=dimnames(FieldConfig) )
   g = function(mat) suppressWarnings( array(as.numeric(mat),dim=dim(mat)) )
-  FieldConfig_input[] = ifelse( FieldConfig=="AR1", 0, FieldConfig_input)
-  FieldConfig_input[] = ifelse( FieldConfig=="IID", -2, FieldConfig_input)
-  FieldConfig_input[] = ifelse( !is.na(g(FieldConfig)) & g(FieldConfig)>0 & g(FieldConfig)<=n_c, g(FieldConfig), FieldConfig_input)
+  FieldConfig_input[] = ifelse( tolower(FieldConfig)=="ar1", 0, FieldConfig_input)
+  FieldConfig_input[] = ifelse( tolower(FieldConfig)=="iid", -2, FieldConfig_input)
+  FieldConfig_input[] = ifelse( tolower(FieldConfig)=="identity", -3, FieldConfig_input)
+  FieldConfig_input[1:3,] = ifelse( !is.na(g(FieldConfig[1:3,])) & g(FieldConfig[1:3,])>0 & g(FieldConfig[1:3,])<=n_c, g(FieldConfig[1:3,]), FieldConfig_input[1:3,])
+  FieldConfig_input[4,] = ifelse( !is.na(g(FieldConfig[4,,drop=FALSE])) & g(FieldConfig[4,,drop=FALSE])>0 & g(FieldConfig[4,,drop=FALSE])<=n_t, g(FieldConfig[4,,drop=FALSE]), FieldConfig_input[4,,drop=FALSE])
   FieldConfig_input[] = ifelse( !is.na(g(FieldConfig)) & g(FieldConfig)==0, -1, FieldConfig_input)
   if( any(is.na(FieldConfig_input)) ) stop( "'FieldConfig' must be: 0 (turn off overdispersion); 'IID' (independent for each factor); 'AR1' (use AR1 structure); or 0<n_f<=n_c (factor structure)" )
   message( "FieldConfig_input is:" )
@@ -374,7 +381,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
     if( any(is.na(X_xtp)) ) stop("Some `X_xtp` is NA, and this is not allowed")
     if( any(is.na(X_gtp)) ) stop("Some `X_gtp` is NA, and this is not allowed")
     if( any(is.na(X_itp)) ) stop("Some `X_itp` is NA, and this is not allowed")
-    if( n_c==1 && !all(FieldConfig_input %in% c(-2,-1,1)) ) stop("If using a univariate model, `FieldConfig` must be 0, 1, or `IID` for all entries")
+    if( n_c==1 && !all(FieldConfig_input[1:3,] %in% c(-3,-2,-1,1)) ) stop("If using a univariate model, `FieldConfig` must be 0, 1, or `IID` for all entries")
   }
 
   # Check for wrong dimensions
@@ -675,7 +682,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   if(Version%in%c("VAST_v7_0_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "Xconfig_zcp"=Xconfig_zcp, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
-  if(Version%in%c("VAST_v8_5_0","VAST_v8_4_0","VAST_v8_3_0","VAST_v8_2_0","VAST_v8_1_0","VAST_v8_0_0")){
+  if(Version%in%c("VAST_v9_0_0","VAST_v8_6_0","VAST_v8_5_0","VAST_v8_4_0","VAST_v8_3_0","VAST_v8_2_0","VAST_v8_1_0","VAST_v8_0_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_g"=n_g, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_gm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "Xconfig_zcp"=Xconfig_zcp, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_gl"=a_gl, "X_itp"=X_itp, "X_gtp"=X_gtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_gm"=Z_gm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2, "Ais_ij"=cbind(spatial_list$A_is@i,spatial_list$A_is@j), "Ais_x"=spatial_list$A_is@x, "Ags_ij"=cbind(spatial_list$A_gs@i,spatial_list$A_gs@j), "Ags_x"=spatial_list$A_gs@x )
   }
   if( is.null(Return) ) stop("`Version` provided does not match the list of possible values")
