@@ -194,11 +194,13 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   }
   if( ("OverdispersionConfig"%in%names(DataList)) && "n_v"%in%names(DataList) ){
     if( DataList[["OverdispersionConfig"]][1] == -1 ){
-      Map[["L1_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
+      if("L1_z"%in%names(TmbParams)) Map[["L1_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
+      if("L_eta1_z"%in%names(TmbParams)) Map[["L_eta1_z"]] = factor(rep(NA,length(TmbParams[["L_eta1_z"]])))
       Map[["eta1_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta1_vf"]])))
     }
     if( DataList[["OverdispersionConfig"]][2] == -1 ){
-      Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L2_z"]])))
+      if("L2_z"%in%names(TmbParams)) Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L2_z"]])))
+      if("L_eta2_z"%in%names(TmbParams)) Map[["L_eta2_z"]] = factor(rep(NA,length(TmbParams[["L_eta2_z"]])))
       Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
     }
   }

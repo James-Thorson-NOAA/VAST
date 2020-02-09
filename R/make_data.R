@@ -102,7 +102,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   Options2use = c('SD_site_density'=FALSE, 'SD_site_logdensity'=FALSE, 'Calculate_Range'=FALSE, 'SD_observation_density'=FALSE, 'Calculate_effective_area'=FALSE,
     'Calculate_Cov_SE'=FALSE, 'Calculate_Synchrony'=FALSE, 'Calculate_Coherence'=FALSE, 'Calculate_proportion'=FALSE, 'normalize_GMRF_in_CPP'=TRUE,
     'Calculate_Fratio'=FALSE, 'Estimate_B0'=FALSE, 'Project_factors'=FALSE, 'treat_nonencounter_as_zero'=FALSE, 'simulate_random_effects'=TRUE,
-    'observation_error_as_CV'=TRUE )
+    'observation_error_as_CV'=TRUE, 'report_additional_variables'=FALSE )
 
   # Replace defaults for `Options` with provided values (if any)
   for( i in seq_along(Options) ){
@@ -682,7 +682,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   if(Version%in%c("VAST_v7_0_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "Xconfig_zcp"=Xconfig_zcp, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xtp"=X_xtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
-  if(Version%in%c("VAST_v9_0_0","VAST_v8_6_0","VAST_v8_5_0","VAST_v8_4_0","VAST_v8_3_0","VAST_v8_2_0","VAST_v8_1_0","VAST_v8_0_0")){
+  if(Version%in%c("VAST_v9_1_0","VAST_v9_0_0","VAST_v8_6_0","VAST_v8_5_0","VAST_v8_4_0","VAST_v8_3_0","VAST_v8_2_0","VAST_v8_1_0","VAST_v8_0_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x)[Options_vec['Method']+1], "n_g"=n_g, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=n_p, "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_gm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "Xconfig_zcp"=Xconfig_zcp, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "t_iz"=tprime_iz, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_gl"=a_gl, "X_itp"=X_itp, "X_gtp"=X_gtp, "Q_ik"=Q_ik, "t_yz"=t_yz, "Z_gm"=Z_gm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2, "Ais_ij"=cbind(spatial_list$A_is@i,spatial_list$A_is@j), "Ais_x"=spatial_list$A_is@x, "Ags_ij"=cbind(spatial_list$A_gs@i,spatial_list$A_gs@j), "Ags_x"=spatial_list$A_gs@x )
   }
   if( is.null(Return) ) stop("`Version` provided does not match the list of possible values")
