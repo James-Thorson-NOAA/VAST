@@ -2081,18 +2081,27 @@ Type objective_function<Type>::operator() ()
     }
     // Calculate value of vactors at extrapolation-grid cells (e.g., for use when visualizing estimated or rotated factor estimates)
     if( Options(12)==1 ){
+      // Housekeeping
       array<Type> Omegainput1_gf( n_g, Omegainput1_sf.cols() );
       array<Type> Epsiloninput1_gft( n_g, Epsiloninput1_sft.col(0).cols(), n_t );
+      array<Type> Epsiloninput1_gff( n_g, Epsiloninput1_sff.col(0).cols(), Epsiloninput1_sff.cols() );
       array<Type> Omegainput2_gf( n_g, Omegainput2_sf.cols() );
       array<Type> Epsiloninput2_gft( n_g, Epsiloninput2_sft.col(0).cols(), n_t );
+      array<Type> Epsiloninput2_gff( n_g, Epsiloninput2_sff.col(0).cols(), Epsiloninput2_sff.cols() );
+      // Project
       Omegainput1_gf = project_knots( n_g, Omegainput1_sf.cols(), int(1), int(0), Omegainput1_sf, Ags_ij, Ags_x );
       Epsiloninput1_gft = project_knots( n_g, Epsiloninput1_sft.col(0).cols(), n_t, int(1), Epsiloninput1_sft, Ags_ij, Ags_x );
+      Epsiloninput1_gff = project_knots( n_g, Epsiloninput1_sff.col(0).cols(), Epsiloninput1_sff.cols(), int(1), Epsiloninput1_sff, Ags_ij, Ags_x );
       Omegainput2_gf = project_knots( n_g, Omegainput2_sf.cols(), int(1), int(0), Omegainput2_sf, Ags_ij, Ags_x );
       Epsiloninput2_gft = project_knots( n_g, Epsiloninput2_sft.col(0).cols(), n_t, int(1), Epsiloninput2_sft, Ags_ij, Ags_x );
+      Epsiloninput2_gff = project_knots( n_g, Epsiloninput2_sff.col(0).cols(), Epsiloninput2_sff.cols(), int(1), Epsiloninput2_sff, Ags_ij, Ags_x );
+      // Return
       REPORT( Omegainput1_gf );
       REPORT( Epsiloninput1_gft );
+      REPORT( Epsiloninput1_gff );
       REPORT( Omegainput2_gf );
       REPORT( Epsiloninput2_gft );
+      REPORT( Epsiloninput2_gff );
     }
   }
 
@@ -2177,6 +2186,15 @@ Type objective_function<Type>::operator() ()
     REPORT( Beta_rho2_f );
     REPORT( Epsilon_rho1_f );
     REPORT( Epsilon_rho2_f );
+    REPORT( Omega1_iz );
+    REPORT( Omega2_iz );
+    REPORT( Epsilon1_izz );
+    REPORT( Epsilon2_izz );
+    REPORT( eta1_izz );
+    REPORT( eta2_izz );
+    REPORT( zeta1_i );
+    REPORT( zeta2_i );
+    REPORT( iota_ct );
   }
 
   if( Options(3)==1 ){
