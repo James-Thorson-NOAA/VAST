@@ -77,15 +77,15 @@ Plot_Overdispersion = function( ... ){
   FishStatsUtils::plot_overdispersion( ... )
 }
 
-#' Copy of FishStatsUtils::summarize_covariace
+#' Copy of FishStatsUtils::summarize_covariance
 #'
 #' Included for continuity when using old scripts
 #'
 #' Please use \code{?FishStatsUtils::summarize_covariace} to see list of arguments and usage
 #' @export
 Summarize_Covariance = function( ... ){
-  .Deprecated( new="FishStatsUtils::summarize_covariace" )
-  FishStatsUtils::summarize_covariace( ... )
+  .Deprecated( new="FishStatsUtils::summarize_covariance" )
+  FishStatsUtils::summarize_covariance( ... )
 }
 
 #' Copy of make_map
