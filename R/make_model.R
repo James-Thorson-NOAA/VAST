@@ -24,7 +24,7 @@
 #'   \item{Upper}{A vector of upper bounds for parameters, optionally for use during optimization}
 #'   \item{Lower}{A vector of lower bounds for parameters, optionally for use during optimization}
 #'   \item{Parameters}{A tagged list of parameter starting values used when building Obj, which can be extracted, modified, and then put back into \code{make_model} to define different starting values}
-#'   \item{Map}{A taggged list of parameters to be turned off or mirrored, for similar use as Parameters}
+#'   \item{Map}{A tagged list of parameters to be turned off or mirrored, for similar use as Parameters}
 #'   \item{Random}{A character vector of random effects, for similar use as Parameters}
 #' }
 
