@@ -173,9 +173,7 @@ matrix<Type> create_loadings_general( vector<Type> L_val, int n_rows, int n_f, b
   }else if( n_f == -3 ){
     // Identity matrix
     matrix<Type> L_rc(n_rows, n_rows);
-    for( int r=0; r<n_rows; r++ ){
-      L_rc(r,r) = Type(1.0);
-    }
+    L_rc.setIdentity();
     return L_rc;
   }else if( n_f == 0 ){
     // AR1

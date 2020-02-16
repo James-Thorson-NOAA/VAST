@@ -71,14 +71,6 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
   capture.output( packageDescription("VAST"), file=paste0(RunDir,"/packageDescription.txt") )
   capture.output( packageDescription("FishStatsUtils"), file=paste0(RunDir,"/packageDescription.txt"), append=TRUE )
 
-  # Compile TMB software
-  #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
-  file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(CompileDir,"/",Version,".cpp"), overwrite=FALSE)
-  origwd = getwd()
-  on.exit(setwd(origwd),add=TRUE)
-  setwd( CompileDir )
-  TMB::compile( paste0(Version,".cpp") )
-
   # Parameters
     # TmbData=TmbData
   if( length(Parameters)==1 && Parameters=="generate" ) Parameters = make_parameters( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
@@ -129,6 +121,14 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
     Return = list("Map"=Map, "Data"=TmbData, "Parameters"=Parameters, "Random"=Random)
     return( Return )
   }
+
+  # Compile TMB software
+  #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
+  file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(CompileDir,"/",Version,".cpp"), overwrite=FALSE)
+  origwd = getwd()
+  on.exit(setwd(origwd),add=TRUE)
+  setwd( CompileDir )
+  TMB::compile( paste0(Version,".cpp") )
 
   # Build object
   dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version)) ) # random=Random,
