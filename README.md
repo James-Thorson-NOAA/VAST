@@ -76,6 +76,8 @@ Known installation/usage issues
 
 3.  People using R version 3.6.0 or MRAN 3.5.3 are having a problem with changing standards for package namespaces, see details [here](https://github.com/James-Thorson-NOAA/VAST/issues/189), which appears to be particularly a problem with loading INLA due to install issues with that package.
 
+4.  MacOS users have specific install issues and a discussion of potential fixes is [here](https://github.com/James-Thorson-NOAA/VAST/issues/218#issuecomment-587105809)
+
 References
 =============
 ### Core functionality
