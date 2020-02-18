@@ -204,8 +204,8 @@ matrix<Type> covariation_by_category_nll( int n_f, int n_j, int n_c, matrix<Type
 
   // Calculate probability and/or simulate
   if( (n_f != -1) & (n_f != -3) ){
-    for( int j=0; j<n_j; j++ ){
-    for( int f=0; f<n_f; f++ ){
+    for( int j=0; j<eta_jf.rows(); j++ ){
+    for( int f=0; f<eta_jf.cols(); f++ ){
       jnll_pointer -= dnorm( eta_jf(j,f), eta_mean_jf(j,f), Type(1.0), true );
       // Simulate new values when using obj.simulate()
       if( simulate_random_effects==1 ){
@@ -696,6 +696,8 @@ Type objective_function<Type>::operator() ()
   // Slot 3 -- spatio-temporal, positive catch
   // Slot 4 -- tow/vessel overdispersion, encounter
   // Slot 5 -- tow/vessel overdispersion, positive catch
+  // Slot 6 -- Deprecated
+  // Slot 7 -- Deprecated
   // Slot 8 -- penalty on beta, encounter
   // Slot 9 -- penalty on beta, positive catch
   // Slot 10 -- likelihood of data, encounter
