@@ -2118,7 +2118,7 @@ Type objective_function<Type>::operator() ()
   REPORT( jnll );
   REPORT( jnll_comp );
 
-  // Quantities derived from random effects
+  // Quantities derived from random effects and used for plotting
   REPORT( eta1_vc );
   REPORT( eta2_vc );
   REPORT( iota_ct );
@@ -2132,6 +2132,10 @@ Type objective_function<Type>::operator() ()
   REPORT( Epsilon2_sct );
   REPORT( beta1_tc );
   REPORT( beta2_tc );
+  REPORT( Omegainput1_sf );
+  REPORT( Omegainput2_sf );
+  REPORT( Epsiloninput1_sft );
+  REPORT( Epsiloninput2_sft );
 
   // Predictors
   REPORT( D_i );
@@ -2168,10 +2172,6 @@ Type objective_function<Type>::operator() ()
     REPORT( eta2_vf );
     REPORT( zeta1_i );
     REPORT( zeta2_i );
-    REPORT( Omegainput1_sf );
-    REPORT( Omegainput2_sf );
-    REPORT( Epsiloninput1_sft );
-    REPORT( Epsiloninput2_sft );
     REPORT( beta1_mean_tf );
     REPORT( beta2_mean_tf );
     REPORT( Options );

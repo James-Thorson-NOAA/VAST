@@ -2149,12 +2149,6 @@ Type objective_function<Type>::operator() ()
   REPORT( SigmaM );
   REPORT( sigmaXi1_cp );
   REPORT( sigmaXi2_cp );
-  REPORT( Xi1_scp );
-  REPORT( Xi2_scp );
-  REPORT( Omega1_sc );
-  REPORT( Omega2_sc );
-  REPORT( Epsilon1_sct );
-  REPORT( Epsilon2_sct );
   REPORT( H );
   REPORT( Range_raw1 );
   REPORT( Range_raw2 );
@@ -2162,6 +2156,18 @@ Type objective_function<Type>::operator() ()
   REPORT( beta2_tc );
   REPORT( jnll );
   REPORT( D_i );
+
+  // Needed for plotting
+  REPORT( Omegainput1_sf );
+  REPORT( Omegainput2_sf );
+  REPORT( Epsiloninput1_sft );
+  REPORT( Epsiloninput2_sft );
+  REPORT( Omega1_sc );
+  REPORT( Omega2_sc );
+  REPORT( Epsilon1_sct );
+  REPORT( Epsilon2_sct );
+  REPORT( Xi1_scp );
+  REPORT( Xi2_scp );
 
   ADREPORT( Range_raw1 );
   ADREPORT( Range_raw2 );
@@ -2177,10 +2183,6 @@ Type objective_function<Type>::operator() ()
     REPORT( eta2_vf );
     REPORT( zeta1_i );
     REPORT( zeta2_i );
-    REPORT( Omegainput1_sf );
-    REPORT( Omegainput2_sf );
-    REPORT( Epsiloninput1_sft );
-    REPORT( Epsiloninput2_sft );
     REPORT( beta1_mean_tf );
     REPORT( beta2_mean_tf );
     REPORT( jnll_comp );
