@@ -1693,7 +1693,7 @@ Type objective_function<Type>::operator() ()
       if( (ObsModel_ez(c,1)==1) | (ObsModel_ez(c,1)==4) ){
         R1_gcy(g,c,y) = Type(1.0) - exp( -exp(P1_gcy(g,c,y)) );
         R2_gcy(g,c,y) = exp(P1_gcy(g,c,y)) / R1_gcy(g,c,y) * exp( P2_gcy(g,c,y) );
-        D_gcy(g,c,y) = exp( P1_gcy(g,c,y) ) * exp( P2_gcy(g,c,y) );        // Use this line to prevent numerical over/underflow
+        D_gcy(g,c,y) = exp( P1_gcy(g,c,y) + P2_gcy(g,c,y) );        // Use this line to prevent numerical over/underflow
       }
       if( ObsModel_ez(c,1)==2 ){
         R1_gcy(g,c,y) = exp( P1_gcy(g,c,y) );
@@ -1718,11 +1718,20 @@ Type objective_function<Type>::operator() ()
           }
         }
       }
-      // Expand by biomass for another category and convert from kg to metric tonnes
+      // Expand by biomass for another category
       for(c=0; c<n_c; c++){
         if( Expansion_cz(c,0)==1 ){
           for(g=0; g<n_g; g++){
-            Index_gcyl(g,c,y,l) = D_gcy(g,c,y) * Index_gcyl(g,Expansion_cz(c,1),y,l);    // Had Index_gcyl(g,Expansion_cz(c,1)+1,y,l) in original draft but I can't remember why
+            Index_gcyl(g,c,y,l) = D_gcy(g,c,y) * Index_gcyl(g,Expansion_cz(c,1),y,l);
+            Index_cyl(c,y,l) += Index_gcyl(g,c,y,l);
+          }
+        }
+      }
+      // Expand as weighted-average of biomass for another category
+      for(c=0; c<n_c; c++){
+        if( Expansion_cz(c,0)==2 ){
+          for(g=0; g<n_g; g++){
+            Index_gcyl(g,c,y,l) = D_gcy(g,c,y) * Index_gcyl(g,Expansion_cz(c,1),y,l) / Index_cyl(g,Expansion_cz(c,1),y,l);
             Index_cyl(c,y,l) += Index_gcyl(g,c,y,l);
           }
         }
