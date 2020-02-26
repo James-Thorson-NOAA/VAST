@@ -14,7 +14,7 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
   F_ct = NULL, F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
   yearbounds_zz = NULL, Options = c(), Expansion_cz = NULL,
   Z_gm = NULL, Version = FishStatsUtils::get_latest_version(package =
-  "VAST"), ...)
+  "VAST"), overlap_zz = matrix(ncol = 5, nrow = 0), ...)
 }
 \arguments{
 \item{b_i}{Sampled biomass for each observation i}
@@ -96,7 +96,7 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
 
 \item{Options}{a vector of form c('SD_site_logdensity'=FALSE,'Calculate_Range'=FALSE,'Calculate_effective_area'=FALSE,'Calculate_Cov_SE'=FALSE,'Calculate_Synchrony'=FALSE,'Calculate_proportion'=FALSE), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied}
 
-\item{Expansion_cz}{matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.  The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates, where density is weighted by area ("area-weighted expansion", \code{Expansion[c,1]=0}, the default) or where density is weighted by the expanded value for another category ("abundance weighted expansion" \code{Expansion[c1,1]=1}).  The 2nd column is only used when \code{Expansion[c1,1]=1}, and specifies the category to use for abundance-weighted expansion, where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.}
+\item{Expansion_cz}{matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.  The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates, where density is weighted by area ("area-weighted expansion", \code{Expansion[c,1]=0}, the default), where density is weighted by the expanded value for another category ("abundance weighted expansion" \code{Expansion[c1,1]=1}), or the index is calculated as the weighted average of density weighted by the expanded value for another category ("abundance weighted-average expansion" \code{Expansion[c1,1]=2}).  The 2nd column is only used when \code{Expansion[c1,1]=1} or \code{Expansion[c1,1]=2} , and specifies the category to use for abundance-weighted expansion, where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.}
 
 \item{Z_gm}{matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics. Defaults to eastings and northings for each knots or extrapolation-grid cell.}
 
