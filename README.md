@@ -65,6 +65,7 @@ If you are having problems with installation, please consider installing depende
     # Install TMB from CRAN
     install.github("james-thorson/FishStatsUtils", INSTALL_opts="--no-staged-install")
 
+Finally, please confirm that VAST is installed by running a model, e.g., following the simple example [here](https://github.com/James-Thorson-NOAA/VAST/wiki/Simple-example).
 
 
 Known installation/usage issues
