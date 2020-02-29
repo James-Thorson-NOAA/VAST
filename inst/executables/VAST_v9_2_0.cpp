@@ -1731,7 +1731,7 @@ Type objective_function<Type>::operator() ()
       for(c=0; c<n_c; c++){
         if( Expansion_cz(c,0)==2 ){
           for(g=0; g<n_g; g++){
-            Index_gcyl(g,c,y,l) = D_gcy(g,c,y) * Index_gcyl(g,Expansion_cz(c,1),y,l) / Index_cyl(g,Expansion_cz(c,1),y,l);
+            Index_gcyl(g,c,y,l) = D_gcy(g,c,y) * Index_gcyl(g,Expansion_cz(c,1),y,l) / Index_cyl(Expansion_cz(c,1),y,l);
             Index_cyl(c,y,l) += Index_gcyl(g,c,y,l);
           }
         }
