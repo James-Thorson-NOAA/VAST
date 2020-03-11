@@ -76,7 +76,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   t_yz=NULL, CheckForErrors=TRUE, yearbounds_zz=NULL,
   Options=c(), Expansion_cz=NULL, Z_gm=NULL,
   Version=FishStatsUtils::get_latest_version(package="VAST"),
-  overlap_zz=matrix(ncol=5,nrow=0), ... ){
+  overlap_zz=matrix(ncol=7,nrow=0), ... ){
 
   # Deprecated inputs for backwards compatibility in transition from Version < 8.0.0 to >= 8.0.0
   deprecated_inputs = list( ... )
@@ -400,7 +400,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
     }
     if( ncol(c_iz)>1 & any(ObsModel_ez[,2]!=1) ) stop("Using multiple columnns in `c_iz` only makes sense using a Poisson-link delta model via `ObsModel[2]=1`")
     if( nrow(F_ct)!=n_c | ncol(F_ct)!=n_t ) stop("F_ct has wrong dimensions")
-    if( ncol(overlap_zz) != 5 ) stop("Input `overlap_zz` has wrong number of columns")
+    if( ncol(overlap_zz) != 7 ) stop("Input `overlap_zz` must contain 7 columns but doesn't")
     if( any(overlap_zz[,c(1,3)] >= n_c) ) stop("Check `overlap_zz[,c(1,3)]` entries")
     if( any(overlap_zz[,c(2,4)] >= n_t) ) stop("Check `overlap_zz[,c(2,4)]` entries")
   }
