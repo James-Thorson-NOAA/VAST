@@ -2122,13 +2122,22 @@ Type objective_function<Type>::operator() ()
     // Overlap metrics
     if( overlap_zz.rows() > 0 ){
       vector<Type> overlap_z( overlap_zz.rows() );
-      overlap_z.setZero();
       for( int z=0; z<overlap_zz.rows(); z++ ){
-      for( g=0; g<n_g; g++ ){
+        // Biomass-weighted average biomass
         if( overlap_zz(z,4) == 0 ){
-          overlap_z(z) = ( Index_gcyl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_cyl(overlap_zz(z,0),overlap_zz(z,1),0) ) * D_gcy(g,overlap_zz(z,2),overlap_zz(z,3));
+          overlap_z(z) = 0.0;
+          for( g=0; g<n_g; g++ ){
+            overlap_z(z) += (Index_gcyl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_cyl(overlap_zz(z,0),overlap_zz(z,1),0)) * D_gcy(g,overlap_zz(z,2),overlap_zz(z,3));
+          }
         }
-      }}
+        // Schoeners-D
+        if( overlap_zz(z,4) == 1 ){
+          overlap_z(z) = 1.0;
+          for( g=0; g<n_g; g++ ){
+            overlap_z(z) -= 0.5 * abs( (Index_gcyl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_cyl(overlap_zz(z,0),overlap_zz(z,1),0)) - (Index_gcyl(g,overlap_zz(z,2),overlap_zz(z,3),0)/Index_cyl(overlap_zz(z,2),overlap_zz(z,3),0)) );
+          }
+        }
+      }
       REPORT( overlap_z );
       ADREPORT( overlap_z );
     }

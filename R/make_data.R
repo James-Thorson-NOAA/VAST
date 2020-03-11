@@ -288,6 +288,7 @@ function( b_i, a_i, t_iz, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,lengt
   FieldConfig_input[] = ifelse( tolower(FieldConfig)=="ar1", 0, FieldConfig_input)
   FieldConfig_input[] = ifelse( tolower(FieldConfig)=="iid", -2, FieldConfig_input)
   FieldConfig_input[] = ifelse( tolower(FieldConfig)=="identity", -3, FieldConfig_input)
+  FieldConfig_input[] = ifelse( tolower(FieldConfig)=="full", n_c, FieldConfig_input)
   FieldConfig_input[1:3,] = ifelse( !is.na(g(FieldConfig[1:3,])) & g(FieldConfig[1:3,])>0 & g(FieldConfig[1:3,])<=n_c, g(FieldConfig[1:3,]), FieldConfig_input[1:3,])
   FieldConfig_input[4,] = ifelse( !is.na(g(FieldConfig[4,,drop=FALSE])) & g(FieldConfig[4,,drop=FALSE])>0 & g(FieldConfig[4,,drop=FALSE])<=n_t, g(FieldConfig[4,,drop=FALSE]), FieldConfig_input[4,,drop=FALSE])
   FieldConfig_input[] = ifelse( !is.na(g(FieldConfig)) & g(FieldConfig)==0, -1, FieldConfig_input)
