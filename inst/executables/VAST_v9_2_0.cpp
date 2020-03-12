@@ -2122,30 +2122,41 @@ Type objective_function<Type>::operator() ()
     // Overlap metrics
     if( overlap_zz.rows() > 0 ){
       vector<Type> overlap_z( overlap_zz.rows() );
+      //matrix<Type> overlap_gz( n_g, overlap_zz.rows() );
       for( int z=0; z<overlap_zz.rows(); z++ ){
-        // Biomass-weighted average biomass
-        if( overlap_zz(z,4) == 0 ){
-          overlap_z(z) = 0.0;
-          for( g=0; g<n_g; g++ ){
-            overlap_z(z) += (Index_gcyl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_cyl(overlap_zz(z,0),overlap_zz(z,1),0)) * D_gcy(g,overlap_zz(z,2),overlap_zz(z,3));
+        // Biomass-weighted average for a variable or log-variable
+        if( !isNA(overlap_zz(z,4)) ){
+          if( overlap_zz(z,4) == 0 ){
+            overlap_z(z) = 0.0;
+            for( g=0; g<n_g; g++ ){
+              if( overlap_zz(z,5)==0 ){
+                overlap_z(z) += (Index_gcyl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_cyl(overlap_zz(z,0),overlap_zz(z,1),0)) * D_gcy(g,overlap_zz(z,2),overlap_zz(z,3));
+              }else{
+                overlap_z(z) += (Index_gcyl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_cyl(overlap_zz(z,0),overlap_zz(z,1),0)) * log(D_gcy(g,overlap_zz(z,2),overlap_zz(z,3)));
+              }
+            }
           }
-        }
-        // Schoeners-D
-        if( overlap_zz(z,4) == 1 ){
-          overlap_z(z) = 1.0;
-          for( g=0; g<n_g; g++ ){
-            overlap_z(z) -= 0.5 * abs( (Index_gcyl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_cyl(overlap_zz(z,0),overlap_zz(z,1),0)) - (Index_gcyl(g,overlap_zz(z,2),overlap_zz(z,3),0)/Index_cyl(overlap_zz(z,2),overlap_zz(z,3),0)) );
+          // Schoeners-D
+          if( overlap_zz(z,4) == 1 ){
+            overlap_z(z) = 1.0;
+            for( g=0; g<n_g; g++ ){
+              overlap_z(z) -= 0.5 * abs( (Index_gcyl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_cyl(overlap_zz(z,0),overlap_zz(z,1),0)) - (Index_gcyl(g,overlap_zz(z,2),overlap_zz(z,3),0)/Index_cyl(overlap_zz(z,2),overlap_zz(z,3),0)) );
+            }
           }
-        }
-        // Compare with threshold overlap_zz(z,5) using logistic transform for differentiability
-        if( overlap_zz(z,4) == 2 ){
-          overlap_z(z) = 0.0;
-          for( g=0; g<n_g; g++ ){
-            overlap_z(z) += invlogit( (D_gcy(g,overlap_zz(z,0),overlap_zz(z,1)) - overlap_zz(z,5)) / overlap_zz(z,6) ) * a_gl(g,0) ;
+          // Compare with threshold overlap_zz(z,5) using logistic transform for differentiability
+          if( overlap_zz(z,4) == 2 ){
+            overlap_z(z) = 0.0;
+            for( g=0; g<n_g; g++ ){
+              overlap_z(z) += invlogit( (log(D_gcy(g,overlap_zz(z,0),overlap_zz(z,1))) - Type(overlap_zz(z,5))) * Type(overlap_zz(z,6)) ) * a_gl(g,0);
+              //overlap_gz(g,z) = invlogit( (log(D_gcy(g,overlap_zz(z,0),overlap_zz(z,1))) - Type(overlap_zz(z,5))) * Type(overlap_zz(z,6)) );
+            }
           }
+        }else{
+          overlap_z(z) = 0;
         }
       }
       REPORT( overlap_z );
+      //REPORT( overlap_gz );
       ADREPORT( overlap_z );
     }
   }
