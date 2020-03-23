@@ -79,6 +79,8 @@ Known installation/usage issues
 
 4.  MacOS users have specific install issues and a discussion of potential fixes is [here](https://github.com/James-Thorson-NOAA/VAST/issues/218#issuecomment-587105809)
 
+5.  Windows has a speed-limit on the rate that users can access the GitHub API. You can get around this by installing each package locally from a ZIP file.  You'll need to first install `TMBhelper` ([here](https://github.com/kaskr/TMB_contrib_R/tree/master/TMBhelper)), then `FishStatsUtils` ([here](https://github.com/James-Thorson-NOAA/FishStatsUtils)), then `VAST` ([here](https://github.com/James-Thorson-NOAA/VAST)) to a local directory `download_dir`.  To install each, please click "clone or download" -> "Download ZIP" -> `devtools::install_local(path=download_dir, dependencies=FALSE)`
+
 References
 =============
 ### Core functionality
