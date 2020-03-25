@@ -56,7 +56,8 @@ test_that("Stream network example is working ", {
                   spatial_args=list(Network_sz_LL=Network_sz_LL),
                   Network_sz = Network_sz,
                   optimize_args = list(getsd=FALSE, newtonsteps=1),
-                  working_dir=multispecies_example_path)
+                  working_dir=multispecies_example_path,
+                  test_fit=FALSE )
 
   # Comparisons
   Par1 = parameter_estimates$par[c("logkappa1","Beta_mean1_c")] # Not logSigmaM or beta2_ft, which depends on jittered values
