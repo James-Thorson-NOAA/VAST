@@ -6,7 +6,6 @@
 
 library(testthat)
 library(VAST)
-library(TMB)
 
 # Version
 Version_VAST = get_latest_version( package="VAST" )

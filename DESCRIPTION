@@ -15,12 +15,10 @@ Imports:
     utils,
     deldir,
     stats,
-    colorspace,
     devtools,
     abind,
     MatrixModels,  
     ThorsonUtilities,
-    TMBhelper
 Depends:
     TMB,
     R (>= 3.1.0),
@@ -33,7 +31,6 @@ Suggests:
 Remotes:
     james-thorson/FishStatsUtils,
     james-thorson/utilities,
-    kaskr/TMB_contrib_R/TMBhelper
 License: GPL-3
 LazyData: yes
 BuildVignettes: yes
