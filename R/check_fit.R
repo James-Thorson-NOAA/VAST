@@ -6,28 +6,32 @@
 #' Recommended model changes differ somewhat for univariate and multivariate models as explained below.
 #'
 #' For univariate models:
-#' (1) If `ln_H_input` are approaching extreme values (i.e., > 5 or < -5), then turn consider turning off anisotropy, `make_data(..., Aniso=FALSE)`
-#' (2) If `L_beta1_z` is approaching zero (i.e., +/- 0.001), then turn off random-effects for temporal variation in the first intercept `RhoConfig["Beta1"]=3`
-#' (3) If `L_beta2_z` is approaching zero (i.e., +/- 0.001), then turn off random-effects for temporal variation in the first intercept `RhoConfig["Beta2"]=3`
-#' (6) If `L_omega1_z` is approaching zero (i.e., +/- 0.001), then turn off spatial effects for the 1st linear predictor `FieldConfig["Omega1"]=0`
-#' (7) If `L_omega2_z` is approaching zero (i.e., +/- 0.001), then turn off spatial effects for the 1st second predictor `FieldConfig["Omega2"]=0`
-#' (8) If `L_epsilon1_z` is approaching zero (i.e., +/- 0.001), then turn off spatio-temporal effects for the 1st linear predictor `FieldConfig["Epsilon1"]=0`
-#' (9) If `L_epsilon2_z` is approaching zero (i.e., +/- 0.001), then turn off spatio-temporal effects for the 1st second predictor `FieldConfig["Epsilon2"]=0`
-#' (4) If `Beta_rho1_f` is approaching one (i.e., > 0.999), then turn consider reducing to a random-walk structure for the intercept of the 1st linear predictor `RhoConfig["Beta1"]=2`
-#' (5) If `Beta_rho2_f` is approaching one (i.e., > 0.999), then turn consider reducing to a random-walk structure for the intercept of the 2st linear predictor `RhoConfig["Beta2"]=2`
-#' (4) If `Epsilon_rho1_f` is approaching one (i.e., > 0.999), then turn consider reducing to a random-walk structure for spatio-temporal variation of the 1st linear predictor `RhoConfig["Epsilon1"]=2`
-#' (5) If `Epsilon_rho2_f` is approaching one (i.e., > 0.999), then turn consider reducing to a random-walk structure for spatio-temporal variation of the 2nd linear predictor `RhoConfig["Epsilon2"]=2`
+#' \itemize{
+#' \item If `ln_H_input` are approaching extreme values (i.e., > 5 or < -5), then turn consider turning off anisotropy, `make_data(..., Aniso=FALSE)`
+#' \item If `L_beta1_z` is approaching zero (i.e., +/- 0.001), then turn off random-effects for temporal variation in the first intercept `RhoConfig["Beta1"]=3`
+#' \item If `L_beta2_z` is approaching zero (i.e., +/- 0.001), then turn off random-effects for temporal variation in the first intercept `RhoConfig["Beta2"]=3`
+#' \item If `L_omega1_z` is approaching zero (i.e., +/- 0.001), then turn off spatial effects for the 1st linear predictor `FieldConfig["Omega1"]=0`
+#' \item If `L_omega2_z` is approaching zero (i.e., +/- 0.001), then turn off spatial effects for the 1st second predictor `FieldConfig["Omega2"]=0`
+#' \item If `L_epsilon1_z` is approaching zero (i.e., +/- 0.001), then turn off spatio-temporal effects for the 1st linear predictor `FieldConfig["Epsilon1"]=0`
+#' \item If `L_epsilon2_z` is approaching zero (i.e., +/- 0.001), then turn off spatio-temporal effects for the 1st second predictor `FieldConfig["Epsilon2"]=0`
+#' \item If `Beta_rho1_f` is approaching one (i.e., > 0.999), then turn consider reducing to a random-walk structure for the intercept of the 1st linear predictor `RhoConfig["Beta1"]=2`
+#' \item If `Beta_rho2_f` is approaching one (i.e., > 0.999), then turn consider reducing to a random-walk structure for the intercept of the 2st linear predictor `RhoConfig["Beta2"]=2`
+#' \item If `Epsilon_rho1_f` is approaching one (i.e., > 0.999), then turn consider reducing to a random-walk structure for spatio-temporal variation of the 1st linear predictor `RhoConfig["Epsilon1"]=2`
+#' \item If `Epsilon_rho2_f` is approaching one (i.e., > 0.999), then turn consider reducing to a random-walk structure for spatio-temporal variation of the 2nd linear predictor `RhoConfig["Epsilon2"]=2`
+#' }
 #'
 #' For multivariate models, these same principles apply, but there are more options to simplify model structure.
 #' For example, if any `L_beta1_z` is approaching zero (i.e., +/- 0.001), then consider using `fit_model(...,Map=[custom-map])` to turn off individual parameters;
 #' or if using a factor model then reduce the number of factors by decreasing FieldConfig["Beta1"]`
 #'
-#' @param parameter_estimates output from \code{TMBhelper::fit_tmb}
+#' @param parameter_estimates output from \code{\link[TMBhelper]{fit_tmb}}
 #' @param check_gradients Boolean stating whether to check bounds as well as other issues
 #' @param quiet Boolean stating whether to print warnings to terminal
 #' @return Did an automated check find an obvious problem code (TRUE is bad; FALSE is good)
-
+#'
 #' @export
+#' @md
+# Using https://cran.r-project.org/web/packages/roxygen2/vignettes/rd-formatting.html for guidance on markdown-enabled documentation
 check_fit = function( parameter_estimates, check_gradients=FALSE, quiet=FALSE ){
 
   # Initialize code for good model
