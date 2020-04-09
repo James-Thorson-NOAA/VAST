@@ -3,6 +3,9 @@
 #'
 #' \code{make_data} builds a tagged list of data inputs used by TMB for running the model
 #'
+#' The function generates arrays of covariates \code{X_gtp} and \code{X_itp} using \code{\link{make_covariates}};
+#' see that function for more details.
+#'
 #' @inheritParams FishStatsUtils::make_covariates
 #' @param b_i Sampled biomass for each observation i
 #' @param a_i Sampled area for each observation i
@@ -16,10 +19,10 @@
 #' @param ObsModel_ez an optional matrix with two columns where first column specifies the distribution for positive catch rates, and second element specifies the functional form for encounter probabilities
 #' \describe{
 #'   \item{ObsModel_ez[e,1]=0}{Normal}
-#'   \item{ObsModel_ez[e,1]=1}{Lognormal, using mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4} instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
+#'   \item{ObsModel_ez[e,1]=1}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4} instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
 #'   \item{ObsModel_ez[e,1]=2}{Gamma}
 #'   \item{ObsModel_ez[e,1]=3}{Inverse-Gaussian}
-#'   \item{ObsModel_ez[e,1]=4}{Lornormal, using mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
+#'   \item{ObsModel_ez[e,1]=4}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
 #'   \item{ObsModel_ez[e,1]=5}{Negative binomial}
 #'   \item{ObsModel_ez[e,1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
 #'   \item{ObsModel_ez[e,1]=7}{Poisson (more numerically stable than negative-binomial)}
@@ -63,7 +66,7 @@
 #' @param CheckForErrors whether to check for errors in input (NOTE: when CheckForErrors=TRUE, the function will throw an error if it detects a problem with inputs.  However, failing to throw an error is no guaruntee that the inputs are all correct)
 #' @param ... interface to pass deprecated inputs, included for backwards compatibility with previous versions which specified elements of \code{spatial_list} individually instead of as a single object
 
-#' @return Object of class \code{make_data}, containing inputs to function \code{VAST::Build_TMB_Fn()}
+#' @return Object of class \code{make_data}, containing inputs to function \code{\link{make_model}}
 
 #' @export
 make_data <-
