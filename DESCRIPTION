@@ -1,10 +1,15 @@
 Package: VAST
 Type: Package
 Title: Vector-autoregressive spatio-temporal (VAST) model
-Version: 3.3.0
-Date: 2019-12-31
-Authors@R: person("James","Thorson", email="James.Thorson@noaa.gov", role=c("aut","cre"))
-Maintainer: James Thorson <James.Thorson@noaa.gov>
+Version: 3.4.0
+Date: 2020-02-27
+Authors@R: 
+    c(person(given = "James",
+             family = "Thorson",
+             role = c("aut", "cre"),
+             email = "James.Thorson@noaa.gov",
+             comment = c(ORCID = "0000-0001-7415-1010"))
+    )
 Description: VAST is an R package for conducting spatio-temporal analysis
     of data from multiple categories (species, sizes, etc.), and includes both
     spatial and spatio-temporal variation in density for each category, with either
@@ -15,12 +20,10 @@ Imports:
     utils,
     deldir,
     stats,
-    colorspace,
     devtools,
     abind,
     MatrixModels,  
     ThorsonUtilities,
-    TMBhelper
 Depends:
     TMB,
     R (>= 3.1.0),
@@ -33,7 +36,6 @@ Suggests:
 Remotes:
     james-thorson/FishStatsUtils,
     james-thorson/utilities,
-    kaskr/TMB_contrib_R/TMBhelper
 License: GPL-3
 LazyData: yes
 BuildVignettes: yes

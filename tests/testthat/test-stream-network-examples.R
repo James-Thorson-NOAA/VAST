@@ -7,6 +7,7 @@ test_that("Stream network example is working ", {
   test_path = file.path(multispecies_example_path,"Stream_network")
   load( file.path(test_path,"parameter_estimates.RData") )
   load( file.path(test_path, "settings.RData"))
+  settings$max_cells = Inf
   settings$Version = FishStatsUtils::get_latest_version()
   attach(settings)
   on.exit( detach(settings) )
@@ -48,14 +49,15 @@ test_that("Stream network example is working ", {
                   b_i=Data_Geostat[,'Catch_KG'], 
                   a_i=Data_Geostat[,'AreaSwept_km2'], 
                   v_i=Data_Geostat[,'Vessel'], 
-                  extrapolation_args=list(
-                    input_grid=cbind("Lat"=Data_Geostat[,"Lat"],
+                  input_grid=cbind("Lat"=Data_Geostat[,"Lat"],
                                      "Lon"=Data_Geostat[,"Lon"],
                                      "Area_km2"=Data_Geostat[,"AreaSwept_km2"],
-                                     "child_i"=Data_Geostat[,"Knot"])),
+                                     "child_i"=Data_Geostat[,"Knot"]),
                   spatial_args=list(Network_sz_LL=Network_sz_LL),
                   Network_sz = Network_sz,
-                  optimize_args = list(getsd=FALSE, newtonsteps=1))
+                  optimize_args = list(getsd=FALSE, newtonsteps=1),
+                  working_dir=multispecies_example_path,
+                  test_fit=FALSE )
 
   # Comparisons
   Par1 = parameter_estimates$par[c("logkappa1","Beta_mean1_c")] # Not logSigmaM or beta2_ft, which depends on jittered values

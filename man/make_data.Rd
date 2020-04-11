@@ -14,7 +14,7 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
   F_ct = NULL, F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
   yearbounds_zz = NULL, Options = c(), Expansion_cz = NULL,
   Z_gm = NULL, Version = FishStatsUtils::get_latest_version(package =
-  "VAST"), ...)
+  "VAST"), overlap_zz = matrix(ncol = 7, nrow = 0), ...)
 }
 \arguments{
 \item{b_i}{Sampled biomass for each observation i}
@@ -36,10 +36,10 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
 \item{ObsModel_ez}{an optional matrix with two columns where first column specifies the distribution for positive catch rates, and second element specifies the functional form for encounter probabilities
 \describe{
   \item{ObsModel_ez[e,1]=0}{Normal}
-  \item{ObsModel_ez[e,1]=1}{Lognormal, using mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4} instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
+  \item{ObsModel_ez[e,1]=1}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4} instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
   \item{ObsModel_ez[e,1]=2}{Gamma}
   \item{ObsModel_ez[e,1]=3}{Inverse-Gaussian}
-  \item{ObsModel_ez[e,1]=4}{Lornormal, using mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
+  \item{ObsModel_ez[e,1]=4}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
   \item{ObsModel_ez[e,1]=5}{Negative binomial}
   \item{ObsModel_ez[e,1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
   \item{ObsModel_ez[e,1]=7}{Poisson (more numerically stable than negative-binomial)}
@@ -96,7 +96,7 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
 
 \item{Options}{a vector of form c('SD_site_logdensity'=FALSE,'Calculate_Range'=FALSE,'Calculate_effective_area'=FALSE,'Calculate_Cov_SE'=FALSE,'Calculate_Synchrony'=FALSE,'Calculate_proportion'=FALSE), where Calculate_Range=1 turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied}
 
-\item{Expansion_cz}{matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.  The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates, where density is weighted by area ("area-weighted expansion", \code{Expansion[c,1]=0}, the default) or where density is weighted by the expanded value for another category ("abundance weighted expansion" \code{Expansion[c1,1]=1}).  The 2nd column is only used when \code{Expansion[c1,1]=1}, and specifies the category to use for abundance-weighted expansion, where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.}
+\item{Expansion_cz}{matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.  The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates, where density is weighted by area ("area-weighted expansion", \code{Expansion[c,1]=0}, the default), where density is weighted by the expanded value for another category ("abundance weighted expansion" \code{Expansion[c1,1]=1}), or the index is calculated as the weighted average of density weighted by the expanded value for another category ("abundance weighted-average expansion" \code{Expansion[c1,1]=2}).  The 2nd column is only used when \code{Expansion[c1,1]=1} or \code{Expansion[c1,1]=2} , and specifies the category to use for abundance-weighted expansion, where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.}
 
 \item{Z_gm}{matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics. Defaults to eastings and northings for each knots or extrapolation-grid cell.}
 
@@ -105,8 +105,12 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
 \item{...}{interface to pass deprecated inputs, included for backwards compatibility with previous versions which specified elements of \code{spatial_list} individually instead of as a single object}
 }
 \value{
-Object of class \code{make_data}, containing inputs to function \code{VAST::Build_TMB_Fn()}
+Object of class \code{make_data}, containing inputs to function \code{\link{make_model}}
 }
 \description{
 \code{make_data} builds a tagged list of data inputs used by TMB for running the model
+}
+\details{
+The function generates arrays of covariates \code{X_gtp} and \code{X_itp} using \code{\link{make_covariates}};
+see that function for more details.
 }

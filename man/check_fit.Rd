@@ -7,7 +7,7 @@
 check_fit(parameter_estimates, check_gradients = FALSE, quiet = FALSE)
 }
 \arguments{
-\item{parameter_estimates}{output from \code{TMBhelper::fit_tmb}}
+\item{parameter_estimates}{output from \code{\link[TMBhelper]{fit_tmb}}}
 
 \item{check_gradients}{Boolean stating whether to check bounds as well as other issues}
 
@@ -18,4 +18,27 @@ Did an automated check find an obvious problem code (TRUE is bad; FALSE is good)
 }
 \description{
 \code{check_fit} checks bounds and throws an informative message if any look bad
+}
+\details{
+If \code{check_fit} identifies an issue in estimated parameters, then the model structure should typically be changed.
+Recommended model changes differ somewhat for univariate and multivariate models as explained below.
+
+For univariate models:
+\itemize{
+\item If \code{ln_H_input} are approaching extreme values (i.e., > 5 or < -5), then turn consider turning off anisotropy, \code{make_data(..., Aniso=FALSE)}
+\item If \code{L_beta1_z} is approaching zero (i.e., +/- 0.001), then turn off random-effects for temporal variation in the first intercept \code{RhoConfig["Beta1"]=3}
+\item If \code{L_beta2_z} is approaching zero (i.e., +/- 0.001), then turn off random-effects for temporal variation in the first intercept \code{RhoConfig["Beta2"]=3}
+\item If \code{L_omega1_z} is approaching zero (i.e., +/- 0.001), then turn off spatial effects for the 1st linear predictor \code{FieldConfig["Omega1"]=0}
+\item If \code{L_omega2_z} is approaching zero (i.e., +/- 0.001), then turn off spatial effects for the 1st second predictor \code{FieldConfig["Omega2"]=0}
+\item If \code{L_epsilon1_z} is approaching zero (i.e., +/- 0.001), then turn off spatio-temporal effects for the 1st linear predictor \code{FieldConfig["Epsilon1"]=0}
+\item If \code{L_epsilon2_z} is approaching zero (i.e., +/- 0.001), then turn off spatio-temporal effects for the 1st second predictor \code{FieldConfig["Epsilon2"]=0}
+\item If \code{Beta_rho1_f} is approaching one (i.e., > 0.999), then turn consider reducing to a random-walk structure for the intercept of the 1st linear predictor \code{RhoConfig["Beta1"]=2}
+\item If \code{Beta_rho2_f} is approaching one (i.e., > 0.999), then turn consider reducing to a random-walk structure for the intercept of the 2st linear predictor \code{RhoConfig["Beta2"]=2}
+\item If \code{Epsilon_rho1_f} is approaching one (i.e., > 0.999), then turn consider reducing to a random-walk structure for spatio-temporal variation of the 1st linear predictor \code{RhoConfig["Epsilon1"]=2}
+\item If \code{Epsilon_rho2_f} is approaching one (i.e., > 0.999), then turn consider reducing to a random-walk structure for spatio-temporal variation of the 2nd linear predictor \code{RhoConfig["Epsilon2"]=2}
+}
+
+For multivariate models, these same principles apply, but there are more options to simplify model structure.
+For example, if any \code{L_beta1_z} is approaching zero (i.e., +/- 0.001), then consider using \code{fit_model(...,Map=[custom-map])} to turn off individual parameters;
+or if using a factor model then reduce the number of factors by decreasing FieldConfig\link{"Beta1"}`
 }

@@ -1,10 +1,11 @@
 
 # devtools::install_github("james-thorson/FishStatsUtils", ref="development")
 # devtools::install_github("james-thorson/VAST", ref="development")
+# devtools::install_local("C:/Users/James.Thorson/Desktop/Git/VAST", force=TRUE, dep=FALSE)
+# devtools::install_local("C:/Users/James.Thorson/Desktop/Git/FishStatsUtils", force=TRUE, dep=FALSE)
 
 library(testthat)
 library(VAST)
-library(TMB)
 
 # Version
 Version_VAST = get_latest_version( package="VAST" )

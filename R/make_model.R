@@ -71,14 +71,6 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
   capture.output( packageDescription("VAST"), file=paste0(RunDir,"/packageDescription.txt") )
   capture.output( packageDescription("FishStatsUtils"), file=paste0(RunDir,"/packageDescription.txt"), append=TRUE )
 
-  # Compile TMB software
-  #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
-  file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(CompileDir,"/",Version,".cpp"), overwrite=FALSE)
-  origwd = getwd()
-  on.exit(setwd(origwd),add=TRUE)
-  setwd( CompileDir )
-  TMB::compile( paste0(Version,".cpp") )
-
   # Parameters
     # TmbData=TmbData
   if( length(Parameters)==1 && Parameters=="generate" ) Parameters = make_parameters( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
@@ -92,7 +84,7 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
 
   # Which are random
   if( length(Random)==1 && Random=="generate" ){
-    Random = c("Epsiloninput1_sct", "Omegainput1_sc", "Epsiloninput1_sft", "Omegainput1_sf", "eta1_vf", "Epsiloninput2_sct", "Omegainput2_sc", "Epsiloninput2_sft", "Omegainput2_sf", "eta2_vf", "delta_i")
+    Random = c("Epsiloninput1_sct", "Omegainput1_sc", "Epsiloninput1_sft", "Omegainput1_sf", "eta1_vf", "Omegainput2_sc", "Omegainput2_sf", "eta2_vf", "delta_i")
     if( all(c("beta1_ct","beta2_ct") %in% names(Parameters)) ){
       if( RhoConfig[["Beta1"]]%in%c(1,2,4) ) Random = c(Random, "beta1_ct")
       if( RhoConfig[["Beta2"]]%in%c(1,2,4) ) Random = c(Random, "beta2_ct")
@@ -109,6 +101,10 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
     }
     if( "Xiinput1_scp" %in% names(Parameters) ) Random = c(Random, "Xiinput1_scp")
     if( "Xiinput2_scp" %in% names(Parameters) ) Random = c(Random, "Xiinput2_scp")
+    if( "Epsiloninput1_sff" %in% names(Parameters) ) Random = c(Random, "Epsiloninput1_sff")
+    if( "Epsiloninput2_sff" %in% names(Parameters) ) Random = c(Random, "Epsiloninput2_sff")
+    if( "Epsiloninput1_sft" %in% names(Parameters) ) Random = c(Random, "Epsiloninput1_sft")
+    if( "Epsiloninput2_sft" %in% names(Parameters) ) Random = c(Random, "Epsiloninput2_sft")
     # Avoid problems with mapping
     Random = Random[which(Random %in% names(Parameters))]
     if( length(Random)==0) Random = NULL
@@ -125,6 +121,14 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
     Return = list("Map"=Map, "Data"=TmbData, "Parameters"=Parameters, "Random"=Random)
     return( Return )
   }
+
+  # Compile TMB software
+  #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
+  file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(CompileDir,"/",Version,".cpp"), overwrite=FALSE)
+  origwd = getwd()
+  on.exit(setwd(origwd),add=TRUE)
+  setwd( CompileDir )
+  TMB::compile( paste0(Version,".cpp") )
 
   # Build object
   dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version)) ) # random=Random,

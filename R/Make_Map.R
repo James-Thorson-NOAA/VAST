@@ -24,14 +24,21 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     Options = DataList$Options_list$Options
   }
 
-  # Adds intercept defaults to FieldConfig if missing
+  #### Deals with backwards compatibility for FieldConfig
+  # Converts from 4-vector to 3-by-2 matrix
   if( is.vector(DataList$FieldConfig) && length(DataList$FieldConfig)==4 ){
-    DataList$FieldConfig = rbind( matrix(DataList$FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("Beta1"=-2,"Beta2"=-2) )
-  }else{
-    if( !is.matrix(DataList$FieldConfig) || !all(dim(DataList$FieldConfig)==c(3,2)) ){
-      stop("`FieldConfig` has the wrong dimensions in `Make_Map`")
-    }
+    DataList$FieldConfig = rbind( matrix(DataList$FieldConfig,ncol=2,dimnames=list(c("Omega","Epsilon"),c("Component_1","Component_2"))), "Beta"=c("IID","IID") )
   }
+  # Converts from 3-by-2 matrix to 4-by-2 matrix
+  if( is.matrix(DataList$FieldConfig) & all(dim(DataList$FieldConfig)==c(3,2)) ){
+    DataList$FieldConfig = rbind( DataList$FieldConfig, "Epsilon_time"=c("IID","IID") )
+  }
+  # Checks for errors
+  if( !is.matrix(DataList$FieldConfig) || !all(dim(DataList$FieldConfig)==c(4,2)) ){
+    stop("`FieldConfig` has the wrong dimensions in `make_data`")
+  }
+  # Renames
+  dimnames(DataList$FieldConfig) = list( c("Omega","Epsilon","Beta","Epsilon_time"), c("Component_1","Component_2") )
 
   # Function to identify elements of L_z corresponding to diagonal
   identify_diagonal = function( n_c, n_f ){
@@ -123,6 +130,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   if(DataList[["FieldConfig"]][2,1] == -1){
     if("Epsiloninput1_sct" %in% names(TmbParams)) Map[["Epsiloninput1_sct"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sct"]])) )
     if("Epsiloninput1_sft" %in% names(TmbParams)) Map[["Epsiloninput1_sft"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sft"]])) )
+    if("Epsiloninput1_sff" %in% names(TmbParams)) Map[["Epsiloninput1_sff"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sff"]])) )
     if("L_epsilon1_z" %in% names(TmbParams)) Map[["L_epsilon1_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon1_z"]])) )
   }
   if( all(DataList[["FieldConfig"]][1:2,1] == -1) ){
@@ -139,6 +147,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   if(DataList[["FieldConfig"]][2,2] == -1){
     if("Epsiloninput2_sct" %in% names(TmbParams)) Map[["Epsiloninput2_sct"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sct"]])) )
     if("Epsiloninput2_sft" %in% names(TmbParams)) Map[["Epsiloninput2_sft"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sft"]])) )
+    if("Epsiloninput2_sff" %in% names(TmbParams)) Map[["Epsiloninput2_sff"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sff"]])) )
     if("L_epsilon2_z" %in% names(TmbParams)) Map[["L_epsilon2_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon2_z"]])) )
   }
   if( all(DataList[["FieldConfig"]][1:2,2] == -1 )){
@@ -185,11 +194,13 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   }
   if( ("OverdispersionConfig"%in%names(DataList)) && "n_v"%in%names(DataList) ){
     if( DataList[["OverdispersionConfig"]][1] == -1 ){
-      Map[["L1_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
+      if("L1_z"%in%names(TmbParams)) Map[["L1_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
+      if("L_eta1_z"%in%names(TmbParams)) Map[["L_eta1_z"]] = factor(rep(NA,length(TmbParams[["L_eta1_z"]])))
       Map[["eta1_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta1_vf"]])))
     }
     if( DataList[["OverdispersionConfig"]][2] == -1 ){
-      Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L2_z"]])))
+      if("L2_z"%in%names(TmbParams)) Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L2_z"]])))
+      if("L_eta2_z"%in%names(TmbParams)) Map[["L_eta2_z"]] = factor(rep(NA,length(TmbParams[["L_eta2_z"]])))
       Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
     }
   }
@@ -201,7 +212,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
 
   # Make all category-specific variances (SigmaM, Omega, Epsilon) constant for models with EncNum_a < Npool
   if( Npool>0 ){
-    if( !all(DataList$FieldConfig %in% c(-2)) ){
+    if( !all(DataList$FieldConfig[1:3,] %in% c(-2)) | !all(DataList$FieldConfig[4,] %in% c(-3)) ){
       stop("Npool should only be specified when using 'IID' variation for `FieldConfig`")
     }
   }
