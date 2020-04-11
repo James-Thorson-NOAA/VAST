@@ -65,6 +65,7 @@ If you are having problems with installation, please consider installing depende
     # Install TMB from CRAN
     install.github("james-thorson/FishStatsUtils", INSTALL_opts="--no-staged-install")
 
+Finally, please confirm that VAST is installed by running a model, e.g., following the simple example [here](https://github.com/James-Thorson-NOAA/VAST/wiki/Simple-example).
 
 
 Known installation/usage issues
@@ -75,6 +76,10 @@ Known installation/usage issues
 2.  Some versions of R are having problems downloading dependencies from GitHub, see details [here](https://github.com/James-Thorson-NOAA/FishStatsUtils/issues/21)
 
 3.  People using R version 3.6.0 or MRAN 3.5.3 are having a problem with changing standards for package namespaces, see details [here](https://github.com/James-Thorson-NOAA/VAST/issues/189), which appears to be particularly a problem with loading INLA due to install issues with that package.
+
+4.  MacOS users have specific install issues and a discussion of potential fixes is [here](https://github.com/James-Thorson-NOAA/VAST/issues/218#issuecomment-587105809)
+
+5.  Windows has a speed-limit on the rate that users can access the GitHub API. You can get around this by installing each package locally from a ZIP file.  You'll need to first download a ZIP file for GitHub repositories `TMBhelper` ([here](https://github.com/kaskr/TMB_contrib_R/tree/master/TMBhelper)), then `ThorsonUtilities` ([here](https://github.com/James-Thorson/utilities)), then `FishStatsUtils` ([here](https://github.com/James-Thorson-NOAA/FishStatsUtils)), then `VAST` ([here](https://github.com/James-Thorson-NOAA/VAST)) to your harddrive in a local directory while recording the directory name (which I will reference as `download_dir`), and then install these packages from each ZIP file in the same order. To install each package, please click "clone or download" -> "Download ZIP" -> `devtools::install_local(path=download_dir, dependencies=FALSE)`
 
 References
 =============

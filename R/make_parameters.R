@@ -12,9 +12,9 @@
 #'   \item{gamma1_j}{effect of density covariates that are static over time on encounter prob}
 #'   \item{gamma1_ctp}{effect of density covariates that change over time on encounter prob}
 #'   \item{lambda1_k}{effect of catchability covariates on encounter prob}
-#'   \item{L1_z}{trimmed cholesky (i.e., parameters for square-root of covariance) for overdispersion in encounter prob}
-#'   \item{L_omega1_z}{trimmed cholesky pointwise variance in spatial variation in encounter prob}
-#'   \item{L_epsilon1_z}{trimmed cholesky pointwise variance in spatio-temporal variation in encounter prob}
+#'   \item{L1_z}{trimmed Cholesky (i.e., parameters for square-root of covariance) for overdispersion in encounter prob}
+#'   \item{L_omega1_z}{trimmed Cholesky pointwise variance in spatial variation in encounter prob}
+#'   \item{L_epsilon1_z}{trimmed Cholesky pointwise variance in spatio-temporal variation in encounter prob}
 #'   \item{logkappa1}{governs decorrelation distance in encounter prob}
 #'   \item{Beta_mean1}{average intercept of encounter prob (used with RhoConfig options)}
 #'   \item{logsigmaB1}{SD for intercept of encounter prob (used with RhoConfig options)}
@@ -27,9 +27,9 @@
 #'   \item{gamma2_j}{effect of density covariates that are static over time on positive catch rates}
 #'   \item{gamma2_ctp}{effect of density covariates that change over time on positive catch rates}
 #'   \item{lambda2_k}{effect of catchability covariates on positive catch rates}
-#'   \item{L2_z}{trimmed cholesky (i.e., parameters for square-root of covariance) for overdispersion in positive catch rates}
-#'   \item{L_omega2_z}{trimmed cholesky pointwise variance in spatial variation in positive catch rates}
-#'   \item{L_epsilon2_z}{trimmed cholesky pointwise variance in spatio-temporal variation in positive catch rates}
+#'   \item{L2_z}{trimmed Cholesky (i.e., parameters for square-root of covariance) for overdispersion in positive catch rates}
+#'   \item{L_omega2_z}{trimmed Cholesky pointwise variance in spatial variation in positive catch rates}
+#'   \item{L_epsilon2_z}{trimmed Cholesk pointwise variance in spatio-temporal variation in positive catch rates}
 #'   \item{logkappa2}{governs decorrelation distance in positive catch rates}
 #'   \item{Beta_mean2}{average intercept of positive catch rates (used with RhoConfig options)}
 #'   \item{logsigmaB2}{SD for intercept of positive catch rates (used with RhoConfig options)}
@@ -38,7 +38,7 @@
 #'   \item{eta2_vf}{overdispersion parameters (i.e., vessel or tow-level effects) on positive catch rates}
 #'   \item{Omegainput2_sf}{Spatial variation in positive catch rates}
 #'   \item{Epsiloninput2_sft}{Spatio-temporal variation in positive catch rates}
-#'   \item{logSigmaM}{variance parameters for positive catch ratesA}
+#'   \item{logSigmaM}{variance parameters for positive catch rates}
 #' }
 
 #' @export
