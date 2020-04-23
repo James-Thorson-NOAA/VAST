@@ -1,8 +1,8 @@
 Package: VAST
 Type: Package
 Title: Vector-autoregressive spatio-temporal (VAST) model
-Version: 3.4.0
-Date: 2020-02-27
+Version: 3.5.0
+Date: 2020-04-23
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -16,8 +16,6 @@ Description: VAST is an R package for conducting spatio-temporal analysis
     factor-analysis or autoregressive correlations among categories, with derived
     calculation of abundance indices, center-of-gravity, and area-occupied.
 Imports:
-    graphics,
-    utils,
     deldir,
     stats,
     devtools,
