@@ -273,7 +273,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   Map[["lambda2_k"]] = factor(Map[["lambda2_k"]])
 
   # Dynamic covariates
-  if( any(c("X_xtp","X_itp") %in% names(DataList)) ){
+  if( any(c("X_xtp","X_itp","X_ip") %in% names(DataList)) ){
     if( "X_xtp" %in% names(DataList) ){
       Var_p = apply( DataList[["X_xtp"]], MARGIN=3, FUN=function(array){var(as.vector(array))})
       Var_tp = apply( DataList[["X_xtp"]], MARGIN=2:3, FUN=var )
@@ -281,6 +281,9 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     if( "X_itp" %in% names(DataList) ){
       Var_p = apply( DataList[["X_itp"]], MARGIN=3, FUN=function(array){var(as.vector(array))})
       Var_tp = apply( DataList[["X_itp"]], MARGIN=2:3, FUN=var )
+    }
+    if( "X_ip" %in% names(DataList) ){
+      Var_p = apply( DataList[["X_ip"]], MARGIN=2, FUN=function(array){var(as.vector(array))})
     }
     if( "gamma1_tp" %in% names(TmbParams) ){
       Map[["gamma1_tp"]] = Map[["gamma2_tp"]] = matrix( 1:(DataList$n_t*DataList$n_p), nrow=DataList$n_t, ncol=DataList$n_p )
@@ -329,6 +332,29 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
       Map[["gamma1_ctp"]] = factor(Map[["gamma1_ctp"]])
       Map[["gamma2_ctp"]] = factor(Map[["gamma2_ctp"]])
     }
+    if( all(c("gamma1_cp","gamma2_cp") %in% names(TmbParams)) ){
+      Map[["gamma1_cp"]] = Map[["gamma2_cp"]] = array( 1:(DataList$n_c*DataList$n_p), dim=c(DataList$n_c,DataList$n_p) )
+      # By default, turn off coefficient associated with variable having no variance across space and time
+      for(p in 1:length(Var_p)){
+        if( Var_p[p]==0 ){
+          Map[["gamma1_cp"]][,p] = NA
+          Map[["gamma2_cp"]][,p] = NA
+        }
+      }
+      if( "Xconfig_zcp" %in% names(DataList) ){
+        for(cI in 1:DataList$n_c){
+        for(pI in 1:DataList$n_p){
+          if( DataList$Xconfig_zcp[1,cI,pI] %in% c(0,2) ){
+            Map[["gamma1_cp"]][cI,pI] = NA
+          }
+          if( DataList$Xconfig_zcp[2,cI,pI] %in% c(0,2) ){
+            Map[["gamma2_cp"]][cI,pI] = NA
+          }
+        }}
+      }
+      Map[["gamma1_cp"]] = factor(Map[["gamma1_cp"]])
+      Map[["gamma2_cp"]] = factor(Map[["gamma2_cp"]])
+    }
     if( all(c("log_sigmaXi1_cp","log_sigmaXi2_cp") %in% names(TmbParams)) ){
       Map[["log_sigmaXi1_cp"]] = Map[["log_sigmaXi2_cp"]] = array( 1:(DataList$n_c*DataList$n_p), dim=c(DataList$n_c,DataList$n_p) )
       for(cI in 1:DataList$n_c){
@@ -363,10 +389,10 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
 
   # fix variance-ratio for columns of t_iz
   if( "log_sigmaratio1_z" %in% names(TmbParams) ){
-    Map[["log_sigmaratio1_z"]] = factor( c(NA, seq_pos(length(TmbParams[["log_sigmaratio1_z"]])-1)) )
+    Map[["log_sigmaratio1_z"]] = factor( NA )
   }
   if( "log_sigmaratio2_z" %in% names(TmbParams) ){
-    Map[["log_sigmaratio2_z"]] = factor( c(NA, seq_pos(length(TmbParams[["log_sigmaratio2_z"]])-1)) )
+    Map[["log_sigmaratio2_z"]] = factor( NA )
   }
 
   #########################
