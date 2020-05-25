@@ -1263,7 +1263,7 @@ Type objective_function<Type>::operator() ()
   array<Type> eta1_izz(n_i, c_iz.cols(), t_iz.cols());
   array<Type> eta2_izz(n_i, c_iz.cols(), t_iz.cols());
   eta1_izz.setZero();
-  eta1_izz.setZero();
+  eta2_izz.setZero();
   for(p=0; p<n_p; p++){
     for( i=0; i<n_i; i++ ){
     for( int zc=0; zc<c_iz.cols(); zc++ ){
