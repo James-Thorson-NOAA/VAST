@@ -642,7 +642,7 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(PredTF_i);          // vector indicating whether an observatino is predictive (1=used for model evaluation) or fitted (0=used for parameter estimation)
   DATA_MATRIX(a_gl);		     // Area for each "real" stratum(km^2) in each stratum
   DATA_ARRAY(X_ip);		    // Covariate design matrix (strata x covariate)
-  DATA_ARRAY(X_gtp);		    // Covariate design matrix (strata x covariate)
+  DATA_ARRAY(X_gctp);		    // Covariate design matrix (strata x covariate)
   DATA_MATRIX(Q_ik);        // Catchability matrix (observations x variable)
   DATA_MATRIX(Z_gm);        // Derived quantity matrix
   DATA_MATRIX(F_ct);         // Matrix of annual fishing mortality for each category
@@ -758,6 +758,7 @@ Type objective_function<Type>::operator() ()
   // Slot 15 -- Spatially varying coefficient, positive catch
   jnll_comp.setZero();
   Type jnll = 0;
+  Type discard_nll = 0;
 
   // Unpack Options_list
   vector<int> Options_vec( Options_list.Options_vec.size() );
@@ -1071,6 +1072,11 @@ Type objective_function<Type>::operator() ()
       Tmp1_sc.col(0) = Xiinput1_scp.col(p).col(c);
       Xi1_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa1, Tmp1_sc, Ximean1_sc, Sigma1_cf, gmrf_Q, Options(14), jnll_comp(14), this);
     }
+    if( Xconfig_zcp(0,c,p) == -1 ){
+      Sigma1_cf(0,0) = sigmaXi1_cp(c,p);
+      Tmp1_sc.col(0) = Xiinput1_scp.col(p).col(c);
+      Xi1_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa1, Tmp1_sc, Ximean1_sc, Sigma1_cf, gmrf_Q, Options(14), discard_nll, this);
+    }
   }}
 
   // Projection for Xi1
@@ -1205,6 +1211,11 @@ Type objective_function<Type>::operator() ()
       Tmp2_sc.col(0) = Xiinput2_scp.col(p).col(c);
       Sigma2_cf(0,0) = sigmaXi2_cp(c,p);
       Xi2_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa2, Tmp2_sc, Ximean2_sc, Sigma2_cf, gmrf_Q, Options(14), jnll_comp(15), this);
+    }
+    if( Xconfig_zcp(1,c,p) == -1 ){
+      Tmp2_sc.col(0) = Xiinput2_scp.col(p).col(c);
+      Sigma2_cf(0,0) = sigmaXi2_cp(c,p);
+      Xi2_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa2, Tmp2_sc, Ximean2_sc, Sigma2_cf, gmrf_Q, Options(14), discard_nll, this);
     }
   }}
 
@@ -1697,8 +1708,8 @@ Type objective_function<Type>::operator() ()
       for(c=0; c<n_c; c++){
       for(t=0; t<n_t; t++){
       for(g=0; g<n_g; g++){
-        eta1_gct(g,c,t) += (gamma1_cp(c,p) + Xi1_gcp(g,c,p)) * X_gtp(g,t,p);
-        eta2_gct(g,c,t) += (gamma2_cp(c,p) + Xi2_gcp(g,c,p)) * X_gtp(g,t,p);
+        eta1_gct(g,c,t) += (gamma1_cp(c,p) + Xi1_gcp(g,c,p)) * X_gctp(g,c,t,p);
+        eta2_gct(g,c,t) += (gamma2_cp(c,p) + Xi2_gcp(g,c,p)) * X_gctp(g,c,t,p);
       }}}
     }
 
