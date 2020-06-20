@@ -92,8 +92,13 @@ bool isNA(Type x){
 // Posfun
 template<class Type>
 Type posfun(Type x, Type lowerlimit, Type &pen){
-  pen += CppAD::CondExpLt(x,lowerlimit,Type(0.01)*pow(x-lowerlimit,2),Type(0));
-  return CppAD::CondExpGe(x,lowerlimit,x,lowerlimit/(Type(2)-x/lowerlimit));
+  // Version 1: https://github.com/kaskr/adcomp/issues/7#issuecomment-67519437
+  pen += CppAD::CondExpLt(x, lowerlimit, Type(0.01)*pow(x-lowerlimit,2), Type(0) );
+  return CppAD::CondExpGe(x, lowerlimit, x, lowerlimit/(Type(2)-x/lowerlimit) );
+
+  // Version 2: https://github.com/kaskr/adcomp/issues/7#issuecomment-644839660
+  //pen += CppAD::CondExpLt(x, lowerlimit, Type(0.01)*pow(lowerlimit-eps,2), Type(0));
+  //return CppAD::CondExpGe(x, lowerlimit, x, eps*logspace_add(lowerlimit/eps, Type(0)));
 }
 
 // Variance

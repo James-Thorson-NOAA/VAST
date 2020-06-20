@@ -582,11 +582,13 @@ function( b_i, a_i, t_i, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,length
   }
 
   # Check incompatibility of constant intercept + 0/100% encounter option
-  if( any(RhoConfig[1:2]!=0) & any(ObsModel_ez[,2]==3) ){
-    stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=3:  Other options are not coded to work together" )
-  }
-  if( any(RhoConfig[1:2]!=0) & any(ObsModel_ez[,2]==4) ){
-    stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=4:  Other options are not coded to work together" )
+  if( CheckForErrors==TRUE ){
+    if( any(RhoConfig[1:2]!=0) & any(ObsModel_ez[,2]==3) ){
+      stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=3:  Other options are not coded to work together" )
+    }
+    if( any(RhoConfig[1:2]!=0) & any(ObsModel_ez[,2]==4) ){
+      stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=4:  Other options are not coded to work together" )
+    }
   }
 
   # Factor model for intercepts + 0% or 100% encounter rate options doesn't make sense
