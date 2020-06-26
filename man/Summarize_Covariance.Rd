@@ -2,7 +2,7 @@
 % Please edit documentation in R/zzz.R
 \name{Summarize_Covariance}
 \alias{Summarize_Covariance}
-\title{Copy of FishStatsUtils::summarize_covariace}
+\title{Copy of FishStatsUtils::summarize_covariance}
 \usage{
 Summarize_Covariance(...)
 }

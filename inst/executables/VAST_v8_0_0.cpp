@@ -1142,7 +1142,7 @@ Type objective_function<Type>::operator() ()
   array<Type> eta1_gct(n_g, n_c, n_t);
   array<Type> eta2_gct(n_g, n_c, n_t);
   eta1_izz.setZero();
-  eta1_izz.setZero();
+  eta2_izz.setZero();
   eta1_gct.setZero();
   eta2_gct.setZero();
   for(p=0; p<n_p; p++){

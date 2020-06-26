@@ -4,14 +4,14 @@
 \alias{make_data}
 \title{Build data input for VAST model}
 \usage{
-make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
+make_data(b_i, a_i, t_i, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
   v_i = rep(0, length(b_i)), FieldConfig, spatial_list,
   ObsModel_ez = c(PosDist = 1, Link = 0), OverdispersionConfig = c(eta1
   = 0, eta2 = 0), RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0,
   Epsilon2 = 0), VamConfig = c(Method = 0, Rank = 0, Timing = 0),
   Aniso = TRUE, PredTF_i = rep(0, length(b_i)), Xconfig_zcp = NULL,
   covariate_data = NULL, formula, Q_ik = NULL, Network_sz = NULL,
-  F_ct = NULL, F_init = 1, t_yz = NULL, CheckForErrors = TRUE,
+  F_ct = NULL, F_init = 1, CheckForErrors = TRUE,
   yearbounds_zz = NULL, Options = c(), Expansion_cz = NULL,
   Z_gm = NULL, Version = FishStatsUtils::get_latest_version(package =
   "VAST"), overlap_zz = matrix(ncol = 7, nrow = 0), ...)
@@ -21,7 +21,7 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
 
 \item{a_i}{Sampled area for each observation i}
 
-\item{t_iz}{Matrix where each row species the time for each observation i (if t_iz is a vector, it is coerced to a matrix with one column; if it is a matrix with two or more columns, it specifies multiple times for each observation, e.g., both year and season)}
+\item{t_i}{Time for each observation i}
 
 \item{c_iz}{Category (e.g., species, length-bin) for each observation i}
 
@@ -31,9 +31,9 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
 
 \item{FieldConfig}{a vector of format c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10), where Omega refers to spatial variation, Epsilon refers to spatio-temporal variation, Omega1 refers to variation in encounter probability, and Omega2 refers to variation in positive catch rates, where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance}
 
-\item{spatial_list}{tagged list of locatoinal information from , i.e., from \code{FishStatsUtils::make_spatial_info}}
+\item{spatial_list}{tagged list of locational information from , i.e., from \code{FishStatsUtils::make_spatial_info}}
 
-\item{ObsModel_ez}{an optional matrix with two columns where first column specifies the distribution for positive catch rates, and second element specifies the functional form for encounter probabilities
+\item{ObsModel_ez}{an optional matrix with two columns where the first column specifies the distribution for positive catch rates, and the second column specifies the functional form for encounter probabilities
 \describe{
   \item{ObsModel_ez[e,1]=0}{Normal}
   \item{ObsModel_ez[e,1]=1}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4} instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
@@ -45,10 +45,10 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
   \item{ObsModel_ez[e,1]=7}{Poisson (more numerically stable than negative-binomial)}
   \item{ObsModel_ez[e,1]=8}{Compound-Poisson-Gamma, where the expected number of individuals is the 1st-component, the expected biomass per individual is the 2nd-component, and SigmaM is the variance in positive catches (likely to be very slow)}
   \item{ObsModel_ez[e,1]=9}{Binned-Poisson (for use with REEF data, where 0=0 individual; 1=1 individual; 2=2:10 individuals; 3=>10 individuals)}
-  \item{ObsModel_ez[e,1]=10}{Tweedie distribution, where epected biomass (lambda) is the product of 1st-component and 2nd-component, variance scalar (phi) is the 1st component, and logis-SigmaM is the power}
+  \item{ObsModel_ez[e,1]=10}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component, variance scalar (phi) is the 1st component, and logis-SigmaM is the power}
   \item{ObsModel_ez[e,1]=11}{Zero-inflated Poisson with additional normally-distributed variation overdispersion in the log-intensity of the Poisson distribution}
   \item{ObsModel_ez[e,1]=12}{Poisson distribution (not zero-inflated) with log-intensity from the 1st linear predictor, to be used in combination with the Poisson-link delta model for combining multiple data types}
-  \item{ObsModel_ez[e,1]=13}{Bernoilli distribution using complementary log-log (cloglog) link from the 1st linear predictor, to be used in combination with the Poisson-link delta model for combining multiple data types}
+  \item{ObsModel_ez[e,1]=13}{Bernoulli distribution using complementary log-log (cloglog) link from the 1st linear predictor, to be used in combination with the Poisson-link delta model for combining multiple data types}
   \item{ObsModel_ez[e,1]=14}{Similar to 12, but also including lognormal overdispersion}
   \item{ObsModel_ez[e,2]=0}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
   \item{ObsModel_ez[e,2]=1}{Alternative "Poisson-link delta-model" using log-link for numbers-density and log-link for biomass per number}
@@ -78,6 +78,7 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
   \item{Xconfig_zcp[z,c,p]=1}{\code{X_itp[,,p]} has a linear effect on linear predictor z for category c}
   \item{Xconfig_zcp[z,c,p]=2}{\code{X_itp[,,p]} has a spatially varying, zero-centered linear effect on linear predictor z for category c}
   \item{Xconfig_zcp[z,c,p]=3}{\code{X_itp[,,p]} has a spatially varying linear effect on linear predictor z for category c}
+  \item{Xconfig_zcp[z,c,p]=-1}{\code{Xconfig_zcp[z,c,p]=-1} is the same as \code{Xconfig_zcp[z,c,p]=2}, but without including the log-likelihood term; this is useful in special cases when carefully mirroring spatially varying coefficients, e.g., to use cohort effects in a age-structured spatio-temporal model}
 }}
 
 \item{covariate_data}{data frame of covariate values with columns \code{Lat}, \code{Lon}, and \code{Year}, and other columns matching names in \code{formula}; \code{Year=NA} can be used for covariates that do not change among years (e.g., depth)}
@@ -88,9 +89,7 @@ make_data(b_i, a_i, t_iz, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
 
 \item{F_ct}{matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)}
 
-\item{t_yz}{matrix specifying combination of levels of \code{t_iz} to use when calculating different indices of abundance or range shifts}
-
-\item{CheckForErrors}{whether to check for errors in input (NOTE: when CheckForErrors=TRUE, the function will throw an error if it detects a problem with inputs.  However, failing to throw an error is no guaruntee that the inputs are all correct)}
+\item{CheckForErrors}{whether to check for errors in input (NOTE: when CheckForErrors=TRUE, the function will throw an error if it detects a problem with inputs.  However, failing to throw an error is no guarantee that the inputs are all correct)}
 
 \item{yearbounds_zz}{matrix with two columns, giving first and last years for defining one or more periods (rows) used to calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})}
 

@@ -105,15 +105,15 @@ test_that("Covariates give identical results to glm(.) ", {
 
   # Comparison with Glm0
   expect_equal( extract(fit1$parameter_estimates$par,"beta1_ft"), extract(Glm0$coef,"BOT_DEPTH",remove=TRUE), tolerance=0.001 )
-  expect_equal( extract(fit1$parameter_estimates$par,"gamma1_ctp"), extract(Glm0$coef,"BOT_DEPTH",remove=FALSE), tolerance=0.001 )
+  expect_equal( extract(fit1$parameter_estimates$par,"gamma1_cp"), extract(Glm0$coef,"BOT_DEPTH",remove=FALSE), tolerance=0.001 )
 
   # Comparison with Glm1
   expect_equal( extract(fit1$parameter_estimates$par,"beta2_ft") - exp(2*fit1$parameter_estimates$par['logSigmaM'])/2, extract(Glm1$coef,"BOT_DEPTH",remove=TRUE), tolerance=0.001 )
-  expect_equal( extract(fit1$parameter_estimates$par,"gamma2_ctp"), extract(Glm1$coef,"BOT_DEPTH",remove=FALSE), tolerance=0.001 )
+  expect_equal( extract(fit1$parameter_estimates$par,"gamma2_cp"), extract(Glm1$coef,"BOT_DEPTH",remove=FALSE), tolerance=0.001 )
 
   # Comparison with Glm2
   expect_equal( extract(fit2$parameter_estimates$par,"beta2_ft"), extract(Glm2$coef,"BOT_DEPTH",remove=TRUE), tolerance=0.001 )
-  expect_equal( extract(fit2$parameter_estimates$par,"gamma2_ctp"), extract(Glm2$coef,"BOT_DEPTH",remove=FALSE), tolerance=0.001 )
+  expect_equal( extract(fit2$parameter_estimates$par,"gamma2_cp"), extract(Glm2$coef,"BOT_DEPTH",remove=FALSE), tolerance=0.001 )
 
   # Comparison with Glm3
   # Inverse-Gaussian doesn't seem to be identical, presumably to different parameterizations

@@ -2,6 +2,51 @@
 #include <TMB.hpp>
 #include <Eigen/Eigenvalues>
 
+// Function to important barrier-SPDE code
+// Reused with permission from Olav Nikolai Breivik and Hans Skaug
+template<class Type>
+struct spde_barrier_t{
+  vector<Type> C0;
+  vector<Type> C1;
+  Eigen::SparseMatrix<Type> D0;
+  Eigen::SparseMatrix<Type> D1;
+  Eigen::SparseMatrix<Type> I;
+  spde_barrier_t(SEXP x){  /* x = List passed from R */
+    C0 = asVector<Type>(getListElement(x,"C0"));
+    C1 = asVector<Type>(getListElement(x,"C1"));
+    D0 = tmbutils::asSparseMatrix<Type>(getListElement(x,"D0"));
+    D1 = tmbutils::asSparseMatrix<Type>(getListElement(x,"D1"));
+    I = tmbutils::asSparseMatrix<Type>(getListElement(x,"I"));
+  }
+};
+
+// Function to calculate Q (precision) matrix using barrier-SPDE
+// Reused with permission from Olav Nikolai Breivik and Hans Skaug
+template<class Type>
+Eigen::SparseMatrix<Type> Q_spde(spde_barrier_t<Type> spde, Type kappa, vector<Type> c){
+  //using namespace Eigen;
+  vector <Type> range(2);
+  range(0) = sqrt(8)/kappa*c(0);
+  range(1) = range(0)*c(1);
+  Type pi = 3.141592;
+
+  int dimLatent = spde.D0.row(0).size();
+  vector<Type> Cdiag(dimLatent);
+  Eigen::SparseMatrix<Type > Cinv(dimLatent,dimLatent);
+
+  Cdiag = spde.C0*pow(range(0),2) + spde.C1*pow(range(1),2);
+  for(int i =0; i<dimLatent; ++i){
+    Cinv.coeffRef(i,i) = 1/Cdiag(i);
+  }
+
+  Eigen::SparseMatrix<Type>A = spde.I;
+  A = A + (pow(range(0),2)/8) * spde.D0 + (pow(range(1),2)/8) * spde.D1;
+
+  Eigen::SparseMatrix<Type> Q = A.transpose() * Cinv * A/pi *2 * 3;
+
+  return Q;
+}
+
 // Function to import R list for user-defined Options_vec and Options, packaged as list Options_list in TmbData
 template<class Type>
 struct options_list {
@@ -9,11 +54,13 @@ struct options_list {
   vector<int> Options;
   matrix<int> yearbounds_zz;
   matrix<int> Expansion_cz;
+  matrix<int> overlap_zz;
   options_list(SEXP x){ // Constructor
     Options_vec = asVector<int>(getListElement(x,"Options_vec"));
     Options = asVector<int>(getListElement(x,"Options"));
     yearbounds_zz = asMatrix<int>(getListElement(x,"yearbounds_zz"));
     Expansion_cz = asMatrix<int>(getListElement(x,"Expansion_cz"));
+    overlap_zz = asMatrix<int>(getListElement(x,"overlap_zz"));
   }
 };
 
@@ -173,9 +220,7 @@ matrix<Type> create_loadings_general( vector<Type> L_val, int n_rows, int n_f, b
   }else if( n_f == -3 ){
     // Identity matrix
     matrix<Type> L_rc(n_rows, n_rows);
-    for( int r=0; r<n_rows; r++ ){
-      L_rc(r,r) = Type(1.0);
-    }
+    L_rc.setIdentity();
     return L_rc;
   }else if( n_f == 0 ){
     // AR1
@@ -197,52 +242,17 @@ matrix<Type> create_loadings_general( vector<Type> L_val, int n_rows, int n_f, b
 // OUT: jnll_comp; eta1_vc
 // eta_jf could be either eta_vf (for overdispersion) or eta_tf (for year effects)
 template<class Type>
-matrix<Type> covariation_by_category_nll( int n_f, int n_j, int n_c, matrix<Type> eta_jf, matrix<Type> eta_mean_jf, vector<Type> L_z, int simulate_random_effects, Type &jnll_pointer, objective_function<Type>* of){
+matrix<Type> covariation_by_category_nll( int n_f, int n_j, int n_c, matrix<Type> eta_jf, matrix<Type> eta_mean_jf,
+  matrix<Type> L_cf, int simulate_random_effects, Type &jnll_pointer, objective_function<Type>* of){
+
+  // Book-keeping
   using namespace density;
   matrix<Type> eta_jc(n_j, n_c);
-  vector<Type> Tmp_c;
-  // IID
-  if( n_f == -2 ){
-    for( int j=0; j<n_j; j++ ){
-    for( int c=0; c<n_c; c++ ){
-      int f = c;
-      jnll_pointer -= dnorm( eta_jf(j,f), eta_mean_jf(j,f), Type(1.0), true );
-      // Simulate new values when using obj.simulate()
-      if( simulate_random_effects==1 ){
-        if(isDouble<Type>::value && of->do_simulate) {
-          eta_jf(j,f) = rnorm( eta_mean_jf(j,f), Type(1.0) );
-        }
-      }
-      // Rescale
-      eta_jc(j,c) = eta_jf(j,f) * L_z(f);
-    }}
-  }
-  // Turn off
-  if( n_f == -1 ){
-    eta_jc.setZero();
-  }
-  // AR1 structure
-  if( n_f==0 ){
-    for( int j=0; j<n_j; j++ ){
-      Tmp_c = eta_jf.row(j);
-      jnll_pointer += SCALE( AR1(L_z(1)), exp(L_z(0)) )( Tmp_c );
-      // Simulate new values when using obj.simulate()
-      if( simulate_random_effects==1 ){
-        if(isDouble<Type>::value && of->do_simulate){
-          SCALE( AR1(L_z(1)), exp(L_z(0)) ).simulate(Tmp_c);
-          eta_jf.row(j) = Tmp_c;
-        }
-      }
-    }
-    eta_jc = eta_jf;
-  }
-  // Factor analysis structure
-  if( n_f>0 ){
-    // Assemble the loadings matrix
-    matrix<Type> L_cf = create_loadings_covariance( L_z, n_c, n_f );
-    // Probability of overdispersion
-    for( int j=0; j<n_j; j++ ){
-    for( int f=0; f<n_f; f++ ){
+
+  // Calculate probability and/or simulate
+  if( (n_f != -1) & (n_f != -3) ){
+    for( int j=0; j<eta_jf.rows(); j++ ){
+    for( int f=0; f<eta_jf.cols(); f++ ){
       jnll_pointer -= dnorm( eta_jf(j,f), eta_mean_jf(j,f), Type(1.0), true );
       // Simulate new values when using obj.simulate()
       if( simulate_random_effects==1 ){
@@ -251,9 +261,11 @@ matrix<Type> covariation_by_category_nll( int n_f, int n_j, int n_c, matrix<Type
         }
       }
     }}
-    // Multiply out overdispersion
-    eta_jc = eta_jf * L_cf.transpose();
   }
+
+  // Project using loadings matrix
+  eta_jc = eta_jf * L_cf.transpose();
+
   return eta_jc;
 }
 
@@ -289,8 +301,8 @@ array<Type> project_knots( int n_g, int n_f, int n_t, int is_epsilon, array<Type
 // Input: L_omega1_z, Q1, Omegainput1_sf, n_f, n_s, n_c, FieldConfig(0,0)
 // Output: jnll_comp(0), Omega1_sc
 template<class Type>                                                                                        //
-matrix<Type> gmrf_by_category_nll( int n_f, bool use_covariance, bool include_probability, int method, int timing,
-  int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, array<Type> gmrf_mean_sf, vector<Type> L_z,
+matrix<Type> gmrf_by_category_nll( int n_f, bool include_probability, int method, int timing,
+  int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, array<Type> gmrf_mean_sf, matrix<Type> L_cf,
   density::GMRF_t<Type> gmrf_Q, int simulate_random_effects, Type &jnll_pointer, objective_function<Type>* of){
 
   // Book-keeping
@@ -299,9 +311,6 @@ matrix<Type> gmrf_by_category_nll( int n_f, bool use_covariance, bool include_pr
   vector<Type> gmrf_s(n_s);
   matrix<Type> Cov_cc(n_c,n_c);
   array<Type> diff_gmrf_sc(n_s, n_c); // Requires an array
-
-  // Form loadings matrix
-  matrix<Type> L_cf = create_loadings_general( L_z, n_c, n_f, use_covariance );
 
   // Deal with different treatments of tau
   Type logtau;
@@ -328,7 +337,7 @@ matrix<Type> gmrf_by_category_nll( int n_f, bool use_covariance, bool include_pr
       }
     }
 
-    // Project using loadings matrix
+    // Make loadings matrix and project
     gmrf_sc = (gmrf_input_sf.matrix() * L_cf.transpose()) / exp(logtau);
   }
 
@@ -604,6 +613,8 @@ Type objective_function<Type>::operator() ()
     // Two columns, and 1+ rows, specifying first and last t for each period used in calculating synchrony
   // Options_list.Expansion_cz
     // Two columns and n_c rows.  1st column:  Type of expansion (0=area-expansion; 1=biomass-expansion);  2nd column:  Category used for biomass-expansion
+  // Options_list.overlap_zz
+    // Five columns and n_z rows. Columns: category and year for 1st variable, category and year for 2nd variable, type of overlap metric (0=Density of 2nd variable weighted by density of 1st)
   DATA_IMATRIX(FieldConfig);  // Input settings (vector, length 4)
   DATA_IVECTOR(RhoConfig);
   DATA_IVECTOR(OverdispersionConfig);          // Input settings (vector, length 2)
@@ -648,6 +659,10 @@ Type objective_function<Type>::operator() ()
   // Aniso objects
   DATA_STRUCT(spde_aniso,spde_aniso_t);
 
+  // Barrier object
+  DATA_STRUCT(spdeMatricesBarrier,spde_barrier_t); //Structure needed for the barrier procedure
+  DATA_VECTOR(Barrier_scaling);      // Scaling of range
+
   // Sparse matrices for precision matrix of 2D AR1 process
   // Q = M0*(1+rho^2)^2 + M1*(1+rho^2)*(-rho) + M2*rho^2
   DATA_SPARSE_MATRIX(M0);
@@ -669,7 +684,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_MATRIX(beta1_ft);       // Year effect
   PARAMETER_ARRAY(gamma1_ctp);       // Dynamic covariate effect
   PARAMETER_VECTOR(lambda1_k);       // Catchability coefficients
-  PARAMETER_VECTOR(L1_z);          // Overdispersion parameters
+  PARAMETER_VECTOR(L_eta1_z);          // Overdispersion parameters
   PARAMETER_VECTOR(L_omega1_z);
   PARAMETER_VECTOR(L_epsilon1_z);
   PARAMETER_VECTOR(L_beta1_z);
@@ -692,7 +707,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_MATRIX(beta2_ft);  // Year effect
   PARAMETER_ARRAY(gamma2_ctp);       // Dynamic covariate effect
   PARAMETER_VECTOR(lambda2_k);       // Catchability coefficients
-  PARAMETER_VECTOR(L2_z);          // Overdispersion parameters
+  PARAMETER_VECTOR(L_eta2_z);          // Overdispersion parameters
   PARAMETER_VECTOR(L_omega2_z);
   PARAMETER_VECTOR(L_epsilon2_z);
   PARAMETER_VECTOR(L_beta2_z);
@@ -734,6 +749,8 @@ Type objective_function<Type>::operator() ()
   // Slot 3 -- spatio-temporal, positive catch
   // Slot 4 -- tow/vessel overdispersion, encounter
   // Slot 5 -- tow/vessel overdispersion, positive catch
+  // Slot 6 -- Deprecated
+  // Slot 7 -- Deprecated
   // Slot 8 -- penalty on beta, encounter
   // Slot 9 -- penalty on beta, positive catch
   // Slot 10 -- likelihood of data, encounter
@@ -754,6 +771,8 @@ Type objective_function<Type>::operator() ()
   yearbounds_zz = Options_list.yearbounds_zz;
   matrix<int> Expansion_cz( n_c, 2 );
   Expansion_cz = Options_list.Expansion_cz;
+  matrix<int> overlap_zz( Options_list.overlap_zz.rows(), 5 );
+  overlap_zz = Options_list.overlap_zz;
 
   // Derived parameters
   Type Range_raw1, Range_raw2;
@@ -793,6 +812,18 @@ Type objective_function<Type>::operator() ()
     Epsilon_rho2_f = Epsilon_rho1_f;
   }
 
+  // Form loadings matrices
+  matrix<Type> L_omega1_cf = create_loadings_general( L_omega1_z, n_c, FieldConfig(0,0), true );
+  matrix<Type> L_omega2_cf = create_loadings_general( L_omega2_z, n_c, FieldConfig(0,1), true );
+  matrix<Type> L_epsilon1_cf = create_loadings_general( L_epsilon1_z, n_c, FieldConfig(1,0), true );
+  matrix<Type> L_epsilon2_cf = create_loadings_general( L_epsilon2_z, n_c, FieldConfig(1,1), true );
+  matrix<Type> L_beta1_cf = create_loadings_general( L_beta1_z, n_c, FieldConfig(2,0), true );
+  matrix<Type> L_beta2_cf = create_loadings_general( L_beta2_z, n_c, FieldConfig(2,1), true );
+  matrix<Type> Ltime_epsilon1_tf = create_loadings_general( Ltime_epsilon1_z, n_t, FieldConfig(3,0), true );
+  matrix<Type> Ltime_epsilon2_tf = create_loadings_general( Ltime_epsilon2_z, n_t, FieldConfig(3,1), true );
+  matrix<Type> L_eta1_cf = create_loadings_general( L_eta1_z, n_c, OverdispersionConfig(0), true );
+  matrix<Type> L_eta2_cf = create_loadings_general( L_eta2_z, n_c, OverdispersionConfig(1), true );
+
   ////////////////////////
   // Interactions and fishing mortality
   ////////////////////////
@@ -814,9 +845,7 @@ Type objective_function<Type>::operator() ()
   covE2_cc.setZero();
   // Calculate interaction matrix B_cc for categories if feasible
   if( (n_c==n_f1) & (n_c==n_f2) & (FieldConfig(1,0)>0) & (FieldConfig(1,1)>0) ){
-    matrix<Type> L_epsilon1_cf = create_loadings_covariance( L_epsilon1_z, n_c, n_f1 );
     matrix<Type> Cov_epsilon1_cc = L_epsilon1_cf * L_epsilon1_cf.transpose();
-    matrix<Type> L_epsilon2_cf = create_loadings_covariance( L_epsilon2_z, n_c, n_f2 );
     matrix<Type> Cov_epsilon2_cc = L_epsilon2_cf * L_epsilon2_cf.transpose();
     matrix<Type> Btemp_cc( n_c, n_c );
     // Assemble interaction matrix
@@ -840,9 +869,7 @@ Type objective_function<Type>::operator() ()
       B2_cc = Btemp_cc * L_epsilon2_cf.inverse();
     }
     REPORT( B1_cc );
-    REPORT( L_epsilon1_cf );
     REPORT( B2_cc );
-    REPORT( L_epsilon2_cf );
     ADREPORT( B1_cc );
     // Calculate F resulting in 40% of B0 if requested (only makes sense when B1_cc = B2_cc or Epsilon2 is turned off)
     if( Options(10)==1 ){
@@ -903,13 +930,15 @@ Type objective_function<Type>::operator() ()
   Eigen::SparseMatrix<Type> Q1( n_s, n_s );
   Eigen::SparseMatrix<Type> Q2( n_s, n_s );
   GMRF_t<Type> gmrf_Q;
-  if( (Options_vec(7)==0) & (Options_vec(0)==0) ){
-    Q1 = Q_spde(spde, exp(logkappa1));
-    Q2 = Q_spde(spde, exp(logkappa2));
-  }
-  if( (Options_vec(7)==0) & (Options_vec(0)==1) ){
-    Q1 = Q_spde(spde_aniso, exp(logkappa1), H);
-    Q2 = Q_spde(spde_aniso, exp(logkappa2), H);
+  if( Options_vec(7)==0 ){
+    if( Options_vec(0)==0 ){
+      Q1 = Q_spde(spde, exp(logkappa1));
+      Q2 = Q_spde(spde, exp(logkappa2));
+    }
+    if( Options_vec(0)==1 ){
+      Q1 = Q_spde(spde_aniso, exp(logkappa1), H);
+      Q2 = Q_spde(spde_aniso, exp(logkappa2), H);
+    }
   }
   if( Options_vec(7)==1 ){
     Q1 = M0*pow(1+exp(logkappa1*2),2) + M1*(1+exp(logkappa1*2))*(-exp(logkappa1)) + M2*exp(logkappa1*2);
@@ -918,6 +947,10 @@ Type objective_function<Type>::operator() ()
   if( Options_vec(7)==2 ){
     Q1 = Q_network( logkappa1, n_s, parent_s, child_s, dist_s );
     Q2 = Q_network( logkappa2, n_s, parent_s, child_s, dist_s );
+  }
+  if( Options_vec(7)==3 ){
+    Q1 = Q_spde(spdeMatricesBarrier, exp(logkappa1), Barrier_scaling);
+    Q2 = Q_spde(spdeMatricesBarrier, exp(logkappa2), Barrier_scaling);
   }
 
   /////
@@ -929,7 +962,7 @@ Type objective_function<Type>::operator() ()
   array<Type> Omegamean1_sf(n_s, Omegainput1_sf.cols() );
   Omegamean1_sf.setZero();
   array<Type> Omega1_sc(n_s, n_c);
-  Omega1_sc = gmrf_by_category_nll(FieldConfig(0,0), true, true, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_z, gmrf_Q, Options(14), jnll_comp(0), this);
+  Omega1_sc = gmrf_by_category_nll(FieldConfig(0,0), true, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_cf, gmrf_Q, Options(14), jnll_comp(0), this);
 
   // Projection for Omega1
   array<Type> Omega1_iz(n_i, c_iz.cols());
@@ -958,7 +991,7 @@ Type objective_function<Type>::operator() ()
       for( s=0; s<n_s; s++ ){
         Tmp1_sf(s,f2) = Epsiloninput1_sff(s,f1,f2);
       }}
-      Tmp_st = gmrf_by_category_nll(FieldConfig(3,0), true, true, int(2), int(0), n_s, n_t, logkappa1, Tmp1_sf, Zeros1_sf, Ltime_epsilon1_z, gmrf_Q, Options(14), jnll_comp(1), this);
+      Tmp_st = gmrf_by_category_nll(FieldConfig(3,0), true, int(2), int(0), n_s, n_t, logkappa1, Tmp1_sf, Zeros1_sf, Ltime_epsilon1_tf, gmrf_Q, Options(14), jnll_comp(1), this);
       for( int f2=0; f2<n_t; f2++ ){
       for( s=0; s<n_s; s++ ){
         Epsiloninput1_sft(s,f1,f2) = Tmp_st(s,f2);
@@ -981,7 +1014,7 @@ Type objective_function<Type>::operator() ()
     // PDF for first year of autoregression
     if( t==(Options(11)+0) ){
       Epsilonmean1_sf.setZero();
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), true, include_epsilon_prob_1, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, Options(14), jnll_comp(1), this);
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), include_epsilon_prob_1, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_cf, gmrf_Q, Options(14), jnll_comp(1), this);
     }
     // PDF for subsequent years of autoregression
     if( t>=(Options(11)+1) ){
@@ -1010,7 +1043,7 @@ Type objective_function<Type>::operator() ()
         }}}
       }
       // Hyperdistribution for spatio-temporal component
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), true, include_epsilon_prob_1, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_z, gmrf_Q, Options(14), jnll_comp(1), this);
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), include_epsilon_prob_1, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), Epsilonmean1_sf, L_epsilon1_cf, gmrf_Q, Options(14), jnll_comp(1), this);
     }
   }
 
@@ -1031,7 +1064,7 @@ Type objective_function<Type>::operator() ()
   // Xi1_scp
   array<Type> Ximean1_sc(n_s, 1);
   array<Type> Xi1_scp(n_s, n_c, n_p);
-  vector<Type> Sigma1(1);
+  matrix<Type> Sigma1_cf(1,1);
   array<Type> Tmp1_sc(n_s, 1);
   Ximean1_sc.setZero();
   Xi1_scp.setZero();
@@ -1039,9 +1072,9 @@ Type objective_function<Type>::operator() ()
   for(c=0; c<n_c; c++){
     // Hyperdistribution for spatially varying coefficients (uses IID option)
     if( (Xconfig_zcp(0,c,p)==2) | (Xconfig_zcp(0,c,p)==3) ){
-      Sigma1(0) = sigmaXi1_cp(c,p);
+      Sigma1_cf(0,0) = sigmaXi1_cp(c,p);
       Tmp1_sc.col(0) = Xiinput1_scp.col(p).col(c);
-      Xi1_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa1, Tmp1_sc, Ximean1_sc, Sigma1, gmrf_Q, Options(14), jnll_comp(14), this);
+      Xi1_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa1, Tmp1_sc, Ximean1_sc, Sigma1_cf, gmrf_Q, Options(14), jnll_comp(14), this);
     }
   }}
 
@@ -1067,7 +1100,7 @@ Type objective_function<Type>::operator() ()
   array<Type> Omegamean2_sf(n_s, Omegainput2_sf.cols() );
   Omegamean2_sf.setZero();
   array<Type> Omega2_sc(n_s, n_c);
-  Omega2_sc = gmrf_by_category_nll(FieldConfig(0,1), true, true, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_z, gmrf_Q, Options(14), jnll_comp(2), this);
+  Omega2_sc = gmrf_by_category_nll(FieldConfig(0,1), true, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_cf, gmrf_Q, Options(14), jnll_comp(2), this);
 
   // Projection for Omega2
   array<Type> Omega2_iz(n_i, c_iz.cols());
@@ -1095,7 +1128,7 @@ Type objective_function<Type>::operator() ()
       for( s=0; s<n_s; s++ ){
         Tmp2_sf(s,f2) = Epsiloninput2_sff(s,f1,f2);
       }}
-      Tmp_st = gmrf_by_category_nll(FieldConfig(3,1), true, true, int(2), int(0), n_s, n_t, logkappa2, Tmp2_sf, Zeros2_sf, Ltime_epsilon2_z, gmrf_Q, Options(14), jnll_comp(3), this);
+      Tmp_st = gmrf_by_category_nll(FieldConfig(3,1), true, int(2), int(0), n_s, n_t, logkappa2, Tmp2_sf, Zeros2_sf, Ltime_epsilon2_tf, gmrf_Q, Options(14), jnll_comp(3), this);
       for( int f2=0; f2<n_t; f2++ ){
       for( s=0; s<n_s; s++ ){
         Epsiloninput2_sft(s,f1,f2) = Tmp_st(s,f2);
@@ -1118,7 +1151,7 @@ Type objective_function<Type>::operator() ()
     // PDF for first year of autoregression
     if( t==(Options(11)+0) ){
       Epsilonmean2_sf.setZero();
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), true, include_epsilon_prob_2, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, Options(14), jnll_comp(3), this);
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), include_epsilon_prob_2, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_cf, gmrf_Q, Options(14), jnll_comp(3), this);
     }
     // PDF for subsequent years of autoregression
     if( t>=(Options(11)+1) ){
@@ -1147,7 +1180,7 @@ Type objective_function<Type>::operator() ()
         }}}
       }
       // Hyperdistribution for spatio-temporal component
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), true, include_epsilon_prob_2, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_z, gmrf_Q, Options(14), jnll_comp(3), this);
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), include_epsilon_prob_2, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), Epsilonmean2_sf, L_epsilon2_cf, gmrf_Q, Options(14), jnll_comp(3), this);
     }
   }
 
@@ -1168,7 +1201,7 @@ Type objective_function<Type>::operator() ()
   // Xi2_scp
   array<Type> Ximean2_sc(n_s, 1);
   array<Type> Xi2_scp(n_s, n_c, n_p);
-  vector<Type> Sigma2(1);
+  matrix<Type> Sigma2_cf(1,1);
   array<Type> Tmp2_sc(n_s, 1);
   Ximean2_sc.setZero();
   Xi2_scp.setZero();
@@ -1177,8 +1210,8 @@ Type objective_function<Type>::operator() ()
     // Hyperdistribution for spatially varying coefficients (uses IID option)
     if( (Xconfig_zcp(1,c,p)==2) | (Xconfig_zcp(1,c,p)==3) ){
       Tmp2_sc.col(0) = Xiinput2_scp.col(p).col(c);
-      Sigma2(0) = sigmaXi2_cp(c,p);
-      Xi2_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa2, Tmp2_sc, Ximean2_sc, Sigma2, gmrf_Q, Options(14), jnll_comp(15), this);
+      Sigma2_cf(0,0) = sigmaXi2_cp(c,p);
+      Xi2_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa2, Tmp2_sc, Ximean2_sc, Sigma2_cf, gmrf_Q, Options(14), jnll_comp(15), this);
     }
   }}
 
@@ -1215,14 +1248,14 @@ Type objective_function<Type>::operator() ()
   matrix<Type> eta1_mean_vf(n_v, n_eta_f1);
   eta1_mean_vf.setZero();
   matrix<Type> eta1_vc(n_v, n_c);
-  eta1_vc = covariation_by_category_nll( OverdispersionConfig(0), n_v, n_c, eta1_vf, eta1_mean_vf, L1_z, Options(14), jnll_comp(4), this );
+  eta1_vc = covariation_by_category_nll( OverdispersionConfig(0), n_v, n_c, eta1_vf, eta1_mean_vf, L_eta1_cf, Options(14), jnll_comp(4), this );
   // 1st component
   int n_eta_f2;
   n_eta_f2 = eta2_vf.cols();
   matrix<Type> eta2_mean_vf(n_v, n_eta_f2);
   eta2_mean_vf.setZero();
   matrix<Type> eta2_vc(n_v, n_c);
-  eta2_vc = covariation_by_category_nll( OverdispersionConfig(1), n_v, n_c, eta2_vf, eta2_mean_vf, L2_z, Options(14), jnll_comp(5), this );
+  eta2_vc = covariation_by_category_nll( OverdispersionConfig(1), n_v, n_c, eta2_vf, eta2_mean_vf, L_eta2_cf, Options(14), jnll_comp(5), this );
 
   ////// Probability of correlated innovations on intercepts
   // 1st component
@@ -1239,7 +1272,7 @@ Type objective_function<Type>::operator() ()
     }
   }
   matrix<Type> beta1_tc(n_t, n_c);
-  beta1_tc = covariation_by_category_nll( FieldConfig(2,0), n_t, n_c, beta1_tf, beta1_mean_tf, L_beta1_z, Options(14), jnll_beta1, this );
+  beta1_tc = covariation_by_category_nll( FieldConfig(2,0), n_t, n_c, beta1_tf, beta1_mean_tf, L_beta1_cf, Options(14), jnll_beta1, this );
   for( c=0; c<n_c; c++ ){
   for( t=0; t<n_t; t++ ){
     beta1_tc(t,c) += Beta_mean1_c(c) + Beta_mean1_t(t);
@@ -1262,7 +1295,7 @@ Type objective_function<Type>::operator() ()
     }
   }
   matrix<Type> beta2_tc(n_t, n_c);
-  beta2_tc = covariation_by_category_nll( FieldConfig(2,1), n_t, n_c, beta2_tf, beta2_mean_tf, L_beta2_z, Options(14), jnll_beta2, this );
+  beta2_tc = covariation_by_category_nll( FieldConfig(2,1), n_t, n_c, beta2_tf, beta2_mean_tf, L_beta2_cf, Options(14), jnll_beta2, this );
   for( c=0; c<n_c; c++ ){
   for( t=0; t<n_t; t++ ){
     beta2_tc(t,c) += Beta_mean2_c(c) + Beta_mean2_t(t);
@@ -1715,7 +1748,7 @@ Type objective_function<Type>::operator() ()
       if( (ObsModel_ez(c,1)==1) | (ObsModel_ez(c,1)==4) ){
         R1_gcy(g,c,y) = Type(1.0) - exp( -exp(P1_gcy(g,c,y)) );
         R2_gcy(g,c,y) = exp(P1_gcy(g,c,y)) / R1_gcy(g,c,y) * exp( P2_gcy(g,c,y) );
-        D_gcy(g,c,y) = exp( P1_gcy(g,c,y) ) * exp( P2_gcy(g,c,y) );        // Use this line to prevent numerical over/underflow
+        D_gcy(g,c,y) = exp( P1_gcy(g,c,y) + P2_gcy(g,c,y) );        // Use this line to prevent numerical over/underflow
       }
       if( ObsModel_ez(c,1)==2 ){
         R1_gcy(g,c,y) = exp( P1_gcy(g,c,y) );
@@ -1740,11 +1773,20 @@ Type objective_function<Type>::operator() ()
           }
         }
       }
-      // Expand by biomass for another category and convert from kg to metric tonnes
+      // Expand by biomass for another category
       for(c=0; c<n_c; c++){
         if( Expansion_cz(c,0)==1 ){
           for(g=0; g<n_g; g++){
-            Index_gcyl(g,c,y,l) = D_gcy(g,c,y) * Index_gcyl(g,Expansion_cz(c,1),y,l);    // Had Index_gcyl(g,Expansion_cz(c,1)+1,y,l) in original draft but I can't remember why
+            Index_gcyl(g,c,y,l) = D_gcy(g,c,y) * Index_gcyl(g,Expansion_cz(c,1),y,l);
+            Index_cyl(c,y,l) += Index_gcyl(g,c,y,l);
+          }
+        }
+      }
+      // Expand as weighted-average of biomass for another category
+      for(c=0; c<n_c; c++){
+        if( Expansion_cz(c,0)==2 ){
+          for(g=0; g<n_g; g++){
+            Index_gcyl(g,c,y,l) = D_gcy(g,c,y) * Index_gcyl(g,Expansion_cz(c,1),y,l) / Index_cyl(Expansion_cz(c,1),y,l);
             Index_cyl(c,y,l) += Index_gcyl(g,c,y,l);
           }
         }
@@ -1824,43 +1866,37 @@ Type objective_function<Type>::operator() ()
     // Reporting and standard-errors for covariance and correlation matrices
     if( Options(5)==1 ){
       if( FieldConfig(0,0)>0 ){
-        matrix<Type> L1_omega_cf = create_loadings_covariance( L_omega1_z, n_c, FieldConfig(0,0) );
-        matrix<Type> lowercov_uppercor_omega1 = L1_omega_cf * L1_omega_cf.transpose();
+        matrix<Type> lowercov_uppercor_omega1 = L_omega1_cf * L_omega1_cf.transpose();
         lowercov_uppercor_omega1 = convert_upper_cov_to_cor( lowercov_uppercor_omega1 );
         REPORT( lowercov_uppercor_omega1 );
         ADREPORT( lowercov_uppercor_omega1 );
       }
       if( FieldConfig(1,0)>0 ){
-        matrix<Type> L1_epsilon_cf = create_loadings_covariance( L_epsilon1_z, n_c, FieldConfig(1,0) );
-        matrix<Type> lowercov_uppercor_epsilon1 = L1_epsilon_cf * L1_epsilon_cf.transpose();
+        matrix<Type> lowercov_uppercor_epsilon1 = L_epsilon1_cf * L_epsilon1_cf.transpose();
         lowercov_uppercor_epsilon1 = convert_upper_cov_to_cor( lowercov_uppercor_epsilon1 );
         REPORT( lowercov_uppercor_epsilon1 );
         ADREPORT( lowercov_uppercor_epsilon1 );
       }
       if( FieldConfig(2,0)>0 ){
-        matrix<Type> L1_beta_cf = create_loadings_covariance( L_beta1_z, n_c, FieldConfig(2,0) );
-        matrix<Type> lowercov_uppercor_beta1 = L1_beta_cf * L1_beta_cf.transpose();
+        matrix<Type> lowercov_uppercor_beta1 = L_beta1_cf * L_beta1_cf.transpose();
         lowercov_uppercor_beta1 = convert_upper_cov_to_cor( lowercov_uppercor_beta1 );
         REPORT( lowercov_uppercor_beta1 );
         ADREPORT( lowercov_uppercor_beta1 );
       }
       if( FieldConfig(0,1)>0 ){
-        matrix<Type> L2_omega_cf = create_loadings_covariance( L_omega2_z, n_c, FieldConfig(0,1) );
-        matrix<Type> lowercov_uppercor_omega2 = L2_omega_cf * L2_omega_cf.transpose();
+        matrix<Type> lowercov_uppercor_omega2 = L_omega2_cf * L_omega2_cf.transpose();
         lowercov_uppercor_omega2 = convert_upper_cov_to_cor( lowercov_uppercor_omega2 );
         REPORT( lowercov_uppercor_omega2 );
         ADREPORT( lowercov_uppercor_omega2 );
       }
       if( FieldConfig(1,1)>0 ){
-        matrix<Type> L2_epsilon_cf = create_loadings_covariance( L_epsilon2_z, n_c, FieldConfig(1,1) );
-        matrix<Type> lowercov_uppercor_epsilon2 = L2_epsilon_cf * L2_epsilon_cf.transpose();
+        matrix<Type> lowercov_uppercor_epsilon2 = L_epsilon2_cf * L_epsilon2_cf.transpose();
         lowercov_uppercor_epsilon2 = convert_upper_cov_to_cor( lowercov_uppercor_epsilon2 );
         REPORT( lowercov_uppercor_epsilon2 );
         ADREPORT( lowercov_uppercor_epsilon2 );
       }
       if( FieldConfig(2,1)>0 ){
-        matrix<Type> L1_beta_cf = create_loadings_covariance( L_beta2_z, n_c, FieldConfig(2,1) );
-        matrix<Type> lowercov_uppercor_beta2 = L1_beta_cf * L1_beta_cf.transpose();
+        matrix<Type> lowercov_uppercor_beta2 = L_beta1_cf * L_beta1_cf.transpose();
         lowercov_uppercor_beta2 = convert_upper_cov_to_cor( lowercov_uppercor_beta2 );
         REPORT( lowercov_uppercor_beta2 );
         ADREPORT( lowercov_uppercor_beta2 );
@@ -2038,8 +2074,8 @@ Type objective_function<Type>::operator() ()
       matrix<Type> CovHat( n_c, n_c );
       CovHat.setIdentity();
       CovHat *= pow(0.0001, 2);
-      if( FieldConfig(1,0)>0 ) CovHat += create_loadings_covariance(L_epsilon1_z, n_c, FieldConfig(1,0)) * create_loadings_covariance(L_epsilon1_z, n_c, FieldConfig(1,0)).transpose();
-      if( FieldConfig(1,1)>0 ) CovHat += create_loadings_covariance(L_epsilon2_z, n_c, FieldConfig(1,1)) * create_loadings_covariance(L_epsilon2_z, n_c, FieldConfig(1,1)).transpose();
+      if( FieldConfig(1,0)>0 ) CovHat += L_epsilon1_cf * L_epsilon1_cf.transpose();
+      if( FieldConfig(1,1)>0 ) CovHat += L_epsilon2_cf * L_epsilon2_cf.transpose();
       // Coherence ranges from 0 (all factors are equal) to 1 (first factor explains all variance)
       SelfAdjointEigenSolver<Matrix<Type,Dynamic,Dynamic> > es(CovHat);
       vector<Type> eigenvalues_c = es.eigenvalues();       // Ranked from lowest to highest for some reason
@@ -2115,18 +2151,68 @@ Type objective_function<Type>::operator() ()
     }
     // Calculate value of vactors at extrapolation-grid cells (e.g., for use when visualizing estimated or rotated factor estimates)
     if( Options(12)==1 ){
+      // Housekeeping
       array<Type> Omegainput1_gf( n_g, Omegainput1_sf.cols() );
       array<Type> Epsiloninput1_gft( n_g, Epsiloninput1_sft.col(0).cols(), n_t );
+      array<Type> Epsiloninput1_gff( n_g, Epsiloninput1_sff.col(0).cols(), Epsiloninput1_sff.cols() );
       array<Type> Omegainput2_gf( n_g, Omegainput2_sf.cols() );
       array<Type> Epsiloninput2_gft( n_g, Epsiloninput2_sft.col(0).cols(), n_t );
+      array<Type> Epsiloninput2_gff( n_g, Epsiloninput2_sff.col(0).cols(), Epsiloninput2_sff.cols() );
+      // Project
       Omegainput1_gf = project_knots( n_g, Omegainput1_sf.cols(), int(1), int(0), Omegainput1_sf, Ags_ij, Ags_x );
       Epsiloninput1_gft = project_knots( n_g, Epsiloninput1_sft.col(0).cols(), n_t, int(1), Epsiloninput1_sft, Ags_ij, Ags_x );
+      Epsiloninput1_gff = project_knots( n_g, Epsiloninput1_sff.col(0).cols(), Epsiloninput1_sff.cols(), int(1), Epsiloninput1_sff, Ags_ij, Ags_x );
       Omegainput2_gf = project_knots( n_g, Omegainput2_sf.cols(), int(1), int(0), Omegainput2_sf, Ags_ij, Ags_x );
       Epsiloninput2_gft = project_knots( n_g, Epsiloninput2_sft.col(0).cols(), n_t, int(1), Epsiloninput2_sft, Ags_ij, Ags_x );
+      Epsiloninput2_gff = project_knots( n_g, Epsiloninput2_sff.col(0).cols(), Epsiloninput2_sff.cols(), int(1), Epsiloninput2_sff, Ags_ij, Ags_x );
+      // Return
       REPORT( Omegainput1_gf );
       REPORT( Epsiloninput1_gft );
+      REPORT( Epsiloninput1_gff );
       REPORT( Omegainput2_gf );
       REPORT( Epsiloninput2_gft );
+      REPORT( Epsiloninput2_gff );
+    }
+
+    // Overlap metrics
+    if( overlap_zz.rows() > 0 ){
+      vector<Type> overlap_z( overlap_zz.rows() );
+      //matrix<Type> overlap_gz( n_g, overlap_zz.rows() );
+      for( int z=0; z<overlap_zz.rows(); z++ ){
+        // Biomass-weighted average for a variable or log-variable
+        if( !isNA(overlap_zz(z,4)) ){
+          if( overlap_zz(z,4) == 0 ){
+            overlap_z(z) = 0.0;
+            for( g=0; g<n_g; g++ ){
+              if( overlap_zz(z,5)==0 ){
+                overlap_z(z) += (Index_gcyl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_cyl(overlap_zz(z,0),overlap_zz(z,1),0)) * D_gcy(g,overlap_zz(z,2),overlap_zz(z,3));
+              }else{
+                overlap_z(z) += (Index_gcyl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_cyl(overlap_zz(z,0),overlap_zz(z,1),0)) * log(D_gcy(g,overlap_zz(z,2),overlap_zz(z,3)));
+              }
+            }
+          }
+          // Schoeners-D
+          if( overlap_zz(z,4) == 1 ){
+            overlap_z(z) = 1.0;
+            for( g=0; g<n_g; g++ ){
+              overlap_z(z) -= 0.5 * abs( (Index_gcyl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_cyl(overlap_zz(z,0),overlap_zz(z,1),0)) - (Index_gcyl(g,overlap_zz(z,2),overlap_zz(z,3),0)/Index_cyl(overlap_zz(z,2),overlap_zz(z,3),0)) );
+            }
+          }
+          // Compare with threshold overlap_zz(z,5) using logistic transform for differentiability
+          if( overlap_zz(z,4) == 2 ){
+            overlap_z(z) = 0.0;
+            for( g=0; g<n_g; g++ ){
+              overlap_z(z) += invlogit( (log(D_gcy(g,overlap_zz(z,0),overlap_zz(z,1))) - Type(overlap_zz(z,5))) * Type(overlap_zz(z,6)) ) * a_gl(g,0);
+              //overlap_gz(g,z) = invlogit( (log(D_gcy(g,overlap_zz(z,0),overlap_zz(z,1))) - Type(overlap_zz(z,5))) * Type(overlap_zz(z,6)) );
+            }
+          }
+        }else{
+          overlap_z(z) = 0;
+        }
+      }
+      REPORT( overlap_z );
+      //REPORT( overlap_gz );
+      ADREPORT( overlap_z );
     }
   }
 
@@ -2139,40 +2225,54 @@ Type objective_function<Type>::operator() ()
 
   /// Important outputs
   REPORT( B_ff );
-  REPORT( P1_iz );
-  REPORT( P2_iz );
-  REPORT( R1_i );
-  REPORT( R2_i );
+  REPORT( SigmaM );
+  REPORT( jnll );
+  REPORT( jnll_comp );
+
+  // Quantities derived from random effects and used for plotting
   REPORT( eta1_vc );
   REPORT( eta2_vc );
   REPORT( iota_ct );
-  REPORT( SigmaM );
   REPORT( sigmaXi1_cp );
   REPORT( sigmaXi2_cp );
-  REPORT( H );
-  REPORT( Range_raw1 );
-  REPORT( Range_raw2 );
-  REPORT( beta1_tc );
-  REPORT( beta2_tc );
-  REPORT( jnll );
-  REPORT( D_i );
-
-  // Needed for plotting
-  REPORT( Omegainput1_sf );
-  REPORT( Omegainput2_sf );
-  REPORT( Epsiloninput1_sft );
-  REPORT( Epsiloninput2_sft );
+  REPORT( Xi1_scp );
+  REPORT( Xi2_scp );
   REPORT( Omega1_sc );
   REPORT( Omega2_sc );
   REPORT( Epsilon1_sct );
   REPORT( Epsilon2_sct );
-  REPORT( Xi1_scp );
-  REPORT( Xi2_scp );
+  REPORT( beta1_tc );
+  REPORT( beta2_tc );
+  REPORT( Omegainput1_sf );
+  REPORT( Omegainput2_sf );
+  REPORT( Epsiloninput1_sft );
+  REPORT( Epsiloninput2_sft );
 
+  // Predictors
+  REPORT( D_i );
+  REPORT( P1_iz );
+  REPORT( P2_iz );
+  REPORT( R1_i );
+  REPORT( R2_i );
+
+  // Loadings matrices
+  REPORT( L_omega1_cf );
+  REPORT( L_omega2_cf );
+  REPORT( L_epsilon1_cf );
+  REPORT( L_epsilon2_cf );
+  REPORT( L_beta1_cf );
+  REPORT( L_beta2_cf );
+  REPORT( Ltime_epsilon1_tf );
+  REPORT( Ltime_epsilon2_tf );
+
+  // Decorrelation distances
+  REPORT( H );
+  REPORT( Range_raw1 );
+  REPORT( Range_raw2 );
   ADREPORT( Range_raw1 );
   ADREPORT( Range_raw2 );
 
-  /// Optional outputs
+  /// Optional diagnostic outputs
   if( Options(16) == true ){
     REPORT( Q1 );
     REPORT( Q2 );
@@ -2185,7 +2285,6 @@ Type objective_function<Type>::operator() ()
     REPORT( zeta2_i );
     REPORT( beta1_mean_tf );
     REPORT( beta2_mean_tf );
-    REPORT( jnll_comp );
     REPORT( Options );
     REPORT( Options_vec );
     REPORT( yearbounds_zz );
@@ -2198,11 +2297,18 @@ Type objective_function<Type>::operator() ()
     REPORT( Beta_rho2_f );
     REPORT( Epsilon_rho1_f );
     REPORT( Epsilon_rho2_f );
+    REPORT( Omega1_iz );
+    REPORT( Omega2_iz );
+    REPORT( Epsilon1_izz );
+    REPORT( Epsilon2_izz );
+    REPORT( eta1_izz );
+    REPORT( eta2_izz );
+    REPORT( zeta1_i );
+    REPORT( zeta2_i );
+    REPORT( iota_ct );
   }
 
   if( Options(3)==1 ){
-    vector<Type> D_i( n_i );
-    D_i = R1_i * R2_i;
     ADREPORT( D_i );
   }
 

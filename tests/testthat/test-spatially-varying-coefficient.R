@@ -27,7 +27,7 @@ test_that("Spatially varying coefficient example is working ", {
 
   # Comparisons
   Par1 = fit$parameter_estimates$par[names(fit$parameter_estimates$par)%in%c("ln_H_input","beta1_ft","logkappa1","gamma2_ctp","beta2_ft","logkappa2","log_sigmaXi2_cp","logSigmaM")]
-  Par2 = parameter_estimates$par[names(parameter_estimates$par)%in%c("ln_H_input","beta1_ft","logkappa1","gamma2_ctp","beta2_ft","logkappa2","log_sigmaXi2_cp","logSigmaM")]
+  Par2 = parameter_estimates$par[names(parameter_estimates$par)%in%c("ln_H_input","beta1_ft","logkappa1","gamma2_cp","beta2_ft","logkappa2","log_sigmaXi2_cp","logSigmaM")]
   expect_equal( as.vector(Par1), as.vector(Par2), tolerance=1e-3 )
   expect_equal( parameter_estimates$objective, fit$parameter_estimates$objective, tolerance=1e-3 )
 

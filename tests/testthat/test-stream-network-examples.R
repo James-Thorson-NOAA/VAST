@@ -44,7 +44,7 @@ test_that("Stream network example is working ", {
   fit = fit_model( settings=settings, 
                   Lat_i=Data_Geostat[,"Lat"], 
                   Lon_i=Data_Geostat[,"Lon"], 
-                  t_iz=as.numeric(Data_Geostat[,'Year']), 
+                  t_i=as.numeric(Data_Geostat[,'Year']),
                   c_iz=rep(0,nrow(Data_Geostat)), 
                   b_i=Data_Geostat[,'Catch_KG'], 
                   a_i=Data_Geostat[,'AreaSwept_km2'], 
