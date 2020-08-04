@@ -2186,7 +2186,7 @@ Type objective_function<Type>::operator() ()
           if( overlap_zz(z,4) == 1 ){
             overlap_z(z) = 1.0;
             for( g=0; g<n_g; g++ ){
-              overlap_z(z) -= 0.5 * abs( (Index_gctl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_ctl(overlap_zz(z,0),overlap_zz(z,1),0)) - (Index_gctl(g,overlap_zz(z,2),overlap_zz(z,3),0)/Index_ctl(overlap_zz(z,2),overlap_zz(z,3),0)) );
+              overlap_z(z) -= 0.5 * fabs( (Index_gctl(g,overlap_zz(z,0),overlap_zz(z,1),0)/Index_ctl(overlap_zz(z,0),overlap_zz(z,1),0)) - (Index_gctl(g,overlap_zz(z,2),overlap_zz(z,3),0)/Index_ctl(overlap_zz(z,2),overlap_zz(z,3),0)) );
             }
           }
           // Compare with threshold overlap_zz(z,5) using logistic transform for differentiability
