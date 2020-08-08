@@ -37,6 +37,7 @@ Remotes:
 License: GPL-3
 LazyData: yes
 BuildVignettes: yes
+Encoding: UTF-8
 RoxygenNote: 7.1.1
 URL: http://github.com/James-Thorson/VAST
 BugReports: http://github.com/James-Thorson/VAST/issues
