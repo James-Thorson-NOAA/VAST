@@ -1,8 +1,8 @@
 Package: VAST
 Type: Package
 Title: Vector-autoregressive spatio-temporal (VAST) model
-Version: 3.5.1
-Date: 2020-08-04
+Version: 3.6.0
+Date: 2020-08-07
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -37,7 +37,7 @@ Remotes:
 License: GPL-3
 LazyData: yes
 BuildVignettes: yes
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 URL: http://github.com/James-Thorson/VAST
 BugReports: http://github.com/James-Thorson/VAST/issues
 VignetteBuilder: R.rsp

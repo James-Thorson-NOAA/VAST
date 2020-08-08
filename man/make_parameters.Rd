@@ -4,15 +4,22 @@
 \alias{make_parameters}
 \title{Calculate parameter inputs for TMB}
 \usage{
-make_parameters(Version, DataList, RhoConfig = c(Beta1 = 0, Beta2 = 0,
-  Epsilon1 = 0, Epsilon2 = 0))
+make_parameters(
+  Version,
+  DataList,
+  RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
+)
 }
 \arguments{
-\item{Version}{a version number;  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}}
+\item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}.
+Can be used to specify using an older CPP, to maintain backwards compatibility.}
 
 \item{DataList}{list outputted from \code{make_data}}
 
-\item{RhoConfig}{vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2) or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect; 1: each year as random following IID distribution; 2: each year as random following a random walk; 3: constant among years as fixed effect; 4: each year as random following AR1 process);  If missing, assumed to be zero for each element}
+\item{RhoConfig}{vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2)
+or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect;
+1: each year as random following IID distribution; 2: each year as random following a random walk;
+3: constant among years as fixed effect; 4: each year as random following AR1 process);  If missing, assumed to be zero for each element}
 }
 \value{
 Tagged list containing starting values for all fixed effects (parameters) and random effects (coefficients)

@@ -41,7 +41,8 @@ test_that("Condition-and-density example is working ", {
     a_i = rep(1, nrow(example$sampling_data)),
     Q_ik = matrix(Q_i, ncol=1),
     Expansion_cz = Expansion_cz,
-    build_model = FALSE )
+    build_model = FALSE,
+    backwards_compatible_kmeans=TRUE )
 
   # Modify Map
   Map = fit$tmb_list$Map
@@ -59,7 +60,8 @@ test_that("Condition-and-density example is working ", {
     Expansion_cz = Expansion_cz,
     Map = Map,
   # END CODE BLOCK FROM WIKI
-    getsd=FALSE )
+    getsd=FALSE,
+    backwards_compatible_kmeans=TRUE )
 
   # Comparisons
   Par1 = fit$parameter_estimates$par[names(fit$parameter_estimates$par)%in%c("ln_H_input","beta1_ft","logkappa1","beta2_ft","logSigmaM")]

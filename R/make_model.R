@@ -101,6 +101,8 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
     }
     if( "Xiinput1_scp" %in% names(Parameters) ) Random = c(Random, "Xiinput1_scp")
     if( "Xiinput2_scp" %in% names(Parameters) ) Random = c(Random, "Xiinput2_scp")
+    if( "Phiinput1_sk" %in% names(Parameters) ) Random = c(Random, "Phiinput1_sk")
+    if( "Phiinput2_sk" %in% names(Parameters) ) Random = c(Random, "Phiinput2_sk")
     if( "Epsiloninput1_sff" %in% names(Parameters) ) Random = c(Random, "Epsiloninput1_sff")
     if( "Epsiloninput2_sff" %in% names(Parameters) ) Random = c(Random, "Epsiloninput2_sff")
     if( "Epsiloninput1_sft" %in% names(Parameters) ) Random = c(Random, "Epsiloninput1_sft")
