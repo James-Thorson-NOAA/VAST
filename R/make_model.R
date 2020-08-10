@@ -130,7 +130,7 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
   origwd = getwd()
   on.exit(setwd(origwd),add=TRUE)
   setwd( CompileDir )
-  TMB::compile( paste0(Version,".cpp") )
+  TMB::compile( paste0(Version,".cpp"), CPPFLAGS="-Wno-ignored-attributes" )
 
   # Build object
   dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version)) ) # random=Random,
