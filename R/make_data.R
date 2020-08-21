@@ -233,7 +233,7 @@ function( b_i,
   if( Options2use['treat_nonencounter_as_zero']==TRUE ){
     # Determine year-category pairs with no data
     Index = list( factor(c_iz[,1],levels=0:max(c_iz[,1])), factor(tprime_i,levels=0:max(tprime_i)) )
-    Num_ct = tapply( b_i, INDEX=Index, FUN=function(vec){sum(vec>0)} )
+    Num_ct = tapply( b_i, INDEX=Index, FUN=function(vec){sum(vec>0,na.rm=TRUE)} )
     Num_ct = ifelse( is.na(Num_ct), 0, Num_ct )
     b_i = ifelse( Num_ct[cbind(as.numeric(Index[[1]]),as.numeric(Index[[2]]))]==0, NA, b_i )
   }
