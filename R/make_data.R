@@ -7,14 +7,18 @@
 #' see that function for more details.
 #'
 #' @inheritParams FishStatsUtils::make_covariates
-#' @param b_i Sampled value (biomass, counts, etc.) for each observation i
-#' @param a_i Sampled area for each observation i;  use \code{a_i=1} for observations without a natural area measurement, while
+#' @param b_i Numeric vector, providing sampled value (biomass, counts, etc.) for each observation i
+#' @param a_i Numeric vector containing values greater than zero, providing sampled area for each
+#'        observation i;  use \code{a_i=1} for observations without a natural area measurement, while
 #'        noting that resulting densities no longer have interpretable units in that case)
-#' @param c_iz Category (e.g., species, length-bin) for each observation i
-#' @param t_i Time for each observation i
-#' @param e_i Error distribution for each observation i; by default \code{e_i=c_i} such that each category has a
-#'        unique estimated magnitude of measurement error
-#' @param v_i sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
+#' @param c_iz Vector of integers ranging from 0 to the number of variables minus 1, providing the
+#'        category (e.g., species, length-bin) for each observation i
+#' @param t_i Vector of integers, providing the time (e.g., calendar year) for each observation i
+#' @param e_i Optional vector of integers ranging from 0 to the number of different error distributions,
+#'        providing the error distribution to use for each observation i;
+#'        by default \code{e_i=c_iz[,1]} such that each category has a unique estimated magnitude of measurement error
+#' @param v_i Vector of integers ranging from 0 to the number of vessels minus 1,
+#'        providing sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
 #'        (by default \code{v_i=0} for all samples, which will not affect things given the default values for \code{OverdispersionConfig})
 #' @param Version Which CPP version to use.  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}.
 #'        Can be used to specify using an older CPP, to maintain backwards compatibility.

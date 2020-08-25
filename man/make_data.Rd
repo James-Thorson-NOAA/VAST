@@ -4,58 +4,40 @@
 \alias{make_data}
 \title{Build data input for VAST model}
 \usage{
-make_data(
-  b_i,
-  a_i,
-  t_i,
-  c_iz = rep(0, length(b_i)),
-  e_i = c_iz[, 1],
-  v_i = rep(0, length(b_i)),
-  FieldConfig = c(Omega1 = "IID", Epsilon1 = "IID", Omega2 = "IID", Epsilon2 = "IID"),
-  ObsModel_ez = c(PosDist = 1, Link = 0),
-  OverdispersionConfig = c(eta1 = 0, eta2 = 0),
+make_data(b_i, a_i, t_i, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
+  v_i = rep(0, length(b_i)), FieldConfig = c(Omega1 = "IID", Epsilon1 =
+  "IID", Omega2 = "IID", Epsilon2 = "IID"), ObsModel_ez = c(PosDist = 1,
+  Link = 0), OverdispersionConfig = c(eta1 = 0, eta2 = 0),
   RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
-  VamConfig = c(Method = 0, Rank = 0, Timing = 0),
-  Aniso = TRUE,
-  PredTF_i = rep(0, length(b_i)),
-  covariate_data = NULL,
-  X1_formula = ~0,
-  X2_formula = ~0,
-  X1config_cp = NULL,
-  X2config_cp = NULL,
-  catchability_data = NULL,
-  Q1_formula = ~0,
-  Q2_formula = ~0,
-  Q1config_k = NULL,
-  Q2config_k = NULL,
-  spatial_list,
-  Network_sz = NULL,
-  F_ct = NULL,
-  F_init = 1,
-  CheckForErrors = TRUE,
-  yearbounds_zz = NULL,
-  Options = c(),
-  Expansion_cz = NULL,
-  Z_gm = NULL,
+  VamConfig = c(Method = 0, Rank = 0, Timing = 0), Aniso = TRUE,
+  PredTF_i = rep(0, length(b_i)), covariate_data = NULL,
+  X1_formula = ~0, X2_formula = ~0, X1config_cp = NULL,
+  X2config_cp = NULL, catchability_data = NULL, Q1_formula = ~0,
+  Q2_formula = ~0, Q1config_k = NULL, Q2config_k = NULL,
+  spatial_list, Network_sz = NULL, F_ct = NULL, F_init = 1,
+  CheckForErrors = TRUE, yearbounds_zz = NULL, Options = c(),
+  Expansion_cz = NULL, Z_gm = NULL,
   Version = FishStatsUtils::get_latest_version(package = "VAST"),
-  overlap_zz = matrix(ncol = 7, nrow = 0),
-  ...
-)
+  overlap_zz = matrix(ncol = 7, nrow = 0), ...)
 }
 \arguments{
-\item{b_i}{Sampled value (biomass, counts, etc.) for each observation i}
+\item{b_i}{Numeric vector, providing sampled value (biomass, counts, etc.) for each observation i}
 
-\item{a_i}{Sampled area for each observation i;  use \code{a_i=1} for observations without a natural area measurement, while
+\item{a_i}{Numeric vector containing values greater than zero, providing sampled area for each
+observation i;  use \code{a_i=1} for observations without a natural area measurement, while
 noting that resulting densities no longer have interpretable units in that case)}
 
-\item{t_i}{Time for each observation i}
+\item{t_i}{Vector of integers, providing the time (e.g., calendar year) for each observation i}
 
-\item{c_iz}{Category (e.g., species, length-bin) for each observation i}
+\item{c_iz}{Vector of integers ranging from 0 to the number of variables minus 1, providing the
+category (e.g., species, length-bin) for each observation i}
 
-\item{e_i}{Error distribution for each observation i; by default \code{e_i=c_i} such that each category has a
-unique estimated magnitude of measurement error}
+\item{e_i}{Optional vector of integers ranging from 0 to the number of different error distributions,
+providing the error distribution to use for each observation i;
+by default \code{e_i=c_iz[,1]} such that each category has a unique estimated magnitude of measurement error}
 
-\item{v_i}{sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
+\item{v_i}{Vector of integers ranging from 0 to the number of vessels minus 1,
+providing sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
 (by default \code{v_i=0} for all samples, which will not affect things given the default values for \code{OverdispersionConfig})}
 
 \item{FieldConfig}{a vector of format c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10), where Omega refers to spatial variation,
