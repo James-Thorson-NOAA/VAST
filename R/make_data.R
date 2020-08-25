@@ -549,6 +549,8 @@ function( b_i,
     if( !is.array(X1_gctp) | !is.array(X1_itp) ) stop( "X1_gctp and X1_itp should be arrays")
     if( (max(s_i)-1)>n_x | min(s_i)<0 ) stop("s_i exceeds bounds in MeshList")
     if( any(a_i<=0) ) stop("a_i must be greater than zero for all observations, and at least one value of a_i is not")
+    # Logic-check that all categories have data
+    if( !all(0:(n_c-1) %in% c_iz) ) stop("One or more categories has no associated observation: please check input `c_iz` for errors")
     # Warnings about all positive or zero
     Prop_nonzero = tapply( b_i, INDEX=list(tprime_i,c_iz[,1]), FUN=function(vec){mean(vec>0)} )
     if( Options2use[12]==1 ){
