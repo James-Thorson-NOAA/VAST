@@ -26,7 +26,7 @@ template<class Type>
 Eigen::SparseMatrix<Type> Q_spde(spde_barrier_t<Type> spde, Type kappa, vector<Type> c){
   //using namespace Eigen;
   vector <Type> range(2);
-  range(0) = sqrt(8)/kappa*c(0);
+  range(0) = sqrt(8.0)/kappa*c(0);
   range(1) = range(0)*c(1);
 
   int dimLatent = spde.D0.row(0).size();
@@ -39,7 +39,7 @@ Eigen::SparseMatrix<Type> Q_spde(spde_barrier_t<Type> spde, Type kappa, vector<T
   }
 
   Eigen::SparseMatrix<Type>A = spde.I;
-  A = A + (pow(range(0),2)/8) * spde.D0 + (pow(range(1),2)/8) * spde.D1;
+  A = A + (pow(range(0),2.0)/8.0) * spde.D0 + (pow(range(1),2.0)/8.0) * spde.D1;
 
   Eigen::SparseMatrix<Type> Q = A.transpose() * Cinv * A/M_PI *2 * 3;
 
@@ -92,8 +92,8 @@ bool isNA(Type x){
 template<class Type>
 Type posfun(Type x, Type lowerlimit, Type &pen){
   // Version 1: https://github.com/kaskr/adcomp/issues/7#issuecomment-67519437
-  pen += CppAD::CondExpLt(x, lowerlimit, Type(0.01)*pow(x-lowerlimit,2), Type(0) );
-  return CppAD::CondExpGe(x, lowerlimit, x, lowerlimit/(Type(2)-x/lowerlimit) );
+  pen += CppAD::CondExpLt(x, lowerlimit, Type(0.01)*pow(x-lowerlimit,2.0), Type(0.0) );
+  return CppAD::CondExpGe(x, lowerlimit, x, lowerlimit/(Type(2.0)-x/lowerlimit) );
 
   // Version 2: https://github.com/kaskr/adcomp/issues/7#issuecomment-644839660
   //pen += CppAD::CondExpLt(x, lowerlimit, Type(0.01)*pow(lowerlimit-eps,2), Type(0));
@@ -104,7 +104,7 @@ Type posfun(Type x, Type lowerlimit, Type &pen){
 template<class Type>
 Type var( array<Type> vec ){
   Type vec_mod = vec - (vec.sum()/vec.size());
-  Type res = pow(vec_mod, 2).sum() / vec.size();
+  Type res = pow(vec_mod, 2.0).sum() / vec.size();
   return res;
 }
 
@@ -133,8 +133,8 @@ template<class Type>
 Type dinverse_gaussian(Type x, Type mean, Type cv, int give_log=0){
   //return sqrt(lambda/(2*M_PI*pow(x,3))) * exp( -1.0 * lambda*pow(x-mean,2) / (2*pow(mean,2)*x) );
   Type sd = cv * mean;
-  Type lambda = pow(mean,3) / pow(sd,2);
-  Type logres = 0.5*(log(lambda) - 3.0*log(x) - log(2*M_PI)) - ( lambda*pow(x-mean,2) / (2*pow(mean,2)*x) );
+  Type lambda = pow(mean,3.0) / pow(sd,2.0);
+  Type logres = 0.5*(log(lambda) - 3.0*log(x) - log(2.0*M_PI)) - ( lambda*pow(x-mean,2.0) / (2.0*pow(mean,2.0)*x) );
   if(give_log) return logres; else return exp(logres);
 }
 
@@ -319,8 +319,8 @@ matrix<Type> gmrf_by_category_nll( int n_f, bool include_probability, int method
 
   // Deal with different treatments of tau
   Type logtau;
-  if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
-  if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
+  if(method==0) logtau = log( 1.0 / (exp(logkappa) * sqrt(4.0*M_PI)) );
+  if(method==1) logtau = log( 1.0 / sqrt(1-exp(logkappa*2.0)) );
   if( (method!=0) & (method!=1) ) logtau = Type(0.0);
 
   // PDF if density-dependence/interactions occurs prior to correlated dynamics
@@ -387,8 +387,8 @@ matrix<Type> gmrf_stationary_nll( int method, int n_s, int n_c, Type logkappa, a
   using namespace density;
   array<Type> gmrf_sc(n_s, n_c);
   Type logtau;
-  if(method==0) logtau = log( 1 / (exp(logkappa) * sqrt(4*M_PI)) );
-  if(method==1) logtau = log( 1 / sqrt(1-exp(logkappa*2)) );
+  if(method==0) logtau = log( 1.0 / (exp(logkappa) * sqrt(4.0*M_PI)) );
+  if(method==1) logtau = log( 1.0 / sqrt(1-exp(logkappa*2.0)) );
   if( (method!=0) & (method!=1) ) logtau = Type(0.0);
   // PDF if density-dependence/interactions occurs after correlated dynamics (Only makes sense if n_f == n_c)
   gmrf_sc = gmrf_input_sc.matrix();
@@ -408,16 +408,16 @@ matrix<Type> gmrf_stationary_nll( int method, int n_s, int n_c, Type logkappa, a
 template<class Type>
 Type dCMP(Type x, Type mu, Type nu, int give_log=0, int iter_max=30, int break_point=10){
   // Explicit
-  Type ln_S_1 = nu*mu - ((nu-1)/2)*log(mu) - ((nu-1)/2)*log(2*M_PI) - 0.5*log(nu);
+  Type ln_S_1 = nu*mu - ((nu-1.0)/2.0)*log(mu) - ((nu-1.0)/2.0)*log(2.0*M_PI) - 0.5*log(nu);
   // Recursive
   vector<Type> S_i(iter_max);
   S_i(0) = 1;
   for(int i=1; i<iter_max; i++) S_i(i) = S_i(i-1) * pow( mu/Type(i), nu );
   Type ln_S_2 = log( sum(S_i) );
   // Blend (breakpoint:  mu=10)
-  Type prop_1 = invlogit( (mu-break_point)*5 );
+  Type prop_1 = invlogit( (mu-break_point)*5.0 );
   //Type S_comb = prop_1*exp(ln_S_1) + (1-prop_1)*exp(ln_S_2);
-  Type log_S_comb = prop_1*ln_S_1 + (1-prop_1)*ln_S_2;
+  Type log_S_comb = prop_1*ln_S_1 + (1.0-prop_1)*ln_S_2;
   // Likelihood
   Type loglike = nu*x*log(mu) - nu*lgamma(x+1) - log_S_comb;
   // Return
@@ -523,23 +523,26 @@ matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, mat
     jnll_pointer += ( log(colnorm_r)*log(colnorm_r) ).sum();
   }
   // Complex bounded eigenvalues
+    // Commenting out, because macOS throws errors with CPP dependency "complex"
+    // If anyone needs to use these features, please remove comments from local copy
+    // and then proceed.
   if( method==3 ){
-    BplusI_ff = Chi_fr * Psi_rf + Identity_ff;
-    // Extract eigenvalues
-    vector< std::complex<Type> > eigenvalues_B_ff = B_ff.eigenvalues();
-    vector<Type> real_eigenvalues_B_ff = eigenvalues_B_ff.real();
-    vector<Type> imag_eigenvalues_B_ff = eigenvalues_B_ff.imag();
-    vector<Type> mod_eigenvalues_B_ff( n_f );
-    // Calculate maximum eigenvalues
-    Type MaxEigen = 1;
-    for(int f=0; f<n_f; f++){
-      mod_eigenvalues_B_ff(f) = pow( pow(real_eigenvalues_B_ff(f),2) + pow(imag_eigenvalues_B_ff(f),2), 0.5 );
-      MaxEigen = CppAD::CondExpGt(mod_eigenvalues_B_ff(f), MaxEigen, mod_eigenvalues_B_ff(f), MaxEigen);
-    }
-    // Rescale interaction matrix
-    BplusI_ff = BplusI_ff / MaxEigen;
-    B_ff = BplusI_ff - Identity_ff;
-    jnll_pointer += CppAD::CondExpGe( MaxEigen, Type(1.0), pow(MaxEigen-Type(1.0),2), Type(0.0) );
+  //  BplusI_ff = Chi_fr * Psi_rf + Identity_ff;
+  //  // Extract eigenvalues
+  //  vector< std::complex<Type> > eigenvalues_B_ff = B_ff.eigenvalues();
+  //  vector<Type> real_eigenvalues_B_ff = eigenvalues_B_ff.real();
+  //  vector<Type> imag_eigenvalues_B_ff = eigenvalues_B_ff.imag();
+  //  vector<Type> mod_eigenvalues_B_ff( n_f );
+  //  // Calculate maximum eigenvalues
+  //  Type MaxEigen = 1;
+  //  for(int f=0; f<n_f; f++){
+  //    mod_eigenvalues_B_ff(f) = pow( pow(real_eigenvalues_B_ff(f),2) + pow(imag_eigenvalues_B_ff(f),2), 0.5 );
+  //    MaxEigen = CppAD::CondExpGt(mod_eigenvalues_B_ff(f), MaxEigen, mod_eigenvalues_B_ff(f), MaxEigen);
+  //  }
+  //  // Rescale interaction matrix
+  //  BplusI_ff = BplusI_ff / MaxEigen;
+  //  B_ff = BplusI_ff - Identity_ff;
+  //  jnll_pointer += CppAD::CondExpGe( MaxEigen, Type(1.0), pow(MaxEigen-Type(1.0),2), Type(0.0) );
   }
   return B_ff;
 }
@@ -830,8 +833,8 @@ Type objective_function<Type>::operator() ()
   // Derived parameters
   Type Range_raw1, Range_raw2;
   if( Options_vec(7)==0 ){
-    Range_raw1 = sqrt(8) / exp( logkappa1 );   // Range = approx. distance @ 10% correlation
-    Range_raw2 = sqrt(8) / exp( logkappa2 );     // Range = approx. distance @ 10% correlation
+    Range_raw1 = sqrt(8.0) / exp( logkappa1 );   // Range = approx. distance @ 10% correlation; use 8.0 to avoid ambiguity about type
+    Range_raw2 = sqrt(8.0) / exp( logkappa2 );     // Range = approx. distance @ 10% correlation; use 8.0 to avoid ambiguity about type
   }
   if( (Options_vec(7)==1) | (Options_vec(7)==2) ){
     Range_raw1 = log(0.1) / logkappa1;   // Range = approx. distance @ 10% correlation
@@ -999,8 +1002,8 @@ Type objective_function<Type>::operator() ()
     }
   }
   if( Options_vec(7)==1 ){
-    Q1 = M0*pow(1+exp(logkappa1*2),2) + M1*(1+exp(logkappa1*2))*(-exp(logkappa1)) + M2*exp(logkappa1*2);
-    Q2 = M0*pow(1+exp(logkappa2*2),2) + M1*(1+exp(logkappa2*2))*(-exp(logkappa2)) + M2*exp(logkappa2*2);
+    Q1 = M0*pow(1.0+exp(logkappa1*2.0),2.0) + M1*(1.0+exp(logkappa1*2.0))*(-exp(logkappa1)) + M2*exp(logkappa1*2.0);
+    Q2 = M0*pow(1.0+exp(logkappa2*2.0),2.0) + M1*(1.0+exp(logkappa2*2.0))*(-exp(logkappa2)) + M2*exp(logkappa2*2.0);
   }
   if( Options_vec(7)==2 ){
     Q1 = Q_network( logkappa1, n_s, parent_s, child_s, dist_s );
@@ -1661,7 +1664,7 @@ Type objective_function<Type>::operator() ()
         var_i(i) = R2_i(i)*(1.0+SigmaM(e_i(i),0)) + pow(R2_i(i),2.0)*SigmaM(c_iz(i,0),1);
         if( b_i(i)==0 ){
           //LogProb2_i(i) = log( (1-R1_i(i)) + dnbinom2(Type(0.0), R2_i(i), var_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
-          LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dnbinom2(Type(0.0),R2_i(i),var_i(i),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
+          LogProb2_i(i) = logspace_add( log(1.0-R1_i(i)), dnbinom2(Type(0.0),R2_i(i),var_i(i),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + NB(X=0)*phi
         }else{
           LogProb2_i(i) = dnbinom2(b_i(i), R2_i(i), var_i(i), true) + log(R1_i(i)); // Pr[X=x] = NB(X=x)*phi
         }
@@ -1723,15 +1726,15 @@ Type objective_function<Type>::operator() ()
       if(ObsModel_ez(e_i(i),0)==11){
         if( b_i(i)==0 ){
           //LogProb2_i(i) = log( (1-R1_i(i)) + dpois(Type(0.0), R2_i(i), false)*R1_i(i) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-          LogProb2_i(i) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0),R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
+          LogProb2_i(i) = logspace_add( log(1.0-R1_i(i)), dpois(Type(0.0),R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)),true)+log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
         }else{
-          LogProb2_i(i) = dpois(b_i(i), R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
+          LogProb2_i(i) = dpois(b_i(i), R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2.0)), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
         }
         // Simulate new values when using obj.simulate()
         SIMULATE{
           b_i(i) = rbinom( Type(1), R1_i(i) );
           if( b_i(i)>0 ){
-            b_i(i) = rpois( R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)) );
+            b_i(i) = rpois( R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2.0)) );
           }
         }
       }
@@ -1760,10 +1763,10 @@ Type objective_function<Type>::operator() ()
       }
       // Non-zero-inflated Lognormal-Poisson using log link from 1st linear predictor
       if(ObsModel_ez(e_i(i),0)==14){
-        LogProb2_i(i) = dpois(b_i(i), R1_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)), true);
+        LogProb2_i(i) = dpois(b_i(i), R1_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2.0)), true);
         // Simulate new values when using obj.simulate()
         SIMULATE{
-          b_i(i) = rpois( R1_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2)) );
+          b_i(i) = rpois( R1_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2.0)) );
         }
       }
     }
@@ -2092,14 +2095,14 @@ Type objective_function<Type>::operator() ()
           temp_mean = 0;
           for( int t=yearbounds_zz(z,0); t<=yearbounds_zz(z,1); t++ ) temp_mean += B_ct(c,t) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
           for( int t=yearbounds_zz(z,0); t<=yearbounds_zz(z,1); t++ ) {
-            varB_cz(c,z) += pow(B_ct(c,t)-temp_mean,2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0));
+            varB_cz(c,z) += pow(B_ct(c,t)-temp_mean,2.0) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0));
           }
         }
         // Variance for combined biomass across sites and categories, use sum(diff^2)/(length(diff)-1) where -1 in denominator is the sample-variance Bessel correction
         temp_mean = 0;
         for( int t=yearbounds_zz(z,0); t<=yearbounds_zz(z,1); t++ ) temp_mean += B_t(t) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0)+1);
         for( int t=yearbounds_zz(z,0); t<=yearbounds_zz(z,1); t++ ) {
-          varB_z(z) += pow(B_t(t)-temp_mean,2) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0));
+          varB_z(z) += pow(B_t(t)-temp_mean,2.0) / float(yearbounds_zz(z,1)-yearbounds_zz(z,0));
         }
         // Proportion in each site
         for( g=0; g<n_g; g++ ){
@@ -2118,8 +2121,8 @@ Type objective_function<Type>::operator() ()
           for( c=0; c<n_c; c++ ){
             maxsdD_gz(g,z) += pow(varD_gcz(g,c,z), 0.5);
           }
-          phi_gz(g,z) = varD_gz(g,z) / pow( maxsdD_gz(g,z), 2);
-          varB_gbar_z(z) += pow(a_gl(g,0),2) * varD_gz(g,z) * propB_gz(g,z);
+          phi_gz(g,z) = varD_gz(g,z) / pow( maxsdD_gz(g,z), 2.0);
+          varB_gbar_z(z) += pow(a_gl(g,0),2.0) * varD_gz(g,z) * propB_gz(g,z);
           phi_gbar_z(z) += phi_gz(g,z) * propB_gz(g,z);
         }
         // Spatial-buffering index
@@ -2127,7 +2130,7 @@ Type objective_function<Type>::operator() ()
           for( g=0; g<n_g; g++ ){
             maxsdB_cz(c,z) += a_gl(g,0) * pow(varD_gcz(g,c,z), 0.5);
           }
-          phi_cz(c,z) = varB_cz(c,z) / pow( maxsdB_cz(c,z), 2);
+          phi_cz(c,z) = varB_cz(c,z) / pow( maxsdB_cz(c,z), 2.0);
           varB_cbar_z(z) += varB_cz(c,z) * propB_cz(c,z);
           phi_cbar_z(z) += phi_cz(c,z) * propB_cz(c,z);
         }
@@ -2181,7 +2184,7 @@ Type objective_function<Type>::operator() ()
       // Spatio-temporal covariance (summation only works when ObsModel_ez[c,1]==1)
       matrix<Type> CovHat( n_c, n_c );
       CovHat.setIdentity();
-      CovHat *= pow(0.0001, 2);
+      CovHat *= pow(0.0001, 2.0);
       if( FieldConfig(1,0)>0 ) CovHat += L_epsilon1_cf * L_epsilon1_cf.transpose();
       if( FieldConfig(1,1)>0 ) CovHat += L_epsilon2_cf * L_epsilon2_cf.transpose();
       // Coherence ranges from 0 (all factors are equal) to 1 (first factor explains all variance)
@@ -2315,7 +2318,7 @@ Type objective_function<Type>::operator() ()
             }
           }
         }else{
-          overlap_z(z) = 0;
+          overlap_z(z) = 0.0;
         }
       }
       REPORT( overlap_z );
