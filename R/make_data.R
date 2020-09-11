@@ -435,6 +435,9 @@ function( b_i, a_i, t_i, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,length
   # Check for incompatibilities amongst versions
   ###################
 
+  if( FishStatsUtils::convert_version_name(Version) >= FishStatsUtils::convert_version_name("VAST_v9_4_0") ){
+    if(VamConfig[1]==3) stop("`VamConfig[1]=3` feature causes compile issues on macOS, and has been removed from the CPP; please contact package author if interested in using it.")
+  }
   if( FishStatsUtils::convert_version_name(Version) >= FishStatsUtils::convert_version_name("VAST_v8_0_0") ){
     if( is.null(spatial_list) ) stop("Must provide `spatial_list` for Version >= 8.0.0")
   }
