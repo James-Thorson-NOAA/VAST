@@ -230,7 +230,7 @@ function( b_i, a_i, t_i, c_iz=rep(0,length(b_i)), e_i=c_iz[,1], v_i=rep(0,length
       X_gctp = aperm( outer(X_gtp,rep(1,n_c)), c(1,4,2,3) )
       Works = TRUE
     }
-    X_ip = array( X_itp[,1,], dim=X_itp[c(1,3)] )
+    X_ip = array( X_itp[,1,], dim=dim(X_itp[c(1,3)]) )
   }
   if( !is.null(X_gctp) & !is.null(X_itp) ){
     if( !is.array(X_gctp) || !(all(dim(X_gctp)[1:3]==c(n_g,n_c,n_t))) ){
