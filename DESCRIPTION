@@ -1,7 +1,7 @@
 Package: VAST
 Type: Package
 Title: Vector-autoregressive spatio-temporal (VAST) model
-Version: 3.5.4
+Version: 3.5.5
 Date: 2020-09-16
 Authors@R: 
     c(person(given = "James",
