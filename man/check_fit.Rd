@@ -39,6 +39,6 @@ For univariate models:
 }
 
 For multivariate models, these same principles apply, but there are more options to simplify model structure.
-For example, if any \code{L_beta1_z} is approaching zero (i.e., +/- 0.001), then consider using \code{fit_model(...,Map=[custom-map])} to turn off individual parameters;
+For example, if any \code{L_beta1_z} is approaching zero (i.e., +/- 0.001), then consider using \verb{fit_model(...,Map=[custom-map])} to turn off individual parameters;
 or if using a factor model then reduce the number of factors by decreasing FieldConfig\link{"Beta1"}`
 }

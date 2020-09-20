@@ -187,8 +187,8 @@ Object of class \code{make_data}, containing inputs to function \code{\link{make
 \code{make_data} builds a tagged list of data inputs used by TMB for running the model
 }
 \details{
-The function generates arrays of covariates \code{X_gtp} and \code{X_itp} using \code{\link{make_covariates}};
-see that function for more details.
+Specification of \code{FieldConfig} can be seen by calling \code{\link[FishStatsUtils]{make_settings}},
+  which is the recommended way of generating this input for beginning users.
 
 Argument \code{FieldConfig} is a matrix of form
   \code{FieldConfig = matrix( c(0,10,"IID","Identity", "AR1",10,"IID","Identity"), ncol=2, nrow=4, dimnames=list(c("Omega","Epsilon","Beta","Epsilon_year"),c("Component_1","Component_2"))}.
@@ -196,15 +196,17 @@ Argument \code{FieldConfig} is a matrix of form
   a vector of format \code{FieldConfig = c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10)},
   which generates the same settings as the matrix specification, given the values of each shown in this example.
 
-Specification of \code{FieldConfig} can be seen by calling \code{\link[FishStatsUtils]{make_settings}},
-  which is the recommended way of generating this input for beginning users.
+Both vector (simplified) and matrix (full) specification of \code{FieldConfig} involve named elements
+  using the following naming conventions:
 \describe{
    \item{Omega}{specifies whether spatial variation is present and/or correlated among variables}
    \item{Epsilon}{specifies whether spatio-temporal variation is present and/or correlated among variables}
    \item{Beta}{specifies whether spatio-temporal variation is present and/or correlated among variables}
    \item{Epsilon_year}{specifies whether spatio-temporal variation is correlated among years}
 }
-The simplified vector-specification does not include slots for \code{Beta} or \code{Epsilon_year} and therefore
+Meanwhile, \code{Component_1} (or the numeral "1" after a component name) refers to the 1st lienar predictor (e.g., of a delta-model),
+  while \code{Component_2} (or the numeral "2" after a component name) refers to the 2nd linear predictor.
+  The simplified vector-specification does not include slots for \code{Beta} or \code{Epsilon_year} and therefore
   is not as general.
 
 In each slot of \code{FieldConfig}, the user can specify various options:
@@ -216,4 +218,7 @@ In each slot of \code{FieldConfig}, the user can specify various options:
   \item{"Identity"}{specifies that a given model component has covariance of an identity-matrix;
     this is only useful for \code{Epsilon_year} to "turn off" covariance among years while still including spatio-temporal variation}
 }
+
+\code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_itp} using \code{\link[FishStatsUtils]{make_covariates}};
+see that function for more details.
 }

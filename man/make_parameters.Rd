@@ -4,8 +4,11 @@
 \alias{make_parameters}
 \title{Calculate parameter inputs for TMB}
 \usage{
-make_parameters(Version, DataList, RhoConfig = c(Beta1 = 0, Beta2 = 0,
-  Epsilon1 = 0, Epsilon2 = 0))
+make_parameters(
+  Version,
+  DataList,
+  RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
+)
 }
 \arguments{
 \item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}.

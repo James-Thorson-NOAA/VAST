@@ -3,7 +3,6 @@
 \docType{package}
 \name{VAST}
 \alias{VAST}
-\alias{VAST-package}
 \title{Vector autoregressive spatio-temporal model}
 \description{
 VAST is multivariate generalization of package `SpatialDeltaGLMM`, and can analyze data for multiple species, ages, size-classes, etc.
