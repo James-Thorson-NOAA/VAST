@@ -31,7 +31,7 @@ test_that("Covariates give identical results to glm(.) ", {
   example$sampling_data = example$sampling_data[ Reorder, ]
 
   # Make settings (turning off bias.correct to save time for example)
-  settings1 = make_settings( n_x=100, Region=example$Region, purpose="index",
+  settings1 = make_settings( n_x=100, Region=example$Region, purpose="index2",
     use_anisotropy=FALSE, strata.limits=example$strata.limits, bias.correct=FALSE, fine_scale=TRUE,
     FieldConfig=c(0,0,0,0), ObsModel=c(1,0) )
 
@@ -45,6 +45,9 @@ test_that("Covariates give identical results to glm(.) ", {
     b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
     Q1_formula=formula, Q2_formula=formula, catchability_data=example$covariate_data,
     working_dir=multispecies_example_path )
+
+  # Define via Q_ik (attempt at eliminating Warning by unloading previous run fails)
+  # suppressWarnings(dyn.unload( file.path(multispecies_example_path,TMB::dynlib(settings1$Version)) ))
   fit1B = fit_model( settings=settings1, Lat_i=example$sampling_data[,'Lat'],
     Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
     b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
