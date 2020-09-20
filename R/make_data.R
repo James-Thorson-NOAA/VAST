@@ -6,6 +6,33 @@
 #' The function generates arrays of covariates \code{X_gtp} and \code{X_itp} using \code{\link{make_covariates}};
 #' see that function for more details.
 #'
+#' Argument \code{FieldConfig} is a matrix of form
+#'   \code{FieldConfig = matrix( c(0,10,"IID","Identity", "AR1",10,"IID","Identity"), ncol=2, nrow=4, dimnames=list(c("Omega","Epsilon","Beta","Epsilon_year"),c("Component_1","Component_2"))}.
+#'   However, for backwards compatibility, \code{FieldConfig} can instead be specified as
+#'   a vector of format \code{FieldConfig = c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10)},
+#'   which generates the same settings as the matrix specification, given the values of each shown in this example.
+#'
+#' Specification of \code{FieldConfig} can be seen by calling \code{\link[FishStatsUtils]{make_settings}},
+#'   which is the recommended way of generating this input for beginning users.
+#' \describe{
+#'    \item{Omega}{specifies whether spatial variation is present and/or correlated among variables}
+#'    \item{Epsilon}{specifies whether spatio-temporal variation is present and/or correlated among variables}
+#'    \item{Beta}{specifies whether spatio-temporal variation is present and/or correlated among variables}
+#'    \item{Epsilon_year}{specifies whether spatio-temporal variation is correlated among years}
+#' }
+#' The simplified vector-specification does not include slots for \code{Beta} or \code{Epsilon_year} and therefore
+#'   is not as general.
+#'
+#' In each slot of \code{FieldConfig}, the user can specify various options:
+#' \describe{
+#'   \item{0}{turns off a given model component}
+#'   \item{integer greater than zero}{specifies the rank (number of factors) in a factor-analysis covariance matrix}
+#'   \item{"AR1"}{specifies that a model component is correlated following an first-order autoregressive process}
+#'   \item{"IID"}{specifies that a given model component is a random effect that is independent for every level}
+#'   \item{"Identity"}{specifies that a given model component has covariance of an identity-matrix;
+#'     this is only useful for \code{Epsilon_year} to "turn off" covariance among years while still including spatio-temporal variation}
+#' }
+#'
 #' @inheritParams FishStatsUtils::make_covariates
 #' @param b_i Numeric vector, providing sampled value (biomass, counts, etc.) for each observation i
 #' @param a_i Numeric vector containing values greater than zero, providing sampled area for each
@@ -22,10 +49,7 @@
 #'        (by default \code{v_i=0} for all samples, which will not affect things given the default values for \code{OverdispersionConfig})
 #' @param Version Which CPP version to use.  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}.
 #'        Can be used to specify using an older CPP, to maintain backwards compatibility.
-#' @param FieldConfig a vector of format c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10), where Omega refers to spatial variation,
-#'        Epsilon refers to spatio-temporal variation, Omega1 refers to variation in encounter probability, and
-#'        Omega2 refers to variation in positive catch rates, where 0 is off, "AR1" is an AR1 process,
-#'        and >0 is the number of elements in a factor-analysis covariance
+#' @param FieldConfig See Details section of \code{\link[VAST]{make_data}} for details
 #' @param OverdispersionConfig a vector of format c("eta1"=0, "eta2"="AR1") governing any correlated overdispersion
 #'        among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates,
 #'        where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance (by default,

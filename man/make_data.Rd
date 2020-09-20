@@ -4,21 +4,43 @@
 \alias{make_data}
 \title{Build data input for VAST model}
 \usage{
-make_data(b_i, a_i, t_i, c_iz = rep(0, length(b_i)), e_i = c_iz[, 1],
-  v_i = rep(0, length(b_i)), FieldConfig = c(Omega1 = "IID", Epsilon1 =
-  "IID", Omega2 = "IID", Epsilon2 = "IID"), ObsModel_ez = c(PosDist = 1,
-  Link = 0), OverdispersionConfig = c(eta1 = 0, eta2 = 0),
+make_data(
+  b_i,
+  a_i,
+  t_i,
+  c_iz = rep(0, length(b_i)),
+  e_i = c_iz[, 1],
+  v_i = rep(0, length(b_i)),
+  FieldConfig = c(Omega1 = "IID", Epsilon1 = "IID", Omega2 = "IID", Epsilon2 = "IID"),
+  ObsModel_ez = c(PosDist = 1, Link = 0),
+  OverdispersionConfig = c(eta1 = 0, eta2 = 0),
   RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0),
-  VamConfig = c(Method = 0, Rank = 0, Timing = 0), Aniso = TRUE,
-  PredTF_i = rep(0, length(b_i)), covariate_data = NULL,
-  X1_formula = ~0, X2_formula = ~0, X1config_cp = NULL,
-  X2config_cp = NULL, catchability_data = NULL, Q1_formula = ~0,
-  Q2_formula = ~0, Q1config_k = NULL, Q2config_k = NULL,
-  spatial_list, Network_sz = NULL, F_ct = NULL, F_init = 1,
-  CheckForErrors = TRUE, yearbounds_zz = NULL, Options = c(),
-  Expansion_cz = NULL, Z_gm = NULL,
+  VamConfig = c(Method = 0, Rank = 0, Timing = 0),
+  Aniso = TRUE,
+  PredTF_i = rep(0, length(b_i)),
+  covariate_data = NULL,
+  X1_formula = ~0,
+  X2_formula = ~0,
+  X1config_cp = NULL,
+  X2config_cp = NULL,
+  catchability_data = NULL,
+  Q1_formula = ~0,
+  Q2_formula = ~0,
+  Q1config_k = NULL,
+  Q2config_k = NULL,
+  spatial_list,
+  Network_sz = NULL,
+  F_ct = NULL,
+  F_init = 1,
+  CheckForErrors = TRUE,
+  yearbounds_zz = NULL,
+  Options = c(),
+  Expansion_cz = NULL,
+  Z_gm = NULL,
   Version = FishStatsUtils::get_latest_version(package = "VAST"),
-  overlap_zz = matrix(ncol = 7, nrow = 0), ...)
+  overlap_zz = matrix(ncol = 7, nrow = 0),
+  ...
+)
 }
 \arguments{
 \item{b_i}{Numeric vector, providing sampled value (biomass, counts, etc.) for each observation i}
@@ -40,10 +62,7 @@ by default \code{e_i=c_iz[,1]} such that each category has a unique estimated ma
 providing sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
 (by default \code{v_i=0} for all samples, which will not affect things given the default values for \code{OverdispersionConfig})}
 
-\item{FieldConfig}{a vector of format c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10), where Omega refers to spatial variation,
-Epsilon refers to spatio-temporal variation, Omega1 refers to variation in encounter probability, and
-Omega2 refers to variation in positive catch rates, where 0 is off, "AR1" is an AR1 process,
-and >0 is the number of elements in a factor-analysis covariance}
+\item{FieldConfig}{See Details section of \code{\link[VAST]{make_data}} for details}
 
 \item{ObsModel_ez}{an optional matrix with two columns where the first column specifies the distribution for positive catch rates,
        and the second column specifies the functional form for encounter probabilities
@@ -170,4 +189,31 @@ Object of class \code{make_data}, containing inputs to function \code{\link{make
 \details{
 The function generates arrays of covariates \code{X_gtp} and \code{X_itp} using \code{\link{make_covariates}};
 see that function for more details.
+
+Argument \code{FieldConfig} is a matrix of form
+  \code{FieldConfig = matrix( c(0,10,"IID","Identity", "AR1",10,"IID","Identity"), ncol=2, nrow=4, dimnames=list(c("Omega","Epsilon","Beta","Epsilon_year"),c("Component_1","Component_2"))}.
+  However, for backwards compatibility, \code{FieldConfig} can instead be specified as
+  a vector of format \code{FieldConfig = c("Omega1"=0, "Epsilon1"=10, "Omega2"="AR1", "Epsilon2"=10)},
+  which generates the same settings as the matrix specification, given the values of each shown in this example.
+
+Specification of \code{FieldConfig} can be seen by calling \code{\link[FishStatsUtils]{make_settings}},
+  which is the recommended way of generating this input for beginning users.
+\describe{
+   \item{Omega}{specifies whether spatial variation is present and/or correlated among variables}
+   \item{Epsilon}{specifies whether spatio-temporal variation is present and/or correlated among variables}
+   \item{Beta}{specifies whether spatio-temporal variation is present and/or correlated among variables}
+   \item{Epsilon_year}{specifies whether spatio-temporal variation is correlated among years}
+}
+The simplified vector-specification does not include slots for \code{Beta} or \code{Epsilon_year} and therefore
+  is not as general.
+
+In each slot of \code{FieldConfig}, the user can specify various options:
+\describe{
+  \item{0}{turns off a given model component}
+  \item{integer greater than zero}{specifies the rank (number of factors) in a factor-analysis covariance matrix}
+  \item{"AR1"}{specifies that a model component is correlated following an first-order autoregressive process}
+  \item{"IID"}{specifies that a given model component is a random effect that is independent for every level}
+  \item{"Identity"}{specifies that a given model component has covariance of an identity-matrix;
+    this is only useful for \code{Epsilon_year} to "turn off" covariance among years while still including spatio-temporal variation}
+}
 }
