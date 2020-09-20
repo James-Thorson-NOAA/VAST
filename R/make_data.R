@@ -55,10 +55,10 @@
 #' @param Version Which CPP version to use.  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}.
 #'        Can be used to specify using an older CPP, to maintain backwards compatibility.
 #' @param FieldConfig See Details section of \code{\link[VAST]{make_data}} for details
-#' @param OverdispersionConfig a vector of format c("eta1"=0, "eta2"="AR1") governing any correlated overdispersion
+#' @param OverdispersionConfig a vector of format \code{c("eta1"=0, "eta2"="AR1")} governing any correlated overdispersion
 #'        among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates,
 #'        where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance (by default,
-#'        c("eta1"=0, "eta2"=0) and this turns off overdispersion)
+#'        \code{c("eta1"=0, "eta2"=0)} and this turns off overdispersion)
 #' @param ObsModel_ez an optional matrix with two columns where the first column specifies the distribution for positive catch rates,
 #'        and the second column specifies the functional form for encounter probabilities
 #' \describe{
@@ -91,7 +91,7 @@
 #'   \item{ObsModel_ez[e,2]=4}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the
 #'        species and encounter probability=0 for any year where no samples encounter the species}
 #' }
-#' @param RhoConfig vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2)
+#' @param RhoConfig vector of form \code{c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)} specifying whether either intercepts (Beta1 and Beta2)
 #'        or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect;
 #'        1: each year as random following IID distribution; 2: each year as random following a random walk;
 #'        3: constant among years as fixed effect; 4: each year as random following AR1 process);  If missing, assumed to be zero for each element
