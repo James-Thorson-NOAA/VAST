@@ -97,12 +97,12 @@ providing sampling category (e.g., vessel or tow) associated with overdispersed 
        species and encounter probability=0 for any year where no samples encounter the species}
 }}
 
-\item{OverdispersionConfig}{a vector of format c("eta1"=0, "eta2"="AR1") governing any correlated overdispersion
+\item{OverdispersionConfig}{a vector of format \code{c("eta1"=0, "eta2"="AR1")} governing any correlated overdispersion
 among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates,
 where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance (by default,
-c("eta1"=0, "eta2"=0) and this turns off overdispersion)}
+\code{c("eta1"=0, "eta2"=0)} and this turns off overdispersion)}
 
-\item{RhoConfig}{vector of form c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) specifying whether either intercepts (Beta1 and Beta2)
+\item{RhoConfig}{vector of form \code{c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)} specifying whether either intercepts (Beta1 and Beta2)
 or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect;
 1: each year as random following IID distribution; 2: each year as random following a random walk;
 3: constant among years as fixed effect; 4: each year as random following AR1 process);  If missing, assumed to be zero for each element}
@@ -114,9 +114,9 @@ or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time in
   \item{VamConfig[2]}{Indicates whether interactions occur before spatio-temporal variation (\code{VamConfig[2]=0}) or after \code{VamConfig[2]=1}}
 }}
 
-\item{Aniso}{whether to assume isotropy (Aniso=0) or geometric anisotropy (Aniso=1)}
+\item{Aniso}{whether to assume isotropy, \code{Aniso=0}, or geometric anisotropy, \code{Aniso=1}}
 
-\item{PredTF_i}{OPTIONAL, whether each observation i is included in the likelihood (PredTF_i[i]=0) or in the predictive probability (PredTF_i[i]=1)}
+\item{PredTF_i}{OPTIONAL, whether each observation i is included in the likelihood, \code{PredTF_i[i]=0}, or in the predictive probability, \code{PredTF_i[i]=1}}
 
 \item{covariate_data}{data-frame of covariates for use when specifying \code{X1_formula} and \code{X2_formula}}
 
@@ -159,9 +159,16 @@ it detects a problem with inputs.  However, failing to throw an error is no guar
 \item{yearbounds_zz}{matrix with two columns, giving first and last years for defining one or more periods (rows) used to
 calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})}
 
-\item{Options}{a vector of form c('SD_site_logdensity'=FALSE,'Calculate_Range'=FALSE,'Calculate_effective_area'=FALSE,
-'Calculate_Cov_SE'=FALSE,'Calculate_Synchrony'=FALSE,'Calculate_proportion'=FALSE), where \code{Calculate_Range=1}
-turns on calculation of center of gravity, and Calculate_effective_area=1 turns on calculation of effective area occupied}
+\item{Options}{a tagged-vector that is empty by default, \code{Options=c()}, but where the following slots might be helpful to add,
+       either by passing \code{Options} to \code{\link[FishStatsUtils]{make_settings}}, or editing after a call to that function:
+\describe{
+  \item{Options["SD_site_logdensity"]=TRUE}{Turns on standard error calculation for local log-density (which is very slow to calculate!)}
+  \item{Options["Calculate_Range"]=TRUE}{Turns on internal calculation and SE for center-of-gravity}
+  \item{Options["Calculate_effective_area"]=TRUE}{Turns on internal calculation and SE for effective area occupied measuring range expansion/contraction}
+  \item{Options["Calculate_Cov_SE"]=TRUE}{Turns on internal calculation and SE for covariance among categories (i.e. in factor model)}
+  \item{Options["Calculate_proportion"]=TRUE}{Turns on internal calculation and SE for proportion of response within each category (e.g., for calculating proportion-at-age or species turnover)}
+  \item{Options["Calculate_Synchrony"]=TRUE}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
+}}
 
 \item{Expansion_cz}{matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.
 The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates,
