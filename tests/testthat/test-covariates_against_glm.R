@@ -133,6 +133,31 @@ test_that("Covariates give identical results to glm(.) ", {
   Glm1_factors = stats::glm( formula=update.formula(formula_factors, log(Catch_KG)~0+factor(Year)+.),
     data=Data2, offset=log(AreaSwept_km2) )
 
+  # Compare predictions from Glm1 and fit1
+  if( formula == ~ BOT_DEPTH:factor(Year) + I(BOT_DEPTH^2) ){
+    predict_data = fit1$spatial_list$latlon_g
+    predict_nn = RANN::nn2(query=predict_data, data=example$covariate_data[,c('Lat','Lon')], k=1)$nn.idx
+    predict_data = cbind( predict_data, example$covariate_data[predict_nn,c("BOT_DEPTH","BOT_TEMP","SURF_TEMP","TEMP_STRAT")],
+      "AreaSwept_km2"=fit1$extrapolation_list$a_el[,1], "Year"=NA )
+    # Check processed values for depth
+    for( Year in sort(unique(Data1$Year)) ){
+      tI = match(Year, fit2$year_labels )
+      fit2_depth = fit2$data_list$X2_gctp[,1,tI,][,paste0("BOT_DEPTH:factor(Year)",Year)]
+      Glm2_depth = predict_data[,'BOT_DEPTH']
+      expect_equal( as.numeric(fit2_depth), as.numeric(Glm2_depth), tolerance=0.001 )
+    }
+    # Check predicted positive density
+    for( Year in sort(unique(Data1$Year)) ){
+      tI = match(Year, fit2$year_labels )
+      predict_data[,'Year'] = Year
+      Glm2_pred = predict( Glm2, newdata=predict_data, type="response" )
+      fit2_pred = fit2$Report$R2_gct[,1,tI] * fit1$extrapolation_list$a_el[,1]
+      expect_equal( as.numeric(fit2_pred), as.numeric(Glm2_pred), tolerance=0.001 )
+    }
+  }else{
+    stop("Check problem in `formula` in `test-covariates_against_glm.R`")
+  }
+
   # Comparison of glm(.) with and without offsets
   expect_equal( Glm1$coef, Glm1B$coef, tolerance=0.001 )
   expect_equal( Glm2$coef, Glm2B$coef, tolerance=0.001 )
