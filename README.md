@@ -15,9 +15,10 @@ Background
 
 User resources for learning about VAST
 =============
-There are eight main resources for learning about VAST:
+There are ten main resources for learning about VAST:
 
 *  *Model structure*:  Please see the [User Manual](https://github.com/James-Thorson/VAST/blob/master/manual/VAST_model_structure.pdf) for a document listing model equations and relating them to the input/output used in R.
+*  *Change documentation*:  Please see [NEWS](https://github.com/James-Thorson/VAST/blob/master/manual/NEWS.pdf) for a document listing major changes in each numbered release; this is useful to track development changes (interface improvements, bug fixes, issues regarding dependencies, etc.) over time. 
 *  *Guidance for user decisions*:  Please see [Thorson-2019](https://www.sciencedirect.com/science/article/abs/pii/S0165783618302820) for guidance regarding the 15 major decisions needed in every VAST model
 *  *High-level wrapper functions*:  I have recently added high-level wrapper functions, which provide a [gentle introduction](https://github.com/James-Thorson/VAST/wiki/Simple-example) to running `VAST`
 *  *Examples*:  The wiki also includes example code to run VAST for many common [use-cases](https://github.com/James-Thorson-NOAA/VAST/wiki), as listed in the right-hand-side toolbar at that link.

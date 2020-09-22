@@ -35,10 +35,22 @@
 
 #' @export
 make_model <-
-function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Method="Mesh", Npool=0,
-  ConvergeTol=1, Use_REML=FALSE, loc_x=NULL, Parameters="generate", Random="generate", Map="generate",
-  DiagnosticDir=NULL, TmbDir=system.file("executables",package="VAST"), RunDir=getwd(), CompileDir=RunDir,
-  build_model=TRUE ){
+function( TmbData,
+          Version,
+          RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
+          Method="Mesh",
+          Npool=0,
+          ConvergeTol=1,
+          Use_REML=FALSE,
+          loc_x=NULL,
+          Parameters="generate",
+          Random="generate",
+          Map="generate",
+          DiagnosticDir=NULL,
+          TmbDir=system.file("executables",package="VAST"),
+          RunDir=getwd(),
+          CompileDir=RunDir,
+          build_model=TRUE ){
                                             
   # Extract Options and Options_vec (depends upon version)
   if( all(c("Options","Options_vec") %in% names(TmbData)) ){
@@ -101,6 +113,8 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
     }
     if( "Xiinput1_scp" %in% names(Parameters) ) Random = c(Random, "Xiinput1_scp")
     if( "Xiinput2_scp" %in% names(Parameters) ) Random = c(Random, "Xiinput2_scp")
+    if( "Phiinput1_sk" %in% names(Parameters) ) Random = c(Random, "Phiinput1_sk")
+    if( "Phiinput2_sk" %in% names(Parameters) ) Random = c(Random, "Phiinput2_sk")
     if( "Epsiloninput1_sff" %in% names(Parameters) ) Random = c(Random, "Epsiloninput1_sff")
     if( "Epsiloninput2_sff" %in% names(Parameters) ) Random = c(Random, "Epsiloninput2_sff")
     if( "Epsiloninput1_sft" %in% names(Parameters) ) Random = c(Random, "Epsiloninput1_sft")
@@ -128,7 +142,7 @@ function( TmbData, Version, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilo
   origwd = getwd()
   on.exit(setwd(origwd),add=TRUE)
   setwd( CompileDir )
-  TMB::compile( paste0(Version,".cpp") )
+  TMB::compile( paste0(Version,".cpp"), CPPFLAGS="-Wno-ignored-attributes" )
 
   # Build object
   dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version)) ) # random=Random,

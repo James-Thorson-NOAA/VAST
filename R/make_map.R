@@ -10,8 +10,8 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     vec = factor( vec )
     return( vec )
   }
-  seq_pos <- function( length.out, from=1 ){
-    seq(from=from, to=length.out, length.out=max(length.out,0))
+  seq_pos <- function( length.out ){
+    seq(from=1, to=length.out, length.out=max(length.out,0))
   }
 
   # Extract Options and Options_vec (depends upon version)
@@ -40,6 +40,36 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   # Renames
   dimnames(DataList$FieldConfig) = list( c("Omega","Epsilon","Beta","Epsilon_time"), c("Component_1","Component_2") )
 
+  # FIll in Q1_ik / Q2_ik
+  if( !all(c("Q1_ik","Q1_ik") %in% names(DataList)) ){
+    if( "Q_ik" %in% names(DataList) ){
+      DataList$Q1_ik = DataList$Q2_ik = DataList$Q_ik
+    }else{
+      stop("Problem with map for this version")
+    }
+  }
+
+  # Fill in X1config_cp / X2config_cp for CPP versions < 10ish
+  if( !all(c("X1config_cp","X2config_cp") %in% names(DataList)) ){
+    if( "Xconfig_zcp" %in% names(DataList) ){
+      DataList$X1config_cp = array( DataList$Xconfig_zcp[1,,], dim=dim(DataList$X1config_zcp)[2:3] )
+      DataList$X2config_cp = array( DataList$Xconfig_zcp[2,,], dim=dim(DataList$X1config_zcp)[2:3] )
+    }else{
+      DataList$X1config_cp = DataList$X2config_cp = array( 1, dim=c(DataList$n_c,DataList$n_p) )
+    }
+  }
+
+  # FIll in Q1config_k / Q2config_k for CPP versions < 10.3.0
+  if( !all(c("Q1config_k","Q2config_k") %in% names(DataList)) ){
+    DataList$Q1config_k = rep( 1, ncol(DataList$Q1_ik) )
+    DataList$Q2config_k = rep( 1, ncol(DataList$Q2_ik) )
+  }
+
+  # Backwards compatibiliy
+  if("n_p" %in% names(DataList)){
+    DataList$n_p1 = DataList$n_p2 = DataList$n_p
+  }
+
   # Function to identify elements of L_z corresponding to diagonal
   identify_diagonal = function( n_c, n_f ){
     M = diag(n_c)[1:n_f,,drop=FALSE]
@@ -55,7 +85,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     Map[['ln_H_input']] = factor( rep(NA,2) )
   }
   if( all(DataList[["FieldConfig"]][1:2,] == -1) ){
-    if( !( "Xconfig_zcp" %in% names(DataList) && any(DataList[["Xconfig_zcp"]][1,,] %in% c(2,3)) ) ){
+    if( !( any(DataList[["X1config_cp"]][,]%in%c(2,3)) | any(DataList[["X2config_cp"]][,]%in%c(2,3)) | any(DataList[["Q1config_k"]]%in%c(2,3)) | any(DataList[["Q2config_k"]]%in%c(2,3)) ) ){
       Map[['ln_H_input']] = factor( rep(NA,2) )
     }
   }
@@ -71,7 +101,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
   if( "delta_i" %in% names(TmbParams)){
     Map[["delta_i"]] = rep(NA, length(TmbParams[["delta_i"]]) )
   }
-  for( eI in 1:DataList$n_e ){
+  for( eI in seq_pos(DataList$n_e) ){
     if(DataList$ObsModel_ez[eI,1]%in%c(0,1,2,3,4)){
       if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA )
       if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA, NA )
@@ -98,7 +128,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     if(DataList$ObsModel_ez[eI,1]%in%c(11)){
       if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA )
       if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA, NA )
-      Map[["delta_i"]][ which((DataList$e_i+1)==eI) ] = max(c(0,Map[["delta_i"]]),na.rm=TRUE) + 1:length(which((DataList$e_i+1)==eI))
+      Map[["delta_i"]][ which((DataList$e_i+1)==eI) ] = max(c(0,Map[["delta_i"]]),na.rm=TRUE) + seq_pos(length(which((DataList$e_i+1)==eI)))
     }
     if(DataList$ObsModel_ez[eI,1]%in%c(12,13)){
       if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( NA, NA )
@@ -108,7 +138,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     if(DataList$ObsModel_ez[eI,1]%in%c(14)){
       if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA )
       if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA, NA )
-      Map[["delta_i"]][ which((DataList$e_i+1)==eI) ] = max(c(0,Map[["delta_i"]]),na.rm=TRUE) + 1:length(which((DataList$e_i+1)==eI))
+      Map[["delta_i"]][ which((DataList$e_i+1)==eI) ] = max(c(0,Map[["delta_i"]]),na.rm=TRUE) + seq_pos(length(which((DataList$e_i+1)==eI)))
       if( any(DataList$ObsModel_ez[,2]!=1) ) stop("ObsModel[1]=14 should use ObsModel[2]=1")
     }
   }
@@ -134,7 +164,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     if("L_epsilon1_z" %in% names(TmbParams)) Map[["L_epsilon1_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon1_z"]])) )
   }
   if( all(DataList[["FieldConfig"]][1:2,1] == -1) ){
-    if( !( "Xconfig_zcp" %in% names(DataList) && any(DataList[["Xconfig_zcp"]][1,,] %in% c(2,3)) ) ){
+    if( !( any(DataList[["X1config_cp"]]%in%c(2,3)) | any(DataList[["Q1config_k"]]%in%c(2,3)) ) ){
       Map[["logkappa1"]] = factor(NA)
       if("rho_c1" %in% names(TmbParams)) Map[["rho_c1"]] = factor(NA)
     }
@@ -249,8 +279,8 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     # Deprecated >= V6.0.0
   if( "X_xj" %in% names(DataList) ){
     Var_j = apply( DataList[["X_xj"]], MARGIN=2, FUN=var )
-    Map[["gamma1_j"]] = Map[["gamma2_j"]] = 1:ncol(DataList$X_xj)
-    for(j in 1:length(Var_j)){
+    Map[["gamma1_j"]] = Map[["gamma2_j"]] = seq_pos(ncol(DataList$X_xj))
+    for(j in seq_pos(length(Var_j))){
       if( Var_j[j]==0 || sum(CovConfig)==0 ){
         Map[["gamma1_j"]][j] = NA
         Map[["gamma2_j"]][j] = NA
@@ -260,38 +290,78 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     Map[["gamma2_j"]] = factor(Map[["gamma1_j"]])
   }
 
-  # Catchability variables
-  Var_k = apply( DataList[["Q_ik"]], MARGIN=2, FUN=var )
-  Map[["lambda1_k"]] = Map[["lambda2_k"]] = 1:ncol(DataList$Q_ik)
-  for(k in 1:length(Var_k)){
-    if( Var_k[k]==0 ){
-      Map[["lambda1_k"]][k] = NA
-      Map[["lambda2_k"]][k] = NA
+  ### Catchability variables
+  if( all(c("Q1_ik","Q2_ik") %in% names(DataList)) ){
+    Var1_k = apply( DataList[["Q1_ik"]], MARGIN=2, FUN=var )
+    Var2_k = apply( DataList[["Q2_ik"]], MARGIN=2, FUN=var )
+    Map[["lambda1_k"]] = seq_pos(ncol(DataList$Q1_ik))
+    Map[["lambda2_k"]] = seq_pos(ncol(DataList$Q2_ik))
+    for(k in seq_pos(length(Var1_k))){
+      if( Var1_k[k]==0 ){
+        Map[["lambda1_k"]][k] = NA
+      }
+    }
+    for(k in seq_pos(length(Var2_k))){
+      if( Var2_k[k]==0 ){
+        Map[["lambda2_k"]][k] = NA
+      }
+    }
+    for(kI in seq_pos(ncol(DataList$Q1_ik))){
+      if( DataList$Q1config_k[kI] %in% c(-1,0,2) ){
+        Map[["lambda1_k"]][kI] = NA
+      }
+    }
+    for(kI in seq_pos(ncol(DataList$Q2_ik))){
+      if( DataList$Q2config_k[kI] %in% c(-1,0,2) ){
+        Map[["lambda2_k"]][kI] = NA
+      }
+    }
+    Map[["lambda1_k"]] = factor(Map[["lambda1_k"]])
+    Map[["lambda2_k"]] = factor(Map[["lambda2_k"]])
+
+    if( all(c("log_sigmaPhi1_k","log_sigmaPhi2_k") %in% names(TmbParams)) ){
+      Map[["log_sigmaPhi1_k"]] = seq_pos(ncol(DataList$Q1_ik))
+      Map[["log_sigmaPhi2_k"]] = seq_pos(ncol(DataList$Q2_ik))
+      for(kI in seq_pos(ncol(DataList$Q1_ik))){
+        if( DataList$Q1config_k[kI] %in% c(0,1) ){
+          Map[["log_sigmaPhi1_k"]][kI] = NA
+        }
+      }
+      for(kI in seq_pos(ncol(DataList$Q2_ik))){
+        if( DataList$Q2config_k[kI] %in% c(0,1) ){
+          Map[["log_sigmaPhi2_k"]][kI] = NA
+        }
+      }
+      Map[["log_sigmaPhi1_k"]] = factor(Map[["log_sigmaPhi1_k"]])
+      Map[["log_sigmaPhi2_k"]] = factor(Map[["log_sigmaPhi2_k"]])
     }
   }
-  Map[["lambda1_k"]] = factor(Map[["lambda1_k"]])
-  Map[["lambda2_k"]] = factor(Map[["lambda2_k"]])
 
   # Dynamic covariates
-  if( any(c("X_xtp","X_itp","X_ip") %in% names(DataList)) ){
+  if( any(c("X_xtp","X_itp","X_ip","X1_ip") %in% names(DataList)) ){
     if( "X_xtp" %in% names(DataList) ){
-      Var_p = apply( DataList[["X_xtp"]], MARGIN=3, FUN=function(array){var(as.vector(array))})
-      Var_tp = apply( DataList[["X_xtp"]], MARGIN=2:3, FUN=var )
+      Var1_p = Var2_p = apply( DataList[["X_xtp"]], MARGIN=3, FUN=function(array){var(as.vector(array))})
+      Var1_tp = Var2_tp = apply( DataList[["X_xtp"]], MARGIN=2:3, FUN=var )
     }
     if( "X_itp" %in% names(DataList) ){
-      Var_p = apply( DataList[["X_itp"]], MARGIN=3, FUN=function(array){var(as.vector(array))})
-      Var_tp = apply( DataList[["X_itp"]], MARGIN=2:3, FUN=var )
+      Var1_p = Var2_p = apply( DataList[["X_itp"]], MARGIN=3, FUN=function(array){var(as.vector(array))})
+      Var1_tp = Var2_tp = apply( DataList[["X_itp"]], MARGIN=2:3, FUN=var )
     }
     if( "X_ip" %in% names(DataList) ){
-      Var_p = apply( DataList[["X_ip"]], MARGIN=2, FUN=function(array){var(as.vector(array))})
+      Var1_p = Var2_p = apply( DataList[["X_ip"]], MARGIN=2, FUN=function(array){var(as.vector(array))})
+    }
+    if( "X1_ip" %in% names(DataList) ){
+      Var1_p = apply( DataList[["X1_ip"]], MARGIN=2, FUN=function(array){var(as.vector(array))})
+      Var2_p = apply( DataList[["X2_ip"]], MARGIN=2, FUN=function(array){var(as.vector(array))})
     }
     if( "gamma1_tp" %in% names(TmbParams) ){
-      Map[["gamma1_tp"]] = Map[["gamma2_tp"]] = matrix( 1:(DataList$n_t*DataList$n_p), nrow=DataList$n_t, ncol=DataList$n_p )
+      Map[["gamma1_tp"]] = matrix( seq_pos(DataList$n_t*DataList$n_p1), nrow=DataList$n_t, ncol=DataList$n_p1 )
+      Map[["gamma2_tp"]] = matrix( seq_pos(DataList$n_t*DataList$n_p2), nrow=DataList$n_t, ncol=DataList$n_p2 )
       # By default:
       #  1.  turn off coefficient associated with variable having no variance across space and time
       #  2.  assume constant coefficient for all years of each variable and category
-      for(p in 1:length(Var_p)){
-        if( Var_p[p]==0 ){
+      for(p in seq_pos(length(Var1_p))){
+        if( Var1_p[p]==0 ){
           Map[["gamma1_tp"]][,p] = NA
           Map[["gamma2_tp"]][,p] = NA
         }else{
@@ -303,12 +373,13 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
       Map[["gamma2_tp"]] = factor(Map[["gamma2_tp"]])
     }
     if( all(c("gamma1_ctp","gamma2_ctp") %in% names(TmbParams)) ){
-      Map[["gamma1_ctp"]] = Map[["gamma2_ctp"]] = array( 1:(DataList$n_c*DataList$n_t*DataList$n_p), dim=c(DataList$n_c,DataList$n_t,DataList$n_p) )
+      Map[["gamma1_ctp"]] = array( seq_pos(DataList$n_c*DataList$n_t*DataList$n_p1), dim=c(DataList$n_c,DataList$n_t,DataList$n_p1) )
+      Map[["gamma2_ctp"]] = array( seq_pos(DataList$n_c*DataList$n_t*DataList$n_p2), dim=c(DataList$n_c,DataList$n_t,DataList$n_p2) )
       # By default:
       #  1.  turn off coefficient associated with variable having no variance across space and time
       #  2.  assume constant coefficient for all years of each variable and category
-      for(p in 1:length(Var_p)){
-        if( Var_p[p]==0 ){
+      for(p in seq_pos(length(Var1_p))){
+        if( Var1_p[p]==0 ){
           Map[["gamma1_ctp"]][,,p] = NA
           Map[["gamma2_ctp"]][,,p] = NA
         }else{
@@ -320,7 +391,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
       }
       if( "Xconfig_zcp" %in% names(DataList) ){
         for(cI in 1:DataList$n_c){
-        for(pI in 1:DataList$n_p){
+        for(pI in seq_pos(DataList$n_p1)){
           if( DataList$Xconfig_zcp[1,cI,pI] %in% c(-1,0,2) ){
             Map[["gamma1_ctp"]][cI,,pI] = NA
           }
@@ -333,54 +404,104 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
       Map[["gamma2_ctp"]] = factor(Map[["gamma2_ctp"]])
     }
     if( all(c("gamma1_cp","gamma2_cp") %in% names(TmbParams)) ){
-      Map[["gamma1_cp"]] = Map[["gamma2_cp"]] = array( 1:(DataList$n_c*DataList$n_p), dim=c(DataList$n_c,DataList$n_p) )
+      Map[["gamma1_cp"]] = array( seq_pos(DataList$n_c*DataList$n_p1), dim=c(DataList$n_c,DataList$n_p1) )
+      Map[["gamma2_cp"]] = array( seq_pos(DataList$n_c*DataList$n_p2), dim=c(DataList$n_c,DataList$n_p2) )
       # By default, turn off coefficient associated with variable having no variance across space and time
-      for(p in 1:length(Var_p)){
-        if( Var_p[p]==0 ){
+      for(p in seq_pos(length(Var1_p))){
+        if( Var1_p[p]==0 ){
           Map[["gamma1_cp"]][,p] = NA
+        }
+      }
+      for(p in seq_pos(length(Var2_p))){
+        if( Var2_p[p]==0 ){
           Map[["gamma2_cp"]][,p] = NA
         }
       }
-      if( "Xconfig_zcp" %in% names(DataList) ){
-        for(cI in 1:DataList$n_c){
-        for(pI in 1:DataList$n_p){
-          if( DataList$Xconfig_zcp[1,cI,pI] %in% c(-1,0,2) ){
-            Map[["gamma1_cp"]][cI,pI] = NA
-          }
-          if( DataList$Xconfig_zcp[2,cI,pI] %in% c(-1,0,2) ){
-            Map[["gamma2_cp"]][cI,pI] = NA
-          }
-        }}
-      }
+      for(cI in 1:DataList$n_c){
+      for(pI in seq_pos(DataList$n_p1)){
+        if( DataList$X1config_cp[cI,pI] %in% c(-1,0,2) ){
+          Map[["gamma1_cp"]][cI,pI] = NA
+        }
+      }}
+      for(cI in 1:DataList$n_c){
+      for(pI in seq_pos(DataList$n_p2)){
+        if( DataList$X2config_cp[cI,pI] %in% c(-1,0,2) ){
+          Map[["gamma2_cp"]][cI,pI] = NA
+        }
+      }}
       Map[["gamma1_cp"]] = factor(Map[["gamma1_cp"]])
       Map[["gamma2_cp"]] = factor(Map[["gamma2_cp"]])
     }
     if( all(c("log_sigmaXi1_cp","log_sigmaXi2_cp") %in% names(TmbParams)) ){
-      Map[["log_sigmaXi1_cp"]] = Map[["log_sigmaXi2_cp"]] = array( 1:(DataList$n_c*DataList$n_p), dim=c(DataList$n_c,DataList$n_p) )
-      for(cI in 1:DataList$n_c){
-      for(pI in 1:DataList$n_p){
-        if( DataList$Xconfig_zcp[1,cI,pI] %in% c(0,1) ){
-          Map[["log_sigmaXi1_cp"]][cI,pI] = NA
-        }
-        if( DataList$Xconfig_zcp[2,cI,pI] %in% c(0,1) ){
-          Map[["log_sigmaXi2_cp"]][cI,pI] = NA
-        }
-      }}
+      Map[["log_sigmaXi1_cp"]] = array( seq_pos(DataList$n_c*DataList$n_p1), dim=c(DataList$n_c,DataList$n_p1) )
+      Map[["log_sigmaXi2_cp"]] = array( seq_pos(DataList$n_c*DataList$n_p2), dim=c(DataList$n_c,DataList$n_p2) )
+      if( "Xconfig_zcp" %in% names(DataList) ){
+        for(cI in 1:DataList$n_c){
+        for(pI in seq_pos(DataList$n_p1)){
+          if( DataList$Xconfig_zcp[1,cI,pI] %in% c(0,1) ){
+            Map[["log_sigmaXi1_cp"]][cI,pI] = NA
+          }
+          if( DataList$Xconfig_zcp[2,cI,pI] %in% c(0,1) ){
+            Map[["log_sigmaXi2_cp"]][cI,pI] = NA
+          }
+        }}
+      }
+      if( all(c("X1config_cp","X2config_cp") %in% names(DataList)) ){
+        for(cI in 1:DataList$n_c){
+        for(pI in seq_pos(DataList$n_p1)){
+          if( DataList$X1config_cp[cI,pI] %in% c(0,1) ){
+            Map[["log_sigmaXi1_cp"]][cI,pI] = NA
+          }
+        }}
+        for(cI in 1:DataList$n_c){
+        for(pI in seq_pos(DataList$n_p2)){
+          if( DataList$X2config_cp[cI,pI] %in% c(0,1) ){
+            Map[["log_sigmaXi2_cp"]][cI,pI] = NA
+          }
+        }}
+      }
       Map[["log_sigmaXi1_cp"]] = factor(Map[["log_sigmaXi1_cp"]])
       Map[["log_sigmaXi2_cp"]] = factor(Map[["log_sigmaXi2_cp"]])
     }
   }
 
-  # Spatially varying coefficients
+  # Spatially varying coefficients -- density
   if( all(c("Xiinput1_scp","Xiinput2_scp") %in% names(TmbParams)) ){
-    Map[["Xiinput1_scp"]] = Map[["Xiinput2_scp"]] = array( 1:(DataList$n_s*DataList$n_c*DataList$n_p), dim=c(DataList$n_s,DataList$n_c,DataList$n_p) )
-    for(cI in 1:DataList$n_c){
-    for(pI in 1:DataList$n_p){
-      if(DataList$Xconfig_zcp[1,cI,pI] %in% c(0,1)) Map[["Xiinput1_scp"]][,cI,pI] = NA
-      if(DataList$Xconfig_zcp[2,cI,pI] %in% c(0,1)) Map[["Xiinput2_scp"]][,cI,pI] = NA
-    }}
+    Map[["Xiinput1_scp"]] = array( seq_pos(DataList$n_s*DataList$n_c*DataList$n_p1), dim=c(DataList$n_s,DataList$n_c,DataList$n_p1) )
+    Map[["Xiinput2_scp"]] = array( seq_pos(DataList$n_s*DataList$n_c*DataList$n_p2), dim=c(DataList$n_s,DataList$n_c,DataList$n_p2) )
+    if( "Xconfig_zcp" %in% names(DataList) ){
+      for(cI in 1:DataList$n_c){
+      for(pI in seq_pos(DataList$n_p1)){
+        if(DataList$X1config_cp[cI,pI] %in% c(0,1)) Map[["Xiinput1_scp"]][,cI,pI] = NA
+        if(DataList$X1config_cp[cI,pI] %in% c(0,1)) Map[["Xiinput2_scp"]][,cI,pI] = NA
+      }}
+    }
+    if( all(c("X1config_cp","X2config_cp") %in% names(DataList)) ){
+      for(cI in 1:DataList$n_c){
+      for(pI in seq_pos(DataList$n_p1)){
+        if(DataList$X1config_cp[cI,pI] %in% c(0,1)) Map[["Xiinput1_scp"]][,cI,pI] = NA
+      }}
+      for(cI in 1:DataList$n_c){
+      for(pI in seq_pos(DataList$n_p2)){
+        if(DataList$X2config_cp[cI,pI] %in% c(0,1)) Map[["Xiinput2_scp"]][,cI,pI] = NA
+      }}
+    }
     Map[["Xiinput1_scp"]] = factor(Map[["Xiinput1_scp"]])
     Map[["Xiinput2_scp"]] = factor(Map[["Xiinput2_scp"]])
+  }
+
+  # Spatially varying coefficients -- catchability
+  if( all(c("Phiinput1_sk","Phiinput2_sk") %in% names(TmbParams)) ){
+    Map[["Phiinput1_sk"]] = array( seq_pos(prod(dim(TmbParams$Phiinput1_sk))), dim=dim(TmbParams$Phiinput1_sk) )
+    Map[["Phiinput2_sk"]] = array( seq_pos(prod(dim(TmbParams$Phiinput2_sk))), dim=dim(TmbParams$Phiinput2_sk) )
+    for(kI in seq_pos(ncol(DataList$Q1_ik))){
+      if(DataList$Q1config_k[kI] %in% c(0,1)) Map[["Phiinput1_sk"]][,kI] = NA
+    }
+    for(kI in seq_pos(ncol(DataList$Q2_ik))){
+      if(DataList$Q2config_k[kI] %in% c(0,1)) Map[["Phiinput2_sk"]][,kI] = NA
+    }
+    Map[["Phiinput1_sk"]] = factor(Map[["Phiinput1_sk"]])
+    Map[["Phiinput2_sk"]] = factor(Map[["Phiinput2_sk"]])
   }
 
   #########################
@@ -407,8 +528,8 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     }
     # Reduce degrees of freedom for interactions
     if( DataList$VamConfig[1] %in% c(1,3) ){
-      Map[["Psi_fr"]] = array( 1:prod(dim(TmbParams$Psi_fr)), dim=dim(TmbParams$Psi_fr) )
-      Map[["Psi_fr"]][1:ncol(Map[["Psi_fr"]]),] = NA
+      Map[["Psi_fr"]] = array( seq_pos(prod(dim(TmbParams$Psi_fr))), dim=dim(TmbParams$Psi_fr) )
+      Map[["Psi_fr"]][seq_pos(ncol(Map[["Psi_fr"]])),] = NA
       Map[["Psi_fr"]] = factor(Map[["Psi_fr"]])
     }
     # Reduce degrees of freedom for interactions

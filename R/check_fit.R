@@ -32,7 +32,9 @@
 #' @export
 #' @md
 # Using https://cran.r-project.org/web/packages/roxygen2/vignettes/rd-formatting.html for guidance on markdown-enabled documentation
-check_fit = function( parameter_estimates, check_gradients=FALSE, quiet=FALSE ){
+check_fit = function( parameter_estimates,
+          check_gradients=FALSE,
+          quiet=FALSE ){
 
   # Initialize code for good model
   problem_found = FALSE

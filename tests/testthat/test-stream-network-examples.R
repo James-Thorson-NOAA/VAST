@@ -32,7 +32,8 @@ test_that("Stream network example is working ", {
 
   ## setup dataset
   Data_Geostat <- data.frame( "Catch_KG" = obs$data_value,
-                "Year" = obs$year,
+                #"Year" = obs$year,  # CHANGING TO MAINTAIN COMPATIBILITY WITH HOW data.frame worked prior to R version 4.0.0
+                "Year" = match(obs$year,sort(unique(obs$year))),
                  "Vessel" = obs$fishmethod,
                  "AreaSwept_km2" = obs$dist_i,
                  "Lat" = obs$lat,
@@ -57,7 +58,8 @@ test_that("Stream network example is working ", {
                   Network_sz = Network_sz,
                   optimize_args = list(getsd=FALSE, newtonsteps=1),
                   working_dir=multispecies_example_path,
-                  test_fit=FALSE )
+                  test_fit=FALSE,
+                  run_model=TRUE )
 
   # Comparisons
   Par1 = parameter_estimates$par[c("logkappa1","Beta_mean1_c")] # Not logSigmaM or beta2_ft, which depends on jittered values
