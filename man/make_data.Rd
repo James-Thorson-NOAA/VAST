@@ -80,8 +80,8 @@ providing sampling category (e.g., vessel or tow) associated with overdispersed 
        per individual is the 2nd-component, and SigmaM is the variance in positive catches (likely to be very slow)}
   \item{\code{ObsModel_ez[e,1]=9}}{Binned-Poisson (for use with REEF data, where 0=0 individual; 1=1 individual; 2=2:10 individuals; 3=>10 individuals)}
   \item{\code{ObsModel_ez[e,1]=10}}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
-         variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast as long as random
-         effects are turned off for the 1st component.}
+         variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast (i.e., comparable to delta-models)
+         as long as random effects are turned off for the 1st component, but is otherwise extremely slow.}
   \item{\code{ObsModel_ez[e,1]=11}}{Zero-inflated Poisson with additional normally-distributed variation overdispersion in the
        log-intensity of the Poisson distribution}
   \item{\code{ObsModel_ez[e,1]=12}}{Poisson distribution (not zero-inflated) with log-intensity from the 1st linear predictor,
