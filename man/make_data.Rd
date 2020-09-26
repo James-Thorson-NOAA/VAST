@@ -98,8 +98,8 @@ providing sampling category (e.g., vessel or tow) associated with overdispersed 
 }}
 
 \item{OverdispersionConfig}{a vector of format \code{c("eta1"=0, "eta2"="AR1")} governing any correlated overdispersion
-among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates,
-where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance (by default,
+among categories for each level of \code{v_i}, where eta1 is for encounter probability, and eta2 is for positive catch rates,
+where \code{0} is off, code{"AR1"} is an AR1 process, and aninteger greater than zero (e.g., \code{2}) is the number of elements in a factor-analysis covariance (by default,
 \code{c("eta1"=0, "eta2"=0)} and this turns off overdispersion)}
 
 \item{RhoConfig}{vector of form \code{c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)} specifying whether either intercepts (Beta1 and Beta2)
@@ -162,12 +162,12 @@ calculate changes in synchrony over time (only used if \code{Options['Calculate_
 \item{Options}{a tagged-vector that is empty by default, \code{Options=c()}, but where the following slots might be helpful to add,
        either by passing \code{Options} to \code{\link[FishStatsUtils]{make_settings}}, or editing after a call to that function:
 \describe{
-  \item{Options["SD_site_logdensity"]=TRUE}{Turns on standard error calculation for local log-density (which is very slow to calculate!)}
-  \item{Options["Calculate_Range"]=TRUE}{Turns on internal calculation and SE for center-of-gravity}
-  \item{Options["Calculate_effective_area"]=TRUE}{Turns on internal calculation and SE for effective area occupied measuring range expansion/contraction}
-  \item{Options["Calculate_Cov_SE"]=TRUE}{Turns on internal calculation and SE for covariance among categories (i.e. in factor model)}
-  \item{Options["Calculate_proportion"]=TRUE}{Turns on internal calculation and SE for proportion of response within each category (e.g., for calculating proportion-at-age or species turnover)}
-  \item{Options["Calculate_Synchrony"]=TRUE}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
+  \item{\code{Options["SD_site_logdensity"]=TRUE}}{Turns on standard error calculation for local log-density (which is very slow to calculate!)}
+  \item{\code{Options["Calculate_Range"]=TRUE}}{Turns on internal calculation and SE for center-of-gravity}
+  \item{\code{Options["Calculate_effective_area"]=TRUE}}{Turns on internal calculation and SE for effective area occupied measuring range expansion/contraction}
+  \item{\code{Options["Calculate_Cov_SE"]=TRUE}}{Turns on internal calculation and SE for covariance among categories (i.e. in factor model)}
+  \item{\code{Options["Calculate_proportion"]=TRUE}}{Turns on internal calculation and SE for proportion of response within each category (e.g., for calculating proportion-at-age or species turnover)}
+  \item{\code{Options["Calculate_Synchrony"]=TRUE}}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
 }}
 
 \item{Expansion_cz}{matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.
