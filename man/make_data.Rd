@@ -67,33 +67,33 @@ providing sampling category (e.g., vessel or tow) associated with overdispersed 
 \item{ObsModel_ez}{an optional matrix with two columns where the first column specifies the distribution for positive catch rates,
        and the second column specifies the functional form for encounter probabilities
 \describe{
-  \item{ObsModel_ez[e,1]=0}{Normal}
-  \item{ObsModel_ez[e,1]=1}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
+  \item{\code{ObsModel_ez[e,1]=0}}{Normal}
+  \item{\code{ObsModel_ez[e,1]=1}}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
        instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
-  \item{ObsModel_ez[e,1]=2}{Gamma}
-  \item{ObsModel_ez[e,1]=3}{Inverse-Gaussian}
-  \item{ObsModel_ez[e,1]=4}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
-  \item{ObsModel_ez[e,1]=5}{Negative binomial}
-  \item{ObsModel_ez[e,1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
-  \item{ObsModel_ez[e,1]=7}{Poisson (more numerically stable than negative-binomial)}
-  \item{ObsModel_ez[e,1]=8}{Compound-Poisson-Gamma, where the expected number of individuals is the 1st-component, the expected biomass
+  \item{\code{ObsModel_ez[e,1]=2}}{Gamma}
+  \item{\code{ObsModel_ez[e,1]=3}}{Inverse-Gaussian}
+  \item{\code{ObsModel_ez[e,1]=4}}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
+  \item{\code{ObsModel_ez[e,1]=5}}{Negative binomial}
+  \item{\code{ObsModel_ez[e,1]=6}}{Conway-Maxwell-Poisson (likely to be very slow)}
+  \item{\code{ObsModel_ez[e,1]=7}}{Poisson (more numerically stable than negative-binomial)}
+  \item{\code{ObsModel_ez[e,1]=8}}{Compound-Poisson-Gamma, where the expected number of individuals is the 1st-component, the expected biomass
        per individual is the 2nd-component, and SigmaM is the variance in positive catches (likely to be very slow)}
-  \item{ObsModel_ez[e,1]=9}{Binned-Poisson (for use with REEF data, where 0=0 individual; 1=1 individual; 2=2:10 individuals; 3=>10 individuals)}
-  \item{ObsModel_ez[e,1]=10}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
+  \item{\code{ObsModel_ez[e,1]=9}}{Binned-Poisson (for use with REEF data, where 0=0 individual; 1=1 individual; 2=2:10 individuals; 3=>10 individuals)}
+  \item{\code{ObsModel_ez[e,1]=10}}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
          variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast as long as random
          effects are turned off for the 1st component.}
-  \item{ObsModel_ez[e,1]=11}{Zero-inflated Poisson with additional normally-distributed variation overdispersion in the
+  \item{\code{ObsModel_ez[e,1]=11}}{Zero-inflated Poisson with additional normally-distributed variation overdispersion in the
        log-intensity of the Poisson distribution}
-  \item{ObsModel_ez[e,1]=12}{Poisson distribution (not zero-inflated) with log-intensity from the 1st linear predictor,
+  \item{\code{ObsModel_ez[e,1]=12}}{Poisson distribution (not zero-inflated) with log-intensity from the 1st linear predictor,
        to be used in combination with the Poisson-link delta model for combining multiple data types}
-  \item{ObsModel_ez[e,1]=13}{Bernoulli distribution using complementary log-log (cloglog) link from the 1st linear predictor,
+  \item{\code{ObsModel_ez[e,1]=13}}{Bernoulli distribution using complementary log-log (cloglog) link from the 1st linear predictor,
        to be used in combination with the Poisson-link delta model for combining multiple data types}
-  \item{ObsModel_ez[e,1]=14}{Similar to 12, but also including lognormal overdispersion}
-  \item{ObsModel_ez[e,2]=0}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
-  \item{ObsModel_ez[e,2]=1}{Alternative "Poisson-link delta-model" using log-link for numbers-density and log-link for biomass per number}
-  \item{ObsModel_ez[e,2]=2}{Link function for Tweedie distribution, necessary for \code{ObsModel_ez[e,1]=8} or \code{ObsModel_ez[e,1]=10}}
-  \item{ObsModel_ez[e,2]=3}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
-  \item{ObsModel_ez[e,2]=4}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the
+  \item{\code{ObsModel_ez[e,1]=14}}{Similar to 12, but also including lognormal overdispersion}
+  \item{\code{ObsModel_ez[e,2]=0}}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
+  \item{\code{ObsModel_ez[e,2]=1}}{Alternative "Poisson-link delta-model" using log-link for numbers-density and log-link for biomass per number}
+  \item{\code{ObsModel_ez[e,2]=2}}{Link function for Tweedie distribution, necessary for \code{ObsModel_ez[e,1]=8} or \code{ObsModel_ez[e,1]=10}}
+  \item{\code{ObsModel_ez[e,2]=3}}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
+  \item{\code{ObsModel_ez[e,2]=4}}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the
        species and encounter probability=0 for any year where no samples encounter the species}
 }}
 
@@ -109,9 +109,9 @@ or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time in
 
 \item{VamConfig}{Options to estimate interactions, containing three slots:
 \describe{
-  \item{VamConfig[0]}{selects method for forming interaction matrix; Turn off feature using 0, or I recommend using 2 by default}
-  \item{VamConfig[1]}{indicates the rank of the interaction matrix, indicating the number of community axes that have regulated dynamics}
-  \item{VamConfig[2]}{Indicates whether interactions occur before spatio-temporal variation (\code{VamConfig[2]=0}) or after \code{VamConfig[2]=1}}
+  \item{\code{VamConfig[0]}}{selects method for forming interaction matrix; Turn off feature using 0, or I recommend using 2 by default}
+  \item{\code{VamConfig[1]}}{indicates the rank of the interaction matrix, indicating the number of community axes that have regulated dynamics}
+  \item{\code{VamConfig[2]}}{Indicates whether interactions occur before spatio-temporal variation (\code{VamConfig[2]=0}) or after \code{VamConfig[2]=1}}
 }}
 
 \item{Aniso}{whether to assume isotropy, \code{Aniso=0}, or geometric anisotropy, \code{Aniso=1}}
@@ -128,11 +128,11 @@ or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time in
 \item{X1config_cp}{matrix of settings for each density covariate for the 1st lienar predictor,
        where the row corresponds to model category, and column corresponds to each density covariate
 \describe{
-  \item{X1config_cp[c,p]=0}{\code{X_ip[,p]} has no effect on the 1st linear predictor for category c}
-  \item{X1config_cp[c,p]=1}{\code{X_ip[,p]} has a linear effect on 1st linear predictor for category c}
-  \item{X1config_cp[c,p]=2}{\code{X_ip[,p]} has a spatially varying, zero-centered linear effect on 1st linear predictor for category c}
-  \item{X1config_cp[c,p]=3}{\code{X_ip[,p]} has a spatially varying linear effect on 1st linear predictor for category c}
-  \item{X1config_cp[c,p]=-1}{\code{X1config_cp[c,p]=-1} is the same as \code{X1config_cp[c,p]=2}, but without including the log-likelihood term; this is useful in special cases when carefully mirroring spatially varying coefficients, e.g., to use cohort effects in a age-structured spatio-temporal model}
+  \item{\code{X1config_cp[c,p]=0}}{\code{X_ip[,p]} has no effect on the 1st linear predictor for category c}
+  \item{\code{X1config_cp[c,p]=1}}{\code{X_ip[,p]} has a linear effect on 1st linear predictor for category c}
+  \item{\code{X1config_cp[c,p]=2}}{\code{X_ip[,p]} has a spatially varying, zero-centered linear effect on 1st linear predictor for category c}
+  \item{\code{X1config_cp[c,p]=3}}{\code{X_ip[,p]} has a spatially varying linear effect on 1st linear predictor for category c}
+  \item{\code{X1config_cp[c,p]=-1}}{\code{X1config_cp[c,p]=-1} is the same as \code{X1config_cp[c,p]=2}, but without including the log-likelihood term; this is useful in special cases when carefully mirroring spatially varying coefficients, e.g., to use cohort effects in a age-structured spatio-temporal model}
 }}
 
 \item{X2config_cp}{Same as argument \code{X1config_cp} but for 2nd linear predictor}
@@ -144,7 +144,8 @@ or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time in
 \item{Q2_formula}{same as \code{X1_formula} but affecting the 2nd linear predictor for catchability (a.k.a. detectability)}
 
 \item{Q1config_k}{Same as argument \code{X1config_cp} but affecting affecting the 1st linear predictor for catchability,
-and note that it is a vector (instead of matrix) given the more flexible form for catchability covariates}
+and note that it is a vector (instead of matrix) given that catchability responses do not vary among variables \code{c}
+by default (but can be specified to do so when an appropriate `formula` is supplied)}
 
 \item{Q2config_k}{Same as argument \code{Q1config_cp} but affecting affecting the 2nd linear predictor for catchability}
 
