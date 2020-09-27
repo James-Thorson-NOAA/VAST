@@ -138,6 +138,18 @@ Type dinverse_gaussian(Type x, Type mean, Type cv, int give_log=0){
   if(give_log) return logres; else return exp(logres);
 }
 
+// Simulate from tweedie
+// Adapted from tweedie::rtweedie function in R
+template<class Type>
+Type rtweedie( Type mu, Type phi, Type power){
+  Type lambda = pow(mu, Type(2.0) - power) / (phi * (Type(2.0) - power));
+  Type alpha = (Type(2.0) - power) / (Type(1.0) - power);
+  Type gam = phi * (power - Type(1.0)) * pow(mu, power - Type(1.0));
+  Type N = rpois(lambda);
+  Type B = rgamma(-N * alpha, gam);   /// Using Shape-Scale parameterization
+  return B;
+}
+
 // Generate loadings matrix for covariance
 template<class Type>
 matrix<Type> create_loadings_covariance( vector<Type> L_val, int n_rows, int n_cols ){
@@ -1655,7 +1667,7 @@ Type objective_function<Type>::operator() ()
         LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0), true );
         // Simulate new values when using obj.simulate()
         SIMULATE{
-          b_i(i) = 0;   // Option not available
+          b_i(i) = rtweedie( R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0) );   // Defined above
         }
       }
       ///// Likelihood for models with discrete support
