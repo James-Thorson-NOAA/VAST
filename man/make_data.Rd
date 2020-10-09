@@ -71,14 +71,9 @@ providing sampling category (e.g., vessel or tow) associated with overdispersed 
   \item{\code{ObsModel_ez[e,1]=1}}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
        instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
   \item{\code{ObsModel_ez[e,1]=2}}{Gamma}
-  \item{\code{ObsModel_ez[e,1]=3}}{Inverse-Gaussian}
   \item{\code{ObsModel_ez[e,1]=4}}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
   \item{\code{ObsModel_ez[e,1]=5}}{Negative binomial}
-  \item{\code{ObsModel_ez[e,1]=6}}{Conway-Maxwell-Poisson (likely to be very slow)}
   \item{\code{ObsModel_ez[e,1]=7}}{Poisson (more numerically stable than negative-binomial)}
-  \item{\code{ObsModel_ez[e,1]=8}}{Compound-Poisson-Gamma, where the expected number of individuals is the 1st-component, the expected biomass
-       per individual is the 2nd-component, and SigmaM is the variance in positive catches (likely to be very slow)}
-  \item{\code{ObsModel_ez[e,1]=9}}{Binned-Poisson (for use with REEF data, where 0=0 individual; 1=1 individual; 2=2:10 individuals; 3=>10 individuals)}
   \item{\code{ObsModel_ez[e,1]=10}}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
          variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast (i.e., comparable to delta-models)
          as long as random effects are turned off for the 1st component, but is otherwise extremely slow.}
