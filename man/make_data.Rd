@@ -98,9 +98,16 @@ where \code{0} is off, code{"AR1"} is an AR1 process, and aninteger greater than
 \code{c("eta1"=0, "eta2"=0)} and this turns off overdispersion)}
 
 \item{RhoConfig}{vector of form \code{c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)} specifying whether either intercepts (Beta1 and Beta2)
-or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect;
-1: each year as random following IID distribution; 2: each year as random following a random walk;
-3: constant among years as fixed effect; 4: each year as random following AR1 process);  If missing, assumed to be zero for each element}
+       or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals, e.g.
+       for component \code{Epsilon1} indicated in the 3rd slot:
+\describe{
+  \item{\code{RhoConfig[3]=0}}{Each year as fixed effect}
+  \item{\code{RhoConfig[3]=1}}{Each year as an independent and identically distributed random effect, thus estimating the variance as fixed effect}
+  \item{\code{RhoConfig[3]=2}}{Each year as a random effect following a random walk, thus estimating the variance as fixed effect}
+  \item{\code{RhoConfig[3]=3}}{Constant among years as fixed effect}
+  \item{\code{RhoConfig[3]=4}}{Each year as a random effect following a first-order autoregressive process, thus estimating the variance and autocorrelation as fixed effects}
+}
+If missing, the default is to assume a value of zero for each element (i.e., \code{RhoConfig[1:4]=0})}
 
 \item{VamConfig}{Options to estimate interactions, containing three slots:
 \describe{
