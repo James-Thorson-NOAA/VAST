@@ -95,30 +95,17 @@ function( TmbData,
   }
 
   # Which are random
+    # Using redundant parameter names from all past versions, and then eliminating redundancies by checking against contents of Parameters
   if( length(Random)==1 && Random=="generate" ){
-    Random = c("Epsiloninput1_sct", "Omegainput1_sc", "Epsiloninput1_sft", "Omegainput1_sf", "eta1_vf", "Omegainput2_sc", "Omegainput2_sf", "eta2_vf", "delta_i")
-    if( all(c("beta1_ct","beta2_ct") %in% names(Parameters)) ){
-      if( RhoConfig[["Beta1"]]%in%c(1,2,4) ) Random = c(Random, "beta1_ct")
-      if( RhoConfig[["Beta2"]]%in%c(1,2,4) ) Random = c(Random, "beta2_ct")
-      if( Use_REML==TRUE ){
-        Random = union(Random, c("beta1_ct","gamma1_j","gamma1_tp","gamma1_ctp","lambda1_k","beta2_ct","gamma2_j","gamma2_tp","gamma2_ctp","lambda2_k"))
-      }
+    Random = c("Epsiloninput1_sct", "Omegainput1_sc", "Epsiloninput1_sft", "Omegainput1_sf", "eta1_vf", "Xiinput1_scp", "Phiinput1_sk", "Epsiloninput1_sff",
+      "Epsiloninput2_sct", "Omegainput2_sc", "Epsiloninput2_sft", "Omegainput2_sf", "eta2_vf", "Xiinput2_scp", "Phiinput2_sk", "Epsiloninput2_sff",
+      "delta_i")
+    if( RhoConfig[["Beta1"]]%in%c(1,2,4) ) Random = c(Random, "beta1_ct", "beta1_ft")
+    if( RhoConfig[["Beta2"]]%in%c(1,2,4) ) Random = c(Random, "beta2_ct", "beta2_ft")
+    if( Use_REML==TRUE ){
+      Random = union(Random, c("beta1_ct","beta1_ft","gamma1_j","gamma1_tp","gamma1_ctp","lambda1_k","gamma1_cp",
+        "beta2_ct","beta2_ft","gamma2_j","gamma2_tp","gamma2_ctp","lambda2_k","gamma2_cp"))
     }
-    if( all(c("beta1_ft","beta2_ft") %in% names(Parameters)) ){
-      if( RhoConfig[["Beta1"]]%in%c(1,2,4) ) Random = c(Random, "beta1_ft")
-      if( RhoConfig[["Beta2"]]%in%c(1,2,4) ) Random = c(Random, "beta2_ft")
-      if( Use_REML==TRUE ){
-        Random = union(Random, c("beta1_ft","gamma1_j","gamma1_tp","gamma1_ctp","lambda1_k","beta2_ft","gamma2_j","gamma2_tp","gamma2_ctp","lambda2_k"))
-      }
-    }
-    if( "Xiinput1_scp" %in% names(Parameters) ) Random = c(Random, "Xiinput1_scp")
-    if( "Xiinput2_scp" %in% names(Parameters) ) Random = c(Random, "Xiinput2_scp")
-    if( "Phiinput1_sk" %in% names(Parameters) ) Random = c(Random, "Phiinput1_sk")
-    if( "Phiinput2_sk" %in% names(Parameters) ) Random = c(Random, "Phiinput2_sk")
-    if( "Epsiloninput1_sff" %in% names(Parameters) ) Random = c(Random, "Epsiloninput1_sff")
-    if( "Epsiloninput2_sff" %in% names(Parameters) ) Random = c(Random, "Epsiloninput2_sff")
-    if( "Epsiloninput1_sft" %in% names(Parameters) ) Random = c(Random, "Epsiloninput1_sft")
-    if( "Epsiloninput2_sft" %in% names(Parameters) ) Random = c(Random, "Epsiloninput2_sft")
     # Avoid problems with mapping
     Random = Random[which(Random %in% names(Parameters))]
     if( length(Random)==0) Random = NULL
