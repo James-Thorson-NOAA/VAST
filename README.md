@@ -15,7 +15,7 @@ Background
 
 User resources for learning about VAST
 =============
-There are ten main resources for learning about VAST:
+There are eleven main resources for learning about VAST:
 
 *  *Model structure*:  Please see the [User Manual](https://github.com/James-Thorson/VAST/blob/master/manual/VAST_model_structure.pdf) for a document listing model equations and relating them to the input/output used in R.
 *  *Change documentation*:  Please see [NEWS](https://github.com/James-Thorson/VAST/blob/master/manual/NEWS.pdf) for a document listing major changes in each numbered release; this is useful to track development changes (interface improvements, bug fixes, issues regarding dependencies, etc.) over time. 
@@ -25,6 +25,7 @@ There are ten main resources for learning about VAST:
 *  *R-help documentation*:  Please see the standard R-help documentation, e.g., by typing `?VAST::Data_Fn` in the R-terminal after installing the package.
 *  *Publications*:  Please see the [publications list](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/wiki/Applications) to identify peer-reviewed publications regarding individual features.  These publications include statistical theory and model testing.
 *  *List-serv*: Consider joining the [FishStats listserve](https://groups.google.com/forum/#!forum/fishstats-listserv) for 4-6 updates per year, including training classes.
+*  *Talks available online*:  We post recorded talks and seminars [online](https://www.youtube.com/channel/UCNgFcss1X9Hgox3eWSTRI3Q/)
 *  *Issue-tracker*:  Before posting new issues, users should explore the previous issues in the github issue tracker for [VAST](https://github.com/James-Thorson/VAST/issues), [SpatialDeltaGLMM](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/issues), and [FishStatsUtils](https://github.com/james-thorson/FishStatsUtils/issues), including a search for old and closed issues.
 *  *Wiki*:  Users should read and are encouraged to actively contribute to the wiki, which is housed at [the github for SpatialDeltaGLMM](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/wiki)
 
