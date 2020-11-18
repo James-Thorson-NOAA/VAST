@@ -2267,7 +2267,7 @@ Type objective_function<Type>::operator() ()
   ////////////////////////
 
   vector<Type> D_i( n_i );
-  D_i = R1_i * R2_i;
+  D_i = R1_i * R2_i;   // Used in DHARMa residual plotting
 
   /// Important outputs
 //  REPORT( B_ff );
