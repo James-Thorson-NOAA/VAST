@@ -54,12 +54,14 @@ struct options_list {
   matrix<int> yearbounds_zz;
   matrix<int> Expansion_cz;
   matrix<int> overlap_zz;
+  matrix<Type> zerosum_penalty;
   options_list(SEXP x){ // Constructor
     Options_vec = asVector<int>(getListElement(x,"Options_vec"));
     Options = asVector<int>(getListElement(x,"Options"));
     yearbounds_zz = asMatrix<int>(getListElement(x,"yearbounds_zz"));
     Expansion_cz = asMatrix<int>(getListElement(x,"Expansion_cz"));
     overlap_zz = asMatrix<int>(getListElement(x,"overlap_zz"));
+    zerosum_penalty = asMatrix<Type>(getListElement(x,"zerosum_penalty"));
   }
 };
 
@@ -152,7 +154,7 @@ Type rtweedie( Type mu, Type phi, Type power){
 
 // Generate loadings matrix for covariance
 template<class Type>
-matrix<Type> create_loadings_covariance( vector<Type> L_val, int n_rows, int n_cols ){
+matrix<Type> create_loadings_covariance( vector<Type> L_val, int n_rows, int n_cols, Type zerosum_penalty, Type &jnll_pointer ){
   matrix<Type> L_rc(n_rows, n_cols);
   int Count = 0;
   for(int r=0; r<n_rows; r++){
@@ -164,6 +166,22 @@ matrix<Type> create_loadings_covariance( vector<Type> L_val, int n_rows, int n_c
       L_rc(r,c) = 0.0;
     }
   }}
+  // Zero-sum constraint
+  if( zerosum_penalty > 0 ){
+    vector<Type> colsum( n_cols );
+    colsum.setZero();
+    for(int c=0; c<n_cols; c++){
+    for(int r=0; r<n_rows; r++){
+      colsum(c) += L_rc(r,c);
+    }}
+    for(int c=0; c<n_cols; c++){
+    for(int r=0; r<n_rows; r++){
+      L_rc(r,c) -= colsum(c) / n_rows;
+    }}
+    for(int c=0; c<n_cols; c++){
+      jnll_pointer += zerosum_penalty * square(colsum(c));
+    }
+  }
   return L_rc;
 }
 
@@ -219,7 +237,7 @@ matrix<Type> create_loadings_AR1( Type rhoinput, Type ln_margsd, int n_rows ){
 
 // Create loadings matrix for general case,
 template<class Type>
-matrix<Type> create_loadings_general( vector<Type> L_val, int n_rows, int n_f, bool use_covariance ){
+matrix<Type> create_loadings_general( vector<Type> L_val, int n_rows, int n_f, Type zerosum_penalty, Type &jnll_pointer, bool use_covariance ){
   if( n_f == -2 ){
     // IID
     matrix<Type> L_rc(n_rows, n_rows);
@@ -249,7 +267,7 @@ matrix<Type> create_loadings_general( vector<Type> L_val, int n_rows, int n_f, b
       matrix<Type> L_rc = create_loadings_correlation( L_val, n_rows, n_f );
       return L_rc;
     }else{
-      matrix<Type> L_rc = create_loadings_covariance( L_val, n_rows, n_f );
+      matrix<Type> L_rc = create_loadings_covariance( L_val, n_rows, n_f, zerosum_penalty, jnll_pointer );
       return L_rc;
     }
   }
@@ -611,6 +629,8 @@ Type objective_function<Type>::operator() ()
     // Two columns and n_c rows.  1st column:  Type of expansion (0=area-expansion; 1=biomass-expansion);  2nd column:  Category used for biomass-expansion
   // Options_list.overlap_zz
     // Five columns and n_z rows. Columns: category and year for 1st variable, category and year for 2nd variable, type of overlap metric (0=Density of 2nd variable weighted by density of 1st)
+  // Options_list.zerosum_penalty
+    // Scalar (for now) indicating whether loadings matrices are not zero centered (value=0) or zero-centered, where the value is a penalty on squared-sum of loadings
   DATA_IMATRIX(FieldConfig);  // Input settings (vector, length 4)
   DATA_IVECTOR(RhoConfig);
   DATA_IVECTOR(OverdispersionConfig);          // Input settings (vector, length 2)
@@ -750,7 +770,7 @@ Type objective_function<Type>::operator() ()
   int i,t,c,p,s,g,k;
 
   // Objective function
-  vector<Type> jnll_comp(19);
+  vector<Type> jnll_comp(20);
   // Slot 0 -- spatial, encounter
   // Slot 1 -- spatio-temporal, encounter
   // Slot 2 -- spatial, positive catch
@@ -770,6 +790,7 @@ Type objective_function<Type>::operator() ()
   // Slot 16 -- Spatially varying coefficient for catchability, encounter
   // Slot 17 -- Spatially varying coefficient for catchability, positive catch
   // Slot 18 -- cdf aggregator for oneStepPredict_deltaModel
+  // Slot 19 -- Penalty for loadings-matrix zero-centering
   jnll_comp.setZero();
   Type jnll = 0;
   Type discard_nll = 0;
@@ -785,6 +806,8 @@ Type objective_function<Type>::operator() ()
   Expansion_cz = Options_list.Expansion_cz;
   matrix<int> overlap_zz( Options_list.overlap_zz.rows(), 5 );
   overlap_zz = Options_list.overlap_zz;
+  matrix<Type> zerosum_penalty( 1, 1 );
+  zerosum_penalty = Options_list.zerosum_penalty;
 
   // Derived parameters
   Type Range_raw1, Range_raw2;
@@ -830,16 +853,16 @@ Type objective_function<Type>::operator() ()
   }
 
   // Form loadings matrices
-  matrix<Type> L_omega1_cf = create_loadings_general( L_omega1_z, n_c, FieldConfig(0,0), true );
-  matrix<Type> L_omega2_cf = create_loadings_general( L_omega2_z, n_c, FieldConfig(0,1), true );
-  matrix<Type> L_epsilon1_cf = create_loadings_general( L_epsilon1_z, n_c, FieldConfig(1,0), true );
-  matrix<Type> L_epsilon2_cf = create_loadings_general( L_epsilon2_z, n_c, FieldConfig(1,1), true );
-  matrix<Type> L_beta1_cf = create_loadings_general( L_beta1_z, n_c, FieldConfig(2,0), true );
-  matrix<Type> L_beta2_cf = create_loadings_general( L_beta2_z, n_c, FieldConfig(2,1), true );
-  matrix<Type> Ltime_epsilon1_tf = create_loadings_general( Ltime_epsilon1_z, n_t, FieldConfig(3,0), true );
-  matrix<Type> Ltime_epsilon2_tf = create_loadings_general( Ltime_epsilon2_z, n_t, FieldConfig(3,1), true );
-  matrix<Type> L_eta1_cf = create_loadings_general( L_eta1_z, n_c, OverdispersionConfig(0), true );
-  matrix<Type> L_eta2_cf = create_loadings_general( L_eta2_z, n_c, OverdispersionConfig(1), true );
+  matrix<Type> L_omega1_cf = create_loadings_general( L_omega1_z, n_c, FieldConfig(0,0), zerosum_penalty(0,0), jnll_comp(19), true );
+  matrix<Type> L_omega2_cf = create_loadings_general( L_omega2_z, n_c, FieldConfig(0,1), zerosum_penalty(0,0), jnll_comp(19), true );
+  matrix<Type> L_epsilon1_cf = create_loadings_general( L_epsilon1_z, n_c, FieldConfig(1,0), zerosum_penalty(0,0), jnll_comp(19), true );
+  matrix<Type> L_epsilon2_cf = create_loadings_general( L_epsilon2_z, n_c, FieldConfig(1,1), zerosum_penalty(0,0), jnll_comp(19), true );
+  matrix<Type> L_beta1_cf = create_loadings_general( L_beta1_z, n_c, FieldConfig(2,0), zerosum_penalty(0,0), jnll_comp(19), true );
+  matrix<Type> L_beta2_cf = create_loadings_general( L_beta2_z, n_c, FieldConfig(2,1), zerosum_penalty(0,0), jnll_comp(19), true );
+  matrix<Type> Ltime_epsilon1_tf = create_loadings_general( Ltime_epsilon1_z, n_t, FieldConfig(3,0), zerosum_penalty(0,0), jnll_comp(19), true );
+  matrix<Type> Ltime_epsilon2_tf = create_loadings_general( Ltime_epsilon2_z, n_t, FieldConfig(3,1), zerosum_penalty(0,0), jnll_comp(19), true );
+  matrix<Type> L_eta1_cf = create_loadings_general( L_eta1_z, n_c, OverdispersionConfig(0), zerosum_penalty(0,0), jnll_comp(19), true );
+  matrix<Type> L_eta2_cf = create_loadings_general( L_eta2_z, n_c, OverdispersionConfig(1), zerosum_penalty(0,0), jnll_comp(19), true );
 
   ////////////////////////
   // Interactions and fishing mortality
