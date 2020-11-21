@@ -102,16 +102,17 @@ test_that("Covariate effects when using a smoother gives identical results to mg
   p_hat = 1 + plogis( fit_tweedie$ParHat$logSigmaM[1,1] )
 
   # Fit using GAM
-  x_i = ( fit$spatial_list$A_is%*%(1:ncol(fit$spatial_list$A_is)) )[,1]
-  Data = cbind(pollock_data, fit$spatial_list$loc_i, "Area_km2"=0.01, "pres"=ifelse(pollock_data$catch==0,0,1),
-    Temp_i=fit$data_list$X2_ip[,1], "east_i"=fit$spatial_list$loc_x[x_i,"E_km"], "north_i"=fit$spatial_list$loc_x[x_i,"N_km"] )
+  x_i = ( fit_tweedie$spatial_list$A_is%*%(1:ncol(fit_tweedie$spatial_list$A_is)) )[,1]
+  Data = cbind(pollock_data, fit_tweedie$spatial_list$loc_i, "Area_km2"=0.01, "pres"=ifelse(pollock_data$catch==0,0,1),
+    Temp_i=fit_tweedie$data_list$X2_ip[,1], "east_i"=fit_tweedie$spatial_list$loc_x[x_i,"E_km"],
+    "north_i"=fit_tweedie$spatial_list$loc_x[x_i,"N_km"] )
   mgcv_gam = gam( catch ~ 0 + factor(year) + Temp_i + I(Temp_i^2) + s(east_i,north_i,bs="gp"), family=tw,
     offset=log(Area_km2), data=Data, method="ML" )
   p = 1 + plogis(mgcv_gam$family$getTheta())
   #mgcv_gam$scale
 
   # slopes
-  expect_equal( as.numeric(fit_tweedie$ParHat$gamma2_cp), as.numeric(summary(gam2)$p.coeff[c('Temp_i','I(Temp_i^2)')]), tolerance=0.01 )
+  expect_equal( as.numeric(fit_tweedie$ParHat$gamma2_cp), as.numeric(summary(mgcv_gam)$p.coeff[c('Temp_i','I(Temp_i^2)')]), tolerance=0.01 )
   expect_equal( as.numeric(p_hat), as.numeric(p), tolerance=0.01 )
 
   ##################

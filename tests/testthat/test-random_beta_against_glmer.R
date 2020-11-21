@@ -55,7 +55,7 @@ test_that("Covariates give identical results to glm(.) ", {
   expect_equal( fit$Report$beta1_tc[,1], coef(Glm0)$year_factor[,'(Intercept)'], tolerance=0.001 )
 
   # Comparison with Glm1
-  expect_equal( fit$Report$beta2_tc[,1] - exp(2*fit1$parameter_estimates$par['logSigmaM'])/2, coef(Glm1)$year_factor[,'(Intercept)'], tolerance=0.001 )
+  expect_equal( fit$Report$beta2_tc[,1] - exp(2*fit$parameter_estimates$par['logSigmaM'])/2, coef(Glm1)$year_factor[,'(Intercept)'], tolerance=0.001 )
 
 })
 
