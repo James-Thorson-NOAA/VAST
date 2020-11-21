@@ -16,7 +16,7 @@
 context("Testing examples")
 
 # Eastern Bering Sea pollcok
-test_that("Covariates give identical results to glm(.) ", {
+test_that("Density covariates give identical results to glm(.) ", {
   skip_on_travis()
 
   # load data set
