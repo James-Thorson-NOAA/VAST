@@ -76,16 +76,18 @@ test_that("Density covariates give identical results to glm(.) ", {
     working_dir=multispecies_example_path )
 
   # Run model -- Inverse-Gaussian
-  fit3 = fit_model( settings=settings3, Lat_i=example$sampling_data[,'Lat'],
-    Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
-    b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
-    X1_formula=formula, X2_formula=formula, covariate_data=example$covariate_data,
-    working_dir=multispecies_example_path )
-  fit3B = fit_model( settings=settings3, Lat_i=example$sampling_data[,'Lat'],
-    Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
-    b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
-    formula=formula, covariate_data=example$covariate_data,
-    working_dir=multispecies_example_path )
+  if( FALSE ){
+    fit3 = fit_model( settings=settings3, Lat_i=example$sampling_data[,'Lat'],
+      Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
+      b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
+      X1_formula=formula, X2_formula=formula, covariate_data=example$covariate_data,
+      working_dir=multispecies_example_path )
+    fit3B = fit_model( settings=settings3, Lat_i=example$sampling_data[,'Lat'],
+      Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
+      b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
+      formula=formula, covariate_data=example$covariate_data,
+      working_dir=multispecies_example_path )
+  }
 
   # Glm fits
   Data1 = Data2 = cbind( example$sampling_data, example$covariate_data )
@@ -107,6 +109,7 @@ test_that("Density covariates give identical results to glm(.) ", {
     data=Data2, offset=log(AreaSwept_km2) )
   Glm1B = stats::glm( formula=update.formula(formula, log(Catch_KG/AreaSwept_km2)~0+factor(Year)+.),
     data=Data2 )
+  expect_equal( Glm1$coef, Glm1B$coef, tolerance=0.001 )
 
   # Glm2 -- Gamma
   # glm uses constant shape: https://stats.stackexchange.com/questions/58497/using-r-for-glm-with-gamma-distribution
@@ -114,13 +117,17 @@ test_that("Density covariates give identical results to glm(.) ", {
     data=Data2, family=Gamma(link="log"), offset=log(AreaSwept_km2) )
   Glm2B = stats::glm( formula=update.formula(formula, I(Catch_KG/AreaSwept_km2)~0+factor(Year)+.),
     data=Data2, family=Gamma(link="log") )
+  expect_equal( Glm2$coef, Glm2B$coef, tolerance=0.001 )
 
   # Glm3 -- Inverse-Gaussian
-  # Requires starting value to converge
-  Glm3 = stats::glm( formula=update.formula(formula, Catch_KG~0+factor(Year)+.),
-    data=Data2, family=inverse.gaussian(link="log"), start=Glm2$coef, offset=log(AreaSwept_km2) )
-  Glm3B = stats::glm( formula=update.formula(formula, I(Catch_KG/AreaSwept_km2)~0+factor(Year)+.),
-    data=Data2, family=inverse.gaussian(link="log"), start=Glm2$coef ) #, offset=AreaSwept_km2 )
+  if( FALSE ){
+    # Requires starting value to converge
+    Glm3 = stats::glm( formula=update.formula(formula, Catch_KG~0+factor(Year)+.),
+      data=Data2, family=inverse.gaussian(link="log"), start=Glm2$coef, offset=log(AreaSwept_km2) )
+    Glm3B = stats::glm( formula=update.formula(formula, I(Catch_KG/AreaSwept_km2)~0+factor(Year)+.),
+      data=Data2, family=inverse.gaussian(link="log"), start=Glm2$coef ) #, offset=AreaSwept_km2 )
+    expect_equal( Glm3$coef, Glm3B$coef, tolerance=0.001 )
+  }
 
   # Try Lognormal with factors in formula
   fit1_factors = fit_model( settings=settings1, Lat_i=example$sampling_data[,'Lat'],
@@ -157,11 +164,6 @@ test_that("Density covariates give identical results to glm(.) ", {
   }else{
     stop("Check problem in `formula` in `test-covariates_against_glm.R`")
   }
-
-  # Comparison of glm(.) with and without offsets
-  expect_equal( Glm1$coef, Glm1B$coef, tolerance=0.001 )
-  expect_equal( Glm2$coef, Glm2B$coef, tolerance=0.001 )
-  expect_equal( Glm3$coef, Glm3B$coef, tolerance=0.001 )
 
   # Comparison with Glm0
   expect_equal( extract(fit1$parameter_estimates$par,"beta1_ft"), extract(Glm0$coef,"BOT_DEPTH",remove=TRUE), tolerance=0.001 )
