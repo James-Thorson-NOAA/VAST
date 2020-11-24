@@ -17,7 +17,7 @@
 #' \describe{
 #'    \item{Omega}{specifies whether spatial variation is present and/or correlated among variables}
 #'    \item{Epsilon}{specifies whether spatio-temporal variation is present and/or correlated among variables}
-#'    \item{Beta}{specifies whether spatio-temporal variation is present and/or correlated among variables}
+#'    \item{Beta}{specifies whether temporal variation (a.k.a. "intercepts") is present and/or correlated among variables}
 #'    \item{Epsilon_year}{specifies whether spatio-temporal variation is correlated among years}
 #' }
 #' Meanwhile, \code{Component_1} (or the numeral "1" after a component name) refers to the 1st lienar predictor (e.g., of a delta-model),
