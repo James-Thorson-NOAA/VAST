@@ -216,7 +216,7 @@ function( TmbData,
   }
   if( ("OverdispersionConfig"%in%names(TmbData)) ){
     if( TmbData[["OverdispersionConfig"]][1]==0 ) Bounds = boundsifpresent_fn( par=Obj$par, name="L1_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
-    if( TmbData[["OverdispersionConfig"]][1]==0 ) Bounds = boundsifpresent_fn( par=Obj$par, name="L2_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
+    if( TmbData[["OverdispersionConfig"]][2]==0 ) Bounds = boundsifpresent_fn( par=Obj$par, name="L2_z", lower=c(-Inf,-0.99), upper=c(Inf,0.99), bounds=Bounds)
   }
   #for(i in 1:4){
   #  if( TmbData[["FieldConfig"]][i]==0 ){
