@@ -123,17 +123,13 @@ function( TmbData,
     return( Return )
   }
 
-  # Compile TMB software
+   # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
-  ## Compile and link from the package location to avoid
-  ## recompiling in local directory
-  if(!file.exists(file.path(TmbDir, paste0(Version,".cpp"))))
-    stop("Failed to find .cpp file so cannot compile. Check 'Version' or the installation")
-  TMB::compile(file.path(TmbDir, paste0(Version,".cpp")), CPPFLAGS="-Wno-ignored-attributes" )
-  if(!file.exists(file.path(TmbDir, paste0(Version,".dll"))))
-    stop("DLL not available, did compilation fail? File location=",
-         file.path(TmbDir, paste0(Version,".dll")))
-  dyn.load( file.path(TmbDir, TMB::dynlib(Version))) # random=Random,
+  file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(CompileDir,"/",Version,".cpp"), overwrite=FALSE)
+  origwd = getwd()
+  on.exit(setwd(origwd),add=TRUE)
+  setwd( CompileDir )
+  TMB::compile( paste0(Version,".cpp"), CPPFLAGS="-Wno-ignored-attributes" )
 
   # Build object
   Obj <- TMB::MakeADFun(data=TmbData, parameters=Parameters, hessian=FALSE, map=Map, random=Random, inner.method="newton", DLL=Version)  #
