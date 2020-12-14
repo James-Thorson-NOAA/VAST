@@ -132,6 +132,7 @@ function( TmbData,
   TMB::compile( paste0(Version,".cpp"), CPPFLAGS="-Wno-ignored-attributes" )
 
   # Build object
+  dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version)) ) # random=Random,
   Obj <- TMB::MakeADFun(data=TmbData, parameters=Parameters, hessian=FALSE, map=Map, random=Random, inner.method="newton", DLL=Version)  #
   Obj$control <- list(parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 
