@@ -49,7 +49,7 @@ function( TmbData,
           DiagnosticDir=NULL,
           TmbDir=system.file("executables",package="VAST"),
           RunDir=getwd(),
-          CompileDir=RunDir,
+          CompileDir=TmbDir,
           build_model=TRUE ){
 
   # Extract Options and Options_vec (depends upon version)
