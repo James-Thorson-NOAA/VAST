@@ -13,6 +13,7 @@ test_that("Eastern Bering Sea 3-species is working ", {
   load( file.path(test_path,"parhat.RData") )
   attach(Record)
   on.exit( detach(Record) )
+  file.copy( from=paste0(test_path,"/Kmeans-50.RData"), to=paste0(test_path,"/Kmeans_knots-50.RData") )
   # Run model
   load( file.path(test_path,"Data_Geostat.RData") )
   Extrapolation_List = make_extrapolation_info( Region=Region, strata.limits=strata.limits )
@@ -36,6 +37,7 @@ test_that("Eastern Bering Sea 5-species is working ", {
   load( file.path(test_path,"parhat.RData") )
   attach(Record)
   on.exit( detach(Record) )
+  file.copy( from=paste0(test_path,"/Kmeans-100.RData"), to=paste0(test_path,"/Kmeans_knots-100.RData") )
   # Run model
   load( file.path(test_path,"Data_Geostat.RData") )
   Extrapolation_List = make_extrapolation_info( Region=Region, strata.limits=strata.limits )

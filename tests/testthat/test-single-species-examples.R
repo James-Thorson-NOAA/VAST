@@ -72,6 +72,7 @@ test_that("West Coast groundfish bottom trawl survey, canary rockfish is working
   load( file.path(test_path,"Record.RData") )
   attach(Record)
   on.exit( detach(Record) )
+  file.copy( from=paste0(test_path,"/Kmeans-100.RData"), to=paste0(test_path,"/Kmeans_knots-100.RData") )
   # Run model
   data( WCGBTS_Canary_example, package="FishStatsUtils" )
   Data_Geostat = data.frame( "Catch_KG"=WCGBTS_Canary_example[,'HAUL_WT_KG'], "Year"=as.numeric(sapply(WCGBTS_Canary_example[,'PROJECT_CYCLE'],FUN=function(Char){strsplit(as.character(Char)," ")[[1]][2]})), "Vessel"=WCGBTS_Canary_example[,"VESSEL"], "AreaSwept_km2"=WCGBTS_Canary_example[,"AREA_SWEPT_HA"]/1e2, "Lat"=WCGBTS_Canary_example[,'BEST_LAT_DD'], "Lon"=WCGBTS_Canary_example[,'BEST_LON_DD'], "Pass"=WCGBTS_Canary_example[,'PASS']-1.5)
@@ -92,11 +93,12 @@ test_that("West Coast groundfish bottom trawl survey, canary rockfish is working
 test_that("Aleutian Islands groundfish bottom trawl survey, POP is working ", {
   skip_on_travis()
   # Prepping
-  test_path = file.path(singlespecies_example_path,"AI_POP")
+  test_path = paste0(singlespecies_example_path,"AI_POP")
   load( file.path(test_path,"opt.RData") )
   load( file.path(test_path,"Record.RData") )
   attach(Record)
   on.exit( detach(Record) )
+  file.copy( from=paste0(test_path,"/Kmeans-250.RData"), to=paste0(test_path,"/Kmeans_knots-250.RData") )
   # Run model
   data( AI_pacific_ocean_perch, package="FishStatsUtils" )
   Data_Geostat = data.frame( "Catch_KG"=AI_pacific_ocean_perch[,'cpue..kg.km.2.'], "Year"=AI_pacific_ocean_perch[,'year'], "Vessel"="missing", "AreaSwept_km2"=1, "Lat"=AI_pacific_ocean_perch[,'start.latitude'], "Lon"=AI_pacific_ocean_perch[,'start.longitude'], "Pass"=0)
