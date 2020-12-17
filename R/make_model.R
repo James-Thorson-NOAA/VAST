@@ -15,7 +15,7 @@
 #' @param DiagnosticDir OPTIONAL, a directory where diagonstic runtime information should be stored
 #' @param TmbDir OPTIONAL, a directory where the CPP file for the VAST model can be found locally
 #' @param RunDir OPTIONAL, a directory where model results are written; by default uses the working directory
-#' @param CompileDir OPTIONAL, a directory where the CPP file is copied, copiled, and run (must have write privileges or else the function will crash); by default uses \code{RunDir}
+#' @param CompileDir OPTIONAL, a directory where the CPP file is copied, copiled, and run (must have write privileges or else the function will crash); by default uses \code{TmbDir}
 #' @param build_model Boolean indicating whether to build the model, \code{build_model=TRUE}, or simply build the inputs, \code{build_model=FALSE}
 
 #' @return Object of class \code{make_model}, containing objects for running a VAST model
@@ -49,9 +49,9 @@ function( TmbData,
           DiagnosticDir=NULL,
           TmbDir=system.file("executables",package="VAST"),
           RunDir=getwd(),
-          CompileDir=RunDir,
+          CompileDir=TmbDir,
           build_model=TRUE ){
-                                            
+
   # Extract Options and Options_vec (depends upon version)
   if( all(c("Options","Options_vec") %in% names(TmbData)) ){
     Options_vec = TmbData$Options_vec
@@ -123,7 +123,7 @@ function( TmbData,
     return( Return )
   }
 
-  # Compile TMB software
+   # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
   file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(CompileDir,"/",Version,".cpp"), overwrite=FALSE)
   origwd = getwd()
@@ -159,7 +159,7 @@ function( TmbData,
     }
     utils::write.table( matrix(Obj$par,nrow=1), row.names=FALSE, sep=",", col.names=FALSE, file=paste0(DiagnosticDir,"trace.csv"))
   }
-  
+
   # Local functions
   boundsifpresent_fn = function( par, map, name, lower, upper, bounds ){
     if( name %in% names(par) ){
