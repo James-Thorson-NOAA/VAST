@@ -19,7 +19,7 @@ make_model(
   DiagnosticDir = NULL,
   TmbDir = system.file("executables", package = "VAST"),
   RunDir = getwd(),
-  CompileDir = RunDir,
+  CompileDir = TmbDir,
   build_model = TRUE
 )
 }
@@ -46,7 +46,7 @@ make_model(
 
 \item{RunDir}{OPTIONAL, a directory where model results are written; by default uses the working directory}
 
-\item{CompileDir}{OPTIONAL, a directory where the CPP file is copied, copiled, and run (must have write privileges or else the function will crash); by default uses \code{RunDir}}
+\item{CompileDir}{OPTIONAL, a directory where the CPP file is copied, copiled, and run (must have write privileges or else the function will crash); by default uses \code{TmbDir}}
 
 \item{build_model}{Boolean indicating whether to build the model, \code{build_model=TRUE}, or simply build the inputs, \code{build_model=FALSE}}
 }

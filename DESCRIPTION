@@ -26,15 +26,16 @@ Imports:
     abind,
     MatrixModels,  
     ThorsonUtilities,
+    effects,
 Depends:
     TMB,
-    R (>= 3.1.0),
+    R (>= 3.5.0),
 Suggests:
     testthat,
     knitr,
     rmarkdown,
     FishStatsUtils,
-    R.rsp
+    R.rsp,
 Remotes:
     james-thorson/FishStatsUtils,
     james-thorson/utilities,
