@@ -27,11 +27,11 @@ Effect.fit_model = function (focal.predictors, mod, which_formula="X1", ...) {
     formula_orig = mod$X2_formula
     parname = "gamma2_cp"
     mod$call = mod$effects$call_X2
-  else if( which_formula=="Q1" ){
+  }else if( which_formula=="Q1" ){
     formula_orig = mod$Q1_formula
     parname = "lambda1_k"
     mod$call = mod$effects$call_Q1
-  else if( which_formula=="Q2" ){
+  }else if( which_formula=="Q2" ){
     formula_orig = mod$Q2_formula
     parname = "lambda2_k"
     mod$call = mod$effects$call_Q2
