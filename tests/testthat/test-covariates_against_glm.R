@@ -211,27 +211,65 @@ test_that("Density covariates give identical results to glm(.) ", {
   expect_equal( extract(fit1_factors$parameter_estimates$par,"beta2_ft") - exp(2*fit1_factors$parameter_estimates$par['logSigmaM'])/2, extract(Glm1_factors$coef,"Depth_bin",remove=TRUE), tolerance=0.001 )
   expect_equal( extract(fit1_factors$parameter_estimates$par,"gamma2_cp"), extract(Glm1_factors$coef,"Depth_bin",remove=FALSE), tolerance=0.001 )
 
+  ##################
+  # Test predict.fit_model with existing covariates
+  ##################
+
   # predict.fit_model test  -- Component 1
-  pred0_glm = predict( Glm0, newdata=Data1 )
-  pred0_vast = predict( fit1,
-    Lat_i=Data1[,'Lat'],
-    Lon_i=Data1[,'Lon'],
-    t_i=Data1[,'Year'],
-    a_i=Data1[,'AreaSwept_km2'],
-    what="P1_iz",
-    working_dir=multispecies_example_path )
+  pred0_glm = predict( Glm0, newdata=Data1, type="response" )
+  pred0_vast = predict( fit2,
+    Lat_i = Data1[,'Lat'],
+    Lon_i = Data1[,'Lon'],
+    t_i = Data1[,'Year'],
+    a_i = Data1[,'AreaSwept_km2'],
+    what = "R1_i",
+    working_dir = multispecies_example_path )
   expect_equal( as.numeric(pred0_glm), pred0_vast, tolerance=0.001 )
 
   # predict.fit_model test  -- Component 2
-  pred2_glm = predict( Glm2, newdata=Data2 )
-  pred2_vast = predict( fit1,
-    Lat_i=Data2[,'Lat'],
-    Lon_i=Data2[,'Lon'],
-    t_i=Data2[,'Year'],
-    a_i=Data2[,'AreaSwept_km2'],
-    what="P2_iz",
-    working_dir=multispecies_example_path )
+  # Use Response-scale so that both are implementing the offset
+  pred2_glm = predict( Glm2, newdata=Data2, type="response" )
+  pred2_vast = predict( fit2,
+    Lat_i = Data2[,'Lat'],
+    Lon_i = Data2[,'Lon'],
+    t_i = Data2[,'Year'],
+    a_i = Data2[,'AreaSwept_km2'],
+    what = "R2_i",
+    working_dir = multispecies_example_path )
+  expect_equal( as.numeric(pred2_glm), pred2_vast, tolerance=0.001 )
+
+  ##################
+  # Test predict.fit_model with new covariate data
+  ##################
+
+  # Randomize new data
+  newdata = Data1
+  for(cI in 1:ncol(Data1)) newdata[,cI] = sample( newdata[,cI], replace=FALSE )
+
+  # predict.fit_model test  -- Component 1
+  pred0_glm = predict( Glm0, newdata=newdata, type="response" )
+  pred0_vast = predict( fit2,
+    Lat_i = newdata[,'Lat'],
+    Lon_i = newdata[,'Lon'],
+    t_i = newdata[,'Year'],
+    a_i = newdata[,'AreaSwept_km2'],
+    what = "R1_i",
+    new_covariate_data = newdata,
+    working_dir = multispecies_example_path )
   expect_equal( as.numeric(pred0_glm), pred0_vast, tolerance=0.001 )
+
+  # predict.fit_model test  -- Component 2
+  # Use Response-scale so that both are implementing the offset
+  pred2_glm = predict( Glm2, newdata=newdata, type="response" )
+  pred2_vast = predict( fit2,
+    Lat_i = newdata[,'Lat'],
+    Lon_i = newdata[,'Lon'],
+    t_i = newdata[,'Year'],
+    a_i = newdata[,'AreaSwept_km2'],
+    what = "R2_i",
+    new_covariate_data = newdata,
+    working_dir = multispecies_example_path )
+  expect_equal( as.numeric(pred2_glm), pred2_vast, tolerance=0.001 )
 
 })
 
