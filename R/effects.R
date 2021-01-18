@@ -42,11 +42,11 @@ Effect.fit_model = function (focal.predictors, mod, which_formula="X1", ...) {
   # Extract parameters / covariance
   whichnum = which(names(mod$parameter_estimates$par)==parname)
   mod$parhat = mod$parameter_estimates$par[whichnum]
-    mod$covhat = mod$parameter_estimates$SD$cov.fixed[whichnum,whichnum]
+    mod$covhat = mod$parameter_estimates$SD$cov.fixed[whichnum,whichnum,drop=FALSE]
   # Fill in values that are mapped off
   if( parname %in% names(mod$tmb_list$Obj$env$map) ){
     mod$parhat = mod$parhat[ mod$tmb_list$Obj$env$map[[parname]] ]
-      mod$covhat = mod$covhat[ mod$tmb_list$Obj$env$map[[parname]], mod$tmb_list$Obj$env$map[[parname]] ]
+      mod$covhat = mod$covhat[ mod$tmb_list$Obj$env$map[[parname]], mod$tmb_list$Obj$env$map[[parname]], drop=FALSE ]
     mod$parhat = ifelse( is.na(mod$parhat), 0, mod$parhat)
       mod$covhat = ifelse( is.na(mod$covhat), 0, mod$covhat)
   }
