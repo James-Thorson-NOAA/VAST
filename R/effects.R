@@ -17,6 +17,9 @@ Effect.fit_model = function (focal.predictors, mod, which_formula="X1", ...) {
   if( !requireNamespace("effects") ){
     stop("please install the effects package")
   }
+  if( !("effects" %in% names(mod)) ){
+    stop("`effects` slot not detected in input to `Effects.fit_model`. Please update model using later package version.")
+  }
 
   # Identify formula-speific stuff
   if( which_formula=="X1" ){

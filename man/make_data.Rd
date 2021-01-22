@@ -184,7 +184,7 @@ and specifies the category to use for abundance-weighted expansion, where \code{
 \item{Z_gm}{matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics.
 Defaults to eastings and northings for each knots or extrapolation-grid cell.}
 
-\item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}.
+\item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{\link[FishStatsUtils]{get_latest_version(package="VAST")}}.
 Can be used to specify using an older CPP, to maintain backwards compatibility.}
 
 \item{...}{interface to pass deprecated inputs, included for backwards compatibility with previous versions which, e.g., specified elements of \code{spatial_list}
