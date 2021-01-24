@@ -99,13 +99,15 @@ where \code{0} is off, code{"AR1"} is an AR1 process, and aninteger greater than
 
 \item{RhoConfig}{vector of form \code{c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)} specifying whether either intercepts (Beta1 and Beta2)
        or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals, e.g.
-       for component \code{Epsilon1} indicated in the 3rd slot:
+       for component \code{Epsilon2} indicated in the 4rd slot:
 \describe{
-  \item{\code{RhoConfig[3]=0}}{Each year as fixed effect}
-  \item{\code{RhoConfig[3]=1}}{Each year as an independent and identically distributed random effect, thus estimating the variance as fixed effect}
-  \item{\code{RhoConfig[3]=2}}{Each year as a random effect following a random walk, thus estimating the variance as fixed effect}
-  \item{\code{RhoConfig[3]=3}}{Constant among years as fixed effect}
-  \item{\code{RhoConfig[3]=4}}{Each year as a random effect following a first-order autoregressive process, thus estimating the variance and autocorrelation as fixed effects}
+  \item{\code{RhoConfig[4]=0}}{Each year as fixed effect}
+  \item{\code{RhoConfig[4]=1}}{Each year as an independent and identically distributed random effect, thus estimating the variance as fixed effect}
+  \item{\code{RhoConfig[4]=2}}{Each year as a random effect following a random walk, thus estimating the variance as fixed effect}
+  \item{\code{RhoConfig[4]=3}}{Constant among years as fixed effect}
+  \item{\code{RhoConfig[4]=4}}{Each year as a random effect following a first-order autoregressive process, thus estimating the variance as fixed effects and a single first-order autoregression parameter}
+  \item{\code{RhoConfig[4]=5}}{Each year as a random effect following a first-order autoregressive process, estimating the variance as fixed effects and a separate first-order autoregression parameter for each category}
+  \item{\code{RhoConfig[4]=6}}{Only possible for \code{Epsilon2} or \code{Beta2}, and specifying that that associated hyperparameters parameters have identical values to the first component \code{Epsilon1} or \code{Beta1}}
 }
 If missing, the default is to assume a value of zero for each element (i.e., \code{RhoConfig[1:4]=0})}
 
