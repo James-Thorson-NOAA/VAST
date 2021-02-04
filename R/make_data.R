@@ -149,6 +149,7 @@
 #'   \item{\code{Options["Calculate_Cov_SE"]=TRUE}}{Turns on internal calculation and SE for covariance among categories (i.e. in factor model)}
 #'   \item{\code{Options["Calculate_proportion"]=TRUE}}{Turns on internal calculation and SE for proportion of response within each category (e.g., for calculating proportion-at-age or species turnover)}
 #'   \item{\code{Options["Calculate_Synchrony"]=TRUE}}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
+#'   \item{\code{Options["report_additional_variables"]=TRUE}}{Export additional variables to \code{Report} object, to use for diagnostics or additional exploration}
 #' }
 #' @param yearbounds_zz matrix with two columns, giving first and last years for defining one or more periods (rows) used to
 #'        calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})
