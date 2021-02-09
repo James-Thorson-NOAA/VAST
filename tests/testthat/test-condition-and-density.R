@@ -3,7 +3,7 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Condition-and-density example is working ", {
-  skip_on_travis()
+  skip_on_ci()
 
   # Prepping
   test_path = file.path(multispecies_example_path,"Condition_and_density")

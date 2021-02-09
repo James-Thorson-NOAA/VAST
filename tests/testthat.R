@@ -7,17 +7,17 @@
 library(testthat)
 library(VAST)
 
-# Version
-Version_VAST = get_latest_version( package="VAST" )
-TmbDir = system.file("executables", package="VAST")
+## # Version
+## Version_VAST = get_latest_version( package="VAST" )
+## TmbDir = system.file("executables", package="VAST")
 
-# Use "extdata" in "inst" because its loaded with R packages
-singlespecies_example_path <- system.file("extdata", package="SpatialDeltaGLMM")
-multispecies_example_path <- system.file("extdata", package="VAST")
+## # Use "extdata" in "inst" because its loaded with R packages
+## singlespecies_example_path <- system.file("extdata", package="SpatialDeltaGLMM")
+## multispecies_example_path <- system.file("extdata", package="VAST")
 
-# Check that single-species results are available locally
-test_path = file.path(singlespecies_example_path,"EBS_pollock")
-file.exists( file.path(test_path,"opt.RData") )
+## # Check that single-species results are available locally
+## test_path = file.path(singlespecies_example_path,"EBS_pollock")
+## file.exists( file.path(test_path,"opt.RData") )
 
 # Run tests for VAST
 #setwd(system.file("tests", package="VAST"))

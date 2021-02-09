@@ -3,7 +3,7 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Male lingcod compositional expansion is working ", {
-  skip_on_travis()
+  skip_on_ci()
 
   # Prepping
   test_path = file.path(multispecies_example_path,"Lingcod_comp_expansion")

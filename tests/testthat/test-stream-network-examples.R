@@ -2,7 +2,7 @@ context("Testing stream network example")
 
 # Eastern Bering Sea pollcok
 test_that("Stream network example is working ", {
-  skip_on_travis()
+  skip_on_ci()
   # Prepping
   test_path = file.path(multispecies_example_path,"Stream_network")
   load( file.path(test_path,"parameter_estimates.RData") )

@@ -17,7 +17,7 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Covariates give identical results to glm(.) ", {
-  skip_on_travis()
+  skip_on_ci()
 
   # load data set
   example = load_example( data_set="covariate_example" )
