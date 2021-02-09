@@ -5,7 +5,8 @@ context("Testing examples")
 
 # Tweedie distribution
 test_that("Tweedie gives identical results to mgcv::gam(.) ", {
-  skip_on_travis()
+  skip_on_ci()
+  skip_if(skip_local)
   library(mgcv)
 
   #library(tweedie)  # Installed from locally from tweedie_2.3.2.tar.gz here: https://cran.r-project.org/web/packages/tweedie/index.html
@@ -60,7 +61,8 @@ test_that("Tweedie gives identical results to mgcv::gam(.) ", {
 
 # Eastern Bering Sea pollcok
 test_that("Covariate effects when using a smoother gives identical results to mgcv::gam(.) ", {
-  skip_on_travis()
+  skip_on_ci()
+  skip_if(skip_local)
   library(mgcv)
 
   # Simulate

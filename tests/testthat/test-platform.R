@@ -12,21 +12,21 @@ test_that("Eastern Bering Sea pollock is working ", {
   settings <- make_settings(n_x=100, Region=example$Region,
                             purpose="index2",
                             strata.limits=example$strata.limits,
-                            bias.correct=FALSE,
+                            ## crashes if I don't set Version for
+                            ## some reason
+                            bias.correct=FALSE, Version="VAST_v13_0_0",
                             fine_scale=FALSE, max_cells=Inf)
   settings$FieldConfig[1:2, 1:2] <- 0
   ## Run model
-  print(getwd())
-  wd <- tempdir()
   wd <- 'temp'
-  ## fit <- fit_model(settings=settings,
-  ##                  working_dir=paste0(wd, '/'),
-  ##                  Lat_i=dat$Lat,
-  ##                  Lon_i=dat$Lon,
-  ##                  t_i=dat$Year,
-  ##                  c_i=rep(0,nrow(dat)),
-  ##                  b_i=dat$Catch_KG,
-  ##                  a_i=dat$AreaSwept_km2,
-  ##                  v_i=dat$Vessel)
+  fit <- fit_model(settings=settings,
+                   working_dir=paste0(wd, '/'),
+                   Lat_i=dat$Lat,
+                   Lon_i=dat$Lon,
+                   t_i=dat$Year,
+                   c_i=rep(0,nrow(dat)),
+                   b_i=dat$Catch_KG,
+                   a_i=dat$AreaSwept_km2,
+                   v_i=dat$Vessel)
 })
 
