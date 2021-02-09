@@ -36,7 +36,7 @@ Remotes:
     james-thorson/utilities,
 License: GPL-3
 LazyData: yes
-BuildVignettes: yes
+BuildVignettes: no
 Encoding: UTF-8
 RoxygenNote: 7.1.1
 URL: http://github.com/James-Thorson/VAST
