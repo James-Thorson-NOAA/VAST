@@ -13,16 +13,20 @@ test_that("Eastern Bering Sea pollock is working ", {
                             purpose="index2",
                             strata.limits=example$strata.limits,
                             bias.correct=FALSE,
-                            finescale=FALSE)
-
-# Run model
-fit = fit_model( settings = settings,
-  Lat_i = example$sampling_data[,'Lat'],
-  Lon_i = example$sampling_data[,'Lon'],
-  t_i = example$sampling_data[,'Year'],
-  c_i = rep(0,nrow(example$sampling_data)),
-  b_i = example$sampling_data[,'Catch_KG'],
-  a_i = example$sampling_data[,'AreaSwept_km2'],
-  v_i = example$sampling_data[,'Vessel'] )
+                            fine_scale=FALSE, max_cells=Inf)
+  settings$FieldConfig[1:2, 1:2] <- 0
+  ## Run model
+  print(getwd())
+  wd <- tempdir()
+  wd <- 'temp'
+  ## fit <- fit_model(settings=settings,
+  ##                  working_dir=paste0(wd, '/'),
+  ##                  Lat_i=dat$Lat,
+  ##                  Lon_i=dat$Lon,
+  ##                  t_i=dat$Year,
+  ##                  c_i=rep(0,nrow(dat)),
+  ##                  b_i=dat$Catch_KG,
+  ##                  a_i=dat$AreaSwept_km2,
+  ##                  v_i=dat$Vessel)
 })
 
