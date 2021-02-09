@@ -67,51 +67,55 @@ providing sampling category (e.g., vessel or tow) associated with overdispersed 
 \item{ObsModel_ez}{an optional matrix with two columns where the first column specifies the distribution for positive catch rates,
        and the second column specifies the functional form for encounter probabilities
 \describe{
-  \item{ObsModel_ez[e,1]=0}{Normal}
-  \item{ObsModel_ez[e,1]=1}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
+  \item{\code{ObsModel_ez[e,1]=0}}{Normal}
+  \item{\code{ObsModel_ez[e,1]=1}}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
        instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
-  \item{ObsModel_ez[e,1]=2}{Gamma}
-  \item{ObsModel_ez[e,1]=3}{Inverse-Gaussian}
-  \item{ObsModel_ez[e,1]=4}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
-  \item{ObsModel_ez[e,1]=5}{Negative binomial}
-  \item{ObsModel_ez[e,1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
-  \item{ObsModel_ez[e,1]=7}{Poisson (more numerically stable than negative-binomial)}
-  \item{ObsModel_ez[e,1]=8}{Compound-Poisson-Gamma, where the expected number of individuals is the 1st-component, the expected biomass
-       per individual is the 2nd-component, and SigmaM is the variance in positive catches (likely to be very slow)}
-  \item{ObsModel_ez[e,1]=9}{Binned-Poisson (for use with REEF data, where 0=0 individual; 1=1 individual; 2=2:10 individuals; 3=>10 individuals)}
-  \item{ObsModel_ez[e,1]=10}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
-         variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast as long as random
-         effects are turned off for the 1st component.}
-  \item{ObsModel_ez[e,1]=11}{Zero-inflated Poisson with additional normally-distributed variation overdispersion in the
+  \item{\code{ObsModel_ez[e,1]=2}}{Gamma}
+  \item{\code{ObsModel_ez[e,1]=4}}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
+  \item{\code{ObsModel_ez[e,1]=5}}{Negative binomial}
+  \item{\code{ObsModel_ez[e,1]=7}}{Poisson (more numerically stable than negative-binomial)}
+  \item{\code{ObsModel_ez[e,1]=10}}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
+         variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast (i.e., comparable to delta-models)
+         as long as random effects are turned off for the 1st component, but is otherwise extremely slow.}
+  \item{\code{ObsModel_ez[e,1]=11}}{Zero-inflated Poisson with additional normally-distributed variation overdispersion in the
        log-intensity of the Poisson distribution}
-  \item{ObsModel_ez[e,1]=12}{Poisson distribution (not zero-inflated) with log-intensity from the 1st linear predictor,
+  \item{\code{ObsModel_ez[e,1]=12}}{Poisson distribution (not zero-inflated) with log-intensity from the 1st linear predictor,
        to be used in combination with the Poisson-link delta model for combining multiple data types}
-  \item{ObsModel_ez[e,1]=13}{Bernoulli distribution using complementary log-log (cloglog) link from the 1st linear predictor,
+  \item{\code{ObsModel_ez[e,1]=13}}{Bernoulli distribution using complementary log-log (cloglog) link from the 1st linear predictor,
        to be used in combination with the Poisson-link delta model for combining multiple data types}
-  \item{ObsModel_ez[e,1]=14}{Similar to 12, but also including lognormal overdispersion}
-  \item{ObsModel_ez[e,2]=0}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
-  \item{ObsModel_ez[e,2]=1}{Alternative "Poisson-link delta-model" using log-link for numbers-density and log-link for biomass per number}
-  \item{ObsModel_ez[e,2]=2}{Link function for Tweedie distribution, necessary for \code{ObsModel_ez[e,1]=8} or \code{ObsModel_ez[e,1]=10}}
-  \item{ObsModel_ez[e,2]=3}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
-  \item{ObsModel_ez[e,2]=4}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the
+  \item{\code{ObsModel_ez[e,1]=14}}{Similar to 12, but also including lognormal overdispersion}
+  \item{\code{ObsModel_ez[e,2]=0}}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
+  \item{\code{ObsModel_ez[e,2]=1}}{Alternative "Poisson-link delta-model" using log-link for numbers-density and log-link for biomass per number}
+  \item{\code{ObsModel_ez[e,2]=2}}{Link function for Tweedie distribution, necessary for \code{ObsModel_ez[e,1]=8} or \code{ObsModel_ez[e,1]=10}}
+  \item{\code{ObsModel_ez[e,2]=3}}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
+  \item{\code{ObsModel_ez[e,2]=4}}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the
        species and encounter probability=0 for any year where no samples encounter the species}
 }}
 
 \item{OverdispersionConfig}{a vector of format \code{c("eta1"=0, "eta2"="AR1")} governing any correlated overdispersion
-among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates,
-where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance (by default,
+among categories for each level of \code{v_i}, where eta1 is for encounter probability, and eta2 is for positive catch rates,
+where \code{0} is off, code{"AR1"} is an AR1 process, and aninteger greater than zero (e.g., \code{2}) is the number of elements in a factor-analysis covariance (by default,
 \code{c("eta1"=0, "eta2"=0)} and this turns off overdispersion)}
 
 \item{RhoConfig}{vector of form \code{c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)} specifying whether either intercepts (Beta1 and Beta2)
-or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect;
-1: each year as random following IID distribution; 2: each year as random following a random walk;
-3: constant among years as fixed effect; 4: each year as random following AR1 process);  If missing, assumed to be zero for each element}
+       or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals, e.g.
+       for component \code{Epsilon2} indicated in the 4rd slot:
+\describe{
+  \item{\code{RhoConfig[4]=0}}{Each year as fixed effect}
+  \item{\code{RhoConfig[4]=1}}{Each year as an independent and identically distributed random effect, thus estimating the variance as fixed effect}
+  \item{\code{RhoConfig[4]=2}}{Each year as a random effect following a random walk, thus estimating the variance as fixed effect}
+  \item{\code{RhoConfig[4]=3}}{Constant among years as fixed effect}
+  \item{\code{RhoConfig[4]=4}}{Each year as a random effect following a first-order autoregressive process, thus estimating the variance as fixed effects and a single first-order autoregression parameter}
+  \item{\code{RhoConfig[4]=5}}{Each year as a random effect following a first-order autoregressive process, estimating the variance as fixed effects and a separate first-order autoregression parameter for each category}
+  \item{\code{RhoConfig[4]=6}}{Only possible for \code{Epsilon2} or \code{Beta2}, and specifying that that associated hyperparameters parameters have identical values to the first component \code{Epsilon1} or \code{Beta1}}
+}
+If missing, the default is to assume a value of zero for each element (i.e., \code{RhoConfig[1:4]=0})}
 
 \item{VamConfig}{Options to estimate interactions, containing three slots:
 \describe{
-  \item{VamConfig[0]}{selects method for forming interaction matrix; Turn off feature using 0, or I recommend using 2 by default}
-  \item{VamConfig[1]}{indicates the rank of the interaction matrix, indicating the number of community axes that have regulated dynamics}
-  \item{VamConfig[2]}{Indicates whether interactions occur before spatio-temporal variation (\code{VamConfig[2]=0}) or after \code{VamConfig[2]=1}}
+  \item{\code{VamConfig[0]}}{selects method for forming interaction matrix; Turn off feature using 0, or I recommend using 2 by default}
+  \item{\code{VamConfig[1]}}{indicates the rank of the interaction matrix, indicating the number of community axes that have regulated dynamics}
+  \item{\code{VamConfig[2]}}{Indicates whether interactions occur before spatio-temporal variation (\code{VamConfig[2]=0}) or after \code{VamConfig[2]=1}}
 }}
 
 \item{Aniso}{whether to assume isotropy, \code{Aniso=0}, or geometric anisotropy, \code{Aniso=1}}
@@ -128,11 +132,11 @@ or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time in
 \item{X1config_cp}{matrix of settings for each density covariate for the 1st lienar predictor,
        where the row corresponds to model category, and column corresponds to each density covariate
 \describe{
-  \item{X1config_cp[c,p]=0}{\code{X_ip[,p]} has no effect on the 1st linear predictor for category c}
-  \item{X1config_cp[c,p]=1}{\code{X_ip[,p]} has a linear effect on 1st linear predictor for category c}
-  \item{X1config_cp[c,p]=2}{\code{X_ip[,p]} has a spatially varying, zero-centered linear effect on 1st linear predictor for category c}
-  \item{X1config_cp[c,p]=3}{\code{X_ip[,p]} has a spatially varying linear effect on 1st linear predictor for category c}
-  \item{X1config_cp[c,p]=-1}{\code{X1config_cp[c,p]=-1} is the same as \code{X1config_cp[c,p]=2}, but without including the log-likelihood term; this is useful in special cases when carefully mirroring spatially varying coefficients, e.g., to use cohort effects in a age-structured spatio-temporal model}
+  \item{\code{X1config_cp[c,p]=0}}{\code{X_ip[,p]} has no effect on the 1st linear predictor for category c}
+  \item{\code{X1config_cp[c,p]=1}}{\code{X_ip[,p]} has a linear effect on 1st linear predictor for category c}
+  \item{\code{X1config_cp[c,p]=2}}{\code{X_ip[,p]} has a spatially varying, zero-centered linear effect on 1st linear predictor for category c}
+  \item{\code{X1config_cp[c,p]=3}}{\code{X_ip[,p]} has a spatially varying linear effect on 1st linear predictor for category c}
+  \item{\code{X1config_cp[c,p]=-1}}{\code{X1config_cp[c,p]=-1} is the same as \code{X1config_cp[c,p]=2}, but without including the log-likelihood term; this is useful in special cases when carefully mirroring spatially varying coefficients, e.g., to use cohort effects in a age-structured spatio-temporal model}
 }}
 
 \item{X2config_cp}{Same as argument \code{X1config_cp} but for 2nd linear predictor}
@@ -144,7 +148,8 @@ or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time in
 \item{Q2_formula}{same as \code{X1_formula} but affecting the 2nd linear predictor for catchability (a.k.a. detectability)}
 
 \item{Q1config_k}{Same as argument \code{X1config_cp} but affecting affecting the 1st linear predictor for catchability,
-and note that it is a vector (instead of matrix) given the more flexible form for catchability covariates}
+and note that it is a vector (instead of matrix) given that catchability responses do not vary among variables \code{c}
+by default (but can be specified to do so when an appropriate `formula` is supplied)}
 
 \item{Q2config_k}{Same as argument \code{Q1config_cp} but affecting affecting the 2nd linear predictor for catchability}
 
@@ -162,12 +167,13 @@ calculate changes in synchrony over time (only used if \code{Options['Calculate_
 \item{Options}{a tagged-vector that is empty by default, \code{Options=c()}, but where the following slots might be helpful to add,
        either by passing \code{Options} to \code{\link[FishStatsUtils]{make_settings}}, or editing after a call to that function:
 \describe{
-  \item{Options["SD_site_logdensity"]=TRUE}{Turns on standard error calculation for local log-density (which is very slow to calculate!)}
-  \item{Options["Calculate_Range"]=TRUE}{Turns on internal calculation and SE for center-of-gravity}
-  \item{Options["Calculate_effective_area"]=TRUE}{Turns on internal calculation and SE for effective area occupied measuring range expansion/contraction}
-  \item{Options["Calculate_Cov_SE"]=TRUE}{Turns on internal calculation and SE for covariance among categories (i.e. in factor model)}
-  \item{Options["Calculate_proportion"]=TRUE}{Turns on internal calculation and SE for proportion of response within each category (e.g., for calculating proportion-at-age or species turnover)}
-  \item{Options["Calculate_Synchrony"]=TRUE}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
+  \item{\code{Options["SD_site_logdensity"]=TRUE}}{Turns on standard error calculation for local log-density (which is very slow to calculate!)}
+  \item{\code{Options["Calculate_Range"]=TRUE}}{Turns on internal calculation and SE for center-of-gravity}
+  \item{\code{Options["Calculate_effective_area"]=TRUE}}{Turns on internal calculation and SE for effective area occupied measuring range expansion/contraction}
+  \item{\code{Options["Calculate_Cov_SE"]=TRUE}}{Turns on internal calculation and SE for covariance among categories (i.e. in factor model)}
+  \item{\code{Options["Calculate_proportion"]=TRUE}}{Turns on internal calculation and SE for proportion of response within each category (e.g., for calculating proportion-at-age or species turnover)}
+  \item{\code{Options["Calculate_Synchrony"]=TRUE}}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
+  \item{\code{Options["report_additional_variables"]=TRUE}}{Export additional variables to \code{Report} object, to use for diagnostics or additional exploration}
 }}
 
 \item{Expansion_cz}{matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.
@@ -181,7 +187,7 @@ and specifies the category to use for abundance-weighted expansion, where \code{
 \item{Z_gm}{matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics.
 Defaults to eastings and northings for each knots or extrapolation-grid cell.}
 
-\item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}.
+\item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{\link[FishStatsUtils]{get_latest_version(package="VAST")}}.
 Can be used to specify using an older CPP, to maintain backwards compatibility.}
 
 \item{...}{interface to pass deprecated inputs, included for backwards compatibility with previous versions which, e.g., specified elements of \code{spatial_list}
@@ -208,7 +214,7 @@ Both vector (simplified) and matrix (full) specification of \code{FieldConfig} i
 \describe{
    \item{Omega}{specifies whether spatial variation is present and/or correlated among variables}
    \item{Epsilon}{specifies whether spatio-temporal variation is present and/or correlated among variables}
-   \item{Beta}{specifies whether spatio-temporal variation is present and/or correlated among variables}
+   \item{Beta}{specifies whether temporal variation (a.k.a. "intercepts") is present and/or correlated among variables}
    \item{Epsilon_year}{specifies whether spatio-temporal variation is correlated among years}
 }
 Meanwhile, \code{Component_1} (or the numeral "1" after a component name) refers to the 1st lienar predictor (e.g., of a delta-model),

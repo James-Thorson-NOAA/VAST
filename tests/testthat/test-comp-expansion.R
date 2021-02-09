@@ -13,6 +13,7 @@ test_that("Male lingcod compositional expansion is working ", {
   load( file.path(test_path,"Record.RData") )
   attach(Record)
   on.exit( detach(Record) )
+  file.copy( from=paste0(test_path,"/Kmeans-50.RData"), to=paste0(test_path,"/Kmeans_knots-50.RData") )
 
   # Make settings
   settings = make_settings( n_x=n_x, Region="California_current" )

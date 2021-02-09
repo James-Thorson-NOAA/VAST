@@ -16,19 +16,26 @@
 context("Testing examples")
 
 # Eastern Bering Sea pollcok
-test_that("Covariates give identical results to glm(.) ", {
+test_that("Catchability covariates give identical results to glm(.) ", {
   skip_on_ci()
   skip_if(skip_local)
+
   # load data set
   example = load_example( data_set="covariate_example" )
 
   # Make new factor
-  example$covariate_data = cbind( example$covariate_data, "Depth_bin"=factor(ifelse(example$covariate_data[,'BOT_DEPTH']>200,'Deep','Shallow')) )
+  example$covariate_data = cbind( example$covariate_data,
+    "Depth_bin"=factor(ifelse(example$covariate_data[,'BOT_DEPTH']>200,'Deep','Shallow')) )
+
+  # Glm fits
+  Data1 = Data2 = cbind( example$sampling_data, example$covariate_data )
+  Data1[,'Catch_KG'] = ifelse( Data1[,'Catch_KG']>0, 1, 0 )
+  Data2 = Data2[ which(Data2[,'Catch_KG']>0), ]
 
   # Scramble order of example$covariate_data and example$sampling_data for testing purposes
-  Reorder = sample(1:nrow(example$covariate_data),replace=FALSE)
-  example$covariate_data = example$covariate_data[ Reorder, ]
-  example$sampling_data = example$sampling_data[ Reorder, ]
+  #Reorder = sample(1:nrow(example$covariate_data),replace=FALSE)
+  #example$covariate_data = example$covariate_data[ Reorder, ]
+  #example$sampling_data = example$sampling_data[ Reorder, ]
 
   # Make settings (turning off bias.correct to save time for example)
   settings1 = make_settings( n_x=100, Region=example$Region, purpose="index2",
@@ -52,11 +59,6 @@ test_that("Covariates give identical results to glm(.) ", {
     Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
     b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
     Q_ik=Q_ik, working_dir=multispecies_example_path )
-
-  # Glm fits
-  Data1 = Data2 = cbind( example$sampling_data, example$covariate_data )
-  Data1[,'Catch_KG'] = ifelse( Data1[,'Catch_KG']>0, 1, 0 )
-  Data2 = Data2[ which(Data2[,'Catch_KG']>0), ]
 
   # Function to facilitate comparison
   extract = function(vec, name, remove=FALSE){

@@ -138,6 +138,18 @@ Type dinverse_gaussian(Type x, Type mean, Type cv, int give_log=0){
   if(give_log) return logres; else return exp(logres);
 }
 
+// Simulate from tweedie
+// Adapted from tweedie::rtweedie function in R
+template<class Type>
+Type rtweedie( Type mu, Type phi, Type power){
+  Type lambda = pow(mu, Type(2.0) - power) / (phi * (Type(2.0) - power));
+  Type alpha = (Type(2.0) - power) / (Type(1.0) - power);
+  Type gam = phi * (power - Type(1.0)) * pow(mu, power - Type(1.0));
+  Type N = rpois(lambda);
+  Type B = rgamma(-N * alpha, gam);   /// Using Shape-Scale parameterization
+  return B;
+}
+
 // Generate loadings matrix for covariance
 template<class Type>
 matrix<Type> create_loadings_covariance( vector<Type> L_val, int n_rows, int n_cols ){
@@ -402,66 +414,6 @@ matrix<Type> gmrf_stationary_nll( int method, int n_s, int n_c, Type logkappa, a
     }
   }
   return gmrf_sc.matrix();
-}
-
-// CMP distribution
-template<class Type>
-Type dCMP(Type x, Type mu, Type nu, int give_log=0, int iter_max=30, int break_point=10){
-  // Explicit
-  Type ln_S_1 = nu*mu - ((nu-1.0)/2.0)*log(mu) - ((nu-1.0)/2.0)*log(2.0*M_PI) - 0.5*log(nu);
-  // Recursive
-  vector<Type> S_i(iter_max);
-  S_i(0) = 1;
-  for(int i=1; i<iter_max; i++) S_i(i) = S_i(i-1) * pow( mu/Type(i), nu );
-  Type ln_S_2 = log( sum(S_i) );
-  // Blend (breakpoint:  mu=10)
-  Type prop_1 = invlogit( (mu-break_point)*5.0 );
-  //Type S_comb = prop_1*exp(ln_S_1) + (1-prop_1)*exp(ln_S_2);
-  Type log_S_comb = prop_1*ln_S_1 + (1.0-prop_1)*ln_S_2;
-  // Likelihood
-  Type loglike = nu*x*log(mu) - nu*lgamma(x+1) - log_S_comb;
-  // Return
-  if(give_log) return loglike; else return exp(loglike);
-}
-
-// compound Poisson-Gamma ("Tweedie") distribution
-template<class Type>
-Type dPoisGam( Type x, Type shape, Type scale, Type intensity, vector<Type> &diag_z, int maxsum=50, int minsum=1, int give_log=0 ){
-  // Maximum integration constant to prevent numerical overflow, but capped at value for maxsum to prevent numerical underflow when subtracting by a higher limit than is seen in the sequence
-  Type max_log_wJ, z1, maxJ_bounded;
-  if( x==0 ){
-    diag_z(0) = 1;
-    max_log_wJ = 0;
-    diag_z(1) = 0;
-  }else{
-    z1 = log(intensity) + shape*log(x/scale) - shape*log(shape) + 1;
-    diag_z(0) = exp( (z1 - 1) / (1 + shape) );
-    maxJ_bounded = CppAD::CondExpGe(diag_z(0), Type(maxsum), Type(maxsum), diag_z(0));
-    max_log_wJ = maxJ_bounded*log(intensity) + (maxJ_bounded*shape)*log(x/scale) - lgamma(maxJ_bounded+1) - lgamma(maxJ_bounded*shape);
-    diag_z(1) = diag_z(0)*log(intensity) + (diag_z(0)*shape)*log(x/scale) - lgamma(diag_z(0)+1) - lgamma(diag_z(0)*shape);
-  }
-  // Integration constant
-  Type W = 0;
-  Type log_w_j;
-  //Type pos_penalty;
-  for( int j=minsum; j<=maxsum; j++ ){
-    Type j2 = j;
-    //W += pow(intensity,j) * pow(x/scale, j2*shape) / exp(lgamma(j2+1)) / exp(lgamma(j2*shape)) / exp(max_log_w_j);
-    log_w_j = j2*log(intensity) + (j2*shape)*log(x/scale) - lgamma(j2+1) - lgamma(j2*shape);
-    //W += exp( posfun(log_w_j, Type(-30), pos_penalty) );
-    W += exp( log_w_j - max_log_wJ );
-    if(j==minsum) diag_z(2) = log_w_j;
-    if(j==maxsum) diag_z(3) = log_w_j;
-  }
-  // Loglikelihood calculation
-  Type loglike = 0;
-  if( x==0 ){
-    loglike = -intensity;
-  }else{
-    loglike = -x/scale - intensity - log(x) + log(W) + max_log_wJ;
-  }
-  // Return
-  if(give_log) return loglike; else return exp(loglike);
 }
 
 // Calculate B_cc
@@ -1635,17 +1587,6 @@ Type objective_function<Type>::operator() ()
           LogProb2_i(i) = 0;
         }
       }
-      // Likelihood for Tweedie model with continuous positive support
-      if(ObsModel_ez(e_i(i),0)==8){
-        LogProb1_i(i) = 0;
-        //dPoisGam( Type x, Type shape, Type scale, Type intensity, Type &max_log_w_j, int maxsum=50, int minsum=1, give_log=0 )
-        LogProb2_i(i) = dPoisGam( b_i(i), SigmaM(e_i(i),0), R2_i(i), R1_i(i), diag_z, Options_vec(5), Options_vec(6), true );
-        diag_iz.row(i) = diag_z;
-        // Simulate new values when using obj.simulate()
-        SIMULATE{
-          b_i(i) = 0;   // Option not available
-        }
-      }
       // Likelihood #2 for Tweedie model with continuous positive support
       if(ObsModel_ez(e_i(i),0)==10){
         // Packaged code
@@ -1655,7 +1596,7 @@ Type objective_function<Type>::operator() ()
         LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0), true );
         // Simulate new values when using obj.simulate()
         SIMULATE{
-          b_i(i) = 0;   // Option not available
+          b_i(i) = rtweedie( R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0) );   // Defined above
         }
       }
       ///// Likelihood for models with discrete support
@@ -1676,14 +1617,6 @@ Type objective_function<Type>::operator() ()
           }
         }
       }
-      // Conway-Maxwell-Poisson
-      if(ObsModel_ez(e_i(i),0)==6){
-        LogProb2_i(i) = dCMP(b_i(i), R2_i(i), exp(P1_iz(i,0)), true, Options_vec(5));
-        // Simulate new values when using obj.simulate()
-        SIMULATE{
-          b_i(i) = 0;   // Option not available
-        }
-      }
       // Zero-inflated Poisson
       if(ObsModel_ez(e_i(i),0)==7){
         if( b_i(i)==0 ){
@@ -1698,28 +1631,6 @@ Type objective_function<Type>::operator() ()
           if( b_i(i)>0 ){
             b_i(i) = rpois( R2_i(i) );
           }
-        }
-      }
-      // Binned Poisson (for REEF data: 0=none; 1=1; 2=2-10; 3=>11)
-        /// Doesn't appear stable given spatial or spatio-temporal variation
-      if(ObsModel_ez(e_i(i),0)==9){
-        vector<Type> logdBinPois(4);
-        logdBinPois(0) = logspace_add( log(1-R1_i(i)), dpois(Type(0.0), R2_i(i), true) + log(R1_i(i)) ); //  Pr[X=0] = 1-phi + Pois(X=0)*phi
-        logdBinPois(1) = dpois(Type(1.0), R2_i(i), true) + log(R1_i(i));                                 //  Pr[X | X>0] = Pois(X)*phi
-        logdBinPois(2) = dpois(Type(2.0), R2_i(i), true) + log(R1_i(i));                                 // SUM_J( Pr[X|X>0] ) = phi * SUM_J( Pois(J) )
-        for(int j=3; j<=10; j++){
-          logdBinPois(2) += logspace_add( logdBinPois(2), dpois(Type(j), R2_i(i), true) + log(R1_i(i)) );
-        }
-        logdBinPois(3) = logspace_sub( log(Type(1.0)), logdBinPois(0) );
-        logdBinPois(3) = logspace_sub( logdBinPois(3), logdBinPois(1) );
-        logdBinPois(3) = logspace_sub( logdBinPois(3), logdBinPois(2) );
-        if( b_i(i)==0 ) LogProb2_i(i) = logdBinPois(0);
-        if( b_i(i)==1 ) LogProb2_i(i) = logdBinPois(1);
-        if( b_i(i)==2 ) LogProb2_i(i) = logdBinPois(2);
-        if( b_i(i)==3 ) LogProb2_i(i) = logdBinPois(3);
-        // Simulate new values when using obj.simulate()
-        SIMULATE{
-          b_i(i) = 0;   // Option not available
         }
       }
       // Zero-inflated Lognormal Poisson
