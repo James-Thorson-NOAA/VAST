@@ -49,11 +49,11 @@ jobs:
 
       - name: Install system dependencies
         if: runner.os == 'Linux'
-        # needed for package units?
-        run: sudo apt install libudunits2-dev
-        # needed for package rgdal?
-        run: sudo apt-get install gdal-bin proj-bin libgdal-dev libproj-dev
         run: |
+          # needed for package units?
+          sudo apt install libudunits2-dev
+          # needed for package rgdal?
+          sudo apt-get install gdal-bin proj-bin libgdal-dev libproj-dev
           while read -r cmd
           do
             eval sudo $cmd
