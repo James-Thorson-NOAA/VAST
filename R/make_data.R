@@ -404,25 +404,15 @@ function( b_i,
       }
 
       # First linear predictor
-<<<<<<< HEAD
       covariate_list = FishStatsUtils::make_covariates( formula=X1_formula, covariate_data=covariate_data, Year_i=t_i,
-        spatial_list=spatial_list, extrapolation_list=extrapolation_list )
-=======
-      covariate_list = make_covariates( formula=X1_formula, covariate_data=covariate_data, Year_i=t_i,
-        spatial_list=spatial_list )
->>>>>>> 5cc19d023fec7b66c095246ffee7d6befeec4210
+        spatial_list=spatial_list, spatial_list=spatial_list )
       X1_gtp = covariate_list$X_gtp
       X1_itp = covariate_list$X_itp
       X1_gctp = aperm( outer(X1_gtp,rep(1,n_c)), c(1,4,2,3) )
 
       # Second linear predictor
-<<<<<<< HEAD
       covariate_list = FishStatsUtils::make_covariates( formula=X2_formula, covariate_data=covariate_data, Year_i=t_i,
-        spatial_list=spatial_list, extrapolation_list=extrapolation_list )
-=======
-      covariate_list = make_covariates( formula=X2_formula, covariate_data=covariate_data, Year_i=t_i,
-        spatial_list=spatial_list )
->>>>>>> 5cc19d023fec7b66c095246ffee7d6befeec4210
+        spatial_list=spatial_list, spatial_list=spatial_list )
       X2_gtp = covariate_list$X_gtp
       X2_itp = covariate_list$X_itp
       X2_gctp = aperm( outer(X2_gtp,rep(1,n_c)), c(1,4,2,3) )
