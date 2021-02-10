@@ -59,7 +59,7 @@ jobs:
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rcmdcheck")
           utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
-          remotes::install_github("james-thorson/FishStatsUtils", INSTALL_opts="--no-staged-install")
+          remotes::install_github("James-Thorson-NOAA/FishStatsUtils", ref='development') #INSTALL_opts="--no-staged-install")
         shell: Rscript {0}
 
       - name: Check
