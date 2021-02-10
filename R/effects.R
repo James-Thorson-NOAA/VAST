@@ -3,6 +3,9 @@
 #'
 #' @title Adapts package \code{effects}
 #'
+#' @inheritParams effects::Effect
+#' @param which_formula which formula to use e.g., \code{"X1"}
+#'
 #' @rawNamespace S3method(effects::Effect, fit_model)
 #' @export
 Effect.fit_model = function (focal.predictors, mod, which_formula="X1", ...) {

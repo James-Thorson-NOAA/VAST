@@ -45,6 +45,12 @@ If missing, the default is to assume a value of zero for each element (i.e., \co
 
 \item{Method}{Spatial method used for estimation (determines bounds for logkappa)}
 
+\item{Npool}{A user-level interface to pool hyperparameters for multiple categories.
+For categories with few encounters, these hyperparameters are poorly informed
+leading to converge difficulties.  A value \code{Npool=10} indicates
+that any category with fewer than \code{10} encounters across all years
+should have hyperparameters mirrored to the same value.}
+
 \item{ConvergeTol}{Integer specifying override for TMB convergence criteria (OPTIONAL)}
 
 \item{Use_REML}{boolean whether to use maximum marginal likelihood or restricted maximum likelihood (termed "REML")  (OPTIONAL)}

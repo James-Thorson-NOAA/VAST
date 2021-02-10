@@ -155,8 +155,14 @@ by default (but can be specified to do so when an appropriate `formula` is suppl
 
 \item{spatial_list}{tagged list of locational information from , i.e., from \code{\link[FishStatsUtils]{make_spatial_info}}}
 
+\item{Network_sz}{An interface to specify a directed acyclic graphic representing a stream network, used only when \code{Method="Stream_network"}.}
+
 \item{F_ct}{matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model
 and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)}
+
+\item{F_init}{In a vector-autoregressive model specifying fishing mortality rates via \code{F_ct}, the initial conditions can be based on the stationary
+distribution assuming that the first year of fishing mortality had happened indefinitely prior to data \code{F_init=2}, or that fishing mortality
+was zero prior to data, \code{F_init=1}}
 
 \item{CheckForErrors}{whether to check for errors in input (NOTE: when \code{CheckForErrors=TRUE}, the function will throw an error if
 it detects a problem with inputs.  However, failing to throw an error is no guarantee that the inputs are all correct)}
@@ -189,6 +195,8 @@ Defaults to eastings and northings for each knots or extrapolation-grid cell.}
 
 \item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{\link[FishStatsUtils]{get_latest_version(package="VAST")}}.
 Can be used to specify using an older CPP, to maintain backwards compatibility.}
+
+\item{overlap_zz}{A matrix with zero columns (and zero rows by default), indicating whether overlap metrics should be calculated as a derived quantity.}
 
 \item{...}{interface to pass deprecated inputs, included for backwards compatibility with previous versions which, e.g., specified elements of \code{spatial_list}
 individually instead of as a single object}

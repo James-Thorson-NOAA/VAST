@@ -1,3 +1,18 @@
+
+#' Create map to turn off and mirror parameters
+#'
+#' @title Create a tagged list to turn and off and mirror parameters
+#'
+#' @inheritParams make_data
+#' @param TmbParams output from \code{\link{make_parameters}}
+#' @param DataList output from \code{\link{make_data}}
+#' @param Npool A user-level interface to pool hyperparameters for multiple categories.
+#'              For categories with few encounters, these hyperparameters are poorly informed
+#'              leading to converge difficulties.  A value \code{Npool=10} indicates
+#'              that any category with fewer than \code{10} encounters across all years
+#'              should have hyperparameters mirrored to the same value.
+#'
+#' @rawNamespace S3method(effects::Effect, fit_model)
 #' @export
 make_map <-
 function( DataList,
