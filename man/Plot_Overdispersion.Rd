@@ -6,6 +6,9 @@
 \usage{
 Plot_Overdispersion(...)
 }
+\arguments{
+\item{...}{Arguments to be passed to \code{plot_overdispersion}}
+}
 \description{
 Included for continuity when using old scripts
 }

@@ -6,6 +6,10 @@
 \usage{
 Make_Map(...)
 }
+\arguments{
+\item{...}{Arguments to be passed to \code{make_map}
+@export}
+}
 \description{
 Included for continuity when using old scripts
 }

@@ -6,6 +6,9 @@
 \usage{
 Plot_factors(...)
 }
+\arguments{
+\item{...}{Arguments to be passed to \code{plot_factors}}
+}
 \description{
 Included for continuity when using old scripts
 }

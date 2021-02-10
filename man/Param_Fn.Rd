@@ -6,6 +6,9 @@
 \usage{
 Param_Fn(...)
 }
+\arguments{
+\item{...}{Arguments to be passed to \code{make_parameters}}
+}
 \description{
 Included for continuity when using old scripts
 }
