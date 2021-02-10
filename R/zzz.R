@@ -101,7 +101,10 @@ Summarize_Covariance = function( ... ){
 #'
 #' Please use \code{?make_map} to see list of arguments and usage
 #' @param ... Arguments to be passed to \code{make_map}
-#'  @export
+#' @noRd
+## Note: noRD tag needed otherwise this overwrites documentation for
+##  make_map b/c for some reason it's not case sensitive in the
+##   documentation -Cole
 Make_Map = function( ... ){
   .Deprecated( new="make_map" )
   make_map( ... )

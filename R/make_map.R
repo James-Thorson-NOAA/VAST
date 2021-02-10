@@ -12,7 +12,6 @@
 #'              that any category with fewer than \code{10} encounters across all years
 #'              should have hyperparameters mirrored to the same value.
 #'
-#' @rawNamespace S3method(effects::Effect, fit_model)
 #' @export
 make_map <-
 function( DataList,

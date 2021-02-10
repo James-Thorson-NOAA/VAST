@@ -11,7 +11,7 @@ make_parameters(
 )
 }
 \arguments{
-\item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{\link[FishStatsUtils]{get_latest_version(package="VAST")}}.
+\item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{\link[FishStatsUtils]{get_latest_version}}.
 Can be used to specify using an older CPP, to maintain backwards compatibility.}
 
 \item{DataList}{list outputted from \code{make_data}}

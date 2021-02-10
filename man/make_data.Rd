@@ -193,7 +193,7 @@ and specifies the category to use for abundance-weighted expansion, where \code{
 \item{Z_gm}{matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics.
 Defaults to eastings and northings for each knots or extrapolation-grid cell.}
 
-\item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{\link[FishStatsUtils]{get_latest_version(package="VAST")}}.
+\item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{\link[FishStatsUtils]{get_latest_version}}.
 Can be used to specify using an older CPP, to maintain backwards compatibility.}
 
 \item{overlap_zz}{A matrix with zero columns (and zero rows by default), indicating whether overlap metrics should be calculated as a derived quantity.}

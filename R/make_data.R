@@ -51,7 +51,7 @@
 #' @param v_i Vector of integers ranging from 0 to the number of vessels minus 1,
 #'        providing sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
 #'        (by default \code{v_i=0} for all samples, which will not affect things given the default values for \code{OverdispersionConfig})
-#' @param Version Which CPP version to use.  If missing, defaults to latest version using \code{\link[FishStatsUtils]{get_latest_version(package="VAST")}}.
+#' @param Version Which CPP version to use.  If missing, defaults to latest version using \code{\link[FishStatsUtils]{get_latest_version}}.
 #'        Can be used to specify using an older CPP, to maintain backwards compatibility.
 #' @param FieldConfig See Details section of \code{\link[VAST]{make_data}} for details
 #' @param OverdispersionConfig a vector of format \code{c("eta1"=0, "eta2"="AR1")} governing any correlated overdispersion
@@ -543,14 +543,14 @@ function( b_i,
 
   # Translate FieldConfig from input formatting to CPP formatting
   FieldConfig_input = array(NA, dim=dim(FieldConfig), dimnames=dimnames(FieldConfig) )
-  g = function(mat) suppressWarnings( array(as.numeric(mat),dim=dim(mat)) )
+  g1 = function(mat) suppressWarnings( array(as.numeric(mat),dim=dim(mat)) )
   FieldConfig_input[] = ifelse( tolower(FieldConfig)=="ar1", 0, FieldConfig_input)
   FieldConfig_input[] = ifelse( tolower(FieldConfig)=="iid", -2, FieldConfig_input)
   FieldConfig_input[] = ifelse( tolower(FieldConfig)=="identity", -3, FieldConfig_input)
   FieldConfig_input[] = ifelse( tolower(FieldConfig)=="full", n_c, FieldConfig_input)
-  FieldConfig_input[1:3,] = ifelse( !is.na(g(FieldConfig[1:3,])) & g(FieldConfig[1:3,])>0 & g(FieldConfig[1:3,])<=n_c, g(FieldConfig[1:3,]), FieldConfig_input[1:3,])
-  FieldConfig_input[4,] = ifelse( !is.na(g(FieldConfig[4,,drop=FALSE])) & g(FieldConfig[4,,drop=FALSE])>0 & g(FieldConfig[4,,drop=FALSE])<=n_t, g(FieldConfig[4,,drop=FALSE]), FieldConfig_input[4,,drop=FALSE])
-  FieldConfig_input[] = ifelse( !is.na(g(FieldConfig)) & g(FieldConfig)==0, -1, FieldConfig_input)
+  FieldConfig_input[1:3,] = ifelse( !is.na(g1(FieldConfig[1:3,])) & g1(FieldConfig[1:3,])>0 & g1(FieldConfig[1:3,])<=n_c, g1(FieldConfig[1:3,]), FieldConfig_input[1:3,])
+  FieldConfig_input[4,] = ifelse( !is.na(g1(FieldConfig[4,,drop=FALSE])) & g1(FieldConfig[4,,drop=FALSE])>0 & g1(FieldConfig[4,,drop=FALSE])<=n_t, g1(FieldConfig[4,,drop=FALSE]), FieldConfig_input[4,,drop=FALSE])
+  FieldConfig_input[] = ifelse( !is.na(g1(FieldConfig)) & g1(FieldConfig)==0, -1, FieldConfig_input)
   if( any(is.na(FieldConfig_input)) ) stop( "'FieldConfig' must be: 0 (turn off overdispersion); 'IID' (independent for each factor); 'AR1' (use AR1 structure); or 0<n_f<=n_c (factor structure)" )
   message( "FieldConfig_input is:" )
   print(FieldConfig_input)
@@ -558,10 +558,10 @@ function( b_i,
   # Translate OverdispersionConfig from input formatting to CPP formatting
   OverdispersionConfig_input = rep(NA, length(OverdispersionConfig))
   names(OverdispersionConfig_input) = names(OverdispersionConfig)
-  g = function(vec) suppressWarnings(as.numeric(vec))
+  g2 = function(vec) suppressWarnings(as.numeric(vec))
   OverdispersionConfig_input[] = ifelse( OverdispersionConfig=="AR1", 0, OverdispersionConfig_input)
-  OverdispersionConfig_input[] = ifelse( !is.na(g(OverdispersionConfig)) & g(OverdispersionConfig)>0 & g(OverdispersionConfig)<=n_c, g(OverdispersionConfig), OverdispersionConfig_input)
-  OverdispersionConfig_input[] = ifelse( !is.na(g(OverdispersionConfig)) & g(OverdispersionConfig)==0, -1, OverdispersionConfig_input)
+  OverdispersionConfig_input[] = ifelse( !is.na(g2(OverdispersionConfig)) & g2(OverdispersionConfig)>0 & g2(OverdispersionConfig)<=n_c, g2(OverdispersionConfig), OverdispersionConfig_input)
+  OverdispersionConfig_input[] = ifelse( !is.na(g2(OverdispersionConfig)) & g2(OverdispersionConfig)==0, -1, OverdispersionConfig_input)
   if( all(OverdispersionConfig_input<0) ){
     v_i = rep(0,length(b_i))
     n_v = 1
