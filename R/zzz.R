@@ -10,25 +10,36 @@
   if( getOption("repos")["CRAN"] == "@CRAN@" ){
     options(repos = c("CRAN" = "http://cran.us.r-project.org"))
   }
-  if( !"INLA" %in% utils::installed.packages()[,1] ){
-    packageStartupMessage("Installing package: INLA...")
-    #utils::install.packages("INLA", repos="https://www.math.ntnu.no/inla/R/stable")
+  if(!requireNamespace("INLA"))
+    stop("INLA not installed, install using this command and try again:",
+         "utils::install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
+  ## if( !"INLA" %in% utils::installed.packages()[,1] ){
+  ##   packageStartupMessage("Installing package: INLA...")
+  ##   #utils::install.packages("INLA", repos="https://www.math.ntnu.no/inla/R/stable")
 
-    # Over-ride default install for R 3.5.0 through R 3.5.3
-    Rvers = numeric_version(paste0(R.version[6:7],collapse="."))
-    if( Rvers<numeric_version("3.6.0") & Rvers>numeric_version("3.5.0") ){
-      utils::install.packages( "https://inla.r-inla-download.org/R/stable/bin/windows/contrib/3.5/INLA_18.07.12.zip" )
-    }else{
-      utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
-    }
-  }
+  ##   # Over-ride default install for R 3.5.0 through R 3.5.3
+  ##   Rvers = numeric_version(paste0(R.version[6:7],collapse="."))
+  ##   if( Rvers<numeric_version("3.6.0") & Rvers>numeric_version("3.5.0") ){
+  ##     utils::install.packages( "https://inla.r-inla-download.org/R/stable/bin/windows/contrib/3.5/INLA_18.07.12.zip" )
+  ##   }else{
+  ##     utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
+  ##   }
+  ## }
 
   # Load `FishStatsUtils` via .onAttach because importFrom wasn't working
-  # Also requries moving FishStatsUtils to SUGGESTS, so that it doesn't isntall main branch
-  if( !"FishStatsUtils" %in% utils::installed.packages()[,1] || utils::packageVersion("FishStatsUtils") < numeric_version("2.8.0") ){
-    packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.8.0")
-    devtools::install_github("james-thorson/FishStatsUtils", ref="2.8.0")
+  # Also requries moving FishStatsUtils to SUGGESTS, so that it
+  # doesn't isntall main branch
+
+  if(!requireNamespace('FishStatsUtils') |
+     (requireNamespace('FishStatsUtils') & utils::packageVersion("FishStatsUtils")< numeric_version("2.8.0"))){
+    stop("Correct FishStatsUtils package not found, install with command:",
+         "devtools::install_github('james-thorson/FishStatsUtils', ref='2.8.0')")
   }
+
+  ## if( !"FishStatsUtils" %in% utils::installed.packages()[,1] || utils::packageVersion("FishStatsUtils") < numeric_version("2.8.0") ){
+  ##   packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.8.0")
+  ##   devtools::install_github("james-thorson/FishStatsUtils", ref="2.8.0")
+  ## }
   packageStartupMessage( "Loading package `FishStatsUtils` version ", packageVersion("FishStatsUtils") )
   library(FishStatsUtils)
 }
