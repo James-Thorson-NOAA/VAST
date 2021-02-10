@@ -38,7 +38,6 @@
 #' \code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_itp} using \code{\link[FishStatsUtils]{make_covariates}};
 #' see that function for more details.
 #'
-#' @inheritParams FishStatsUtils::make_covariates
 #' @param b_i Numeric vector, providing sampled value (biomass, counts, etc.) for each observation i
 #' @param a_i Numeric vector containing values greater than zero, providing sampled area for each
 #'        observation i;  use \code{a_i=1} for observations without a natural area measurement, while
@@ -157,7 +156,12 @@
 #'        it detects a problem with inputs.  However, failing to throw an error is no guarantee that the inputs are all correct)
 #' @param ... interface to pass deprecated inputs, included for backwards compatibility with previous versions which, e.g., specified elements of \code{spatial_list}
 #'        individually instead of as a single object
-
+#' @param Network_sz An interface to specify a directed acyclic graphic representing a stream network, used only when \code{Method="Stream_network"}.
+#' @param F_init In a vector-autoregressive model specifying fishing mortality rates via \code{F_ct}, the initial conditions can be based on the stationary
+#'        distribution assuming that the first year of fishing mortality had happened indefinitely prior to data \code{F_init=2}, or that fishing mortality
+#'        was zero prior to data, \code{F_init=1}
+#' @param overlap_zz A matrix with zero columns (and zero rows by default), indicating whether overlap metrics should be calculated as a derived quantity.
+#'
 #' @return Object of class \code{make_data}, containing inputs to function \code{\link{make_model}}
 
 #' @export
