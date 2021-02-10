@@ -24,7 +24,7 @@ Imports:
     stats,
     devtools,
     abind,
-    MatrixModels,  
+    MatrixModels,
     ThorsonUtilities,
     effects,
 Depends:
@@ -35,15 +35,13 @@ Suggests:
     knitr,
     rmarkdown,
     FishStatsUtils,
-    R.rsp,
 Remotes:
     james-thorson/FishStatsUtils,
     james-thorson/utilities,
 License: file LICENSE
 LazyData: yes
-BuildVignettes: yes
 Encoding: UTF-8
 RoxygenNote: 7.1.1
 URL: http://github.com/James-Thorson/VAST
 BugReports: http://github.com/James-Thorson/VAST/issues
-VignetteBuilder: R.rsp
+VignetteBuilder: knitr
