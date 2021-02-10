@@ -3,6 +3,6 @@
 *.so
 packageDescription.txt
 settings.txt
-
+vignettes/VAST.html
 .Rproj.user
 
