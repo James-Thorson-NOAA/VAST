@@ -27,6 +27,7 @@ Imports:
     MatrixModels,
     ThorsonUtilities,
     effects,
+    INLA
 Depends:
     TMB,
     R (>= 3.5.0),
