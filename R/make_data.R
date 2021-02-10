@@ -383,7 +383,7 @@ function( b_i,
       if( "formula" %in% names(alternate_inputs) ){
         Covariates_created = TRUE
         warning("Using input `formula` to generate covariates. This interface is soft-deprecated but still available for backwards compatibility; please switch to using `X1_formula` and `X2_formula`")
-        covariate_list = make_covariates( formula=alternate_inputs[["formula"]], covariate_data=covariate_data, Year_i=t_i,
+        covariate_list = FishStatsUtils::make_covariates( formula=alternate_inputs[["formula"]], covariate_data=covariate_data, Year_i=t_i,
           spatial_list=spatial_list, extrapolation_list=extrapolation_list )
         X1_gtp = X2_gtp = covariate_list$X_gtp
         X1_itp = X2_itp = covariate_list$X_itp
@@ -400,14 +400,14 @@ function( b_i,
       }
 
       # First linear predictor
-      covariate_list = make_covariates( formula=X1_formula, covariate_data=covariate_data, Year_i=t_i,
+      covariate_list = FishStatsUtils::make_covariates( formula=X1_formula, covariate_data=covariate_data, Year_i=t_i,
         spatial_list=spatial_list, extrapolation_list=extrapolation_list )
       X1_gtp = covariate_list$X_gtp
       X1_itp = covariate_list$X_itp
       X1_gctp = aperm( outer(X1_gtp,rep(1,n_c)), c(1,4,2,3) )
 
       # Second linear predictor
-      covariate_list = make_covariates( formula=X2_formula, covariate_data=covariate_data, Year_i=t_i,
+      covariate_list = FishStatsUtils::make_covariates( formula=X2_formula, covariate_data=covariate_data, Year_i=t_i,
         spatial_list=spatial_list, extrapolation_list=extrapolation_list )
       X2_gtp = covariate_list$X_gtp
       X2_itp = covariate_list$X_itp
@@ -474,12 +474,12 @@ function( b_i,
       if( nrow(catchability_data)!=n_i ) stop("`catchability_data` has the wrong number of rows; please supply one row for each observation `i`")
       Catchability_created = TRUE
       # First predictor
-      Model_matrix1 = model.matrix( update.formula(Q1_formula, ~.+1), data=catchability_data )
+      Model_matrix1 = stats::model.matrix( stats::update.formula(Q1_formula, ~.+1), data=catchability_data )
       Columns_to_keep = which( attr(Model_matrix1,"assign") != 0 )
       coefficient_names_Q1 = attr(Model_matrix1,"dimnames")[[2]][Columns_to_keep]
       Q1_ik = Model_matrix1[,Columns_to_keep,drop=FALSE]
       # First predictor
-      Model_matrix2 = model.matrix( update.formula(Q2_formula, ~.+1), data=catchability_data )
+      Model_matrix2 = stats::model.matrix( stats::update.formula(Q2_formula, ~.+1), data=catchability_data )
       Columns_to_keep = which( attr(Model_matrix2,"assign") != 0 )
       coefficient_names_Q2 = attr(Model_matrix2,"dimnames")[[2]][Columns_to_keep]
       Q2_ik = Model_matrix2[,Columns_to_keep,drop=FALSE]

@@ -4,4 +4,4 @@ cran-comments.md
 ^examples$
 ^.*\.Rproj$
 ^\.Rproj\.user$
-.\github
+.github

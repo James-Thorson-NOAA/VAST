@@ -18,4 +18,6 @@
 #' @seealso \code{\link[VAST]{VAST}} for general documentation, \code{\link[FishStatsUtils]{make_settings}} for generic settings, \code{\link[FishStatsUtils]{fit_model}} for model fitting, and \code{\link[FishStatsUtils]{plot_results}} for generic plots
 #' @docType package
 #' @name VAST
+#' @importFrom utils packageVersion packageDescription
+#' @importFrom stats gaussian model.matrix poisson update.formula
 NULL

@@ -39,7 +39,7 @@ Suggests:
 Remotes:
     james-thorson/FishStatsUtils,
     james-thorson/utilities,
-License: GPL-3
+License: file LICENSE
 LazyData: yes
 BuildVignettes: yes
 Encoding: UTF-8
