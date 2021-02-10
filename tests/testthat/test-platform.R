@@ -18,7 +18,7 @@ test_that("Eastern Bering Sea pollock is working ", {
                             fine_scale=FALSE, max_cells=Inf)
   settings$FieldConfig[1:2, 1:2] <- 0
   ## Run model
-  wd <- 'temp'
+  wd <- tempdir()
   fit <- fit_model(settings=settings,
                    working_dir=paste0(wd, '/'),
                    Lat_i=dat$Lat,

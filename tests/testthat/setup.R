@@ -1,5 +1,5 @@
 ## Stuff to run before executing the tests
-
+library(FishStatsUtils)
 ## skip the main tests? caught with skip_if(skip_local) in all
 ## tests except platform
 skip_local <- TRUE
