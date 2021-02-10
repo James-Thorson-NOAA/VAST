@@ -299,7 +299,7 @@ function( DataList,
     Var_j = apply( DataList[["X_xj"]], MARGIN=2, FUN=var )
     Map[["gamma1_j"]] = Map[["gamma2_j"]] = seq_pos(ncol(DataList$X_xj))
     for(j in seq_pos(length(Var_j))){
-      if( Var_j[j]==0 || sum(CovConfig)==0 ){
+      if( Var_j[j]==0 ){
         Map[["gamma1_j"]][j] = NA
         Map[["gamma2_j"]][j] = NA
       }
