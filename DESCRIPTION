@@ -39,9 +39,10 @@ Remotes:
     james-thorson/FishStatsUtils,
     james-thorson/utilities,
 License: file LICENSE
-LazyData: yes
+LazyData: true
 Encoding: UTF-8
 RoxygenNote: 7.1.1
+ByteComile: true
 URL: http://github.com/James-Thorson/VAST
 BugReports: http://github.com/James-Thorson/VAST/issues
 VignetteBuilder: knitr
