@@ -37,7 +37,9 @@
 #'
 #' Included for continuity when using old scripts
 #'
-#' Please use \code{?VAST::make_model} to see list of arguments and usage
+#' Please use \code{?VAST::make_model} to see list of arguments
+#' and usage
+#' @param ... Arguments to be passed to \code{make_model}
 #' @export
 Build_TMB_Fn = function( ... ){
   .Deprecated( new="VAST::make_model" )
@@ -48,7 +50,9 @@ Build_TMB_Fn = function( ... ){
 #'
 #' Included for continuity when using old scripts
 #'
-#' Please use \code{?VAST::make_data} to see list of arguments and usage
+#' Please use \code{?VAST::make_data} to see list of arguments
+#' and usage
+#' @param ... Arguments to be passed to \code{make_data}
 #' @export
 Data_Fn = function( ... ){
   .Deprecated( new="VAST::make_data" )
@@ -60,6 +64,7 @@ Data_Fn = function( ... ){
 #' Included for continuity when using old scripts
 #'
 #' Please use \code{?FishStatsUtils::plot_factors} to see list of arguments and usage
+#' @param ... Arguments to be passed to \code{plot_factors}
 #' @export
 Plot_factors = function( ... ){
   .Deprecated( new="FishStatsUtils::plot_factors" )
@@ -71,6 +76,7 @@ Plot_factors = function( ... ){
 #' Included for continuity when using old scripts
 #'
 #' Please use \code{?FishStatsUtils::plot_overdispersion} to see list of arguments and usage
+#' @param ... Arguments to be passed to \code{plot_overdispersion}
 #' @export
 Plot_Overdispersion = function( ... ){
   .Deprecated( new="FishStatsUtils::plot_overdispersion" )
@@ -82,6 +88,7 @@ Plot_Overdispersion = function( ... ){
 #' Included for continuity when using old scripts
 #'
 #' Please use \code{?FishStatsUtils::summarize_covariace} to see list of arguments and usage
+#' @param ... Arguments to be passed to \code{summarize_covariance}
 #' @export
 Summarize_Covariance = function( ... ){
   .Deprecated( new="FishStatsUtils::summarize_covariance" )
@@ -93,7 +100,8 @@ Summarize_Covariance = function( ... ){
 #' Included for continuity when using old scripts
 #'
 #' Please use \code{?make_map} to see list of arguments and usage
-#' @export
+#' @param ... Arguments to be passed to \code{make_map}
+#'  @export
 Make_Map = function( ... ){
   .Deprecated( new="make_map" )
   make_map( ... )
@@ -104,6 +112,7 @@ Make_Map = function( ... ){
 #' Included for continuity when using old scripts
 #'
 #' Please use \code{?make_parameters} to see list of arguments and usage
+#' @param ... Arguments to be passed to \code{make_parameters}
 #' @export
 Param_Fn = function( ... ){
   .Deprecated( new="make_parameters" )
