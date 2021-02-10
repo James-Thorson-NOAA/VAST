@@ -20,4 +20,5 @@
 #' @name VAST
 #' @importFrom utils packageVersion packageDescription
 #' @importFrom stats gaussian model.matrix poisson update.formula
+#' @importFrom INLA inla.as.dgTMatrix
 NULL
