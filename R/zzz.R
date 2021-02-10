@@ -20,7 +20,7 @@
     if( Rvers<numeric_version("3.6.0") & Rvers>numeric_version("3.5.0") ){
       utils::install.packages( "https://inla.r-inla-download.org/R/stable/bin/windows/contrib/3.5/INLA_18.07.12.zip" )
     }else{
-      utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
+      utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=NA)
     }
   }
 
@@ -30,7 +30,9 @@
 
   if( !"FishStatsUtils" %in% utils::installed.packages()[,1] || utils::packageVersion("FishStatsUtils") < numeric_version("2.8.0") ){
     packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.8.0")
-    devtools::install_github("james-thorson/FishStatsUtils", ref="2.8.0")
+    ## devtools::install_github("james-thorson/FishStatsUtils", ref="2.8.0")
+    devtools::install_github("james-thorson/FishStatsUtils", ref='development', INSTALL_opts="--no-staged-install")
+
   }
   packageStartupMessage( "Loading package `FishStatsUtils` version ", packageVersion("FishStatsUtils") )
   library(FishStatsUtils)

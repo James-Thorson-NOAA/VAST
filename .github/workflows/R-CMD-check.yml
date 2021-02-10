@@ -17,7 +17,7 @@ jobs:
           - {os: windows-latest, r: 'release'}
           - {os: macOS-latest, r: 'release'}
           - {os: ubuntu-20.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
-          - {os: ubuntu-20.04, r: 'devel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          #- {os: ubuntu-20.04, r: 'devel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -49,6 +49,10 @@ jobs:
 
       - name: Install system dependencies
         if: runner.os == 'Linux'
+        # needed for package units?
+        run: sudo apt install libudunits2-dev
+        # needed for package rgdal?
+        run: sudo apt-get install gdal-bin proj-bin libgdal-dev libproj-dev
         run: |
           while read -r cmd
           do
