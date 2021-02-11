@@ -91,7 +91,7 @@ jobs:
       - name: Run integrated tests via testthat on ubuntu
         if: runner.os == 'Linux'
         run: |
-          out <- devtools::test_local()
+          out <- testthat::test()
           print(getwd())
           print(ls())
           file.copy('VAST.Rcheck/tests/testthat.Rout', to='check/testthat.Rout)
