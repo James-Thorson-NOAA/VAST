@@ -62,6 +62,7 @@ jobs:
         run: |
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rcmdcheck")
+          install.packages('devtools')
         shell: Rscript {0}
 
       # - name: Install extra ubuntu dependencies
@@ -91,7 +92,7 @@ jobs:
       - name: Run integrated tests via testthat on ubuntu
         if: runner.os == 'Linux'
         run: |
-          out <- testthat::test()
+          out <- devtools::test()
           print(getwd())
           print(ls())
           file.copy('VAST.Rcheck/tests/testthat.Rout', to='check/testthat.Rout)
