@@ -8,6 +8,7 @@ test_that("Eastern Bering Sea pollock is working ", {
   ## Prep really simple example using built-in data set, adapted
   ## from simple example on wiki
   print(trash <- system.file('executables', package='VAST'))
+  print(FishStatsUtils::get_latest_version())
   example <- load_example( data_set="EBS_pollock" )
   dat <- example$sampling_data[example$sampling_data$Year==2012,]
   ## Make settings (turning off bias.correct to save time for example)
@@ -16,7 +17,7 @@ test_that("Eastern Bering Sea pollock is working ", {
                             strata.limits=example$strata.limits,
                             ## for some reason it can't find
                             ## executables in testing mode
-                            Version='VAST_v13_0_0',
+                            ## Version='VAST_v13_0_0',
                             bias.correct=FALSE,
                             fine_scale=FALSE, max_cells=Inf)
   settings$FieldConfig[1:2, 1:2] <- 0
