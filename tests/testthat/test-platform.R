@@ -15,6 +15,7 @@ test_that("Eastern Bering Sea pollock is working ", {
                             strata.limits=example$strata.limits,
                             ## crashes if I don't set Version for
                             ## some reason
+                            ## Version='VAST_v13_0_0',
                             bias.correct=FALSE,
                             fine_scale=FALSE, max_cells=Inf)
   settings$FieldConfig[1:2, 1:2] <- 0

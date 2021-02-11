@@ -85,6 +85,11 @@ jobs:
       - name: Run integrated tests via testthat on ubuntu
         if: runner.os == 'Linux'
         run: |
+          wd=system.file("executables", package = 'VAST')
+          print(list.files(wd))
+          devtools::install_local()
+          wd=system.file("executables", package = 'VAST')
+          print(list.files(wd))
           out <- devtools::test(stop_on_failure=TRUE)
           print(getwd())
           print(ls())
