@@ -88,6 +88,14 @@ jobs:
         run: rcmdcheck::rcmdcheck(args = c("-no-manual", "--as-cran"), error_on = "error", check_dir = "check")
         shell: Rscript {0}
 
+      - name: Run integrated tests via testthat on ubuntu
+        if: runner.os == 'Linux'
+        run: |
+          out <- devtools::test_local()
+          print(getwd())
+          print(ls())
+          file.copy('VAST.Rcheck/tests/testthat.Rout', to='check/testthat.Rout)
+        shell: Rscript {0}
 
       - name: Show testthat output
         if: always()
