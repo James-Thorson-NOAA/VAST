@@ -67,14 +67,15 @@ jobs:
             eval sudo $cmd
           done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
 
-      - name: Install dependencies
-        run: |
-          remotes::install_deps(dependencies = TRUE)
-          remotes::install_cran("rcmdcheck")
-          #install.packages('devtools')
-          #remove.packages('FishStatsUtils')
-          #remotes::install_github('James-Thorson-NOAA/FishStatsUtils', ref='development')
-          shell: Rscript {0}
+       - name: Install dependencies
+         run: |
+           remotes::install_deps(dependencies=TRUE)
+           remotes::install_cran("rcmdcheck")
+           install.packages('devtools')
+           remove.packages('FishStatsUtils')
+           remotes::install_github('James-Thorson-NOAA/FishStatsUtils', ref='development')
+           print(packageVersion('FishStatsUtils'))
+         shell: Rscript {0}
 
       # - name: Install extra ubuntu dependencies
       #    if: runner.os == 'Linux'
