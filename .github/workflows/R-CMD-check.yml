@@ -1,13 +1,6 @@
 # For help debugging build failures open an issue on the RStudio community with the 'github-actions' tag.
 # https://community.rstudio.com/new-topic?category=Package%20development&tags=github-actions
 
-
-# This workflow is designed to test that a really simple example runs on
-# all platforms. Basically that VAST can compile and run. For unknown reasons
-# it fails to pass R CMD check install test because of some package dependency
-# install errors. This step also runs the tests so for Ubuntu I skip it during
-# check and then run testhat manually.
-
 on: [push, pull_request]
 
 name: R-CMD-check
@@ -67,25 +60,11 @@ jobs:
             eval sudo $cmd
           done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
 
-- name: Install R dependencies
+      - name: Install system dependencies
         run: |
           remotes::install_deps(dependencies=TRUE)
           remotes::install_cran("rcmdcheck")
-          install.packages('devtools')
-          remove.packages('FishStatsUtils')
-          remotes::install_github('James-Thorson-NOAA/FishStatsUtils', ref='development')
-          print(packageVersion('FishStatsUtils'))
         shell: Rscript {0}
-
-      # - name: Install extra ubuntu dependencies
-      #    if: runner.os == 'Linux'
-      #    run: |
-      #      install.packages(c('maptools', 'foreign', 'classInt', 'cluster', 'sf', 'mgcv'))
-      #      library(sf)
-      #      utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
-      #      remotes::install_github("James-Thorson-NOAA/FishStatsUtils", ref='development') #INSTALL_opts="--no-staged-install")
-      #   shell: Rscript {0}
-      # for some reason Ubuntu fails to install package so special case
 
       - name: Check Ubuntu
         if: runner.os == 'Linux'
