@@ -4,7 +4,7 @@ context("Testing cross platform and R version compatibility")
 
 # Eastern Bering Sea pollcok
 test_that("Eastern Bering Sea pollock is working ", {
-  print("Using FishStatsUtils version", packageVersion('FishStatsUtils'))
+  print(paste("Using FishStatsUtils version", packageVersion('FishStatsUtils')))
   ## Prep really simple example using built-in data set, adapted
   ## from simple example on wiki
   example <- load_example( data_set="EBS_pollock" )
