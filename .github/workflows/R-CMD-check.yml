@@ -71,9 +71,9 @@ jobs:
         run: |
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rcmdcheck")
-          install.packages('devtools')
-          remove.packages('FishStatsUtils')
-          remotes::install_github('James-Thorson-NOAA/FishStatsUtils', ref='development')
+          #install.packages('devtools')
+          #remove.packages('FishStatsUtils')
+          #remotes::install_github('James-Thorson-NOAA/FishStatsUtils', ref='development')
           shell: Rscript {0}
 
       # - name: Install extra ubuntu dependencies
