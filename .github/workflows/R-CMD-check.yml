@@ -95,7 +95,8 @@ jobs:
           out <- devtools::test()
           print(getwd())
           print(ls())
-          file.copy('VAST.Rcheck/tests/testthat.Rout', to='check/testthat.Rout)
+          print(str(out))
+          file.copy('VAST.Rcheck/tests/testthat.Rout', to='check/testthat.Rout')
         shell: Rscript {0}
 
       - name: Show testthat output
