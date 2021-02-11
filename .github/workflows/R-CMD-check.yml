@@ -62,16 +62,20 @@ jobs:
         run: |
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rcmdcheck")
-          install.packages(c('maptools', 'foreign', 'classInt', 'cluster', 'sf', 'mgcv'))
-          library(sf)
-          #utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
-          #remotes::install_github("James-Thorson-NOAA/FishStatsUtils", ref='development') #INSTALL_opts="--no-staged-install")
-        shell: Rscript {0}
+
+      # - name: Install extra ubuntu dependencies
+      #    if: runner.os == 'Linux'
+      #    run: |
+      #      install.packages(c('maptools', 'foreign', 'classInt', 'cluster', 'sf', 'mgcv'))
+      #      library(sf)
+      #      utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
+      #      remotes::install_github("James-Thorson-NOAA/FishStatsUtils", ref='development') #INSTALL_opts="--no-staged-install")
+      #   shell: Rscript {0}
 
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
-        run: rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), error_on = "error", check_dir = "check")
+        run: rcmdcheck::rcmdcheck(args = c("--no-install", "--as-cran"), error_on = "error", check_dir = "check")
         shell: Rscript {0}
 
       - name: Show testthat output
