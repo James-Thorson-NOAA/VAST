@@ -5,4 +5,6 @@ library(FishStatsUtils)
 skip_local <- TRUE
 singlespecies_example_path <- system.file("extdata", package="SpatialDeltaGLMM")
 multispecies_example_path <- system.file("extdata", package="VAST")
+## working directory is VAST/tests/testthat when running test()
 Version <- FishStatsUtils::get_latest_version(path='../../inst/executables/')
+message("Using version ", Version)
