@@ -140,17 +140,17 @@ Type dinverse_gaussian(Type x, Type mean, Type cv, int give_log=0){
   if(give_log) return logres; else return exp(logres);
 }
 
-// Simulate from tweedie
-// Adapted from tweedie::rtweedie function in R
-template<class Type>
-Type rtweedie( Type mu, Type phi, Type power){
-  Type lambda = pow(mu, Type(2.0) - power) / (phi * (Type(2.0) - power));
-  Type alpha = (Type(2.0) - power) / (Type(1.0) - power);
-  Type gam = phi * (power - Type(1.0)) * pow(mu, power - Type(1.0));
-  Type N = rpois(lambda);
-  Type B = rgamma(-N * alpha, gam);   /// Using Shape-Scale parameterization
-  return B;
-}
+// // Simulate from tweedie
+// // Adapted from tweedie::rtweedie function in R
+// template<class Type>
+// Type rtweedie( Type mu, Type phi, Type power){
+//   Type lambda = pow(mu, Type(2.0) - power) / (phi * (Type(2.0) - power));
+//   Type alpha = (Type(2.0) - power) / (Type(1.0) - power);
+//   Type gam = phi * (power - Type(1.0)) * pow(mu, power - Type(1.0));
+//   Type N = rpois(lambda);
+//   Type B = rgamma(-N * alpha, gam);   /// Using Shape-Scale parameterization
+//   return B;
+// }
 
 // Generate loadings matrix for covariance
 template<class Type>

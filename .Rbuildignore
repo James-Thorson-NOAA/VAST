@@ -2,3 +2,6 @@
 cran-comments.md
 ^\.travis\.yml$
 ^examples$
+^.*\.Rproj$
+^\.Rproj\.user$
+.github

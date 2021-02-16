@@ -61,11 +61,11 @@ Effect.fit_model = function (focal.predictors, mod, which_formula="X1", ...) {
     rownames(mod$covhat) = colnames(mod$covhat) = names(mod$parhat)
 
   # Augment stuff
-  formula_full = update.formula(formula_orig, linear_predictor~.+0)
+  formula_full = stats::update.formula(formula_orig, linear_predictor~.+0)
   mod$coefficients = mod$parhat
   mod$vcov = mod$covhat
   mod$formula = formula_full
-  mod$family = gaussian(link = "identity")
+  mod$family = stats::gaussian(link = "identity")
 
   # Functions for package
   family.fit_model = function(x,...) x$family
@@ -74,7 +74,7 @@ Effect.fit_model = function (focal.predictors, mod, which_formula="X1", ...) {
   # dummy functions to make Effect.default work
   dummyfuns = list(variance = function(mu) mu,
                     initialize = expression(mustart = y + 0.1),
-                    dev.resids = function(...) poisson()$dev.res(...) )
+                    dev.resids = function(...) stats::poisson()$dev.res(...) )
 
   # Replace family (for reasons I don't really understand)
   fam = mod$family
