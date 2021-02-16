@@ -497,22 +497,22 @@ matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, mat
     // If anyone needs to use these features, please remove comments from local copy
     // and then proceed.
   if( method==3 ){
-  //  BplusI_ff = Chi_fr * Psi_rf + Identity_ff;
-  //  // Extract eigenvalues
-  //  vector< std::complex<Type> > eigenvalues_B_ff = B_ff.eigenvalues();
-  //  vector<Type> real_eigenvalues_B_ff = eigenvalues_B_ff.real();
-  //  vector<Type> imag_eigenvalues_B_ff = eigenvalues_B_ff.imag();
-  //  vector<Type> mod_eigenvalues_B_ff( n_f );
-  //  // Calculate maximum eigenvalues
-  //  Type MaxEigen = 1;
-  //  for(int f=0; f<n_f; f++){
-  //    mod_eigenvalues_B_ff(f) = pow( pow(real_eigenvalues_B_ff(f),2) + pow(imag_eigenvalues_B_ff(f),2), 0.5 );
-  //    MaxEigen = CppAD::CondExpGt(mod_eigenvalues_B_ff(f), MaxEigen, mod_eigenvalues_B_ff(f), MaxEigen);
-  //  }
-  //  // Rescale interaction matrix
-  //  BplusI_ff = BplusI_ff / MaxEigen;
-  //  B_ff = BplusI_ff - Identity_ff;
-  //  jnll_pointer += CppAD::CondExpGe( MaxEigen, Type(1.0), pow(MaxEigen-Type(1.0),2), Type(0.0) );
+    BplusI_ff = Chi_fr * Psi_rf + Identity_ff;
+    // Extract eigenvalues
+    vector< std::complex<Type> > eigenvalues_B_ff = B_ff.eigenvalues();
+    vector<Type> real_eigenvalues_B_ff = eigenvalues_B_ff.real();
+    vector<Type> imag_eigenvalues_B_ff = eigenvalues_B_ff.imag();
+    vector<Type> mod_eigenvalues_B_ff( n_f );
+    // Calculate maximum eigenvalues
+    Type MaxEigen = 1;
+    for(int f=0; f<n_f; f++){
+      mod_eigenvalues_B_ff(f) = pow( pow(real_eigenvalues_B_ff(f),2) + pow(imag_eigenvalues_B_ff(f),2), 0.5 );
+      MaxEigen = CppAD::CondExpGt(mod_eigenvalues_B_ff(f), MaxEigen, mod_eigenvalues_B_ff(f), MaxEigen);
+    }
+    // Rescale interaction matrix
+    BplusI_ff = BplusI_ff / MaxEigen;
+    B_ff = BplusI_ff - Identity_ff;
+    jnll_pointer += CppAD::CondExpGe( MaxEigen, Type(1.0), pow(MaxEigen-Type(1.0),2), Type(0.0) );
   }
   return B_ff;
 }
