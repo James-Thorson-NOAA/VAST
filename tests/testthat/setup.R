@@ -5,3 +5,4 @@ library(FishStatsUtils)
 skip_local <- TRUE
 singlespecies_example_path <- system.file("extdata", package="SpatialDeltaGLMM")
 multispecies_example_path <- system.file("extdata", package="VAST")
+Version <- FishStatsUtils::get_latest_version(path='../../inst/executables/')
