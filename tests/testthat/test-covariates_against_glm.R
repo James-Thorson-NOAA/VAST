@@ -17,7 +17,7 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Density covariates give identical results to glm(.) ", {
-  skip_on_ci()
+  #skip_on_ci()
   skip_if(skip_local)
 
   # load data set
@@ -63,9 +63,17 @@ test_that("Density covariates give identical results to glm(.) ", {
   #example$sampling_data = example$sampling_data[ Reorder, ]
 
   # Make settings (turning off bias.correct to save time for example)
-  settings3 = settings2 = settings1 = make_settings( n_x=100, Region=example$Region, purpose="index",
-    use_anisotropy=FALSE, strata.limits=example$strata.limits, bias.correct=FALSE, fine_scale=TRUE,
-    FieldConfig=c(0,0,0,0), ObsModel=c(1,0) )
+  settings3 = settings2 = settings1 = make_settings(
+            n_x=100,
+            Region=example$Region,
+            purpose="index",
+            use_anisotropy=FALSE,
+            strata.limits=example$strata.limits,
+            bias.correct=FALSE,
+            fine_scale=TRUE,
+            FieldConfig=c(0,0,0,0),
+            ObsModel=c(1,0),
+            Version=Version_VAST )
   settings2$ObsModel = c(2,0)
   settings3$ObsModel = c(3,0)
 
