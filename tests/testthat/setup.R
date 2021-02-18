@@ -2,7 +2,7 @@
 library(FishStatsUtils)
 ## skip the main tests? caught with skip_if(skip_local) in all
 ## tests except platform
-skip_local <- TRUE
+skip_local <- FALSE
 singlespecies_example_path <- system.file("extdata", package="SpatialDeltaGLMM")
 multispecies_example_path <- system.file("extdata", package="VAST")
 ## working directory is VAST/tests/testthat when running test()
