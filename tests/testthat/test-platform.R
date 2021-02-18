@@ -11,7 +11,7 @@ test_that("Eastern Bering Sea pollock is working ", {
   settings <- make_settings(n_x=100, Region=example$Region,
                             purpose="index2",
                             strata.limits=example$strata.limits,
-                            Version=Version,
+                            Version=Version_VAST,
                             bias.correct=FALSE,
                             fine_scale=FALSE, max_cells=Inf)
   settings$FieldConfig[1:2, 1:2] <- 0
