@@ -3,7 +3,7 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Male lingcod compositional expansion is working ", {
-  skip_on_ci()
+  #skip_on_ci()
   skip_if(skip_local)
 
   # Prepping
@@ -16,7 +16,9 @@ test_that("Male lingcod compositional expansion is working ", {
   file.copy( from=paste0(test_path,"/Kmeans-50.RData"), to=paste0(test_path,"/Kmeans_knots-50.RData") )
 
   # Make settings
-  settings = make_settings( n_x=n_x, Region="California_current" )
+  settings = make_settings( n_x=n_x,
+           Region="California_current",
+           Version=Version_VAST )
 
   # Change settings from defaults
   settings$ObsModel = ObsModel_Est
@@ -24,10 +26,19 @@ test_that("Male lingcod compositional expansion is working ", {
   settings$fine_scale = FALSE
 
   # Run model
-  fit = fit_model( "settings"=settings, "Lat_i"=Data_Geostat[,'BEST_LAT_DD'], "Lon_i"=Data_Geostat[,'BEST_LON_DD'],
-    "c_i"=as.numeric(Data_Geostat[,'Length_bin'])-1, "b_i"=Data_Geostat[,'First_stage_expanded_numbers'], "a_i"=Data_Geostat[,'AreaSwept_km2'],
-    "v_i"=rep(0,nrow(Data_Geostat)), "t_i"=Data_Geostat[,'Year'], model_args=list("Npool"=Npool), optimize_args=list("getsd"=FALSE,"savedir"=NULL),
-    newtonsteps=1, test_fit=FALSE, working_dir=test_path  )
+  fit = fit_model( "settings"=settings,
+      "Lat_i"=Data_Geostat[,'BEST_LAT_DD'],
+      "Lon_i"=Data_Geostat[,'BEST_LON_DD'],
+      "c_i"=as.numeric(Data_Geostat[,'Length_bin'])-1,
+      "b_i"=Data_Geostat[,'First_stage_expanded_numbers'],
+      "a_i"=Data_Geostat[,'AreaSwept_km2'],
+      "v_i"=rep(0,nrow(Data_Geostat)),
+      "t_i"=Data_Geostat[,'Year'],
+      model_args=list("Npool"=Npool),
+      optimize_args=list("getsd"=FALSE,"savedir"=NULL),
+      #newtonsteps=1,
+      test_fit=FALSE,
+      working_dir=test_path  )
 
   # Comparisons
   Par1 = fit$parameter_estimates$par[names(fit$parameter_estimates$par)%in%c("ln_H_input","beta1_ct","beta1_ft","logkappa1","beta2_ct","beta2_ft","logkappa1","logSigmaM")]
