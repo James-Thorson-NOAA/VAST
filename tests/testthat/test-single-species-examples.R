@@ -72,6 +72,7 @@ test_that("Chatham Rise hake is working ", {
 test_that("West Coast groundfish bottom trawl survey, canary rockfish is working ", {
   skip_on_ci()
   skip_if(skip_local)
+
   # Prepping
   test_path = file.path(singlespecies_example_path,"WCGBTS_canary")
   load( file.path(test_path,"opt.RData") )
@@ -79,6 +80,7 @@ test_that("West Coast groundfish bottom trawl survey, canary rockfish is working
   attach(Record)
   on.exit( detach(Record) )
   file.copy( from=paste0(test_path,"/Kmeans-100.RData"), to=paste0(test_path,"/Kmeans_knots-100.RData") )
+
   # Run model
   data( WCGBTS_Canary_example, package="FishStatsUtils" )
   Data_Geostat = data.frame( "Catch_KG"=WCGBTS_Canary_example[,'HAUL_WT_KG'], "Year"=as.numeric(sapply(WCGBTS_Canary_example[,'PROJECT_CYCLE'],FUN=function(Char){strsplit(as.character(Char)," ")[[1]][2]})), "Vessel"=WCGBTS_Canary_example[,"VESSEL"], "AreaSwept_km2"=WCGBTS_Canary_example[,"AREA_SWEPT_HA"]/1e2, "Lat"=WCGBTS_Canary_example[,'BEST_LAT_DD'], "Lon"=WCGBTS_Canary_example[,'BEST_LON_DD'], "Pass"=WCGBTS_Canary_example[,'PASS']-1.5)
@@ -100,7 +102,7 @@ test_that("Aleutian Islands groundfish bottom trawl survey, POP is working ", {
   skip_on_ci()
   skip_if(skip_local)
   # Prepping
-  test_path = paste0(singlespecies_example_path,"AI_POP")
+  test_path = file.path(singlespecies_example_path,"AI_POP")
   load( file.path(test_path,"opt.RData") )
   load( file.path(test_path,"Record.RData") )
   attach(Record)
