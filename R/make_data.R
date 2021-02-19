@@ -387,7 +387,7 @@ function( b_i,
       if( "formula" %in% names(alternate_inputs) ){
         Covariates_created = TRUE
         warning("Using input `formula` to generate covariates. This interface is soft-deprecated but still available for backwards compatibility; please switch to using `X1_formula` and `X2_formula`")
-        covariate_list = FishStatsUtils::make_covariates( formula=alternate_inputs[["formula"]], covariate_data=covariate_data, Year_i=t_i,
+        covariate_list = FishStatsUtils::make_covariates( formula=alternate_inputs[["formula"]], covariate_data=covariate_data, contrasts=NULL, Year_i=t_i,
           spatial_list=spatial_list )
         X1_gtp = X2_gtp = covariate_list$X_gtp
         X1_itp = X2_itp = covariate_list$X_itp
@@ -404,14 +404,14 @@ function( b_i,
       }
 
       # First linear predictor
-      covariate_list = FishStatsUtils::make_covariates( formula=X1_formula, covariate_data=covariate_data, Year_i=t_i,
+      covariate_list = FishStatsUtils::make_covariates( formula=X1_formula, covariate_data=covariate_data, contrasts=NULL, Year_i=t_i,
         spatial_list=spatial_list )
       X1_gtp = covariate_list$X_gtp
       X1_itp = covariate_list$X_itp
       X1_gctp = aperm( outer(X1_gtp,rep(1,n_c)), c(1,4,2,3) )
 
       # Second linear predictor
-      covariate_list = FishStatsUtils::make_covariates( formula=X2_formula, covariate_data=covariate_data, Year_i=t_i,
+      covariate_list = FishStatsUtils::make_covariates( formula=X2_formula, covariate_data=covariate_data, contrasts=NULL, Year_i=t_i,
         spatial_list=spatial_list )
       X2_gtp = covariate_list$X_gtp
       X2_itp = covariate_list$X_itp
