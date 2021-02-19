@@ -29,7 +29,8 @@ testthat::test_check("VAST")
 ################
 
 # Use local path
-#singlespecies_example_path="C:/Users/James.Thorson/Desktop/Git/geostatistical_delta-GLMM/inst/extdata/";  multispecies_example_path="C:/Users/James.Thorson/Desktop/Git/VAST/inst/extdata/"
+# singlespecies_example_path="C:/Users/James.Thorson/Desktop/Git/geostatistical_delta-GLMM/inst/extdata/";  multispecies_example_path="C:/Users/James.Thorson/Desktop/Git/VAST/inst/extdata/"
+# source( "C:/Users/James.Thorson/Desktop/Git/VAST/tests/testthat/setup.R" )
 
 # Run from local directory
 #testthat::test_dir( "C:/Users/James.Thorson/Desktop/Git/VAST/tests/testthat/", reporter="check" )

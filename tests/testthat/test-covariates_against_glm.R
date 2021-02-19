@@ -91,7 +91,7 @@ test_that("Density covariates give identical results to glm(.) ", {
         b_i = example$sampling_data[,'Catch_KG'],
         a_i = example$sampling_data[,'AreaSwept_km2'],
         X1_formula = formula,
-        #X2_formula = formula,
+        X2_formula = formula,
         covariate_data = example$covariate_data,
         working_dir = multispecies_example_path )
   fit1B = fit_model( settings = settings1,
@@ -105,16 +105,25 @@ test_that("Density covariates give identical results to glm(.) ", {
         working_dir = multispecies_example_path )
 
   # Run model -- Gamma
-  fit2 = fit_model( settings=settings2, Lat_i=example$sampling_data[,'Lat'],
-    Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
-    b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
-    X1_formula=formula, X2_formula=formula, covariate_data=example$covariate_data,
-    working_dir=multispecies_example_path )
-  fit2B = fit_model( settings=settings2, Lat_i=example$sampling_data[,'Lat'],
-    Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
-    b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
-    formula=formula, covariate_data=example$covariate_data,
-    working_dir=multispecies_example_path )
+  fit2 = fit_model( settings=settings2,
+        Lat_i=example$sampling_data[,'Lat'],
+        Lon_i=example$sampling_data[,'Lon'],
+        t_i=example$sampling_data[,'Year'],
+        b_i=example$sampling_data[,'Catch_KG'],
+        a_i=example$sampling_data[,'AreaSwept_km2'],
+        X1_formula=formula,
+        X2_formula=formula,
+        covariate_data=example$covariate_data,
+        working_dir=multispecies_example_path )
+  fit2B = fit_model( settings=settings2,
+        Lat_i=example$sampling_data[,'Lat'],
+        Lon_i=example$sampling_data[,'Lon'],
+        t_i=example$sampling_data[,'Year'],
+        b_i=example$sampling_data[,'Catch_KG'],
+        a_i=example$sampling_data[,'AreaSwept_km2'],
+        formula=formula,
+        covariate_data=example$covariate_data,
+        working_dir=multispecies_example_path )
 
   # Run model -- Inverse-Gaussian
   if( FALSE ){
