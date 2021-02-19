@@ -108,7 +108,7 @@
 #'        \code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}
 #' @param X2_formula same as \code{X1_formula} but affecting the 2nd linear predictor for density
 #' @param covariate_data data-frame of covariates for use when specifying \code{X1_formula} and \code{X2_formula}
-#' @param contrasts list defining the contrasts for each factor specified in \code{formula} with specification according to \code{\link{stats::contrasts}}. By default uses \code{contrasts = NULL}, which will set the first level of each factor as the reference level.
+#' @param contrasts list defining the contrasts for each covariate factor specified in \code{formula} with specification according to \code{\link{stats::contrasts}}. By default uses \code{contrasts = NULL}, which will set the first level of each covariate factor as the reference level.
 #' @param X1config_cp matrix of settings for each density covariate for the 1st lienar predictor,
 #'        where the row corresponds to model category, and column corresponds to each density covariate
 #' \describe{
