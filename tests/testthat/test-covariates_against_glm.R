@@ -17,7 +17,8 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Density covariates give identical results to glm(.) ", {
-  skip_on_travis()
+  skip_on_ci()
+  skip_if(skip_local)
 
   # load data set
   example = load_example( data_set="covariate_example" )
@@ -62,9 +63,17 @@ test_that("Density covariates give identical results to glm(.) ", {
   #example$sampling_data = example$sampling_data[ Reorder, ]
 
   # Make settings (turning off bias.correct to save time for example)
-  settings3 = settings2 = settings1 = make_settings( n_x=100, Region=example$Region, purpose="index",
-    use_anisotropy=FALSE, strata.limits=example$strata.limits, bias.correct=FALSE, fine_scale=TRUE,
-    FieldConfig=c(0,0,0,0), ObsModel=c(1,0) )
+  settings3 = settings2 = settings1 = make_settings(
+            n_x=100,
+            Region=example$Region,
+            purpose="index",
+            use_anisotropy=FALSE,
+            strata.limits=example$strata.limits,
+            bias.correct=FALSE,
+            fine_scale=TRUE,
+            FieldConfig=c(0,0,0,0),
+            ObsModel=c(1,0),
+            Version=Version_VAST )
   settings2$ObsModel = c(2,0)
   settings3$ObsModel = c(3,0)
 
@@ -75,28 +84,46 @@ test_that("Density covariates give identical results to glm(.) ", {
   # Run model -- Lognormal
   #source( "C:/Users/James.Thorson/Desktop/Git/FishStatsUtils/R/fit_model.R")
   #source( "C:/Users/James.Thorson/Desktop/Git/VAST/R/make_data.R")
-  fit1 = fit_model( settings=settings1, Lat_i=example$sampling_data[,'Lat'],
-    Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
-    b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
-    X1_formula=formula, X2_formula=formula, covariate_data=example$covariate_data,
-    working_dir=multispecies_example_path )
-  fit1B = fit_model( settings=settings1, Lat_i=example$sampling_data[,'Lat'],
-    Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
-    b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
-    formula=formula, covariate_data=example$covariate_data,
-    working_dir=multispecies_example_path )
+  fit1 = fit_model( settings = settings1,
+        Lat_i = example$sampling_data[,'Lat'],
+        Lon_i = example$sampling_data[,'Lon'],
+        t_i = example$sampling_data[,'Year'],
+        b_i = example$sampling_data[,'Catch_KG'],
+        a_i = example$sampling_data[,'AreaSwept_km2'],
+        X1_formula = formula,
+        X2_formula = formula,
+        covariate_data = example$covariate_data,
+        working_dir = multispecies_example_path )
+  fit1B = fit_model( settings = settings1,
+        Lat_i = example$sampling_data[,'Lat'],
+        Lon_i = example$sampling_data[,'Lon'],
+        t_i = example$sampling_data[,'Year'],
+        b_i = example$sampling_data[,'Catch_KG'],
+        a_i = example$sampling_data[,'AreaSwept_km2'],
+        formula = formula,
+        covariate_data = example$covariate_data,
+        working_dir = multispecies_example_path )
 
   # Run model -- Gamma
-  fit2 = fit_model( settings=settings2, Lat_i=example$sampling_data[,'Lat'],
-    Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
-    b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
-    X1_formula=formula, X2_formula=formula, covariate_data=example$covariate_data,
-    working_dir=multispecies_example_path )
-  fit2B = fit_model( settings=settings2, Lat_i=example$sampling_data[,'Lat'],
-    Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
-    b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
-    formula=formula, covariate_data=example$covariate_data,
-    working_dir=multispecies_example_path )
+  fit2 = fit_model( settings=settings2,
+        Lat_i=example$sampling_data[,'Lat'],
+        Lon_i=example$sampling_data[,'Lon'],
+        t_i=example$sampling_data[,'Year'],
+        b_i=example$sampling_data[,'Catch_KG'],
+        a_i=example$sampling_data[,'AreaSwept_km2'],
+        X1_formula=formula,
+        X2_formula=formula,
+        covariate_data=example$covariate_data,
+        working_dir=multispecies_example_path )
+  fit2B = fit_model( settings=settings2,
+        Lat_i=example$sampling_data[,'Lat'],
+        Lon_i=example$sampling_data[,'Lon'],
+        t_i=example$sampling_data[,'Year'],
+        b_i=example$sampling_data[,'Catch_KG'],
+        a_i=example$sampling_data[,'AreaSwept_km2'],
+        formula=formula,
+        covariate_data=example$covariate_data,
+        working_dir=multispecies_example_path )
 
   # Run model -- Inverse-Gaussian
   if( FALSE ){
@@ -255,7 +282,8 @@ test_that("Density covariates give identical results to glm(.) ", {
     a_i = newdata[,'AreaSwept_km2'],
     what = "R1_i",
     new_covariate_data = newdata,
-    working_dir = multispecies_example_path )
+    working_dir = multispecies_example_path,
+    do_checks = FALSE )
   expect_equal( as.numeric(pred0_glm), pred0_vast, tolerance=0.001 )
 
   # predict.fit_model test  -- Component 2
@@ -268,7 +296,8 @@ test_that("Density covariates give identical results to glm(.) ", {
     a_i = newdata[,'AreaSwept_km2'],
     what = "R2_i",
     new_covariate_data = newdata,
-    working_dir = multispecies_example_path )
+    working_dir = multispecies_example_path,
+    do_checks = FALSE )
   expect_equal( as.numeric(pred2_glm), pred2_vast, tolerance=0.001 )
 
 })

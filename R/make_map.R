@@ -12,7 +12,6 @@
 #'              that any category with fewer than \code{10} encounters across all years
 #'              should have hyperparameters mirrored to the same value.
 #'
-#' @rawNamespace S3method(effects::Effect, fit_model)
 #' @export
 make_map <-
 function( DataList,
@@ -237,7 +236,7 @@ function( DataList,
   if( ("n_f_input"%in%names(DataList)) && "n_v"%in%names(DataList) && DataList[["n_f_input"]]<0 ){
     Map[["L1_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
     Map[["eta1_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta1_vf"]])))
-    Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
+    Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L2_z"]])))
     Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
   }
   if( ("OverdispersionConfig"%in%names(DataList)) && "n_v"%in%names(DataList) ){
@@ -305,7 +304,7 @@ function( DataList,
       }
     }
     Map[["gamma1_j"]] = factor(Map[["gamma1_j"]])
-    Map[["gamma2_j"]] = factor(Map[["gamma1_j"]])
+    Map[["gamma2_j"]] = factor(Map[["gamma2_j"]])
   }
 
   ### Catchability variables
@@ -491,7 +490,7 @@ function( DataList,
       for(cI in 1:DataList$n_c){
       for(pI in seq_pos(DataList$n_p1)){
         if(DataList$X1config_cp[cI,pI] %in% c(0,1)) Map[["Xiinput1_scp"]][,cI,pI] = NA
-        if(DataList$X1config_cp[cI,pI] %in% c(0,1)) Map[["Xiinput2_scp"]][,cI,pI] = NA
+        if(DataList$X2config_cp[cI,pI] %in% c(0,1)) Map[["Xiinput2_scp"]][,cI,pI] = NA
       }}
     }
     if( all(c("X1config_cp","X2config_cp") %in% names(DataList)) ){

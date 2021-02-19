@@ -5,7 +5,8 @@ context("Testing examples")
 
 # Tweedie distribution
 test_that("Tweedie gives identical results to mgcv::gam(.) ", {
-  skip_on_travis()
+  skip_on_ci()
+  skip_if(skip_local)
   library(mgcv)
 
   #library(tweedie)  # Installed from locally from tweedie_2.3.2.tar.gz here: https://cran.r-project.org/web/packages/tweedie/index.html
@@ -34,7 +35,8 @@ test_that("Tweedie gives identical results to mgcv::gam(.) ", {
     Region="other",
     purpose="index2",
     ObsModel = c(10,2),
-    max_cells = Inf )
+    max_cells = Inf,
+    Version = Version_VAST )
   settings$FieldConfig[c('Omega','Epsilon'),c('Component_1','Component_2')] = 0
 
   # Run model
@@ -60,11 +62,13 @@ test_that("Tweedie gives identical results to mgcv::gam(.) ", {
 
 # Eastern Bering Sea pollcok
 test_that("Covariate effects when using a smoother gives identical results to mgcv::gam(.) ", {
-  skip_on_travis()
+  skip_on_ci()
+  skip_if(skip_local)
   library(mgcv)
 
   # Simulate
   data( EBS_pollock_data, package="FishStatsUtils" )
+  EBS_pollock_data = EBS_pollock_data$sampling_data
   pollock_data = EBS_pollock_data[ which(EBS_pollock_data$waterTmpC > -999), ]
 
   # load data set
@@ -82,7 +86,8 @@ test_that("Covariate effects when using a smoother gives identical results to mg
     ObsModel = c(10,2),
     max_cells = Inf,
     fine_scale = FALSE,
-    use_anisotropy = FALSE )
+    use_anisotropy = FALSE,
+    Version = Version_VAST )
   settings$FieldConfig[c('Omega','Epsilon'),c('Component_1','Component_2')] = 0
   settings$FieldConfig['Omega','Component_2'] = 1
   settings$RhoConfig['Beta1'] = 3
@@ -127,7 +132,8 @@ test_that("Covariate effects when using a smoother gives identical results to mg
     ObsModel = c(1,0),
     max_cells = Inf,
     fine_scale = FALSE,
-    use_anisotropy = FALSE )
+    use_anisotropy = FALSE,
+    Version = Version_VAST )
   settings$FieldConfig['Epsilon',c('Component_1','Component_2')] = 0
   #settings$FieldConfig['Omega',c('Component_1','Component_2')] = 0
 

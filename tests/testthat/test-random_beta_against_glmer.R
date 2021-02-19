@@ -5,11 +5,13 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Density covariates give identical results to glmer(.) ", {
-  skip_on_travis()
+  skip_on_ci()
+  skip_if(skip_local)
   library(lme4)
 
   # load data set
   data( EBS_pollock_data, package="FishStatsUtils" )
+  EBS_pollock_data = EBS_pollock_data$sampling_data
   Data = data.frame(EBS_pollock_data,
     "year_factor" = factor(EBS_pollock_data$year,levels=sort(unique(EBS_pollock_data$year))),
     "pres" = ifelse(EBS_pollock_data$catch>0,1,0),
@@ -26,7 +28,8 @@ test_that("Density covariates give identical results to glmer(.) ", {
     FieldConfig=c(0,0,0,0),
     ObsModel=c(1,0),
     RhoConfig=c(1,1,0,0),
-    max_cells=Inf )
+    max_cells=Inf,
+    Version=Version_VAST )
 
   # Run model -- Lognormal
   fit = fit_model( settings=settings,

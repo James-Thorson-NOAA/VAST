@@ -17,7 +17,9 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Eastern Bering Sea pollock is working ", {
-  skip_on_travis()
+  skip_on_ci()
+  skip_if(skip_local)
+
   # Prepping
   test_path = file.path(singlespecies_example_path,"EBS_pollock")
   load( file.path(test_path,"opt.RData") )
@@ -26,12 +28,13 @@ test_that("Eastern Bering Sea pollock is working ", {
   on.exit( detach(Record) )
   # Run model
   data( EBS_pollock_data, package="FishStatsUtils" )
+  EBS_pollock_data = EBS_pollock_data$sampling_data
   Data_Geostat = data.frame( "Catch_KG"=EBS_pollock_data[,'catch'], "Year"=EBS_pollock_data[,'year'], "Vessel"="missing", "AreaSwept_km2"=0.01, "Lat"=EBS_pollock_data[,'lat'], "Lon"=EBS_pollock_data[,'long'], "Pass"=0)
   Extrapolation_List = make_extrapolation_info( Region=Region, strata.limits=strata.limits )
   Spatial_List = make_spatial_info( backwards_compatible_kmeans=TRUE, grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=test_path )
   TmbData = make_data("Version"=Version_VAST, "OverdispersionConfig"=rep(VesselConfig[2],2), "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=c(ObsModel,0), "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(factor(paste(Data_Geostat[,'Vessel'],Data_Geostat[,'Year'])))-1, "t_i"=Data_Geostat[,'Year'], "spatial_list"=Spatial_List )
   TmbList = make_model("TmbData"=TmbData, "build_model"=TRUE, "RunDir"=test_path, "Version"=Version_VAST, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x ) #, "Parameters"=Params)
-  on.exit( dyn.unload(paste0(test_path,"/",TMB::dynlib(Version_VAST))), add=TRUE )
+  #on.exit( dyn.unload(paste0(system.file("executables", package = "VAST"),"/",TMB::dynlib(Version_VAST))), add=TRUE )
   Opt = TMBhelper::fit_tmb( obj=TmbList[["Obj"]], getsd=FALSE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]] )  # , rel.tol=1e-20
   # Comparisons
   Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_ft","logkappa1","beta2_ct","beta2_ft","logkappa1","logSigmaM")]
@@ -41,7 +44,9 @@ test_that("Eastern Bering Sea pollock is working ", {
 
 # Chatham rise
 test_that("Chatham Rise hake is working ", {
-  #skip_on_travis()
+  skip_on_ci()
+  skip_if(skip_local)
+
   # Prepping
   test_path = file.path(singlespecies_example_path,"chatham_rise_hake")
   load( file.path(test_path,"opt.RData") )
@@ -52,10 +57,10 @@ test_that("Chatham Rise hake is working ", {
   data( chatham_rise_hake, package="FishStatsUtils" )
   Data_Geostat = data.frame( "Catch_KG"=chatham_rise_hake[,'Hake_kg_per_km2'], "Year"=chatham_rise_hake[,'Year'], "Vessel"=1, "AreaSwept_km2"=1, "Lat"=chatham_rise_hake[,'Lat'], "Lon"=chatham_rise_hake[,'Lon'])
   Extrapolation_List = make_extrapolation_info( Region=Region, strata.limits=strata.limits )
-  Spatial_List = make_spatial_info( grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=test_path )
+  Spatial_List = make_spatial_info( backwards_compatible_kmeans=TRUE, grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=test_path )
   TmbData = make_data("Version"=Version_VAST, "OverdispersionConfig"=rep(VesselConfig[2],2), "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=c(ObsModel,0), "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(factor(paste(Data_Geostat[,'Vessel'],Data_Geostat[,'Year'])))-1, "t_i"=Data_Geostat[,'Year'], "spatial_list"=Spatial_List )
   TmbList = make_model("TmbData"=TmbData, "RunDir"=test_path, "Version"=Version_VAST, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x)
-  on.exit( dyn.unload(paste0(test_path,"/",TMB::dynlib(Version_VAST))), add=TRUE )
+  #on.exit( dyn.unload(paste0(system.file("executables", package = "VAST"),"/",TMB::dynlib(Version_VAST))), add=TRUE )
   Opt = TMBhelper::fit_tmb( obj=TmbList[["Obj"]], getsd=FALSE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]] )  # , rel.tol=1e-20
   # Comparisons
   Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_ft","logkappa1","beta2_ct","beta2_ft","logkappa1","logSigmaM")]
@@ -65,7 +70,9 @@ test_that("Chatham Rise hake is working ", {
 
 # California Current
 test_that("West Coast groundfish bottom trawl survey, canary rockfish is working ", {
-  #skip_on_travis()
+  skip_on_ci()
+  skip_if(skip_local)
+
   # Prepping
   test_path = file.path(singlespecies_example_path,"WCGBTS_canary")
   load( file.path(test_path,"opt.RData") )
@@ -73,14 +80,15 @@ test_that("West Coast groundfish bottom trawl survey, canary rockfish is working
   attach(Record)
   on.exit( detach(Record) )
   file.copy( from=paste0(test_path,"/Kmeans-100.RData"), to=paste0(test_path,"/Kmeans_knots-100.RData") )
+
   # Run model
   data( WCGBTS_Canary_example, package="FishStatsUtils" )
   Data_Geostat = data.frame( "Catch_KG"=WCGBTS_Canary_example[,'HAUL_WT_KG'], "Year"=as.numeric(sapply(WCGBTS_Canary_example[,'PROJECT_CYCLE'],FUN=function(Char){strsplit(as.character(Char)," ")[[1]][2]})), "Vessel"=WCGBTS_Canary_example[,"VESSEL"], "AreaSwept_km2"=WCGBTS_Canary_example[,"AREA_SWEPT_HA"]/1e2, "Lat"=WCGBTS_Canary_example[,'BEST_LAT_DD'], "Lon"=WCGBTS_Canary_example[,'BEST_LON_DD'], "Pass"=WCGBTS_Canary_example[,'PASS']-1.5)
   Extrapolation_List = make_extrapolation_info( Region=Region, strata.limits=strata.limits )
-  Spatial_List = make_spatial_info( grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=test_path )
+  Spatial_List = make_spatial_info( backwards_compatible_kmeans=TRUE, grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=test_path )
   TmbData = make_data("Version"=Version_VAST, "OverdispersionConfig"=rep(VesselConfig[2],2), "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=c(ObsModel,0), "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(factor(paste(Data_Geostat[,'Vessel'],Data_Geostat[,'Year'])))-1, "t_i"=Data_Geostat[,'Year'], "spatial_list"=Spatial_List )
   TmbList = make_model("TmbData"=TmbData, "RunDir"=test_path, "Version"=Version_VAST, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x)
-  on.exit( dyn.unload(paste0(test_path,"/",TMB::dynlib(Version_VAST))), add=TRUE )
+  #on.exit( dyn.unload(paste0(system.file("executables", package = "VAST"),"/",TMB::dynlib(Version_VAST))), add=TRUE )
   Opt = TMBhelper::fit_tmb( obj=TmbList[["Obj"]], getsd=FALSE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]] )  # , rel.tol=1e-20
   # Comparisons
   Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_ft","logkappa1","beta2_ct","beta2_ft","logkappa1","logSigmaM")]
@@ -91,9 +99,10 @@ test_that("West Coast groundfish bottom trawl survey, canary rockfish is working
 # Aleutian Islands
 # Test default + Random-walk on spatio-temporal variation
 test_that("Aleutian Islands groundfish bottom trawl survey, POP is working ", {
-  skip_on_travis()
+  skip_on_ci()
+  skip_if(skip_local)
   # Prepping
-  test_path = paste0(singlespecies_example_path,"AI_POP")
+  test_path = file.path(singlespecies_example_path,"AI_POP")
   load( file.path(test_path,"opt.RData") )
   load( file.path(test_path,"Record.RData") )
   attach(Record)
@@ -103,12 +112,12 @@ test_that("Aleutian Islands groundfish bottom trawl survey, POP is working ", {
   data( AI_pacific_ocean_perch, package="FishStatsUtils" )
   Data_Geostat = data.frame( "Catch_KG"=AI_pacific_ocean_perch[,'cpue..kg.km.2.'], "Year"=AI_pacific_ocean_perch[,'year'], "Vessel"="missing", "AreaSwept_km2"=1, "Lat"=AI_pacific_ocean_perch[,'start.latitude'], "Lon"=AI_pacific_ocean_perch[,'start.longitude'], "Pass"=0)
   Extrapolation_List = make_extrapolation_info( Region=Region, strata.limits=strata.limits )
-  Spatial_List = make_spatial_info( grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=test_path )
+  Spatial_List = make_spatial_info( backwards_compatible_kmeans=TRUE, grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=test_path )
   # grid_size_km=grid_size_km; n_x=n_x; Method=Method; Lon=Data_Geostat[,'Lon']; Lat=Data_Geostat[,'Lat']; Extrapolation_List=Extrapolation_List; randomseed=Kmeans_Config[["randomseed"]]; nstart=Kmeans_Config[["nstart"]]; iter.max=Kmeans_Config[["iter.max"]]; DirPath=test_path
   # Lon_i=Lon; Lat_i=Lat; anisotropic_mesh=NULL; knot_method=NULL; Method="Mesh"; grid_size_km=50; grid_size_LL=1; Kmeans=NULL; fine_scale=FALSE; Network_sz_LL=NULL; Save_Results=FALSE; LON_intensity=Lon_i; LAT_intensity=Lat_i; backwards_compatible_kmeans=FALSE
   TmbData = make_data("Version"=Version_VAST, "OverdispersionConfig"=rep(VesselConfig[2],2), "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=c(ObsModel,0), "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(factor(paste(Data_Geostat[,'Vessel'],Data_Geostat[,'Year'])))-1, "t_i"=Data_Geostat[,'Year'], "spatial_list"=Spatial_List )
   TmbList = make_model("TmbData"=TmbData, "RunDir"=test_path, "Version"=Version_VAST, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x)
-  on.exit( dyn.unload(paste0(test_path,"/",TMB::dynlib(Version_VAST))), add=TRUE )
+  #on.exit( dyn.unload(paste0(system.file("executables", package = "VAST"),"/",TMB::dynlib(Version_VAST))), add=TRUE )
   Opt = TMBhelper::fit_tmb( obj=TmbList[["Obj"]], getsd=FALSE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]] )  # , rel.tol=1e-20
   # Comparisons
   Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_ft","logkappa1","beta2_ct","beta2_ft","logkappa1","logSigmaM")]

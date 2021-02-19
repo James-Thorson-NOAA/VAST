@@ -17,7 +17,8 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Catchability covariates give identical results to glm(.) ", {
-  skip_on_travis()
+  #skip_on_ci()
+  skip_if(skip_local)
 
   # load data set
   example = load_example( data_set="covariate_example" )
@@ -39,7 +40,7 @@ test_that("Catchability covariates give identical results to glm(.) ", {
   # Make settings (turning off bias.correct to save time for example)
   settings1 = make_settings( n_x=100, Region=example$Region, purpose="index2",
     use_anisotropy=FALSE, strata.limits=example$strata.limits, bias.correct=FALSE, fine_scale=TRUE,
-    FieldConfig=c(0,0,0,0), ObsModel=c(1,0) )
+    FieldConfig=c(0,0,0,0), ObsModel=c(1,0), Version=Version_VAST )
 
   # Define formula
   formula = ~ factor(Depth_bin)

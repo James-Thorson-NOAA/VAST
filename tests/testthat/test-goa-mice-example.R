@@ -3,14 +3,16 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Gulf of Alaska MICE-in-space example is working ", {
-  skip_on_travis()
+  skip_on_ci()
+  skip_if(skip_local)
 
   # Prepping
   test_path = file.path(multispecies_example_path,"goa_mice_example")
   example = load_example( "GOA_MICE_example" )
   load( file.path(test_path,"saved_estimates.RData") )
   load( file.path(test_path,"settings.RData") )
-  settings$Version = FishStatsUtils::get_latest_version()
+  #settings$Version = FishStatsUtils::get_latest_version()
+  settings$Version = Version_VAST
   attach(settings)
   on.exit( detach(settings) )
 

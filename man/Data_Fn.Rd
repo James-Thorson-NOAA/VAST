@@ -6,9 +6,13 @@
 \usage{
 Data_Fn(...)
 }
+\arguments{
+\item{...}{Arguments to be passed to \code{make_data}}
+}
 \description{
 Included for continuity when using old scripts
 }
 \details{
-Please use \code{?VAST::make_data} to see list of arguments and usage
+Please use \code{?VAST::make_data} to see list of arguments
+and usage
 }

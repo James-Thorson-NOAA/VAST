@@ -143,13 +143,13 @@ Type dinverse_gaussian(Type x, Type mean, Type cv, int give_log=0){
 // Simulate from tweedie
 // Adapted from tweedie::rtweedie function in R
 template<class Type>
-Type rtweedie( Type mu, Type phi, Type power){
-  Type lambda = pow(mu, Type(2.0) - power) / (phi * (Type(2.0) - power));
-  Type alpha = (Type(2.0) - power) / (Type(1.0) - power);
-  Type gam = phi * (power - Type(1.0)) * pow(mu, power - Type(1.0));
-  Type N = rpois(lambda);
-  Type B = rgamma(-N * alpha, gam);   /// Using Shape-Scale parameterization
-  return B;
+Type rTweedie( Type mu, Type phi, Type power){
+ Type lambda = pow(mu, Type(2.0) - power) / (phi * (Type(2.0) - power));
+ Type alpha = (Type(2.0) - power) / (Type(1.0) - power);
+ Type gam = phi * (power - Type(1.0)) * pow(mu, power - Type(1.0));
+ Type N = rpois(lambda);
+ Type B = rgamma(-N * alpha, gam);   /// Using Shape-Scale parameterization
+ return B;
 }
 
 // Generate loadings matrix for covariance
@@ -497,22 +497,22 @@ matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, mat
     // If anyone needs to use these features, please remove comments from local copy
     // and then proceed.
   if( method==3 ){
-  //  BplusI_ff = Chi_fr * Psi_rf + Identity_ff;
-  //  // Extract eigenvalues
-  //  vector< std::complex<Type> > eigenvalues_B_ff = B_ff.eigenvalues();
-  //  vector<Type> real_eigenvalues_B_ff = eigenvalues_B_ff.real();
-  //  vector<Type> imag_eigenvalues_B_ff = eigenvalues_B_ff.imag();
-  //  vector<Type> mod_eigenvalues_B_ff( n_f );
-  //  // Calculate maximum eigenvalues
-  //  Type MaxEigen = 1;
-  //  for(int f=0; f<n_f; f++){
-  //    mod_eigenvalues_B_ff(f) = pow( pow(real_eigenvalues_B_ff(f),2) + pow(imag_eigenvalues_B_ff(f),2), 0.5 );
-  //    MaxEigen = CppAD::CondExpGt(mod_eigenvalues_B_ff(f), MaxEigen, mod_eigenvalues_B_ff(f), MaxEigen);
-  //  }
-  //  // Rescale interaction matrix
-  //  BplusI_ff = BplusI_ff / MaxEigen;
-  //  B_ff = BplusI_ff - Identity_ff;
-  //  jnll_pointer += CppAD::CondExpGe( MaxEigen, Type(1.0), pow(MaxEigen-Type(1.0),2), Type(0.0) );
+    //BplusI_ff = Chi_fr * Psi_rf + Identity_ff;
+    //// Extract eigenvalues
+    //vector< std::complex<Type> > eigenvalues_B_ff = B_ff.eigenvalues();
+    //vector<Type> real_eigenvalues_B_ff = eigenvalues_B_ff.real();
+    //vector<Type> imag_eigenvalues_B_ff = eigenvalues_B_ff.imag();
+    //vector<Type> mod_eigenvalues_B_ff( n_f );
+    //// Calculate maximum eigenvalues
+    //Type MaxEigen = 1;
+    //for(int f=0; f<n_f; f++){
+    //  mod_eigenvalues_B_ff(f) = pow( pow(real_eigenvalues_B_ff(f),2) + pow(imag_eigenvalues_B_ff(f),2), 0.5 );
+    //  MaxEigen = CppAD::CondExpGt(mod_eigenvalues_B_ff(f), MaxEigen, mod_eigenvalues_B_ff(f), MaxEigen);
+    //}
+    //// Rescale interaction matrix
+    //BplusI_ff = BplusI_ff / MaxEigen;
+    //B_ff = BplusI_ff - Identity_ff;
+    //jnll_pointer += CppAD::CondExpGe( MaxEigen, Type(1.0), pow(MaxEigen-Type(1.0),2), Type(0.0) );
   }
   return B_ff;
 }
@@ -1637,7 +1637,7 @@ Type objective_function<Type>::operator() ()
         LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0), true );
         // Simulate new values when using obj.simulate()
         SIMULATE{
-          b_i(i) = rtweedie( R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0) );   // Defined above
+          b_i(i) = rTweedie( R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0) );   // Defined above
         }
       }
       ///// Likelihood for models with discrete support
