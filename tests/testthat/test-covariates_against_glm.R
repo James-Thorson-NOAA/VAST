@@ -84,11 +84,16 @@ test_that("Density covariates give identical results to glm(.) ", {
   # Run model -- Lognormal
   #source( "C:/Users/James.Thorson/Desktop/Git/FishStatsUtils/R/fit_model.R")
   #source( "C:/Users/James.Thorson/Desktop/Git/VAST/R/make_data.R")
-  fit1 = fit_model( settings=settings1, Lat_i=example$sampling_data[,'Lat'],
-    Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
-    b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],
-    X1_formula=formula, X2_formula=formula, covariate_data=example$covariate_data,
-    working_dir=multispecies_example_path )
+  fit1 = fit_model( settings=settings1,
+       Lat_i=example$sampling_data[,'Lat'],
+       Lon_i=example$sampling_data[,'Lon'],
+       t_i=example$sampling_data[,'Year'],
+       b_i=example$sampling_data[,'Catch_KG'],
+       a_i=example$sampling_data[,'AreaSwept_km2'],
+       X1_formula=formula,
+       X2_formula=formula,
+       covariate_data=example$covariate_data,
+       working_dir=multispecies_example_path )
   fit1B = fit_model( settings=settings1, Lat_i=example$sampling_data[,'Lat'],
     Lon_i=example$sampling_data[,'Lon'], t_i=example$sampling_data[,'Year'],
     b_i=example$sampling_data[,'Catch_KG'], a_i=example$sampling_data[,'AreaSwept_km2'],

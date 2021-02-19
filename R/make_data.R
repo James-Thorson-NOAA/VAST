@@ -343,7 +343,7 @@ function( b_i,
     }
   }
   if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v11_0_0") ){
-    if( X1_formula != ~0 | X1_formula != ~0 ){
+    if( X1_formula != ~0 | X2_formula != ~0 ){
       stop("`X1_formula` and `X2_formula`; to use these please use `Version='VAST_v12_0_0'` or higher")
     }
   }
@@ -405,14 +405,14 @@ function( b_i,
 
       # First linear predictor
       covariate_list = FishStatsUtils::make_covariates( formula=X1_formula, covariate_data=covariate_data, Year_i=t_i,
-        spatial_list=spatial_list, spatial_list=spatial_list )
+        spatial_list=spatial_list )
       X1_gtp = covariate_list$X_gtp
       X1_itp = covariate_list$X_itp
       X1_gctp = aperm( outer(X1_gtp,rep(1,n_c)), c(1,4,2,3) )
 
       # Second linear predictor
       covariate_list = FishStatsUtils::make_covariates( formula=X2_formula, covariate_data=covariate_data, Year_i=t_i,
-        spatial_list=spatial_list, spatial_list=spatial_list )
+        spatial_list=spatial_list )
       X2_gtp = covariate_list$X_gtp
       X2_itp = covariate_list$X_itp
       X2_gctp = aperm( outer(X2_gtp,rep(1,n_c)), c(1,4,2,3) )
