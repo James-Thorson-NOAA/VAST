@@ -22,7 +22,8 @@ test_that("Zero-inflated Poisson gives identical results to pscl::zeroinfl(.) ",
   settings <- make_settings(n_x = 10,
                             Region = "other",
                             ObsModel = c(7, 0),
-                            purpose = "index")
+                            purpose = "index",
+                            Version = Version_VAST )
 
   ## Run zero-inflated Poisson
   fit0 <- fit_model(settings = settings,

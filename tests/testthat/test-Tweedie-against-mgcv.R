@@ -35,7 +35,8 @@ test_that("Tweedie gives identical results to mgcv::gam(.) ", {
     Region="other",
     purpose="index2",
     ObsModel = c(10,2),
-    max_cells = Inf )
+    max_cells = Inf,
+    Version = Version_VAST )
   settings$FieldConfig[c('Omega','Epsilon'),c('Component_1','Component_2')] = 0
 
   # Run model
@@ -84,7 +85,8 @@ test_that("Covariate effects when using a smoother gives identical results to mg
     ObsModel = c(10,2),
     max_cells = Inf,
     fine_scale = FALSE,
-    use_anisotropy = FALSE )
+    use_anisotropy = FALSE,
+    Version = Version_VAST )
   settings$FieldConfig[c('Omega','Epsilon'),c('Component_1','Component_2')] = 0
   settings$FieldConfig['Omega','Component_2'] = 1
   settings$RhoConfig['Beta1'] = 3
@@ -129,7 +131,8 @@ test_that("Covariate effects when using a smoother gives identical results to mg
     ObsModel = c(1,0),
     max_cells = Inf,
     fine_scale = FALSE,
-    use_anisotropy = FALSE )
+    use_anisotropy = FALSE,
+    Version = Version_VAST )
   settings$FieldConfig['Epsilon',c('Component_1','Component_2')] = 0
   #settings$FieldConfig['Omega',c('Component_1','Component_2')] = 0
 

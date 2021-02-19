@@ -11,7 +11,8 @@ test_that("Gulf of Alaska MICE-in-space example is working ", {
   example = load_example( "GOA_MICE_example" )
   load( file.path(test_path,"saved_estimates.RData") )
   load( file.path(test_path,"settings.RData") )
-  settings$Version = FishStatsUtils::get_latest_version()
+  #settings$Version = FishStatsUtils::get_latest_version()
+  settings$Version = Version_VAST
   attach(settings)
   on.exit( detach(settings) )
 

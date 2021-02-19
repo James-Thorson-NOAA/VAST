@@ -10,7 +10,8 @@ test_that("Stream network example is working ", {
   load( file.path(test_path,"parameter_estimates.RData") )
   load( file.path(test_path, "settings.RData"))
   settings$max_cells = Inf
-  settings$Version = FishStatsUtils::get_latest_version()
+  #settings$Version = FishStatsUtils::get_latest_version()
+  settings$Version = Version_VAST
   attach(settings)
   on.exit( detach(settings) )
 

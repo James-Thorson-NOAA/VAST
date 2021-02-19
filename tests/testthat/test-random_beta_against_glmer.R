@@ -27,7 +27,8 @@ test_that("Density covariates give identical results to glmer(.) ", {
     FieldConfig=c(0,0,0,0),
     ObsModel=c(1,0),
     RhoConfig=c(1,1,0,0),
-    max_cells=Inf )
+    max_cells=Inf,
+    Version=Version_VAST )
 
   # Run model -- Lognormal
   fit = fit_model( settings=settings,
