@@ -1,0 +1,429 @@
+---
+title: "Fitting seasonal and intra-annual models with VAST"
+author: "Andrew Allyn, Arnaud Grüss and Jim Thorson"
+date: "2/19/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, out.width = 80, tidy.opts = list(width.cutoff = 60), tidy = "formatR")
+```
+
+## Overview
+This document demonstrates how to fit seasonal or other intra-annual models using VAST, pulling heavily from the first paper using this method by [Thorson et al. (2020) - "Seasonal and interannual variation in spatio-temporal models for index standardization and phenology studies."](https://academic.oup.com/icesjms/article-abstract/77/5/1879/5837191) The goal of this model is to represent variability in species occurrence among years AND within years, while continuing to use VAST's other advantages (accounting for unmeasured persistent and ephemeral spatial variability and adding autoregressive structure to model parameters, etc.). Technically, this goal is accomplished by estimating main effects for season and year terms (both done using spatially-varying coefficient approaches), an interaction of season and year with an autoregressive structure (this is the spatio-temporal variability or Epsilon term in annual VAST models), and finally a persistent spatial variability term. Along with estimating the seasonal (or within year) variation, including the autoregressive term on the season and year interaction term allows the model to estimate species occurrence even when data are entirely missing for one or more season and year combinations. 
+
+The structure of the document has two main parts. The first part presents the code used in the original analysis with some added comments. This original code requires a fairly extensive understanding of the inner workings of the VAST model -- including covariate model design matrices, specifying parameter effects beyond the "standard" linear effect, and mapping parameters. The second part of the document presents an alternative approach that leverages VAST developments since the original analysis. In particular, this approach builds the same model through the model formula interface and specifying parameter effects beyond the "standard" linear effect. We hope that this second part overcomes some of the challenges associated with implementing the first approach and helps others more easily implement seasonal and intra-annual VAST models.
+
+For both of the analysis implementations we will be using the data used in the orignal paper. These data include Yellowtail flounder survey catch data from the fall and spring NOAA NEFSC bottom trawl survey and the spring Department of Fisheries and Oceans Canada bottom trawl survey.
+
+## Preliminary stuff
+A few preliminary things before we get going.
+```{r}
+# Install latest development version of VAST. If you have issues here, please check the VAST GitHub page and then be sure to also look through the issues (open and closed) as many have provided helpful fixes to common installation problems.
+install.packages("devtools")
+library(devtools)
+install_github("james-thorson/VAST@development")
+library(VAST)
+library(tidyverse)
+
+# Older version of TMB to avoid rtweedie issues (https://github.com/James-Thorson-NOAA/VAST/issues/276#issue-804990507)
+install_version("TMB", version = "1.7.18", repos = "http://cran.us.r-project.org")
+library(TMB)
+```
+
+## Original code and analysis
+### Background and initial data processing
+The data for this analysis is included in the `VAST_SeasonalExampleData.RData` object. This RData object includes four dataframes:  
+- `svdata.fall` and `svdata.spring`: Yellowtail flounder survey catch data from the fall and spring NOAA NEFSC bottom trawl survey 
+- `svdata.dfo`: Yellowtail flounder survey catch data from the spring Department of Fisheries and Oceans Canada bottom trawl survey 
+- `svdata`: Yellowtail flounder survey catch data from all of these surveys combined into one file.
+
+We will work with the combined `svdata` data set. 
+```{r}
+# Load data and quick exploration of structure 
+load(here::here("R", "VAST_SeasonalExampleData.RData"))
+
+# Quick look at data structure 
+str(svdata)
+summary(svdata)
+```
+
+Two quick things to note that might be important in adapting this example to other data. First, this data set has already imputed the "zeros" or absences (tows made and no Yellowtail flounder were caught). Second, the survey coverage is not perfectly balanced. 
+```{r}
+eff<- svdata %>%
+  group_by(., year, season) %>%
+  summarize(., "unique_tows" = n_distinct(id)) %>%
+  pivot_wider(., names_from = season, values_from = unique_tows)
+eff
+```
+
+Now that we have the data, a few processing steps. 
+```{r}
+# Copying svdata to a new object 
+sampling_data<- svdata 
+
+# Set of seasons and years. The DFO spring survey usually occurs before the NOAA NEFSC spring survey, so ordering accordingly.
+season_set<- c("DFO", "SPRING", "FALL")
+year_set<- sort(unique(sampling_data[,'year']))
+```
+
+For this model, we want a column that indicates the season and year of each observation. Additionally, we want to include season and year combinations that were not surveyed. For example, even though there was no DFO spring survey in 1985, we want to include this season and year in our time series and leverage the autoregressive component of the fitted model to predict occurrence at unsampled times/areas.
+```{r}
+# Create a grid with all unique combinations of seasons and years and then combine these into one "season_year" variable
+seasonyear_grid<- expand.grid("season" = season_set, "year" = year_set)
+t_levels<- apply(seasonyear_grid, MARGIN = 1, FUN = paste, collapse = "_")
+```
+
+Along with the character string of season_year, we need to represent this as an ordered numeric variable, as well. This numeric value includes the year of the observation and then a decimal value depending on if the survey was from DFO, NEFSC Spring or NEFSC Fall. With three potential surveys within a year, the decimal values here are 0, 0.6 and 0.7. 
+```{r}
+t_labels<- round(seasonyear_grid[,'year'] + (as.numeric(factor(seasonyear_grid[,'season'], levels = season_set))-1)/length(season_set), digits=1)
+```
+
+Now, back to the sampling_data of actual observations. Repeat a similar process to create a "season_year" variable and then use the `t_levels` above to set the factor levels. This will correctly order the season_year of each observation, even if there are gaps in the sampling time series.
+```{r}
+seasonyear_i<- apply(sampling_data[,c("season","year")], MARGIN = 1, FUN = paste, collapse = "_")
+seasonyear_i<- factor(seasonyear_i, levels = t_levels)
+
+# Add the season_year factor column to our sampling_data data set
+sampling_data <- cbind(sampling_data, "season_year" = seasonyear_i)
+```
+
+Some final quick data cleaning steps, including adding in any "missing" season year combinations with a indicator that these are dummy data.
+```{r}
+sampling_data$season<- factor(sampling_data$season, levels = season_set)
+sampling_data<- sampling_data[, c("year", "season", "season_year", "latitude", "longitude", "swept", "weight")]
+colnames(sampling_data)<- c("year", "season", "season_year", "latitude", "longitude", "swept", "response")
+
+# Lastly, adding in dummy data for missing season_years
+# Make dummy observation for each season-year combination
+dummy_data<- data.frame(year = seasonyear_grid[,'year'], season = seasonyear_grid[,'season'], season_year = t_levels, latitude = mean(sampling_data[,'latitude']), longitude = mean(sampling_data[,'longitude']), swept = mean(sampling_data[,'swept']), response = 0, dummy = TRUE)
+
+# Combine with sampling data
+sampling_data<- rbind(cbind(sampling_data, dummy = FALSE), dummy_data)
+```
+
+### Initial VAST build
+With the data processed, we continue on to build an initial VAST model. This is done to make subsequent modifications later a bit easier, using specific information returned when the model is built.
+
+#### Model settings
+```{r}
+# Extrapolation grid
+maximum_distance_from_sample<- 10
+grid_dim_km<- c(5, 5)
+region_code<- "northwest_atlantic"
+strata.limits<- list("Yellowtail" = c(1130, 1140, 1150, 1160, 1170, 1180, 1190, 1200, 1210))
+
+# Observation model -- "Poisson-link delta model" with lognormal positive catch rate distribution
+ObsModel<- c(1, 1)
+
+# Number of spatial and spatio-temporal factors to use for each linear predictor. Here, using a single species model, and turning spatial and spatio-temporal variability effects for both linear predictors "on".
+FieldConfig<- c("Omega1" = 1, "Epsilon1" = 1, "Omega2" = 1, "Epsilon2" = 1)
+
+# Setting the structure of parameters across season_year surveys. Here, setting intercepts for the first and second linear predictors (Beta) to be estimated as random effects, which are constant across season_years, and then estimating a first order auto-regressive structure for the spatio-temporal variability (Epsilon) of both linear predictors. This implementation facilitates estimating occurrence at unsampled times/areas.
+RhoConfig<- c("Beta1" = 3, "Beta2" = 3, "Epsilon1" = 4, "Epsilon2" = 4)
+Options<- c('treat_nonencounter_as_zero' = TRUE)
+
+# OutFile
+OutFile<- "~/Desktop/VASTIntraAnnualModel/"
+if(!file.exists(OutFile)){
+  dir.create(OutFile)
+}
+
+# Set the run directory
+RunDir<- OutFile
+
+# Make settings
+settings<- make_settings(n_x = 100, Region = region_code, purpose = "index2", FieldConfig = FieldConfig, RhoConfig = RhoConfig, ObsModel = ObsModel, bias.correct = FALSE, strata.limits = strata.limits, Options = Options)
+```
+
+#### Model building
+In building this initial model, an important piece is that we are going to define the `PredTF_i` vector as the dummy column in the sampling data. This means that when the observation is a "dummy" observation (i.e., `PredTF_i == 1` (or TRUE)), it will NOT be used in estimating the likelihood. Instead, we will get a model prediction for this observation. This `PredTF_i` component is also important when using VAST models to make forecasts. 
+```{r}
+Use_REML<- FALSE
+fit<- fit_model("settings" = settings, "Lat_i" = sampling_data[,'latitude'], "Lon_i" = sampling_data[,'longitude'], "t_i" = as.numeric(sampling_data[,"season_year"])-1, "c_i" = rep(0, nrow(sampling_data)), "b_i" = sampling_data[,'response'], "a_i" = sampling_data[,'swept'], "run_model" = FALSE, "observations_LL" = cbind("Lat" = sampling_data[,'latitude'], "Lon" = sampling_data[,'longitude']), "maximum_distance_from_sample" = maximum_distance_from_sample, "grid_dim_km" = grid_dim_km, "working_dir" = RunDir, "PredTF_i" = sampling_data[,'dummy'], "Use_REML" = Use_REML)
+```
+
+### Modifications: Manually adjusting covariate matrices for season and year as well as the parameter effects of season and year
+So far, we have built a basic VAST model with the following configuration:  
+
+- Both first and second linear predictor intercepts estimated as random effects, constant across all seasons and years (`Beta` in `RhoConfig`)
+- Persistent spatial variability for both linear predictors estimated as a random effect (`Omega` in `FieldConfig`)
+- Ephemeral spatio-temporal variability for both linear predictors estimated as random effect (`Epsilon` in `FieldConfig`)
+- Auto-regressive structure of ephemeral spatio-temporal variability for both linear predictors estimated as AR1 process (`Epsilon` in `RhoCOnfig`)
+
+Given this configuration, the variation in species occurrence driven by seasonal variability AND by inter-annual variability is all in the global intercepts (`Beta1` and `Beta2`). In turn, we are unable to distinguish the independent effects of these two variables on the response. Moreover, their combined effect, wrapped up in the intercept, is also constant across the entire study domain. With an aim to better understand each of these sources of variability uniquely, and allow the effect of season (or year) to vary spatially within the study domain, we need to adjust to make some modifications. 
+
+To make these modifications, we are first going to introduce main effects for season and year for both linear predictors. For those who have worked with design (or model) matrices before, the code below is hopefully fairly easy to follow. To those who have not worked with these model components, one way of thinking about this is we are going to create a table with one row for each observation and a column for each of the variables (in this case, season and year). We then populate the table so that there are "1"s in the columns that correspond to the season and year of the specific observations and "O"s for the other columns. **Question here: After creating the design (or model) matrix, we then expand it so that there is...one per model timestep (line 167). Not entirely clear why this is --- spatio-temporal piece??**
+
+```{r}
+## Season covariate matrices
+# For observations
+# Get the season of each observation (1 = DFO, 2 = SPRING, 3 = FALL)
+season_i<- match(sampling_data[,'season'], season_set)
+
+# Now, convert this vector into a design style model matrix -- one row per observation, three columns (one for each season), and a "1" placed in correct season column according to the season of the observation
+Xseason_ip<- ThorsonUtilities::vector_to_design_matrix(season_i)
+# Expand this to have one of these design matrices per time step in the model. 
+Xseason_itp<- aperm(Xseason_ip %o% rep(1, fit$data_list$n_t), c(1,3,2))
+
+# Similar process, but now for the mesh locations
+season_t<- match(seasonyear_grid[,'season'], season_set)
+Xseason_tp<- ThorsonUtilities::vector_to_design_matrix(season_t)
+Xseason_gtp<- rep(1, fit$data_list$n_g) %o% Xseason_tp
+
+## Year covariate matrices
+# For observations
+year_i<- match(sampling_data[,'year'], year_set)
+# Vector to design style model matrix, one row per observation, 33 columns (one for each year), and a "1" placed in correct season column according to the season of the observation
+Xyear_ip<- ThorsonUtilities::vector_to_design_matrix(year_i)
+# Expand
+Xyear_itp<- aperm(Xyear_ip %o% rep(1, fit$data_list$n_t), c(1,3,2))
+
+# For mesh locations
+year_t<- match(seasonyear_grid[,'year'], year_set)
+Xyear_tp<- ThorsonUtilities::vector_to_design_matrix(year_t)
+Xyear_gtp<- rep(1, fit$data_list$n_g) %o% Xyear_tp
+```
+
+Next, we are going to work with the `Xconfig` objects, which define the effect of each parameter on the response. As we discussed earlier, we are going to want to allow the season and year effects to be spatially varying. We do this by manipulating the `Xconfig` parts. For this model, the ideal model would have spatial and spatio-temporal variability turned on for both linear predictors, with the spatio-temporal variability including a first order auto-regressive process. Additionally, the season and year mean effects would be zero-centered and spatially varying. Finally, there would be an auto-correlated season:year interaction term. Preliminary fits resulted in some model parameters hitting bounds (going to zero), prompting some slight model structure modifications to these default, ideal settings. For example, the variance in season and year spatial terms approaches 0 in the second linear predictor. This warrants a switch from implementing the season and year main effects as spatially-varying to non-spatial, linear terms. We show the modified settings below, though encourage users to try fitting the ideal model for their application and then adjust as necessary. 
+
+```{r}
+## Season and year parameter effects
+# First, an empty array for the season effects (rows = linear predictors, columns = categories -- here just 1 with single species model), depth = seasons.
+season_Xconfig_zcp<- array(NA, dim = c(2, 1, ncol(Xseason_ip)), dimnames = list(NULL, NULL, colnames(Xseason_ip)))
+
+# Now, specifying the effects of each. See ?fit_model and the X1config_cp description for details.
+XiConfig<- c("Xi1_season" = 3, "Xi1_year" = 1, "Xi2_season" = 1, "Xi2_year" = 1) 
+
+# Next, supplying the Xi_season info from earlier, where first linear predictor will have a zero-centered, spatially varying effect and second linear predictor will have just a linear effect for each of the seasons
+season_Xconfig_zcp[1,,]<- XiConfig["Xi1_season"]
+season_Xconfig_zcp[2,,]<- XiConfig["Xi2_season"]
+
+# Similar process, but now with the year effect
+year_Xconfig_zcp<- array(NA, dim = c(2, 1, ncol(Xyear_ip)), dimnames = list(NULL, NULL, colnames(Xyear_ip)) )
+year_Xconfig_zcp[1,,]<- XiConfig["Xi1_year"]
+year_Xconfig_zcp[2,,]<- XiConfig["Xi2_year"]
+
+# Adjustments. From the original code:
+# If Design="Both" and no RhoConfig structure, then drop two DF (corner constraint for season and year main effects, one for corner constraint of main effects + interactions)
+# If using RhoConfig structure, drop one less DF. 
+# If Design!="Both, drop one less DF
+# SOLUTION:  Drop one level from each Season and Year effect
+Design<- "Both"
+FUN = function(num){
+  if(num == 1) return(0)
+  if(num == 3) return(2)
+  return(num)
+}
+
+# Now, looking at the original settings and then applying the adjustments.
+season_Xconfig_zcp[1,,1] # 3, indicating spatially varying effect season on the first linear predictor
+season_Xconfig_zcp[1,,1]<- FUN(season_Xconfig_zcp[1,,1])
+season_Xconfig_zcp[1,,1] # 2, indicating zero-centered spatially varying effect of first season on the first linear predictor. 
+season_Xconfig_zcp[2,,1] # 1, indicating linear effect
+season_Xconfig_zcp[2,,1]<- FUN(season_Xconfig_zcp[2,,1])
+season_Xconfig_zcp[2,,1] # 0, indicating that there will be no effect of first season on the second linear predictor
+
+# Similar process, but now with year
+year_Xconfig_zcp[1,,1] #1, indicating linear effect of first year on first linear predictor
+year_Xconfig_zcp[1,,1]<- FUN(year_Xconfig_zcp[1,,1])
+year_Xconfig_zcp[1,,1] #0, indicating no year effect of first year on first linear predictor
+year_Xconfig_zcp[2,,1] #1, indicating linear effect of first year on first linear predictor
+year_Xconfig_zcp[2,,1]<- FUN(year_Xconfig_zcp[2,,1])
+year_Xconfig_zcp[2,,1] #0, indicating no year effect of first year on first linear predictor
+
+# Finally, combine all the information into the three core objects (X_itp, X_gtp and Xconfig_zcp)
+# Combine season and year matrices for observations and then mesh locations
+Xconfig_zcp = X_itp = X_gtp = NULL
+X_itp<- abind::abind(X_itp, Xseason_itp, along = 3)
+str(X_itp)
+X_itp<- abind::abind(X_itp, Xyear_itp, along = 3)
+str(X_itp)
+
+X_gtp<- abind::abind( X_gtp, Xseason_gtp, along=3 )
+X_gtp<- abind::abind( X_gtp, Xyear_gtp, along=3 )
+str(X_gtp)
+
+Xconfig_zcp<- abind::abind(Xconfig_zcp, season_Xconfig_zcp)
+Xconfig_zcp<- abind::abind(Xconfig_zcp, year_Xconfig_zcp)
+Xconfig_zcp
+```
+
+There's quite a bit to look at with the `Xconfig_zcp` object, but we want to highlight a few things:  
+- the effect of DFO "season" is going to have a spatially varying, zero-centered effect in the first linear predictor and no effect in the second linear predictor  
+- Spring and Fall "season" (NOAA surveys) will each have a spatially varying linear effect in the first linear predictor and a linear effect in second linear predictor  
+- the first year of the survey will have no effect (fixed at 0) in either the first or second linear predictor and subsequent years will all have a linear effect in both linear predictors (`Xconfig_zcp[,,3:33]`) 
+
+### Build updated VAST model with new X_itp, X_gtp and Xconfig_zcp objects
+After modifying the covariate matrices and specifying the parameter effects on the response, we can now rebuild the model and supply these objects (`X_itp`, `X_gtp` and `Xconfig_zcp`) to our call to `fit_model`.
+```{r}
+fit_seas<- fit_model("settings" = settings, "Lat_i" = sampling_data[,'latitude'], "Lon_i" = sampling_data[,'longitude'], "t_i" = as.numeric(sampling_data[,"season_year"])-1, "c_i" = rep(0, nrow(sampling_data)), "b_i" = sampling_data[,'response'], "a_i" = sampling_data[,'swept'], newtonsteps = 1, getsd = TRUE, "observations_LL" = cbind("Lat" = sampling_data[,'latitude'], "Lon" = sampling_data[,'longitude']),  "maximum_distance_from_sample" = maximum_distance_from_sample, "grid_dim_km" = grid_dim_km, "run_model" = FALSE, "X_itp" = X_itp, "X_gtp" = X_gtp, "Xconfig_zcp" = Xconfig_zcp, "test_fit" = FALSE, working_dir = RunDir, "PredTF_i" = sampling_data[,'dummy'], "Use_REML" = Use_REML)
+```
+
+We now have a VAST model that differs from our initial fit in that we have implemented season and year main effects, rather than allowing seasonal and inter-annual variation to be assumed in the model intercepts. **The number of coefficients (34) in `gamma1_cp` and `gamma2_cp` are a bit puzzling to me. Overall, if we estimated just a linear effect for every covariate, we'd expect 36 coefficients (3 seasons and 33 years). But, we made some modifications with this as evident in the `Xconfig_zcp` object. In particular, for the first linear predictor, we turned off the effect of the first year. I would then think we should see 35 coefficients? For the second linear predictor, we turned off the effect of the DFO season and the effect of the first year, so I would expect to see 34 coefficients?**
+
+### Adjust `Map` settings and fit final model
+The last step to fit the seasonal model is to adjust the `Map` object, which is a list of tagged parameters allowing us to collect or fix certain parameters. Here, we are interested in adjusting the `log_sigmaXi_cp` parameter and collecting all of the seasons together, while fixing the effects of year. **Not entirely sure what this parameter is? 3 fixed effect coefficients in `fit_seas`, which makes me think it is the log SD of all observations for each season?**
+
+```{r}
+# Get the original just for a comparison
+Map<- fit_seas$tmb_list$Map
+Map_logsigma_orig<- Map$log_sigmaXi1_cp
+str(Map_logsigma_orig) # Vector of length 36 (3 seasons, 33 years), [1] = 1, [2] = 2, [3] = 3 and rest = NA
+
+# Apply customization
+Map$log_sigmaXi1_cp<- factor(c(rep(Map$log_sigmaXi1_cp[1], dim(Xseason_itp)[3]), rep(Map$log_sigmaXi1_cp[dim(Xseason_itp)[3]+1], dim(Xyear_itp)[3])))
+Map$log_sigmaXi2_cp<- factor(c(rep(Map$log_sigmaXi2_cp[1], dim(Xseason_itp)[3]), rep(Map$log_sigmaXi2_cp[dim(Xseason_itp)[3]+1], dim(Xyear_itp)[3])))
+str(Map$log_sigmaXi1_cp) # Vector of length 36 (3 seasons, 33 years), [1] = 1, [2] = 1, [3] = 1 and rest  = NA.
+
+# Refit with new mapping argument
+fit_seas_orig<- fit_model("settings" = settings, "Lat_i" = sampling_data[,'latitude'], "Lon_i" = sampling_data[,'longitude'], "t_i" = as.numeric(sampling_data[,"season_year"])-1, "c_i" = rep(0,nrow(sampling_data)), "b_i" = sampling_data[,'response'], "a_i" = sampling_data[,'swept'], "newtonsteps" = 1, "getsd" = TRUE, "getReportCovariance" = TRUE, "observations_LL" = cbind("Lat" = sampling_data[,'latitude'],"Lon" = sampling_data[,'longitude']), "maximum_distance_from_sample" = maximum_distance_from_sample, "grid_dim_km" = grid_dim_km, "run_model" = TRUE, "X_itp" = X_itp, "X_gtp" = X_gtp, "Xconfig_zcp" = Xconfig_zcp, "test_fit" = FALSE, "Map" = Map, working_dir = RunDir, "PredTF_i" = sampling_data[,'dummy'],  "Use_REML" = Use_REML, "getJointPrecision" = FALSE)
+```
+
+### Understanding key parameters
+Given this new model structure and implementation, it is worth taking a look at the parameters to make sure we understand what we just did. 
+```{r}
+names(fit_seas_new$parameter_estimates$par)
+```
+
+Starting at the top...
+
+-  `ln_H_input` (2) - parameters governing the geometric anisotropy (spatial correlation allowed to vary with direction)  
+-  `beta1_ft` (1) - first linear predictor intercept, the average across all seasons and years (as `RhoConfig['Beta1'] = 3`)  
+-  `gamma1_cp` (34) - can we make sense of these? See question in bold earlier.
+-  `L_omega1_z` - loadings matrix for spatial covariation for 1st linear predictor (as `FieldConfig['Omega1'] = 1`)  
+-  `L_epsilon1_z` - loadings matrix for spatio-temporal variation for 1st linear predictor (as `FieldConfig['Epsilon1'] = 1`)  
+-  `logkappa1` - Decorrelation rate for 1st linear predictor  
+-  `Epsilon_rho1_f` - Autocorrelation for spatio-temporal covariation of 1st linear predictor (as `RhoConfig['Epsilon1'] = 4`)  
+-  `log_sigmaXi1_cp` - Log standard deviation of first linear predictor. The variability estimated here is solely a function of seasonal variation, as seasons were collected together and then all years mapped to NA in the above `Map` work.  
+-  `beta1_ft` through `Epsilon_rho1_f` - As above, just now for the second linear predictor  
+-  `logSigmaM` - parameters governing residual variation
+
+## Fitting seasonal model: working with the model formula interface
+### Background and initial data processing
+Now that we have gone through the original code, we are going to try to replicate the same model using just the model formula interface and working with the `Xconfig_cp` object. We hope that this formulation avoids some of the work that had to be done originally with the covariate matrices and makes things a bit easier for folks to follow. This code picks up after creating the final `sampling_data` object (line 71). 
+
+With the `sampling_data` file, we are first going to create a "sample data" dataframe and ten a "covariate data" dataframe. This follows along the lines of what is done in other VAST applications when covariates are included. Here, we will specifically include season and year as the model covariates. After a bunch of different attempts, it looks like we are also going to need to trick the model somewhat by having a "Year" covariate and then having "Year" specified in the sample dataframe and covariate dataframe such that it is an ordered numeric vector, starting at 0, and indicating the time step of each observation (i.e., the season_year). 
+
+```{r}
+str(sampling_data)
+
+# Creating a sample and covariate data frame. The `make_covariates` function, which uses data supplied to the covariate_data argument in `fit_model` is looking for specific column names.  
+# Create sample data
+samp_dat<- data.frame("spp" = rep("Yellowtail", nrow(sampling_data)), "Year" = as.numeric(sampling_data$season_year)-1, "Season" = sampling_data$season, "Season_Year" = sampling_data$season_year, "Lat" = sampling_data$latitude, "Lon" = sampling_data$longitude, "Response" = sampling_data$response, "Swept" = sampling_data$swept, "Dummy" = sampling_data$dummy)
+
+# Covariate data. Note here, case sensitive!
+cov_dat<- data.frame("spp" = rep("Yellowtail", nrow(sampling_data)), "Year" = as.numeric(sampling_data$season_year)-1, "Year_Cov" = factor(sampling_data$year, levels = year_set), "Season" = sampling_data$season, "Lat" = sampling_data$latitude, "Lon" = sampling_data$longitude)
+```
+
+A quick note here. If we were including other "standard" habitat covariates (e.g., depth, temperature), we would want to make sure to rescale these variables to increase numerical stability. Since we are just working with season (factor) and then year (integer), we will not do any rescaling.
+
+### Model settings
+As mentioned previously, this seasonal (or intra-annual) VAST model is going to be based on a model that has:  
+- Season and year main effects
+- Autocorrelated season-year interaction, which is the spatio-temporal variation with an auto-regressive structure
+- Spatial variation
+
+Using this as a start, lets create a simple model formula. Here, we are going to 
+```{r}
+# Creating model formula
+formula_use<- ~ Season + Year_Cov
+```
+
+At a risk of being redundant, let's build a model that uses this model formula and the previous settings for `FieldConfig` and `RhoConfig`, without any modifications to `Map` or the other objects. 
+```{r}
+fit_seas_form_basic<- fit_model("settings" = settings, "Lat_i" = samp_dat[,'Lat'], "Lon_i" = samp_dat[,'Lon'], "t_i" = samp_dat[,'Year'], "c_i" = rep(0, nrow(samp_dat)), "b_i" = samp_dat[,'Response'], "a_i" = samp_dat[,'Swept'], "covariate_data" = cov_dat, "X1_formula" = formula_use, "X2_formula" = formula_use, "newtonsteps" = 1, "getsd" = TRUE, "getReportCovariance" = TRUE, "observations_LL" = cbind("Lat" = samp_dat[,'Lat'], "Lon" = samp_dat[,'Lon']), "maximum_distance_from_sample" = maximum_distance_from_sample, "grid_dim_km" = grid_dim_km, "run_model" = FALSE, "test_fit" = FALSE, working_dir = RunDir, "PredTF_i" = samp_dat[,'Dummy'], "Use_REML" = Use_REML, "getJointPrecision" = FALSE)
+```
+
+Okay, we can see here from the output to the console that we have specified a model that is *close* to what we eventually want. Though, we still have some work to do to correctly implement the `Season` and `Year_Cov` covariates. **As is, I think we are getting a fixed main effect for two/three seasons (Spring, and Fall), with DFO variability absorbed by the intercept and then an estimate for every year AFTER the first year, with the first year variability again absorbed by the intercept as the reference level** 
+
+To correctly implement the model, we need to modify the `Xconfig_cp` object that defines how `Season` and `Year_Cov` will be fit. 
+```{r}
+# First, let's start off with a simple situation where we want to estimate each season and year main effect as spatially-varying zero-centered in both linear predictors.
+season_effect<- rep(2, length(levels(cov_dat$Season)))
+year_cov_effect<- rep(2, length(unique(cov_dat$Year_Cov)))
+
+# Alright, since we only have one species/category, this is going to make very simple `Xconfig_cp` matrices for each of the linear predictors with all 2's.
+X1config_cp_use<- matrix(data = c(season_effect, year_cov_effect), nrow = 1)
+X2config_cp_use<- matrix(data = c(season_effect, year_cov_effect), nrow = 1)
+```
+
+At this point, we also need to address the original corner constraints. **It would seem that to do this we would set the first season and the first year (rows 1 and 4, respectively) values in the matrices to be 0. But, this isn't the case as we can see from the `Xconfig` objects from the original analysis.**
+```{r}
+# Original Xconfig objects
+fit_seas_new$data_list$X1config_cp
+fit_seas_new$data_list$X2config_cp
+```
+
+To make life simple, we can just force these two things to match, while noting that we can customize these effects to be structured however we need.
+```{r}
+# Force match of Xconfig objects
+X1config_cp_use[,]<- fit_seas_new$data_list$X1config_cp
+X2config_cp_use[,]<- fit_seas_new$data_list$X2config_cp
+```
+
+Now, let's build the model, while supplying the two `Xconfig` objects.
+```{r}
+fit_seas_form<- fit_model("settings" = settings, "Lat_i" = samp_dat[, 'Lat'], "Lon_i" = samp_dat[, 'Lon'], "t_i" = samp_dat[, 'Year'], "c_i" = rep(0, nrow(samp_dat)), "b_i" = samp_dat[, 'Response'], "a_i" = samp_dat[, 'Swept'], "X1config_cp" = X1config_cp_use, "X2config_cp" = X2config_cp_use, "covariate_data" = cov_dat, "X1_formula" = formula_use, "X2_formula" = formula_use, "newtonsteps" = 1, "getsd" = TRUE, "getReportCovariance" = TRUE, "observations_LL" = cbind("Lat" = samp_dat[, 'Lat'], "Lon" = samp_dat[, 'Lon']), "maximum_distance_from_sample" = maximum_distance_from_sample, "grid_dim_km" = grid_dim_km, "run_model" = FALSE, "test_fit" = FALSE, working_dir = RunDir, "PredTF_i" = samp_dat[, 'Dummy'], "Use_REML" = Use_REML, "getJointPrecision" = FALSE)
+```
+
+Getting an error about dimensions with `create_Xconfig.` This seems to be arising because the `create_config` function is pulling the number of parmeters from `dim(X1_gctp)[4]`, which is returning 34. In contrast, we have specified information in `Xconfig_cp` for 36 parameters. After some digging, it looks like this is going to come down to modifying line 17 of the `make_covariates` function. This line creates a model matrix based on a given formula and covariate dataframe. When we do this, we see that the model matrix drops both the first season ("DFO") AND the first year (1985). This is the default contrast behaviors for factors, which sets the first level of the factor as the reference level. This is a problem for us because ithe intercept in the model matrix object now includes the DFO season AND year 1985, conflating the seasonal and inter-annual variability. Moreover, we see that the 1's and 0's are not placed how we want them. For example, the first observation is spring 1985. In the model_matrix, though, this observation has the intercept, and SeasonSpring. 
+
+**I am not sure the best way forward here.** I like the idea of continuing to try to keep things simple while interacting only with the `fit_model` wrapper function. That said, I am not entirely sure if that is really the best route? In any event, trying something out, which would hopefully mean minimal edits to existing VAST functions. What if we supply a contrasts lists as an argument in `fit_model` and retain all levels of each of the factors? If we try this, we still get an error. This is because we need to modify the `make_covariates` function to allow passing of the contrasts list from the call in `fit_model` through to the model_matrix bit. There's an upstream effect, though, and we will also need to modify `make_data` to use the modified `make_covariates` function and finally the `fit_model` wrapper to use the new `make_data` function. Realizing there are other options here, I do wonder if these slight changes would provide the greatest flexibility in the long run, while still being somewhat user-friendly?
+
+After making the adjustments to these functions (I renamed them with a "_aja" suffix), we can try to rebuild and refit the model if all looks good. **For this to run you will need to change the `eval = FALSE` to `TRUE`. I've set it this way as this chunk took a really long time to run on my local machine (~ 7 hours). In contrast, the original model code only too X hours to run.**
+```{r, eval = FALSE}
+fit_seas_form<- fit_model_aja("settings" = settings, "Lat_i" = samp_dat[, 'Lat'], "Lon_i" = samp_dat[, 'Lon'], "t_i" = samp_dat[, 'Year'], "c_i" = rep(0, nrow(samp_dat)), "b_i" = samp_dat[, 'Response'], "a_i" = samp_dat[, 'Swept'], "X1config_cp" = X1config_cp_use, "X2config_cp" = X2config_cp_use, "covariate_data" = cov_dat, "X1_formula" = formula_use, "X2_formula" = formula_use, contrasts = list(Season=contrasts(covariate_df$Season, contrasts = FALSE), Year_Cov = contrasts(covariate_df$Year_Cov, contrasts = FALSE)), "newtonsteps" = 1, "getsd" = TRUE, "getReportCovariance" = TRUE, "observations_LL" = cbind("Lat" = samp_dat[, 'Lat'], "Lon" = samp_dat[, 'Lon']), "maximum_distance_from_sample" = maximum_distance_from_sample, "grid_dim_km" = grid_dim_km, "run_model" = FALSE, "test_fit" = FALSE, working_dir = RunDir, "PredTF_i" = samp_dat[, 'Dummy'], "Use_REML" = Use_REML, "getJointPrecision" = FALSE)
+
+# All set, switch run_model to TRUE and fit it
+fit_seas_form<- fit_model_aja("settings" = settings, "Lat_i" = samp_dat[, 'Lat'], "Lon_i" = samp_dat[, 'Lon'], "t_i" = samp_dat[, 'Year'], "c_i" = rep(0, nrow(samp_dat)), "b_i" = samp_dat[, 'Response'], "a_i" = samp_dat[, 'Swept'], "X1config_cp" = X1config_cp_use, "X2config_cp" = X2config_cp_use, "covariate_data" = cov_dat, "X1_formula" = formula_use, "X2_formula" = formula_use, contrasts = list(Season=contrasts(covariate_df$Season, contrasts = FALSE), Year_Cov = contrasts(covariate_df$Year_Cov, contrasts = FALSE)), "newtonsteps" = 1, "getsd" = TRUE, "getReportCovariance" = TRUE, "observations_LL" = cbind("Lat" = samp_dat[, 'Lat'], "Lon" = samp_dat[, 'Lon']), "maximum_distance_from_sample" = maximum_distance_from_sample, "grid_dim_km" = grid_dim_km, "run_model" = TRUE, "test_fit" = FALSE, working_dir = RunDir, "PredTF_i" = samp_dat[, 'Dummy'], "Use_REML" = Use_REML, "getJointPrecision" = FALSE)
+```
+
+On the surface, things look really good here. The one thing to note is that now we have three `log_sigmaXi1_cp` using the new model formula implementation. I believe this is just because we have not adjusted the `Map` argument yet, and it shouldn't influence the other parameter estimates.
+
+## Comparing results from original implementation and "new" formula implementation
+With the two approaches complete, we can make some plots to see if we were successful in using the model formula to implement the same seasonal model as the original.
+
+```{r}
+fit_mods<- list(fit_seas_orig, fit_seas_form)
+names(fit_mods)<- c("Original", "New")
+params_list<- vector("list", length(fit_mods))
+settings_list<- vector("list", length(fit_mods))
+Xconfig_comp<- vector("list", length(fit_mods))
+
+for(i in seq_along(fit_mods)){
+  mod<- fit_mods[[i]]
+  field_config<- mod$data_list$FieldConfig
+  rho_config<- mod$data_list$RhoConfig
+  settings_list[[i]]<- list(field_config, rho_config)
+  Xconfig_comp[[i]]<- mod$data_list$Xconfig_zcp
+  params<- mod$parameter_estimates$diagnostics
+  params$model<- rep(names(fit_mods)[i], nrow(params))
+  params_list[[i]]<- params
+}
+
+# Visualizing the differences...want the difference and to check the sign?
+params_df<- do.call(rbind.data.frame, params_list)
+
+# More descriptive parameter names?
+unique(params_df$Param)
+param_namesA<- c("ln_H_input1", "ln_H_input2", "beta1_ft", c(paste("gamma1_cp_", seq(1:34), sep = "")), "L_omega1_z", "L_epsilon1_z", "logkappa1", "Epsilon_rho1_f", "log_sigmaXi1_cp1", "beta2_ft", c(paste("gamma2_cp_", seq(1:34), sep = "")), "L_omega2_z", "L_epsilon2_z", "logkappa2", "Epsilon_rho2_f", "logSigmaM")
+param_namesB<- c("ln_H_input1", "ln_H_input2", "beta1_ft", c(paste("gamma1_cp_", seq(1:34), sep = "")), "L_omega1_z", "L_epsilon1_z", "logkappa1", "Epsilon_rho1_f", c(paste("log_sigmaXi1_cp", seq(1:3), sep = "")), "beta2_ft", c(paste("gamma2_cp_", seq(1:34), sep = "")), "L_omega2_z", "L_epsilon2_z", "logkappa2", "Epsilon_rho2_f", "logSigmaM")
+params_df$Param_Plot<- c(param_namesA, param_namesB)
+params_df$Param_Plot<- factor(params_df$Param_Plot, levels = c("ln_H_input1", "ln_H_input2", "beta1_ft", c(paste("gamma1_cp_", seq(1:34), sep = "")), "L_omega1_z", "L_epsilon1_z", "logkappa1", "Epsilon_rho1_f", c(paste("log_sigmaXi1_cp", seq(1:3), sep = "")), "beta2_ft", c(paste("gamma2_cp_", seq(1:34), sep = "")), "L_omega2_z", "L_epsilon2_z", "logkappa2", "Epsilon_rho2_f", "logSigmaM"))
+
+comp_plot<- ggplot() +
+    geom_point(data = params_df, aes(x = Param_Plot, y = MLE, color = model, shape = model), size = 4) +
+    scale_shape_manual(name = "Model Code", values = c(21, 3)) +
+    scale_color_manual(name = "Model Code", values = c("#1b9e77", "#7570b3")) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.25, hjust = 1))
+comp_plot
+ggsave("~/Desktop/VASTOrigvsNewPlot.jpg", comp_plot, width = 12, height = 8, dpi = 200, units = "in")
+```
+
+
+
+
