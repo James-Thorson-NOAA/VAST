@@ -108,6 +108,7 @@
 #'        \code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}
 #' @param X2_formula same as \code{X1_formula} but affecting the 2nd linear predictor for density
 #' @param covariate_data data-frame of covariates for use when specifying \code{X1_formula} and \code{X2_formula}
+#' @param contrasts list defining the contrasts for each factor specified in \code{formula} with specification according to \code{\link{stats::contrasts}}. By default uses \code{contrasts = NULL}, which will set the first level of each factor as the reference level.
 #' @param X1config_cp matrix of settings for each density covariate for the 1st lienar predictor,
 #'        where the row corresponds to model category, and column corresponds to each density covariate
 #' \describe{
@@ -180,6 +181,7 @@ function( b_i,
           Aniso = TRUE,
           PredTF_i = rep(0,length(b_i)),
           covariate_data = NULL,
+          contrasts = NULL,
           X1_formula = ~0,
           X2_formula = ~0,
           X1config_cp = NULL,
@@ -387,7 +389,7 @@ function( b_i,
       if( "formula" %in% names(alternate_inputs) ){
         Covariates_created = TRUE
         warning("Using input `formula` to generate covariates. This interface is soft-deprecated but still available for backwards compatibility; please switch to using `X1_formula` and `X2_formula`")
-        covariate_list = FishStatsUtils::make_covariates( formula=alternate_inputs[["formula"]], covariate_data=covariate_data, contrasts=NULL, Year_i=t_i,
+        covariate_list = FishStatsUtils::make_covariates( formula=alternate_inputs[["formula"]], covariate_data=covariate_data, contrasts=contrasts, Year_i=t_i,
           spatial_list=spatial_list )
         X1_gtp = X2_gtp = covariate_list$X_gtp
         X1_itp = X2_itp = covariate_list$X_itp
@@ -404,14 +406,14 @@ function( b_i,
       }
 
       # First linear predictor
-      covariate_list = FishStatsUtils::make_covariates( formula=X1_formula, covariate_data=covariate_data, contrasts=NULL, Year_i=t_i,
+      covariate_list = FishStatsUtils::make_covariates( formula=X1_formula, covariate_data=covariate_data, contrasts=contrasts, Year_i=t_i,
         spatial_list=spatial_list )
       X1_gtp = covariate_list$X_gtp
       X1_itp = covariate_list$X_itp
       X1_gctp = aperm( outer(X1_gtp,rep(1,n_c)), c(1,4,2,3) )
 
       # Second linear predictor
-      covariate_list = FishStatsUtils::make_covariates( formula=X2_formula, covariate_data=covariate_data, contrasts=NULL, Year_i=t_i,
+      covariate_list = FishStatsUtils::make_covariates( formula=X2_formula, covariate_data=covariate_data, contrasts=contrasts, Year_i=t_i,
         spatial_list=spatial_list )
       X2_gtp = covariate_list$X_gtp
       X2_itp = covariate_list$X_itp
