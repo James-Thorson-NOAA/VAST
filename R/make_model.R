@@ -133,7 +133,8 @@ function( TmbData,
   origwd = getwd()
   on.exit(setwd(origwd),add=TRUE)
   setwd( CompileDir )
-  TMB::compile( paste0(Version,".cpp"), CPPFLAGS="-Wno-ignored-attributes" )
+  # SEE https://github.com/kaskr/adcomp/issues/321 for flags argument
+  TMB::compile( paste0(Version,".cpp"), flags="-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" )
 
   # Build object
   dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version)) ) # random=Random,
