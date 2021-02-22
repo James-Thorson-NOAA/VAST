@@ -23,6 +23,7 @@ make_data(
   X2_formula = ~0,
   X1config_cp = NULL,
   X2config_cp = NULL,
+  X_contrasts = NULL,
   catchability_data = NULL,
   Q1_formula = ~0,
   Q2_formula = ~0,
@@ -140,6 +141,10 @@ If missing, the default is to assume a value of zero for each element (i.e., \co
 }}
 
 \item{X2config_cp}{Same as argument \code{X1config_cp} but for 2nd linear predictor}
+
+\item{X_contrasts}{list defining the contrasts for each density-covariate factor
+specified in \code{X1_formula} or \code{X2_formula} with specification according to \code{\link{stats::contrasts}}.
+By default uses \code{X1_contrasts = NULL}, which will set the first level of each covariate factor as the reference level.}
 
 \item{catchability_data}{data-frame of covariates for use when specifying \code{Q1_formula} and \code{Q2_formula}}
 
