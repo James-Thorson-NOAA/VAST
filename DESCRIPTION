@@ -37,6 +37,8 @@ Suggests:
     knitr,
     rmarkdown,
     FishStatsUtils,
+    pscl,
+    tweedie
 Remotes:
     james-thorson/FishStatsUtils,
     james-thorson/utilities,
