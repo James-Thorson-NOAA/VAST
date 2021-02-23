@@ -1,6 +1,6 @@
 Package: VAST
 Type: Package
-Title: Vector-autoregressive spatio-temporal (VAST) model
+Title: Vector-Autoregressive Spatio-Temporal (VAST) Model
 Version: 3.7.0
 Date: 2020-12-16
 Authors@R: 
@@ -27,7 +27,8 @@ Imports:
     MatrixModels,
     ThorsonUtilities,
     effects,
-    INLA
+    INLA,
+    SpatialDeltaGLMM
 Depends:
     TMB,
     R (>= 3.5.0),
@@ -39,6 +40,7 @@ Suggests:
 Remotes:
     james-thorson/FishStatsUtils,
     james-thorson/utilities,
+    nwfsc-assess/geostatistical_delta-GLMM
 License: file LICENSE
 LazyData: true
 Encoding: UTF-8
