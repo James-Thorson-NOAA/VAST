@@ -38,7 +38,8 @@ Suggests:
     rmarkdown,
     FishStatsUtils,
     pscl,
-    tweedie
+    tweedie,
+    mgcv
 Remotes:
     james-thorson/FishStatsUtils,
     james-thorson/utilities,
