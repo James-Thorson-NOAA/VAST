@@ -39,7 +39,8 @@ Suggests:
     FishStatsUtils,
     pscl,
     tweedie,
-    mgcv
+    mgcv,
+    lme4
 Remotes:
     james-thorson/FishStatsUtils,
     james-thorson/utilities,
