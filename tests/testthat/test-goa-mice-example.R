@@ -3,7 +3,8 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Gulf of Alaska MICE-in-space example is working ", {
-  #skip_on_ci()
+  # THREW MEMORY ALLOCATION ERROR ON CI
+  skip_on_ci()
   skip_if(skip_local)
 
   # Prepping
