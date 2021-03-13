@@ -1,7 +1,7 @@
-#' Vector autoregressive spatio-temporal model
+#' Vector Autoregressive Spatio-Temporal Model
 #'
-#' VAST is multivariate generalization of package `SpatialDeltaGLMM`, and can analyze data for multiple species, ages, size-classes, etc.
-#' It can be used to implement many types of analysis including:
+#' Analyze spatial variatoin in multiple variables representing data species, ages, size-classes, etc.
+#' This can be used to implement many types of analysis including:
 #' \itemize{
 #' \item species distribution models with residual spatial and spatio-temporal variation, as well as covariates affecting density and catchability
 #' \item joint species distribution models (both static and dynamic)
@@ -18,4 +18,7 @@
 #' @seealso \code{\link[VAST]{VAST}} for general documentation, \code{\link[FishStatsUtils]{make_settings}} for generic settings, \code{\link[FishStatsUtils]{fit_model}} for model fitting, and \code{\link[FishStatsUtils]{plot_results}} for generic plots
 #' @docType package
 #' @name VAST
+#' @importFrom utils packageVersion packageDescription
+#' @importFrom stats gaussian model.matrix poisson update.formula
+#' @importFrom INLA inla.as.dgTMatrix
 NULL

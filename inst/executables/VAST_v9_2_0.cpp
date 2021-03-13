@@ -1841,7 +1841,7 @@ Type objective_function<Type>::operator() ()
         ADREPORT( lowercov_uppercor_epsilon2 );
       }
       if( FieldConfig(2,1)>0 ){
-        matrix<Type> lowercov_uppercor_beta2 = L_beta1_cf * L_beta1_cf.transpose();
+        matrix<Type> lowercov_uppercor_beta2 = L_beta2_cf * L_beta2_cf.transpose();
         lowercov_uppercor_beta2 = convert_upper_cov_to_cor( lowercov_uppercor_beta2 );
         REPORT( lowercov_uppercor_beta2 );
         ADREPORT( lowercov_uppercor_beta2 );

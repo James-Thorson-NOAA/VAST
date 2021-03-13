@@ -6,9 +6,13 @@
 \usage{
 Build_TMB_Fn(...)
 }
+\arguments{
+\item{...}{Arguments to be passed to \code{make_model}}
+}
 \description{
 Included for continuity when using old scripts
 }
 \details{
-Please use \code{?VAST::make_model} to see list of arguments and usage
+Please use \code{?VAST::make_model} to see list of arguments
+and usage
 }

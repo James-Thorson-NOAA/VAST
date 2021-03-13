@@ -17,7 +17,7 @@
 #' \describe{
 #'    \item{Omega}{specifies whether spatial variation is present and/or correlated among variables}
 #'    \item{Epsilon}{specifies whether spatio-temporal variation is present and/or correlated among variables}
-#'    \item{Beta}{specifies whether spatio-temporal variation is present and/or correlated among variables}
+#'    \item{Beta}{specifies whether temporal variation (a.k.a. "intercepts") is present and/or correlated among variables}
 #'    \item{Epsilon_year}{specifies whether spatio-temporal variation is correlated among years}
 #' }
 #' Meanwhile, \code{Component_1} (or the numeral "1" after a component name) refers to the 1st lienar predictor (e.g., of a delta-model),
@@ -38,7 +38,6 @@
 #' \code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_itp} using \code{\link[FishStatsUtils]{make_covariates}};
 #' see that function for more details.
 #'
-#' @inheritParams FishStatsUtils::make_covariates
 #' @param b_i Numeric vector, providing sampled value (biomass, counts, etc.) for each observation i
 #' @param a_i Numeric vector containing values greater than zero, providing sampled area for each
 #'        observation i;  use \code{a_i=1} for observations without a natural area measurement, while
@@ -52,54 +51,58 @@
 #' @param v_i Vector of integers ranging from 0 to the number of vessels minus 1,
 #'        providing sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
 #'        (by default \code{v_i=0} for all samples, which will not affect things given the default values for \code{OverdispersionConfig})
-#' @param Version Which CPP version to use.  If missing, defaults to latest version using \code{FishStatsUtils::get_latest_version(package="VAST")}.
+#' @param Version Which CPP version to use.  If missing, defaults to latest version using \code{\link[FishStatsUtils]{get_latest_version}}.
 #'        Can be used to specify using an older CPP, to maintain backwards compatibility.
 #' @param FieldConfig See Details section of \code{\link[VAST]{make_data}} for details
 #' @param OverdispersionConfig a vector of format \code{c("eta1"=0, "eta2"="AR1")} governing any correlated overdispersion
-#'        among categories for each level of v_i, where eta1 is for encounter probability, and eta2 is for positive catch rates,
-#'        where 0 is off, "AR1" is an AR1 process, and >0 is the number of elements in a factor-analysis covariance (by default,
+#'        among categories for each level of \code{v_i}, where eta1 is for encounter probability, and eta2 is for positive catch rates,
+#'        where \code{0} is off, code{"AR1"} is an AR1 process, and aninteger greater than zero (e.g., \code{2}) is the number of elements in a factor-analysis covariance (by default,
 #'        \code{c("eta1"=0, "eta2"=0)} and this turns off overdispersion)
 #' @param ObsModel_ez an optional matrix with two columns where the first column specifies the distribution for positive catch rates,
 #'        and the second column specifies the functional form for encounter probabilities
 #' \describe{
-#'   \item{ObsModel_ez[e,1]=0}{Normal}
-#'   \item{ObsModel_ez[e,1]=1}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
+#'   \item{\code{ObsModel_ez[e,1]=0}}{Normal}
+#'   \item{\code{ObsModel_ez[e,1]=1}}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
 #'        instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
-#'   \item{ObsModel_ez[e,1]=2}{Gamma}
-#'   \item{ObsModel_ez[e,1]=3}{Inverse-Gaussian}
-#'   \item{ObsModel_ez[e,1]=4}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
-#'   \item{ObsModel_ez[e,1]=5}{Negative binomial}
-#'   \item{ObsModel_ez[e,1]=6}{Conway-Maxwell-Poisson (likely to be very slow)}
-#'   \item{ObsModel_ez[e,1]=7}{Poisson (more numerically stable than negative-binomial)}
-#'   \item{ObsModel_ez[e,1]=8}{Compound-Poisson-Gamma, where the expected number of individuals is the 1st-component, the expected biomass
-#'        per individual is the 2nd-component, and SigmaM is the variance in positive catches (likely to be very slow)}
-#'   \item{ObsModel_ez[e,1]=9}{Binned-Poisson (for use with REEF data, where 0=0 individual; 1=1 individual; 2=2:10 individuals; 3=>10 individuals)}
-#'   \item{ObsModel_ez[e,1]=10}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
-#'          variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast as long as random
-#'          effects are turned off for the 1st component.}
-#'   \item{ObsModel_ez[e,1]=11}{Zero-inflated Poisson with additional normally-distributed variation overdispersion in the
+#'   \item{\code{ObsModel_ez[e,1]=2}}{Gamma}
+#'   \item{\code{ObsModel_ez[e,1]=4}}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
+#'   \item{\code{ObsModel_ez[e,1]=5}}{Negative binomial}
+#'   \item{\code{ObsModel_ez[e,1]=7}}{Poisson (more numerically stable than negative-binomial)}
+#'   \item{\code{ObsModel_ez[e,1]=10}}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
+#'          variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast (i.e., comparable to delta-models)
+#'          as long as random effects are turned off for the 1st component, but is otherwise extremely slow.}
+#'   \item{\code{ObsModel_ez[e,1]=11}}{Zero-inflated Poisson with additional normally-distributed variation overdispersion in the
 #'        log-intensity of the Poisson distribution}
-#'   \item{ObsModel_ez[e,1]=12}{Poisson distribution (not zero-inflated) with log-intensity from the 1st linear predictor,
+#'   \item{\code{ObsModel_ez[e,1]=12}}{Poisson distribution (not zero-inflated) with log-intensity from the 1st linear predictor,
 #'        to be used in combination with the Poisson-link delta model for combining multiple data types}
-#'   \item{ObsModel_ez[e,1]=13}{Bernoulli distribution using complementary log-log (cloglog) link from the 1st linear predictor,
+#'   \item{\code{ObsModel_ez[e,1]=13}}{Bernoulli distribution using complementary log-log (cloglog) link from the 1st linear predictor,
 #'        to be used in combination with the Poisson-link delta model for combining multiple data types}
-#'   \item{ObsModel_ez[e,1]=14}{Similar to 12, but also including lognormal overdispersion}
-#'   \item{ObsModel_ez[e,2]=0}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
-#'   \item{ObsModel_ez[e,2]=1}{Alternative "Poisson-link delta-model" using log-link for numbers-density and log-link for biomass per number}
-#'   \item{ObsModel_ez[e,2]=2}{Link function for Tweedie distribution, necessary for \code{ObsModel_ez[e,1]=8} or \code{ObsModel_ez[e,1]=10}}
-#'   \item{ObsModel_ez[e,2]=3}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
-#'   \item{ObsModel_ez[e,2]=4}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the
+#'   \item{\code{ObsModel_ez[e,1]=14}}{Similar to 12, but also including lognormal overdispersion}
+#'   \item{\code{ObsModel_ez[e,2]=0}}{Conventional delta-model using logit-link for encounter probability and log-link for positive catch rates}
+#'   \item{\code{ObsModel_ez[e,2]=1}}{Alternative "Poisson-link delta-model" using log-link for numbers-density and log-link for biomass per number}
+#'   \item{\code{ObsModel_ez[e,2]=2}}{Link function for Tweedie distribution, necessary for \code{ObsModel_ez[e,1]=8} or \code{ObsModel_ez[e,1]=10}}
+#'   \item{\code{ObsModel_ez[e,2]=3}}{Conventional delta-model, but fixing encounter probability=1 for any year where all samples encounter the species}
+#'   \item{\code{ObsModel_ez[e,2]=4}}{Poisson-link delta-model, but fixing encounter probability=1 for any year where all samples encounter the
 #'        species and encounter probability=0 for any year where no samples encounter the species}
 #' }
 #' @param RhoConfig vector of form \code{c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)} specifying whether either intercepts (Beta1 and Beta2)
-#'        or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals (0: each year as fixed effect;
-#'        1: each year as random following IID distribution; 2: each year as random following a random walk;
-#'        3: constant among years as fixed effect; 4: each year as random following AR1 process);  If missing, assumed to be zero for each element
+#'        or spatio-temporal variation (Epsilon1 and Epsilon2) is structured among time intervals, e.g.
+#'        for component \code{Epsilon2} indicated in the 4rd slot:
+#' \describe{
+#'   \item{\code{RhoConfig[4]=0}}{Each year as fixed effect}
+#'   \item{\code{RhoConfig[4]=1}}{Each year as an independent and identically distributed random effect, thus estimating the variance as fixed effect}
+#'   \item{\code{RhoConfig[4]=2}}{Each year as a random effect following a random walk, thus estimating the variance as fixed effect}
+#'   \item{\code{RhoConfig[4]=3}}{Constant among years as fixed effect}
+#'   \item{\code{RhoConfig[4]=4}}{Each year as a random effect following a first-order autoregressive process, thus estimating the variance as fixed effects and a single first-order autoregression parameter}
+#'   \item{\code{RhoConfig[4]=5}}{Each year as a random effect following a first-order autoregressive process, estimating the variance as fixed effects and a separate first-order autoregression parameter for each category}
+#'   \item{\code{RhoConfig[4]=6}}{Only possible for \code{Epsilon2} or \code{Beta2}, and specifying that that associated hyperparameters parameters have identical values to the first component \code{Epsilon1} or \code{Beta1}}
+#' }
+#' If missing, the default is to assume a value of zero for each element (i.e., \code{RhoConfig[1:4]=0})
 #' @param VamConfig Options to estimate interactions, containing three slots:
 #' \describe{
-#'   \item{VamConfig[0]}{selects method for forming interaction matrix; Turn off feature using 0, or I recommend using 2 by default}
-#'   \item{VamConfig[1]}{indicates the rank of the interaction matrix, indicating the number of community axes that have regulated dynamics}
-#'   \item{VamConfig[2]}{Indicates whether interactions occur before spatio-temporal variation (\code{VamConfig[2]=0}) or after \code{VamConfig[2]=1}}
+#'   \item{\code{VamConfig[0]}}{selects method for forming interaction matrix; Turn off feature using 0, or I recommend using 2 by default}
+#'   \item{\code{VamConfig[1]}}{indicates the rank of the interaction matrix, indicating the number of community axes that have regulated dynamics}
+#'   \item{\code{VamConfig[2]}}{Indicates whether interactions occur before spatio-temporal variation (\code{VamConfig[2]=0}) or after \code{VamConfig[2]=1}}
 #' }
 #' @param X1_formula right-sided formula affecting the 1st linear predictor for density, e.g.,
 #'        \code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}
@@ -108,18 +111,22 @@
 #' @param X1config_cp matrix of settings for each density covariate for the 1st lienar predictor,
 #'        where the row corresponds to model category, and column corresponds to each density covariate
 #' \describe{
-#'   \item{X1config_cp[c,p]=0}{\code{X_ip[,p]} has no effect on the 1st linear predictor for category c}
-#'   \item{X1config_cp[c,p]=1}{\code{X_ip[,p]} has a linear effect on 1st linear predictor for category c}
-#'   \item{X1config_cp[c,p]=2}{\code{X_ip[,p]} has a spatially varying, zero-centered linear effect on 1st linear predictor for category c}
-#'   \item{X1config_cp[c,p]=3}{\code{X_ip[,p]} has a spatially varying linear effect on 1st linear predictor for category c}
-#'   \item{X1config_cp[c,p]=-1}{\code{X1config_cp[c,p]=-1} is the same as \code{X1config_cp[c,p]=2}, but without including the log-likelihood term; this is useful in special cases when carefully mirroring spatially varying coefficients, e.g., to use cohort effects in a age-structured spatio-temporal model}
+#'   \item{\code{X1config_cp[c,p]=0}}{\code{X_ip[,p]} has no effect on the 1st linear predictor for category c}
+#'   \item{\code{X1config_cp[c,p]=1}}{\code{X_ip[,p]} has a linear effect on 1st linear predictor for category c}
+#'   \item{\code{X1config_cp[c,p]=2}}{\code{X_ip[,p]} has a spatially varying, zero-centered linear effect on 1st linear predictor for category c}
+#'   \item{\code{X1config_cp[c,p]=3}}{\code{X_ip[,p]} has a spatially varying linear effect on 1st linear predictor for category c}
+#'   \item{\code{X1config_cp[c,p]=-1}}{\code{X1config_cp[c,p]=-1} is the same as \code{X1config_cp[c,p]=2}, but without including the log-likelihood term; this is useful in special cases when carefully mirroring spatially varying coefficients, e.g., to use cohort effects in a age-structured spatio-temporal model}
 #' }
 #' @param X2config_cp Same as argument \code{X1config_cp} but for 2nd linear predictor
+#' @param X_contrasts list defining the contrasts for each density-covariate factor
+#'        specified in \code{X1_formula} or \code{X2_formula} with specification according to \code{\link[stats]{contrasts}}.
+#'        By default uses \code{X1_contrasts = NULL}, which will set the first level of each covariate factor as the reference level.
 #' @param Q1_formula same as \code{X1_formula} but affecting the 1st linear predictor for catchability (a.k.a. detectability)
 #' @param Q2_formula same as \code{X1_formula} but affecting the 2nd linear predictor for catchability (a.k.a. detectability)
 #' @param catchability_data data-frame of covariates for use when specifying \code{Q1_formula} and \code{Q2_formula}
 #' @param Q1config_k Same as argument \code{X1config_cp} but affecting affecting the 1st linear predictor for catchability,
-#'        and note that it is a vector (instead of matrix) given the more flexible form for catchability covariates
+#'        and note that it is a vector (instead of matrix) given that catchability responses do not vary among variables \code{c}
+#'        by default (but can be specified to do so when an appropriate `formula` is supplied)
 #' @param Q2config_k Same as argument \code{Q1config_cp} but affecting affecting the 2nd linear predictor for catchability
 #' @param spatial_list tagged list of locational information from , i.e., from \code{\link[FishStatsUtils]{make_spatial_info}}
 #' @param PredTF_i OPTIONAL, whether each observation i is included in the likelihood, \code{PredTF_i[i]=0}, or in the predictive probability, \code{PredTF_i[i]=1}
@@ -138,12 +145,13 @@
 #' @param Options a tagged-vector that is empty by default, \code{Options=c()}, but where the following slots might be helpful to add,
 #'        either by passing \code{Options} to \code{\link[FishStatsUtils]{make_settings}}, or editing after a call to that function:
 #' \describe{
-#'   \item{Options["SD_site_logdensity"]=TRUE}{Turns on standard error calculation for local log-density (which is very slow to calculate!)}
-#'   \item{Options["Calculate_Range"]=TRUE}{Turns on internal calculation and SE for center-of-gravity}
-#'   \item{Options["Calculate_effective_area"]=TRUE}{Turns on internal calculation and SE for effective area occupied measuring range expansion/contraction}
-#'   \item{Options["Calculate_Cov_SE"]=TRUE}{Turns on internal calculation and SE for covariance among categories (i.e. in factor model)}
-#'   \item{Options["Calculate_proportion"]=TRUE}{Turns on internal calculation and SE for proportion of response within each category (e.g., for calculating proportion-at-age or species turnover)}
-#'   \item{Options["Calculate_Synchrony"]=TRUE}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
+#'   \item{\code{Options["SD_site_logdensity"]=TRUE}}{Turns on standard error calculation for local log-density (which is very slow to calculate!)}
+#'   \item{\code{Options["Calculate_Range"]=TRUE}}{Turns on internal calculation and SE for center-of-gravity}
+#'   \item{\code{Options["Calculate_effective_area"]=TRUE}}{Turns on internal calculation and SE for effective area occupied measuring range expansion/contraction}
+#'   \item{\code{Options["Calculate_Cov_SE"]=TRUE}}{Turns on internal calculation and SE for covariance among categories (i.e. in factor model)}
+#'   \item{\code{Options["Calculate_proportion"]=TRUE}}{Turns on internal calculation and SE for proportion of response within each category (e.g., for calculating proportion-at-age or species turnover)}
+#'   \item{\code{Options["Calculate_Synchrony"]=TRUE}}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
+#'   \item{\code{Options["report_additional_variables"]=TRUE}}{Export additional variables to \code{Report} object, to use for diagnostics or additional exploration}
 #' }
 #' @param yearbounds_zz matrix with two columns, giving first and last years for defining one or more periods (rows) used to
 #'        calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})
@@ -151,7 +159,12 @@
 #'        it detects a problem with inputs.  However, failing to throw an error is no guarantee that the inputs are all correct)
 #' @param ... interface to pass deprecated inputs, included for backwards compatibility with previous versions which, e.g., specified elements of \code{spatial_list}
 #'        individually instead of as a single object
-
+#' @param Network_sz An interface to specify a directed acyclic graphic representing a stream network, used only when \code{Method="Stream_network"}.
+#' @param F_init In a vector-autoregressive model specifying fishing mortality rates via \code{F_ct}, the initial conditions can be based on the stationary
+#'        distribution assuming that the first year of fishing mortality had happened indefinitely prior to data \code{F_init=2}, or that fishing mortality
+#'        was zero prior to data, \code{F_init=1}
+#' @param overlap_zz A matrix with zero columns (and zero rows by default), indicating whether overlap metrics should be calculated as a derived quantity.
+#'
 #' @return Object of class \code{make_data}, containing inputs to function \code{\link{make_model}}
 
 #' @export
@@ -159,37 +172,38 @@ make_data <-
 function( b_i,
           a_i,
           t_i,
-          c_iz=rep(0,length(b_i)),
-          e_i=c_iz[,1],
-          v_i=rep(0,length(b_i)),
-          FieldConfig=c("Omega1"="IID","Epsilon1"="IID","Omega2"="IID","Epsilon2"="IID"),
-          ObsModel_ez=c("PosDist"=1,"Link"=0),
-          OverdispersionConfig=c("eta1"=0,"eta2"=0),
-          RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
-          VamConfig=c("Method"=0,"Rank"=0,"Timing"=0),
-          Aniso=TRUE,
-          PredTF_i=rep(0,length(b_i)),
-          covariate_data=NULL,
-          X1_formula=~0,
-          X2_formula=~0,
-          X1config_cp=NULL,
-          X2config_cp=NULL,
-          catchability_data=NULL,
-          Q1_formula=~0,
-          Q2_formula=~0,
-          Q1config_k=NULL,
-          Q2config_k=NULL,
+          c_iz = rep(0,length(b_i)),
+          e_i = c_iz[,1],
+          v_i = rep(0,length(b_i)),
+          FieldConfig = c("Omega1" = "IID","Epsilon1" = "IID","Omega2" = "IID","Epsilon2" = "IID"),
+          ObsModel_ez = c("PosDist" = 1,"Link" = 0),
+          OverdispersionConfig = c("eta1" = 0,"eta2" = 0),
+          RhoConfig = c("Beta1" = 0,"Beta2" = 0,"Epsilon1" = 0,"Epsilon2" = 0),
+          VamConfig = c("Method" = 0,"Rank" = 0,"Timing" = 0),
+          Aniso = TRUE,
+          PredTF_i = rep(0,length(b_i)),
+          covariate_data = NULL,
+          X1_formula = ~0,
+          X2_formula = ~0,
+          X1config_cp = NULL,
+          X2config_cp = NULL,
+          X_contrasts = NULL,
+          catchability_data = NULL,
+          Q1_formula = ~0,
+          Q2_formula = ~0,
+          Q1config_k = NULL,
+          Q2config_k = NULL,
           spatial_list,
-          Network_sz=NULL,
-          F_ct=NULL,
-          F_init=1,
-          CheckForErrors=TRUE,
-          yearbounds_zz=NULL,
-          Options=c(),
-          Expansion_cz=NULL,
-          Z_gm=NULL,
-          Version=FishStatsUtils::get_latest_version(package="VAST"),
-          overlap_zz=matrix(ncol=7,nrow=0),
+          Network_sz = NULL,
+          F_ct = NULL,
+          F_init = 1,
+          CheckForErrors = TRUE,
+          yearbounds_zz = NULL,
+          Options = c(),
+          Expansion_cz = NULL,
+          Z_gm = NULL,
+          Version = FishStatsUtils::get_latest_version(package = "VAST"),
+          overlap_zz = matrix(ncol = 7,nrow = 0),
           ... ){
 
   # Deprecated inputs for backwards compatibility e.g., in transition from CPP Version < 8.0.0 to >= 8.0.0
@@ -219,7 +233,7 @@ function( b_i,
   Options2use = c('SD_site_density'=FALSE, 'SD_site_logdensity'=FALSE, 'Calculate_Range'=FALSE, 'SD_observation_density'=FALSE, 'Calculate_effective_area'=FALSE,
     'Calculate_Cov_SE'=FALSE, 'Calculate_Synchrony'=FALSE, 'Calculate_Coherence'=FALSE, 'Calculate_proportion'=FALSE, 'normalize_GMRF_in_CPP'=TRUE,
     'Calculate_Fratio'=FALSE, 'Estimate_B0'=FALSE, 'Project_factors'=FALSE, 'treat_nonencounter_as_zero'=FALSE, 'simulate_random_effects'=TRUE,
-    'observation_error_as_CV'=TRUE, 'report_additional_variables'=FALSE )
+    'observation_error_as_CV'=TRUE, 'report_additional_variables'=FALSE, 'zerosum_penalty'=0 )
 
   # Replace defaults for `Options` with provided values (if any)
   for( i in seq_along(Options) ){
@@ -333,7 +347,7 @@ function( b_i,
     }
   }
   if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v11_0_0") ){
-    if( X1_formula != ~0 | X1_formula != ~0 ){
+    if( X1_formula != ~0 | X2_formula != ~0 ){
       stop("`X1_formula` and `X2_formula`; to use these please use `Version='VAST_v12_0_0'` or higher")
     }
   }
@@ -377,8 +391,8 @@ function( b_i,
       if( "formula" %in% names(alternate_inputs) ){
         Covariates_created = TRUE
         warning("Using input `formula` to generate covariates. This interface is soft-deprecated but still available for backwards compatibility; please switch to using `X1_formula` and `X2_formula`")
-        covariate_list = make_covariates( formula=alternate_inputs[["formula"]], covariate_data=covariate_data, Year_i=t_i,
-          spatial_list=spatial_list, extrapolation_list=extrapolation_list )
+        covariate_list = FishStatsUtils::make_covariates( formula=alternate_inputs[["formula"]], covariate_data=covariate_data, Year_i=t_i,
+          spatial_list=spatial_list, contrasts.arg=X_contrasts )
         X1_gtp = X2_gtp = covariate_list$X_gtp
         X1_itp = X2_itp = covariate_list$X_itp
         X1_gctp = X2_gctp = aperm( outer(X1_gtp,rep(1,n_c)), c(1,4,2,3) )
@@ -394,15 +408,15 @@ function( b_i,
       }
 
       # First linear predictor
-      covariate_list = make_covariates( formula=X1_formula, covariate_data=covariate_data, Year_i=t_i,
-        spatial_list=spatial_list, extrapolation_list=extrapolation_list )
+      covariate_list = FishStatsUtils::make_covariates( formula=X1_formula, covariate_data=covariate_data, Year_i=t_i,
+        spatial_list=spatial_list, contrasts.arg=X_contrasts )
       X1_gtp = covariate_list$X_gtp
       X1_itp = covariate_list$X_itp
       X1_gctp = aperm( outer(X1_gtp,rep(1,n_c)), c(1,4,2,3) )
 
       # Second linear predictor
-      covariate_list = make_covariates( formula=X2_formula, covariate_data=covariate_data, Year_i=t_i,
-        spatial_list=spatial_list, extrapolation_list=extrapolation_list )
+      covariate_list = FishStatsUtils::make_covariates( formula=X2_formula, covariate_data=covariate_data, Year_i=t_i,
+        spatial_list=spatial_list, contrasts.arg=X_contrasts )
       X2_gtp = covariate_list$X_gtp
       X2_itp = covariate_list$X_itp
       X2_gctp = aperm( outer(X2_gtp,rep(1,n_c)), c(1,4,2,3) )
@@ -468,12 +482,12 @@ function( b_i,
       if( nrow(catchability_data)!=n_i ) stop("`catchability_data` has the wrong number of rows; please supply one row for each observation `i`")
       Catchability_created = TRUE
       # First predictor
-      Model_matrix1 = model.matrix( update.formula(Q1_formula, ~.+1), data=catchability_data )
+      Model_matrix1 = stats::model.matrix( stats::update.formula(Q1_formula, ~.+1), data=catchability_data )
       Columns_to_keep = which( attr(Model_matrix1,"assign") != 0 )
       coefficient_names_Q1 = attr(Model_matrix1,"dimnames")[[2]][Columns_to_keep]
       Q1_ik = Model_matrix1[,Columns_to_keep,drop=FALSE]
       # First predictor
-      Model_matrix2 = model.matrix( update.formula(Q2_formula, ~.+1), data=catchability_data )
+      Model_matrix2 = stats::model.matrix( stats::update.formula(Q2_formula, ~.+1), data=catchability_data )
       Columns_to_keep = which( attr(Model_matrix2,"assign") != 0 )
       coefficient_names_Q2 = attr(Model_matrix2,"dimnames")[[2]][Columns_to_keep]
       Q2_ik = Model_matrix2[,Columns_to_keep,drop=FALSE]
@@ -533,14 +547,14 @@ function( b_i,
 
   # Translate FieldConfig from input formatting to CPP formatting
   FieldConfig_input = array(NA, dim=dim(FieldConfig), dimnames=dimnames(FieldConfig) )
-  g = function(mat) suppressWarnings( array(as.numeric(mat),dim=dim(mat)) )
+  g1 = function(mat) suppressWarnings( array(as.numeric(mat),dim=dim(mat)) )
   FieldConfig_input[] = ifelse( tolower(FieldConfig)=="ar1", 0, FieldConfig_input)
   FieldConfig_input[] = ifelse( tolower(FieldConfig)=="iid", -2, FieldConfig_input)
   FieldConfig_input[] = ifelse( tolower(FieldConfig)=="identity", -3, FieldConfig_input)
   FieldConfig_input[] = ifelse( tolower(FieldConfig)=="full", n_c, FieldConfig_input)
-  FieldConfig_input[1:3,] = ifelse( !is.na(g(FieldConfig[1:3,])) & g(FieldConfig[1:3,])>0 & g(FieldConfig[1:3,])<=n_c, g(FieldConfig[1:3,]), FieldConfig_input[1:3,])
-  FieldConfig_input[4,] = ifelse( !is.na(g(FieldConfig[4,,drop=FALSE])) & g(FieldConfig[4,,drop=FALSE])>0 & g(FieldConfig[4,,drop=FALSE])<=n_t, g(FieldConfig[4,,drop=FALSE]), FieldConfig_input[4,,drop=FALSE])
-  FieldConfig_input[] = ifelse( !is.na(g(FieldConfig)) & g(FieldConfig)==0, -1, FieldConfig_input)
+  FieldConfig_input[1:3,] = ifelse( !is.na(g1(FieldConfig[1:3,])) & g1(FieldConfig[1:3,])>0 & g1(FieldConfig[1:3,])<=n_c, g1(FieldConfig[1:3,]), FieldConfig_input[1:3,])
+  FieldConfig_input[4,] = ifelse( !is.na(g1(FieldConfig[4,,drop=FALSE])) & g1(FieldConfig[4,,drop=FALSE])>0 & g1(FieldConfig[4,,drop=FALSE])<=n_t, g1(FieldConfig[4,,drop=FALSE]), FieldConfig_input[4,,drop=FALSE])
+  FieldConfig_input[] = ifelse( !is.na(g1(FieldConfig)) & g1(FieldConfig)==0, -1, FieldConfig_input)
   if( any(is.na(FieldConfig_input)) ) stop( "'FieldConfig' must be: 0 (turn off overdispersion); 'IID' (independent for each factor); 'AR1' (use AR1 structure); or 0<n_f<=n_c (factor structure)" )
   message( "FieldConfig_input is:" )
   print(FieldConfig_input)
@@ -548,10 +562,10 @@ function( b_i,
   # Translate OverdispersionConfig from input formatting to CPP formatting
   OverdispersionConfig_input = rep(NA, length(OverdispersionConfig))
   names(OverdispersionConfig_input) = names(OverdispersionConfig)
-  g = function(vec) suppressWarnings(as.numeric(vec))
+  g2 = function(vec) suppressWarnings(as.numeric(vec))
   OverdispersionConfig_input[] = ifelse( OverdispersionConfig=="AR1", 0, OverdispersionConfig_input)
-  OverdispersionConfig_input[] = ifelse( !is.na(g(OverdispersionConfig)) & g(OverdispersionConfig)>0 & g(OverdispersionConfig)<=n_c, g(OverdispersionConfig), OverdispersionConfig_input)
-  OverdispersionConfig_input[] = ifelse( !is.na(g(OverdispersionConfig)) & g(OverdispersionConfig)==0, -1, OverdispersionConfig_input)
+  OverdispersionConfig_input[] = ifelse( !is.na(g2(OverdispersionConfig)) & g2(OverdispersionConfig)>0 & g2(OverdispersionConfig)<=n_c, g2(OverdispersionConfig), OverdispersionConfig_input)
+  OverdispersionConfig_input[] = ifelse( !is.na(g2(OverdispersionConfig)) & g2(OverdispersionConfig)==0, -1, OverdispersionConfig_input)
   if( all(OverdispersionConfig_input<0) ){
     v_i = rep(0,length(b_i))
     n_v = 1
@@ -626,7 +640,7 @@ function( b_i,
       if( !any(ObsModel_ez[,1] %in% c(0,1,2,3,4)) ) stop("Using `ObsModel_ez[e,1]` in {12,13,14} is only intended when combining data with biomass-sampling data")
     }
     if( all(b_i>0) & all(ObsModel_ez[,1]==0) & !all(FieldConfig_input[1:2,1]==-1) ) stop("All data are positive and using a conventional delta-model, so please turn off `Omega1` and `Epsilon1` terms")
-    if( !(all(ObsModel_ez[,1] %in% c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
+    if( !(all(ObsModel_ez[,1] %in% c(0,1,2,4,5,7,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
     if( !(all(ObsModel_ez[,2] %in% c(0,1,2,3,4))) ) stop("Please check `ObsModel_ez[,2]` input")
     if( !all(RhoConfig[1]%in%c(0,1,2,3,4)) | !all(RhoConfig[2]%in%c(0,1,2,3,4,6)) | !all(RhoConfig[3]%in%c(0,1,2,4,5)) | !all(RhoConfig[4]%in%c(0,1,2,4,5,6)) ) stop("Check `RhoConfig` inputs")
     if( any(is.na(X_xtp)) ) stop("Some `X_xtp` is NA, and this is not allowed")
@@ -887,31 +901,31 @@ function( b_i,
   Options_vec = c("Aniso"=Aniso, "R2_interpretation"=0, "Rho_beta1_TF"=ifelse(RhoConfig[1]%in%c(1,2,4),1,0), "Rho_beta2_TF"=ifelse(RhoConfig[2]%in%c(1,2,4),1,0), "AreaAbundanceCurveTF"=0, "CMP_xmax"=200, "CMP_breakpoint"=1, "Method"=switch(Method,"Mesh"=0,"Grid"=1,"Spherical_mesh"=0,"Stream_network"=2,"Barrier"=3), "Include_F"=ifelse(all(F_ct==0),0,F_init) )
   Return = NULL
   if(Version%in%c("VAST_v1_1_0","VAST_v1_0_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=1, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
   if(Version%in%c("VAST_v1_4_0","VAST_v1_3_0","VAST_v1_2_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_f_input"=OverdispersionConfig_input[1], "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=1, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_f_input"=OverdispersionConfig_input[1], "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
   if(Version%in%c("VAST_v1_6_0","VAST_v1_5_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_f_input"=OverdispersionConfig_input[1], "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=1, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_f_input"=OverdispersionConfig_input[1], "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
   if(Version%in%c("VAST_v1_7_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=1, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list() )
   }
   if(Version%in%c("VAST_v1_8_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=1, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v1_9_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=1, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v2_8_0","VAST_v2_7_0","VAST_v2_6_0","VAST_v2_5_0","VAST_v2_4_0","VAST_v2_3_0","VAST_v2_2_0","VAST_v2_1_0","VAST_v2_0_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=n_j, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_iz"=matrix(tprime_i,ncol=1), "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_j"=1, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel"=ObsModel_ez[1,], "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "s_i"=s_i, "t_iz"=matrix(tprime_i,ncol=1), "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v3_0_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_j"=n_j, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "e_i"=e_i, "s_i"=s_i, "t_iz"=matrix(tprime_i,ncol=1), "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_j"=1, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_i"=c_iz[,1], "e_i"=e_i, "s_i"=s_i, "t_iz"=matrix(tprime_i,ncol=1), "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v4_0_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_j"=n_j, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=matrix(tprime_i,ncol=1), "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_j"=1, "n_p"=dim(X_xtp)[3], "n_k"=ncol(Q1_ik), "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=matrix(tprime_i,ncol=1), "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
   }
   if(Version%in%c("VAST_v4_4_0","VAST_v4_3_0","VAST_v4_2_0","VAST_v4_1_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x)[Options_vec['Method']+1], "n_x"=n_x, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p"=dim(X_xtp)[3], "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_xm), "Options_vec"=Options_vec, "FieldConfig"=as.vector(FieldConfig_input[1:2,]), "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "include_data"=TRUE, "Options"=Options2use, "yearbounds_zz"=yearbounds_zz, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "s_i"=s_i, "t_iz"=matrix(tprime_i,ncol=1), "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_xl"=a_gl, "X_xj"=matrix(0,nrow=n_x,ncol=1), "X_xtp"=X_xtp, "Q_ik"=Q1_ik, "t_yz"=t_yz, "Z_xm"=Z_xm, "spde"=list(), "spde_aniso"=list(), "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2 )
@@ -955,8 +969,8 @@ function( b_i,
   if(Version%in%c("VAST_v11_0_0")){
     Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x,MeshList$anisotropic_spde$n.spde)[Options_vec['Method']+1], "n_g"=n_g, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p1"=dim(X1_itp)[3], "n_p2"=dim(X2_itp)[3], "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_gm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz,"overlap_zz"=overlap_zz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "X1config_cp"=X1config_cp, "X2config_cp"=X2config_cp, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_gl"=a_gl, "X1_ip"=array(X1_itp[,1,],dim=dim(X1_itp)[c(1,3)]), "X1_gctp"=X1_gctp, "X2_ip"=array(X2_itp[,1,],dim=dim(X2_itp)[c(1,3)]), "X2_gctp"=X2_gctp, "Q1_ik"=Q1_ik, "Q2_ik"=Q2_ik, "Z_gm"=Z_gm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "spdeMatricesBarrier"=list(), "Barrier_scaling"=NA, "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2, "Ais_ij"=cbind(spatial_list$A_is@i,spatial_list$A_is@j), "Ais_x"=spatial_list$A_is@x, "Ags_ij"=cbind(spatial_list$A_gs@i,spatial_list$A_gs@j), "Ags_x"=spatial_list$A_gs@x )
   }
-  if(Version%in%c("VAST_v12_0_0")){
-    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x,MeshList$anisotropic_spde$n.spde)[Options_vec['Method']+1], "n_g"=n_g, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p1"=dim(X1_itp)[3], "n_p2"=dim(X2_itp)[3], "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_gm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz,"overlap_zz"=overlap_zz), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "X1config_cp"=X1config_cp, "X2config_cp"=X2config_cp, "Q1config_k"=Q1config_k, "Q2config_k"=Q2config_k, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_gl"=a_gl, "X1_ip"=array(X1_itp[,1,],dim=dim(X1_itp)[c(1,3)]), "X1_gctp"=X1_gctp, "X2_ip"=array(X2_itp[,1,],dim=dim(X2_itp)[c(1,3)]), "X2_gctp"=X2_gctp, "Q1_ik"=Q1_ik, "Q2_ik"=Q2_ik, "Z_gm"=Z_gm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "spdeMatricesBarrier"=list(), "Barrier_scaling"=NA, "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2, "Ais_ij"=cbind(spatial_list$A_is@i,spatial_list$A_is@j), "Ais_x"=spatial_list$A_is@x, "Ags_ij"=cbind(spatial_list$A_gs@i,spatial_list$A_gs@j), "Ags_x"=spatial_list$A_gs@x )
+  if(Version%in%c("VAST_v13_0_0","VAST_v12_0_0")){
+    Return = list( "n_i"=n_i, "n_s"=c(MeshList$anisotropic_spde$n.spde,n_x,n_x,MeshList$anisotropic_spde$n.spde)[Options_vec['Method']+1], "n_g"=n_g, "n_t"=n_t, "n_c"=n_c, "n_e"=n_e, "n_p1"=dim(X1_itp)[3], "n_p2"=dim(X2_itp)[3], "n_v"=n_v, "n_l"=n_l, "n_m"=ncol(Z_gm), "Options_list"=list("Options_vec"=Options_vec,"Options"=Options2use,"yearbounds_zz"=yearbounds_zz,"Expansion_cz"=Expansion_cz,"overlap_zz"=overlap_zz,"zerosum_penalty"=matrix(Options2use['zerosum_penalty'],1,1)), "FieldConfig"=FieldConfig_input, "RhoConfig"=RhoConfig, "OverdispersionConfig"=OverdispersionConfig_input, "ObsModel_ez"=ObsModel_ez, "VamConfig"=VamConfig, "X1config_cp"=X1config_cp, "X2config_cp"=X2config_cp, "Q1config_k"=Q1config_k, "Q2config_k"=Q2config_k, "include_data"=TRUE, "b_i"=b_i, "a_i"=a_i, "c_iz"=c_iz, "e_i"=e_i, "t_i"=tprime_i, "v_i"=match(v_i,sort(unique(v_i)))-1, "PredTF_i"=PredTF_i, "a_gl"=a_gl, "X1_ip"=array(X1_itp[,1,],dim=dim(X1_itp)[c(1,3)]), "X1_gctp"=X1_gctp, "X2_ip"=array(X2_itp[,1,],dim=dim(X2_itp)[c(1,3)]), "X2_gctp"=X2_gctp, "Q1_ik"=Q1_ik, "Q2_ik"=Q2_ik, "Z_gm"=Z_gm, "F_ct"=F_ct, "parent_s"=Network_sz[,'parent_s']-1, "child_s"=Network_sz[,'child_s']-1, "dist_s"=Network_sz[,'dist_s'], "spde"=list(), "spde_aniso"=list(), "spdeMatricesBarrier"=list(), "Barrier_scaling"=NA, "M0"=GridList$M0, "M1"=GridList$M1, "M2"=GridList$M2, "Ais_ij"=cbind(spatial_list$A_is@i,spatial_list$A_is@j), "Ais_x"=spatial_list$A_is@x, "Ags_ij"=cbind(spatial_list$A_gs@i,spatial_list$A_gs@j), "Ags_x"=spatial_list$A_gs@x )
   }
   if( is.null(Return) ) stop("`Version` provided does not match the list of possible values")
   if( "spde" %in% names(Return) ) Return[['spde']] = MeshList$isotropic_spde$param.inla[c("M0","M1","M2")]

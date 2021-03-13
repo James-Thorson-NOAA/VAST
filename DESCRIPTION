@@ -1,14 +1,18 @@
 Package: VAST
 Type: Package
-Title: Vector-autoregressive spatio-temporal (VAST) model
-Version: 3.6.1
-Date: 2020-12-10
+Title: Vector-Autoregressive Spatio-Temporal (VAST) Model
+Version: 3.7.0
+Date: 2021-03-12
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
              role = c("aut", "cre"),
              email = "James.Thorson@noaa.gov",
-             comment = c(ORCID = "0000-0001-7415-1010"))
+             comment = c(ORCID = "0000-0001-7415-1010")),
+	  person(given="Cole", 
+	         family="Monnahan",
+			 role="ctb",
+			 email="Cole.Monnahan@noaa.gov")
     )
 Description: VAST is an R package for conducting spatio-temporal analysis
     of data from multiple categories (species, sizes, etc.), and includes both
@@ -20,25 +24,32 @@ Imports:
     stats,
     devtools,
     abind,
-    MatrixModels,  
+    MatrixModels,
     ThorsonUtilities,
+    effects,
+    INLA,
+    SpatialDeltaGLMM
 Depends:
     TMB,
-    R (>= 3.1.0),
+    R (>= 3.5.0),
 Suggests:
     testthat,
     knitr,
     rmarkdown,
     FishStatsUtils,
-    R.rsp
+    pscl,
+    tweedie,
+    mgcv,
+    lme4
 Remotes:
     james-thorson/FishStatsUtils,
     james-thorson/utilities,
-License: GPL-3
-LazyData: yes
-BuildVignettes: yes
+    nwfsc-assess/geostatistical_delta-GLMM
+License: file LICENSE
+LazyData: true
 Encoding: UTF-8
 RoxygenNote: 7.1.1
+ByteCompile: true
 URL: http://github.com/James-Thorson/VAST
 BugReports: http://github.com/James-Thorson/VAST/issues
-VignetteBuilder: R.rsp
+VignetteBuilder: knitr

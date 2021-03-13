@@ -3,8 +3,8 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Condition-and-density example is working ", {
-  skip_on_travis()
-
+  skip_on_ci()
+  skip_if(skip_local)
   # Prepping
   test_path = file.path(multispecies_example_path,"Condition_and_density")
   load( file.path(test_path,"saved_estimates.RData") )
@@ -26,7 +26,8 @@ test_that("Condition-and-density example is working ", {
     Region = example$Region,
     purpose = "condition_and_density",
     bias.correct = FALSE,
-    knot_method = "grid" )
+    knot_method = "grid",
+    Version=Version_VAST )
   settings$FieldConfig[c("Omega","Epsilon"),"Component_1"] = "IID"
   Expansion_cz = matrix( c( 0,0, 2,0 ), ncol=2, byrow=TRUE )
   settings$ObsModel = matrix( c(2,4, 1,4), ncol=2, byrow=TRUE )

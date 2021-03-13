@@ -81,7 +81,14 @@ Known installation/usage issues
 
 4.  MacOS users have specific install issues and a discussion of potential fixes is [here](https://github.com/James-Thorson-NOAA/VAST/issues/218#issuecomment-587105809)
 
-5.  Windows has a speed-limit on the rate that users can access the GitHub API. You can get around this by installing each package locally from a ZIP file.  You'll need to first download a ZIP file for GitHub repositories `TMBhelper` ([here](https://github.com/kaskr/TMB_contrib_R/tree/master/TMBhelper)), then `ThorsonUtilities` ([here](https://github.com/James-Thorson/utilities)), then `FishStatsUtils` ([here](https://github.com/James-Thorson-NOAA/FishStatsUtils)), then `VAST` ([here](https://github.com/James-Thorson-NOAA/VAST)) to your harddrive in a local directory while recording the directory name (which I will reference as `download_dir`), and then install these packages from each ZIP file in the same order. To install each package, please click "clone or download" -> "Download ZIP" -> `devtools::install_local(path=download_dir, dependencies=FALSE)`
+5.  MacOS users should be aware that significant speed-ups in model fitting can be accomplished by switching the library used for Basic Linear Algebra Subprograms (BLAS) from the default. There are a few BLAS alternatives available, though, the simplest seems to be using the vecLib library, part of Apple's Accelerate Framework and included in most recent R binaries. To switch the BLAS library, run the following lines in the terminal and then confirm the switch with a call to `sessionInfo()` in R.
+
+```
+    # Terminal commands to switch R BLAS library to increase speed
+    cd /Library/Frameworks/R.framework/Resources/lib
+    ln -sf /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Versions/Current/libBLAS.dylib libRblas.dylib
+```
+6.  Windows has a speed-limit on the rate that users can access the GitHub API. You can get around this by installing each package locally from a ZIP file.  You'll need to first download a ZIP file for GitHub repositories `TMBhelper` ([here](https://github.com/kaskr/TMB_contrib_R/tree/master/TMBhelper)), then `ThorsonUtilities` ([here](https://github.com/James-Thorson/utilities)), then `FishStatsUtils` ([here](https://github.com/James-Thorson-NOAA/FishStatsUtils)), then `VAST` ([here](https://github.com/James-Thorson-NOAA/VAST)) to your harddrive in a local directory while recording the directory name (which I will reference as `download_dir`), and then install these packages from each ZIP file in the same order. To install each package, please click "clone or download" -> "Download ZIP" -> `devtools::install_local(path=download_dir, dependencies=FALSE)`
 
 References
 =============

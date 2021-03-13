@@ -1,0 +1,22 @@
+---
+title: "Vector-autoregressive spatio-temporal (VAST) model"
+author: "James T. Thorson"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+  toc: true
+vignette: >
+  %\VignetteIndexEntry{Vector-autoregressive spatio-temporal (VAST) model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Summary
+
+In lieu of a traditional vignette please see the following online
+resources:
+
+- [Description](https://github.com/James-Thorson-NOAA/VAST#description)
+- [User resources](https://github.com/James-Thorson-NOAA/VAST#user-resources-for-learning-about-vast)
+- [Wiki](https://github.com/James-Thorson-NOAA/VAST/wiki)
+

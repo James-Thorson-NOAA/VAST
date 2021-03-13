@@ -6,6 +6,9 @@
 \usage{
 Summarize_Covariance(...)
 }
+\arguments{
+\item{...}{Arguments to be passed to \code{summarize_covariance}}
+}
 \description{
 Included for continuity when using old scripts
 }

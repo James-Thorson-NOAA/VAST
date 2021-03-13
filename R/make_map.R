@@ -1,6 +1,23 @@
+
+#' Create map to turn off and mirror parameters
+#'
+#' @title Create a tagged list to turn and off and mirror parameters
+#'
+#' @inheritParams make_data
+#' @param TmbParams output from \code{\link{make_parameters}}
+#' @param DataList output from \code{\link{make_data}}
+#' @param Npool A user-level interface to pool hyperparameters for multiple categories.
+#'              For categories with few encounters, these hyperparameters are poorly informed
+#'              leading to converge difficulties.  A value \code{Npool=10} indicates
+#'              that any category with fewer than \code{10} encounters across all years
+#'              should have hyperparameters mirrored to the same value.
+#'
 #' @export
 make_map <-
-function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Npool=0 ){
+function( DataList,
+          TmbParams,
+          RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
+          Npool=0 ){
 
   # Local functions
   fix_value <- function( fixvalTF ){
@@ -281,7 +298,7 @@ function( DataList, TmbParams, RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Eps
     Var_j = apply( DataList[["X_xj"]], MARGIN=2, FUN=var )
     Map[["gamma1_j"]] = Map[["gamma2_j"]] = seq_pos(ncol(DataList$X_xj))
     for(j in seq_pos(length(Var_j))){
-      if( Var_j[j]==0 || sum(CovConfig)==0 ){
+      if( Var_j[j]==0 ){
         Map[["gamma1_j"]][j] = NA
         Map[["gamma2_j"]][j] = NA
       }
