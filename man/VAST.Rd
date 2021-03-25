@@ -3,10 +3,10 @@
 \docType{package}
 \name{VAST}
 \alias{VAST}
-\title{Vector autoregressive spatio-temporal model}
+\title{Vector Autoregressive Spatio-Temporal Model}
 \description{
-VAST is multivariate generalization of package `SpatialDeltaGLMM`, and can analyze data for multiple species, ages, size-classes, etc.
-It can be used to implement many types of analysis including:
+Analyze spatial variatoin in multiple variables representing data species, ages, size-classes, etc.
+This can be used to implement many types of analysis including:
 \itemize{
 \item species distribution models with residual spatial and spatio-temporal variation, as well as covariates affecting density and catchability
 \item joint species distribution models (both static and dynamic)

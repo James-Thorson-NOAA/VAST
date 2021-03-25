@@ -143,7 +143,7 @@ If missing, the default is to assume a value of zero for each element (i.e., \co
 \item{X2config_cp}{Same as argument \code{X1config_cp} but for 2nd linear predictor}
 
 \item{X_contrasts}{list defining the contrasts for each density-covariate factor
-specified in \code{X1_formula} or \code{X2_formula} with specification according to \code{\link{stats::contrasts}}.
+specified in \code{X1_formula} or \code{X2_formula} with specification according to \code{\link[stats]{contrasts}}.
 By default uses \code{X1_contrasts = NULL}, which will set the first level of each covariate factor as the reference level.}
 
 \item{catchability_data}{data-frame of covariates for use when specifying \code{Q1_formula} and \code{Q2_formula}}
@@ -225,10 +225,10 @@ Argument \code{FieldConfig} is a matrix of form
 Both vector (simplified) and matrix (full) specification of \code{FieldConfig} involve named elements
   using the following naming conventions:
 \describe{
-   \item{Omega}{specifies whether spatial variation is present and/or correlated among variables}
-   \item{Epsilon}{specifies whether spatio-temporal variation is present and/or correlated among variables}
-   \item{Beta}{specifies whether temporal variation (a.k.a. "intercepts") is present and/or correlated among variables}
-   \item{Epsilon_year}{specifies whether spatio-temporal variation is correlated among years}
+   \item{\code{Omega}}{specifies whether spatial variation is present and/or correlated among variables}
+   \item{\code{Epsilon}}{specifies whether spatio-temporal variation is present and/or correlated among variables}
+   \item{\code{Beta}}{specifies whether temporal variation (a.k.a. "intercepts") is present and/or correlated among variables}
+   \item{\code{Epsilon_year}}{specifies whether spatio-temporal variation is correlated among years}
 }
 Meanwhile, \code{Component_1} (or the numeral "1" after a component name) refers to the 1st lienar predictor (e.g., of a delta-model),
   while \code{Component_2} (or the numeral "2" after a component name) refers to the 2nd linear predictor.
@@ -237,11 +237,11 @@ Meanwhile, \code{Component_1} (or the numeral "1" after a component name) refers
 
 In each slot of \code{FieldConfig}, the user can specify various options:
 \describe{
-  \item{0}{turns off a given model component}
-  \item{integer greater than zero}{specifies the rank (number of factors) in a factor-analysis covariance matrix}
-  \item{"AR1"}{specifies that a model component is correlated following an first-order autoregressive process}
-  \item{"IID"}{specifies that a given model component is a random effect that is independent for every level}
-  \item{"Identity"}{specifies that a given model component has covariance of an identity-matrix;
+  \item{\code{0}}{turns off a given model component}
+  \item{\code{integer greater than zero}}{specifies the rank (number of factors) in a factor-analysis covariance matrix}
+  \item{\code{"AR1"}}{specifies that a model component is correlated following an first-order autoregressive process}
+  \item{\code{"IID"}}{specifies that a given model component is a random effect that is independent for every level}
+  \item{\code{"Identity"}}{specifies that a given model component has covariance of an identity-matrix;
     this is only useful for \code{Epsilon_year} to "turn off" covariance among years while still including spatio-temporal variation}
 }
 
