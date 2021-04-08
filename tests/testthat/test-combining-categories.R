@@ -16,6 +16,7 @@ test_that("Combining categories example is working ", {
   ## Make default settings for index standardization
   settings <- make_settings(
     n_x = 100,
+    Version=Version_VAST,
     Region = "eastern_bering_sea",
     purpose = "index2",
     bias.correct = FALSE,
