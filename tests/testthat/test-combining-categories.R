@@ -45,9 +45,12 @@ test_that("Combining categories example is working ", {
                0.538372354396114, 0.496393515603893)
 
   ## Test model at MLE
+  wd <- tempdir()
   fit <- fit_model(settings=settings, Lat_i=dat$Lat, Lon_i=dat$Lon,
                    t_i=dat$Year, c_i=c_iz, b_i=dat$Catch_KG,
-                   a_i=dat$AreaSwept_km2, run_model=FALSE)
+                   a_i=dat$AreaSwept_km2, run_model=FALSE,
+                   working_dir=paste0(wd, '/'))
+
   Obj <- fit$tmb_list$Obj
   Obj$env$beSilent()
   nll <- as.numeric(Obj$fn(par.mle))
