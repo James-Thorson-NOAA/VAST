@@ -830,8 +830,10 @@ function( b_i,
   }
 
   # Factor model for intercepts + 0% or 100% encounter rate options doesn't make sense
-  if( any(FieldConfig_input[3,1:2] != -2) & any(ObsModel_ez[,2] %in% c(3,4)) ){
-    stop( "Factor model for intercepts is incompatible  with ObsModel_ez[,2] being 3 or 4")
+  if( CheckForErrors==TRUE ){
+    if( any(FieldConfig_input[3,1:2] != -2) & any(ObsModel_ez[,2] %in% c(3,4)) ){
+      stop( "Factor model for intercepts is incompatible  with ObsModel_ez[,2] being 3 or 4")
+    }
   }
 
   # Rank-reduced factor model for intercepts + fixed intercepts doesn't make sense
