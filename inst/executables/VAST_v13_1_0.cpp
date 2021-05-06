@@ -400,6 +400,7 @@ matrix<Type> gmrf_by_category_nll( int n_f, bool include_probability, int method
   }
 
   // PDF if density-dependence/interactions occurs after correlated dynamics (Only makes sense if n_f == n_c)
+  // Note:  this won't easily work with spatially varying L_cf
   if( timing==1 ){
 
     // Calculate difference without rescaling
@@ -1782,6 +1783,11 @@ Type objective_function<Type>::operator() ()
     Xi1_gcp.setZero();
     Xi1_gcp = project_knots( n_g, n_c, n_p1, int(1), Xi1_scp, Ags_ij, Ags_x );
 
+    // Projection for Phi1
+    array<Type> Phi1_gk(n_g, Q1_ik.cols());
+    Phi1_gk.setZero();
+    Phi1_gk = project_knots( n_g, Q1_ik.cols(), int(1), int(0), Phi1_sk, Ags_ij, Ags_x );
+
     // Projection for Omega2
     array<Type> Omega2_gc(n_g, n_c);
     Omega2_gc.setZero();
@@ -1796,6 +1802,11 @@ Type objective_function<Type>::operator() ()
     array<Type> Xi2_gcp(n_g, n_c, n_p2);
     Xi2_gcp.setZero();
     Xi2_gcp = project_knots( n_g, n_c, n_p2, int(1), Xi2_scp, Ags_ij, Ags_x );
+
+    // Projection for Phi2
+    array<Type> Phi2_gk(n_g, Q2_ik.cols());
+    Phi2_gk.setZero();
+    Phi2_gk = project_knots( n_g, Q2_ik.cols(), int(1), int(0), Phi2_sk, Ags_ij, Ags_x );
 
     ////////////////////////
     // Covariate effects
@@ -2223,6 +2234,8 @@ Type objective_function<Type>::operator() ()
     REPORT( eta2_gct );
     REPORT( Xi1_gcp );
     REPORT( Xi2_gcp );
+    REPORT( Phi1_gk );
+    REPORT( Phi2_gk );
     REPORT( D_gct );
     REPORT( R1_gct );
     REPORT( R2_gct );

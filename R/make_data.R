@@ -293,7 +293,7 @@ function( b_i,
   }
 
   ####################
-  # Density and catchability covariates
+  # Density covariates
   #   Note:  Section is complicated to maintain backwards compatibility across many different specifications
   # User can specify density covariates in multiple ways (where the first possible will be preferentially used, and order ensures backwards compatibility):
   #   1: X1_ip OR X1_itp, AND X1_gctp OR X1_gtp, AND X2_ip OR X2_itp, AND X2_gctp OR X2_gtp
