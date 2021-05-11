@@ -8,7 +8,12 @@
 #'
 #' @rawNamespace S3method(effects::Effect, fit_model)
 #' @export
-Effect.fit_model = function (focal.predictors, mod, which_formula="X1", ...) {
+Effect.fit_model <-
+function( focal.predictors,
+          mod,
+          which_formula = "X1",
+          pad_values = c(),
+          ...) {
 
   # Error checks
   if( mod$data_list$n_c>1 ){
@@ -56,9 +61,19 @@ Effect.fit_model = function (focal.predictors, mod, which_formula="X1", ...) {
     mod$parhat = ifelse( is.na(mod$parhat), 0, mod$parhat)
       mod$covhat = ifelse( is.na(mod$covhat), 0, mod$covhat)
   }
+
   # add names
   names(mod$parhat)[] = parname
-    rownames(mod$covhat) = colnames(mod$covhat) = names(mod$parhat)
+  if( length(pad_values) != 0 ){
+    parhat = rep(NA, length(mod$parhat) + length(pad_values))
+    parhat[setdiff(1:length(parhat),pad_values)] = mod$parhat
+    covhat = array(NA, dim=dim(mod$covhat)+rep(length(pad_values),2))
+    covhat[setdiff(1:length(parhat),pad_values),setdiff(1:length(parhat),pad_values)] = mod$covhat
+    mod$parhat = ifelse( is.na(parhat), 0, parhat )
+    mod$covhat = ifelse( is.na(covhat), 0, covhat )
+    #parname = c("padded_intercept", parname)
+  }
+  #rownames(mod$covhat) = colnames(mod$covhat) = names(mod$parhat)
 
   # Augment stuff
   formula_full = stats::update.formula(formula_orig, linear_predictor~.+0)
