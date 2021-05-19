@@ -283,13 +283,35 @@ function( b_i,
   # Coerce ObsModel_ez to be a matrix
   if( !is.matrix(ObsModel_ez) ) ObsModel_ez = matrix( ObsModel_ez, ncol=2, nrow=n_e, byrow=TRUE )
 
+  # Convert b_i to explicit units
+  if( class(b_i) %in% c("numeric","integer") ){
+    message("Coercing `b_i` to have units `kg`; I recommend using explicit units, e.g., `as_units(b_i,'kg')` or `as_units(b_i,'count')`")
+    b_units = "kg"  # "count" or `unitless` also work
+  }else if( class(b_i) == "units" ){
+    b_units = units(b_i)
+  }else{
+    stop("`b_i` must have class `numeric`, `integer`, or `units`")
+  }
+  units(b_i) = b_units
+  # Convert a_i to explicit units
+  if( class(a_i) %in% c("numeric","integer") ){
+    message("Coercing `a_i` to have units `km^2`; I recommend using explicit units, e.g., `as_units(b_i,'km^2')` or `as_units(b_i,unitless)`")
+    a_units = "km^2"
+  }else if( class(a_i) == "units" ){
+    a_units = units(a_i)
+  }else{
+    stop("`a_i` must have class `numeric`, `integer`, or `units`")
+  }
+  units(a_i) = a_units
+
   # if Options2use['treat_nonencounter_as_zero']==TRUE, then replace b_i for all year-categories with all zeros with NAs
   if( Options2use['treat_nonencounter_as_zero']==TRUE ){
     # Determine year-category pairs with no data
     Index = list( factor(c_iz[,1],levels=0:max(c_iz[,1])), factor(tprime_i,levels=0:max(tprime_i)) )
-    Num_ct = tapply( b_i, INDEX=Index, FUN=function(vec){sum(vec>0,na.rm=TRUE)} )
+    Num_ct = tapply( b_i, INDEX=Index, FUN=function(vec){sum(vec>as_units(0,b_units),na.rm=TRUE)} )
     Num_ct = ifelse( is.na(Num_ct), 0, Num_ct )
     b_i = ifelse( Num_ct[cbind(as.numeric(Index[[1]]),as.numeric(Index[[2]]))]==0, NA, b_i )
+    units(b_i) = b_units
   }
 
   ####################
@@ -602,11 +624,11 @@ function( b_i,
     if( !is.matrix(a_gl) ) stop("a_gl should be a matrix")
     if( !is.array(X1_gctp) | !is.array(X1_itp) ) stop( "X1_gctp and X1_itp should be arrays")
     if( (max(s_i)-1)>n_x | min(s_i)<0 ) stop("s_i exceeds bounds in MeshList")
-    if( any(a_i<=0) ) stop("a_i must be greater than zero for all observations, and at least one value of a_i is not")
+    if( any(a_i<=as_units(0,a_units)) ) stop("a_i must be greater than zero for all observations, and at least one value of a_i is not")
     # Logic-check that all categories have data
     if( !all(0:(n_c-1) %in% c_iz) ) stop("One or more categories has no associated observation: please check input `c_iz` for errors")
     # Warnings about all positive or zero
-    Prop_nonzero = tapply( b_i, INDEX=list(tprime_i,c_iz[,1]), FUN=function(vec){mean(vec>0)} )
+    Prop_nonzero = tapply( b_i, INDEX=list(tprime_i,c_iz[,1]), FUN=function(vec){mean(vec>as_units(0,b_units))} )
     if( Options2use[12]==1 ){
       Prop_nonzero = Prop_nonzero[-1,]
     }
@@ -632,14 +654,14 @@ function( b_i,
     if( Options2use['Calculate_Coherence']==1 & any(ObsModel_ez[,2]==0) ) stop("Calculating coherence only makes sense when 'ObsModel_ez[,2]=1'")
     if( any(yearbounds_zz<0) | any(yearbounds_zz>=max(n_t)) ) stop("yearbounds_zz exceeds bounds for modeled years")
     if( n_c!=length(unique(na.omit(as.vector(c_iz)))) ) stop("n_c doesn't equal the number of levels in c_i")
-    if( any(ObsModel_ez[,1]==9) & !all(b_i%in%0:3) ) stop("If using 'ObsModel_ez[e,1]=9', all 'b_i' must be in {0,1,2,3}")
+    #if( any(ObsModel_ez[,1]==9) & !all(b_i%in%0:3) ) stop("If using 'ObsModel_ez[e,1]=9', all 'b_i' must be in {0,1,2,3}")
     if( length(unique(ObsModel_ez[,2]))>1 ) stop("All `ObsModel_ez[,2]` must have the same value")
     if( any(OverdispersionConfig>0) & length(unique(v_i))==1 ) stop("It doesn't make sense to use use `OverdispersionConfig` when using only one level of `v_i`")
     if( any(ObsModel_ez[,1] %in% c(12,13,14)) ){
       if( any(ObsModel_ez[,2] != 1) ) stop("If using `ObsModel_ez[e,1]` in {12,13,14} then must use `ObsModel_ez[e,2]=1`")
       if( !any(ObsModel_ez[,1] %in% c(0,1,2,3,4)) ) stop("Using `ObsModel_ez[e,1]` in {12,13,14} is only intended when combining data with biomass-sampling data")
     }
-    if( all(b_i>0) & all(ObsModel_ez[,1]==0) & !all(FieldConfig_input[1:2,1]==-1) ) stop("All data are positive and using a conventional delta-model, so please turn off `Omega1` and `Epsilon1` terms")
+    if( all(b_i>as_units(0,b_units)) & all(ObsModel_ez[,1]==0) & !all(FieldConfig_input[1:2,1]==-1) ) stop("All data are positive and using a conventional delta-model, so please turn off `Omega1` and `Epsilon1` terms")
     if( !(all(ObsModel_ez[,1] %in% c(0,1,2,4,5,7,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
     if( !(all(ObsModel_ez[,2] %in% c(0,1,2,3,4))) ) stop("Please check `ObsModel_ez[,2]` input")
     if( !all(RhoConfig[1]%in%c(0,1,2,3,4)) | !all(RhoConfig[2]%in%c(0,1,2,3,4,6)) | !all(RhoConfig[3]%in%c(0,1,2,4,5)) | !all(RhoConfig[4]%in%c(0,1,2,4,5,6)) ) stop("Check `RhoConfig` inputs")

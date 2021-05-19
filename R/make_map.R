@@ -87,6 +87,19 @@ function( DataList,
     DataList$n_p1 = DataList$n_p2 = DataList$n_p
   }
 
+  # Convert b_i to explicit units
+  if( class(DataList$b_i) == "units" ){
+    b_units = units(DataList$b_i)
+  }else{
+    stop("`b_i` must have explicit units")
+  }
+  # Convert a_i to explicit units
+  if( class(DataList$a_i) == "units" ){
+    a_units = units(DataList$a_i)
+  }else{
+    stop("`a_i` must have explicit units")
+  }
+
   # Function to identify elements of L_z corresponding to diagonal
   identify_diagonal = function( n_c, n_f ){
     M = diag(n_c)[1:n_f,,drop=FALSE]
@@ -265,7 +278,8 @@ function( DataList,
   }
   EncNum_ct = array(0, dim=c(DataList$n_c,DataList$n_t))
   for( tz in 1:ncol(DataList$t_iz) ){
-    Temp = tapply( DataList$b_i, INDEX=list(factor(DataList$c_iz[,1],levels=1:DataList$n_c-1),factor(DataList$t_iz[,tz],levels=1:DataList$n_t-1)), FUN=function(vec){sum(vec>0,na.rm=TRUE)} )
+    #assign( x="DataList", val=DataList, envir = .GlobalEnv)
+    Temp = tapply( strip_units(DataList$b_i), INDEX=list(factor(DataList$c_iz[,1],levels=1:DataList$n_c-1),factor(DataList$t_iz[,tz],levels=1:DataList$n_t-1)), FUN=function(vec){sum(vec>0,na.rm=TRUE)} )
     Temp = ifelse( is.na(Temp), 0, Temp )
     EncNum_ct = EncNum_ct + Temp
   }
@@ -630,7 +644,7 @@ function( DataList,
     # Change beta1_ct if 100% encounters (not designed to work with seasonal models)
     if( any(DataList$ObsModel_ez[,2] %in% c(3)) ){
       if( ncol(DataList$t_iz)==1 ){
-        Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
+        Tmp_ct = tapply(ifelse(strip_units(DataList$b_i)>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
         Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
         Map_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
         # MAYBE ADD FEATURE TO TURN OFF FOR Tmp_ct==0
@@ -642,7 +656,7 @@ function( DataList,
     # Change beta1_ct and beta2_ct if 0% or 100% encounters (not designed to work with seasonal models)
     if( any(DataList$ObsModel_ez[,2] %in% c(4)) ){
       if( ncol(DataList$t_iz)==1 ){
-        Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
+        Tmp_ct = tapply(ifelse(strip_units(DataList$b_i)>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
         Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
         Map_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1 | Tmp_ct==0)] = NA
         Map_tmp[["beta2_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )

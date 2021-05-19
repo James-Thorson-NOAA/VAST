@@ -1872,7 +1872,7 @@ Type objective_function<Type>::operator() ()
       for(c=0; c<n_c; c++){
         if( Expansion_cz(c,0)==0 ){
           for(g=0; g<n_g; g++){
-            Index_gctl(g,c,t,l) = D_gct(g,c,t) * a_gl(g,l) / 1000;
+            Index_gctl(g,c,t,l) = D_gct(g,c,t) * a_gl(g,l);
             Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
           }
         }
@@ -1960,7 +1960,7 @@ Type objective_function<Type>::operator() ()
       // Calculate effective area = Index / average density
       array<Type> effective_area_ctl(n_c, n_t, n_l);
       array<Type> log_effective_area_ctl(n_c, n_t, n_l);
-      effective_area_ctl = Index_ctl / (mean_D_ctl/1000);  // Correct for different units of Index and density
+      effective_area_ctl = Index_ctl / mean_D_ctl;  // Correct for different units of Index and density
       log_effective_area_ctl = log( effective_area_ctl );
       REPORT( effective_area_ctl );
       ADREPORT( effective_area_ctl );

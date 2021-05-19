@@ -239,9 +239,9 @@ function( Version,
     Params_tmp = list( "beta1_ct"=NA, "beta2_ct"=NA )
     # Starting values
     if( all(DataList$ObsModel_ez[,2] %in% c(0,3)) ){
-      Prop_c = tapply( ifelse(DataList$b_i>0,1,0), INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))), FUN=mean, na.rm=TRUE)
+      Prop_c = tapply( ifelse(strip_units(DataList$b_i)>0,1,0), INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))), FUN=mean, na.rm=TRUE)
       Params_tmp[["beta1_ct"]] = qlogis(0.01*0.99*Prop_c) %o% rep(1,DataList$n_t)
-      Params_tmp[["beta2_ct"]] = log(tapply(ifelse(DataList$b_i>0,DataList$b_i/DataList$a_i,NA),INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),FUN=mean,na.rm=TRUE)) %o% rep(1,DataList$n_t)
+      Params_tmp[["beta2_ct"]] = log(tapply(ifelse(strip_units(DataList$b_i)>0,DataList$b_i/DataList$a_i,NA),INDEX=factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),FUN=mean,na.rm=TRUE)) %o% rep(1,DataList$n_t)
     }
     if( all(DataList$ObsModel_ez[,2] %in% c(1,2,4)) ){
       Params_tmp[["beta1_ct"]] = array(0, dim=c(DataList$n_c,DataList$n_t))
@@ -249,11 +249,11 @@ function( Version,
     }
     # Over-ride starting values for 100% and 0% encounters
     if( all(DataList$ObsModel_ez[,2] %in% c(3)) ){
-      Prop_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
+      Prop_ct = tapply(ifelse(strip_units(DataList$b_i)>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
       if( any(is.na(Prop_ct) | Prop_ct==1) ) Params_tmp[["beta1_ct"]][which(is.na(Prop_ct) | Prop_ct==1)] = 20
     }
     if( all(DataList$ObsModel_ez[,2] %in% c(4)) ){
-      Tmp_ct = tapply(ifelse(DataList$b_i>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
+      Tmp_ct = tapply(ifelse(strip_units(DataList$b_i)>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
       if( any(is.na(Tmp_ct) | Tmp_ct==1) ) Params_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = 20
       if( any(is.na(Tmp_ct) | Tmp_ct==0) ) Params_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = -20
       if( any(is.na(Tmp_ct) | Tmp_ct==0) ) Params_tmp[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = 0
