@@ -44,16 +44,26 @@ make_data(
 )
 }
 \arguments{
-\item{b_i}{Numeric vector, providing sampled value (biomass, counts, etc.) for each observation i}
+\item{b_i}{Vector, providing sampled value (biomass, counts, etc.) for each observation i.
+Users should provide values as class \code{\link[units]{units}}, e.g., \code{as_units(x, "kg")} for data in units kilograms,
+\code{as_units(x, "count")} for numbers, or \code{as_units(x, "kg/km^2")} for area-standarized biomass, etc.
+If units are missing, the default behavior is to coerce the vector to units "kg".
+Units are then used in subsequent plotting.}
 
-\item{a_i}{Numeric vector containing values greater than zero, providing sampled area for each
-observation i;  use \code{a_i=1} for observations without a natural area measurement, while
-noting that resulting densities no longer have interpretable units in that case)}
+\item{a_i}{Vector containing values greater than zero, providing sampled area for each
+observation i, e.g., \code{as_units(x, "km^2")} for area swept in square-kilometers.
+use \code{as_units(1, unitless)} for observations without a natural area measurement
+(noting that resulting densities no longer have interpretable units in that case),
+or for observations where the response \code{b_i} already standardizes for area, e.g.,
+\code{b_i = as_units(x, "kg/km^2")}}
 
 \item{t_i}{Vector of integers, providing the time (e.g., calendar year) for each observation i}
 
 \item{c_iz}{Vector of integers ranging from 0 to the number of variables minus 1, providing the
-category (e.g., species, length-bin) for each observation i}
+category (e.g., species, length-bin) for each observation i.
+This can be specified as a matrix, such that each observation is associated with multiple categories.
+Such specification treats samples as arising from the sum across multiple categories, e.g.,
+to account for unlabeled multispecies data.}
 
 \item{e_i}{Optional vector of integers ranging from 0 to the number of different error distributions,
 providing the error distribution to use for each observation i;
@@ -198,7 +208,8 @@ and specifies the category to use for abundance-weighted expansion, where \code{
 \item{Z_gm}{matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics.
 Defaults to eastings and northings for each knots or extrapolation-grid cell.}
 
-\item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{\link[FishStatsUtils]{get_latest_version}}.
+\item{Version}{Which CPP version to use.  If missing, defaults to latest version
+using \code{\link[FishStatsUtils]{get_latest_version}}.
 Can be used to specify using an older CPP, to maintain backwards compatibility.}
 
 \item{overlap_zz}{A matrix with zero columns (and zero rows by default), indicating whether overlap metrics should be calculated as a derived quantity.}

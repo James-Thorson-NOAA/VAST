@@ -4,7 +4,13 @@
 \alias{Effect.fit_model}
 \title{Adapts package \code{effects}}
 \usage{
-Effect.fit_model(focal.predictors, mod, which_formula = "X1", ...)
+Effect.fit_model(
+  focal.predictors,
+  mod,
+  which_formula = "X1",
+  pad_values = c(),
+  ...
+)
 }
 \arguments{
 \item{focal.predictors}{a character vector of one or more predictors in the model in any order.}
