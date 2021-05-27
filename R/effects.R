@@ -16,8 +16,8 @@ function( focal.predictors,
           ...) {
 
   # Error checks
-  if( mod$data_list$n_c>1 ){
-    stop("`Effect.fit_model` is not currently designed for multivariate models")
+  if( mod$data_list$n_c>1 & which_formula%in%c("X1","X2") ){
+    stop("`Effect.fit_model` is not currently designed for multivariate models using density covariates")
   }
   if( !all(c("covariate_data_full","catchability_data_full") %in% ls(.GlobalEnv)) ){
     stop("Please load `covariate_data_full` and `catchability_data_full` into global memory")
@@ -53,7 +53,12 @@ function( focal.predictors,
   # Extract parameters / covariance
   whichnum = which(names(mod$parameter_estimates$par)==parname)
   mod$parhat = mod$parameter_estimates$par[whichnum]
+  if( is.null(mod$parameter_estimates$SD$cov.fixed) ){
+    mod$covhat = array(0, dim=rep(length(mod$parhat),2) )
+  }else{
     mod$covhat = mod$parameter_estimates$SD$cov.fixed[whichnum,whichnum,drop=FALSE]
+  }
+
   # Fill in values that are mapped off
   if( parname %in% names(mod$tmb_list$Obj$env$map) ){
     mod$parhat = mod$parhat[ mod$tmb_list$Obj$env$map[[parname]] ]
@@ -81,6 +86,10 @@ function( focal.predictors,
   mod$vcov = mod$covhat
   mod$formula = formula_full
   mod$family = stats::gaussian(link = "identity")
+
+  if( FALSE ){
+    Tmp = model.matrix( formula_full, data=fit$effects$catchability_data )
+  }
 
   # Functions for package
   family.fit_model = function(x,...) x$family
