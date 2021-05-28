@@ -33,4 +33,4 @@ testthat::test_check("VAST")
 # source( "C:/Users/James.Thorson/Desktop/Git/VAST/tests/testthat/setup.R" )
 
 # Run from local directory
-#testthat::test_dir( "C:/Users/James.Thorson/Desktop/Git/VAST/tests/testthat/", reporter="check" )
+# testthat::test_dir( "C:/Users/James.Thorson/Desktop/Git/VAST/tests/testthat/", reporter="check" )

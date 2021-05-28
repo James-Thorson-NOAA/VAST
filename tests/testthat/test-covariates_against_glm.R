@@ -193,7 +193,7 @@ test_that("Density covariates give identical results to glm(.) ", {
       "AreaSwept_km2"=fit1$extrapolation_list$a_el[,1], "Year"=NA )
     # Check processed values for depth
     for( Year in sort(unique(Data1$Year)) ){
-      tI = match(Year, fit2$year_labels )
+      tI = match( Year, min(Data1$Year):max(Data1$Year) )
       fit2_depth = fit2$data_list$X2_gctp[,1,tI,][,paste0("BOT_DEPTH:Year_factor",Year)]
       Glm2_depth = predict_data[,'BOT_DEPTH']
       expect_equal( as.numeric(fit2_depth), as.numeric(Glm2_depth), tolerance=0.001 )
