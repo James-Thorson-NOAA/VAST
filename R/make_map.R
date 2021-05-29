@@ -276,14 +276,8 @@ function( DataList,
       stop("Npool should only be specified when using 'IID' variation for `FieldConfig`")
     }
   }
-  EncNum_ct = array(0, dim=c(DataList$n_c,DataList$n_t))
-  for( tz in 1:ncol(DataList$t_iz) ){
-    #assign( x="DataList", val=DataList, envir = .GlobalEnv)
-    Temp = tapply( strip_units(DataList$b_i), INDEX=list(factor(DataList$c_iz[,1],levels=1:DataList$n_c-1),factor(DataList$t_iz[,tz],levels=1:DataList$n_t-1)), FUN=function(vec){sum(vec>0,na.rm=TRUE)} )
-    Temp = ifelse( is.na(Temp), 0, Temp )
-    EncNum_ct = EncNum_ct + Temp
-  }
-  EncNum_c = rowSums( EncNum_ct )
+  Prop_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'num_nonzero',drop=FALSE], drop=3)
+  EncNum_c = rowSums( Prop_ct )
   if( any(EncNum_c < Npool) ){
     pool = function(poolTF){
       Return = 1:length(poolTF)
@@ -583,13 +577,7 @@ function( DataList,
   #####
   # Step 1: fix betas and/or epsilons for missing years if betas are fixed-effects
   #####
-
-  Num_ct = array(0, dim=c(DataList$n_c,DataList$n_t))
-  for( tz in 1:ncol(DataList$t_iz) ){
-    Temp = tapply( DataList$b_i, INDEX=list(factor(DataList$c_iz[,1],levels=1:DataList$n_c-1),factor(DataList$t_iz[,tz],levels=1:DataList$n_t-1)), FUN=function(vec){sum(!is.na(vec))} )
-    Temp = ifelse( is.na(Temp), 0, Temp )
-    Num_ct = Num_ct + Temp
-  }
+  Num_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'num_notna',drop=FALSE], drop=3)
   if( sum(Num_ct==0)>0 ){
     # Beta1 -- Fixed
     if( RhoConfig["Beta1"]==0 ){
@@ -644,10 +632,10 @@ function( DataList,
     # Change beta1_ct if 100% encounters (not designed to work with seasonal models)
     if( any(DataList$ObsModel_ez[,2] %in% c(3)) ){
       if( ncol(DataList$t_iz)==1 ){
-        Tmp_ct = tapply(ifelse(strip_units(DataList$b_i)>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
-        Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
-        Map_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
-        # MAYBE ADD FEATURE TO TURN OFF FOR Tmp_ct==0
+        Prop_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'prop_nonzero',drop=FALSE], drop=3)
+        Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Prop_ct)), dim=dim(Prop_ct) )
+        Map_tmp[["beta1_ct"]][which(is.na(Prop_ct) | Prop_ct==1)] = NA
+        # MAYBE ADD FEATURE TO TURN OFF FOR Prop_ct==0
       }else{
         stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
       }
@@ -656,11 +644,11 @@ function( DataList,
     # Change beta1_ct and beta2_ct if 0% or 100% encounters (not designed to work with seasonal models)
     if( any(DataList$ObsModel_ez[,2] %in% c(4)) ){
       if( ncol(DataList$t_iz)==1 ){
-        Tmp_ct = tapply(ifelse(strip_units(DataList$b_i)>0,1,0), INDEX=list(factor(DataList$c_iz[,1],levels=sort(unique(DataList$c_iz[,1]))),factor(DataList$t_iz[,1],levels=1:DataList$n_t-1)), FUN=mean)
-        Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
-        Map_tmp[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1 | Tmp_ct==0)] = NA
-        Map_tmp[["beta2_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
-        Map_tmp[["beta2_ct"]][which(is.na(Tmp_ct) | Tmp_ct==0)] = NA
+        Prop_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'prop_nonzero',drop=FALSE], drop=3)
+        Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Prop_ct)), dim=dim(Prop_ct) )
+        Map_tmp[["beta1_ct"]][which(is.na(Prop_ct) | Prop_ct==1 | Prop_ct==0)] = NA
+        Map_tmp[["beta2_ct"]] = array( 1:prod(dim(Prop_ct)), dim=dim(Prop_ct) )
+        Map_tmp[["beta2_ct"]][which(is.na(Prop_ct) | Prop_ct==0)] = NA
       }else{
         stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
       }
@@ -837,41 +825,6 @@ function( DataList,
   if( all(c("Beta_mean1_t","Beta_mean2_t") %in% names(TmbParams)) ){
     Map[["Beta_mean1_t"]] = factor( rep(NA,DataList$n_t) )
     Map[["Beta_mean2_t"]] = factor( rep(NA,DataList$n_t) )
-  }
-
-  #####
-  # Step 4: Structure for seasonal models
-  # NOT WELL TESTED!
-  #####
-
-  # fix first level of 2nd and higher columns of t_iz
-  if( "t_iz"%in%names(DataList) && ncol(DataList$t_iz)>=2 ){
-    if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
-      # (Re)start map for intercepts
-      if( !("beta1_ct" %in% names(Map)) ){
-        Map[["beta1_ct"]] = 1:prod(dim(TmbParams[["beta1_ct"]]))
-      }else{
-        Map[["beta1_ct"]] = as.numeric(Map[["beta1_ct"]])
-      }
-      if( !("beta2_ct" %in% names(Map)) ){
-        Map[["beta2_ct"]] = 1:prod(dim(TmbParams[["beta2_ct"]]))
-      }else{
-        Map[["beta2_ct"]] = as.numeric(Map[["beta2_ct"]])
-      }
-      # Add fixed values for lowest value of 2nd and higher columns
-      for( zI in 2:ncol(DataList$t_iz) ){
-        Which2Fix = min( DataList$t_iz[,zI] )
-        Which2Fix = matrix( 1:(DataList$n_c*DataList$n_t), ncol=DataList$n_t, nrow=DataList$n_c )[,Which2Fix+1]
-        Map[["beta1_ct"]][Which2Fix] = NA
-        Map[["beta2_ct"]][Which2Fix] = NA
-      }
-      # Remake as factor
-      Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
-      Map[["beta2_ct"]] = factor(Map[["beta2_ct"]])
-    }
-    if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
-      stop("Seasonal models are not implemented for V >= 7.0.0, check with package author James Thorson")
-    }
   }
 
   # Return
