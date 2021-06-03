@@ -666,13 +666,13 @@ Type objective_function<Type>::operator() ()
   // Slot 2 -- Timing of interactions;  0=Before correlated dynamics;  1=After correlated dynamics
   // Current implementation only makes sense when (1) intercepts are constant among years; (2) using a Poisson-link delta model; (3) n_f=n_c for spatio-temporal variation; (4) starts near equilibrium manifold
   DATA_IARRAY(X1config_cp);
-  // Methods for 1st component for each covariate in X_xtp (0=Off;  1=Estimate;  2=Estimate with spatially varying coefficient)
+  // Methods for 1st component for each covariate in X_xtp (0=Off;  1=Estimate;  2=Estimate with zero-centered spatially varying coefficient; 3=Estimate with spatially varying coefficient; 4=Zero-centered spatially varying coefficient but replacing value with beta1_ct+beta2_ct
   DATA_IARRAY(X2config_cp);
-  // Methods for 2nd component for each covariate in X_xtp (0=Off;  1=Estimate;  2=Estimate with spatially varying coefficient)
+  // Methods for 2nd component for each covariate in X_xtp (0=Off;  1=Estimate;  2=Estimate with zero-centered spatially varying coefficient; 3=Estimate with spatially varying coefficient; 4=Zero-centered spatially varying coefficient but replacing value with beta1_ct+beta2_ct)
   DATA_IVECTOR(Q1config_k);
-  // Methods for 1st component for each covariate in Q1_ik (0=Off;  1=Estimate;  2=Estimate with spatially varying coefficient)
+  // Methods for 1st component for each covariate in Q1_ik (0=Off;  1=Estimate;  2=Estimate with zero-centered spatially varying coefficient; 3=Estimate with spatially varying coefficient)
   DATA_IVECTOR(Q2config_k);
-  // Methods for 2nd component for each covariate in Q2_ik (0=Off;  1=Estimate;  2=Estimate with spatially varying coefficient)
+  // Methods for 2nd component for each covariate in Q2_ik (0=Off;  1=Estimate;  2=Estimate with zero-centered spatially varying coefficient; 3=Estimate with spatially varying coefficient)
   DATA_INTEGER(include_data);   // Always use TRUE except for internal usage to extract GRMF normalization when turn off GMRF normalization in CPP
 
   // Data vectors
@@ -987,7 +987,8 @@ Type objective_function<Type>::operator() ()
   ////////////////////////
   // Random effects
   //  Spatial and spatio-temporal variation
-  // (Should be first to optimize speedup involving normalization of GMRFs, but must be after interactions)
+  // Should be early to optimize speedup involving normalization of GMRFs, but:
+  //  ... Must be after interactions
   ////////////////////////
 
   // Random field probability
@@ -1134,7 +1135,7 @@ Type objective_function<Type>::operator() ()
   for(p=0; p<n_p1; p++){
   for(c=0; c<n_c; c++){
     // Hyperdistribution for spatially varying coefficients (uses IID option)
-    if( (X1config_cp(c,p)==2) | (X1config_cp(c,p)==3) ){
+    if( (X1config_cp(c,p)==2) | (X1config_cp(c,p)==3) | (X1config_cp(c,p)==4) ){
       Sigma_11(0,0) = sigmaXi1_cp(c,p);
       Tmp_s1.col(0) = Xiinput1_scp.col(p).col(c);
       Xi1_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa1, Tmp_s1, Zeros_s1, Sigma_11, gmrf_Q, Options(14), jnll_comp(14), this);
@@ -1296,7 +1297,7 @@ Type objective_function<Type>::operator() ()
   for(p=0; p<n_p2; p++){
   for(c=0; c<n_c; c++){
     // Hyperdistribution for spatially varying coefficients (uses IID option)
-    if( (X2config_cp(c,p)==2) | (X2config_cp(c,p)==3) ){
+    if( (X2config_cp(c,p)==2) | (X2config_cp(c,p)==3) | (X2config_cp(c,p)==4) ){
       Tmp2_sc.col(0) = Xiinput2_scp.col(p).col(c);
       Sigma2_cf(0,0) = sigmaXi2_cp(c,p);
       Xi2_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa2, Tmp2_sc, Ximean2_sc, Sigma2_cf, gmrf_Q, Options(14), jnll_comp(15), this);
@@ -1433,6 +1434,21 @@ Type objective_function<Type>::operator() ()
   ////////////////////////
   // Covariate effects
   ////////////////////////
+
+  // If using spatially varying response to intercepts, replace covariate values
+  for( i=0; i<n_i; i++ ){
+  for( int zc=0; zc<c_iz.cols(); zc++ ){
+    for( p=0; p<n_p1; p++ ){
+      if( X1config_cp(c_iz(i,zc),p)==4 ){
+        X1_ip(i,p) = beta1_tc(t_i(i),c_iz(i,zc)) + beta2_tc(t_i(i),c_iz(i,zc));
+      }
+    }
+    for( p=0; p<n_p2; p++ ){
+      if( X2config_cp(c_iz(i,zc),p)==4 ){
+        X2_ip(i,p) = beta1_tc(t_i(i),c_iz(i,zc)) + beta2_tc(t_i(i),c_iz(i,zc));
+      }
+    }
+  }}
 
   vector<Type> zeta1_i(n_i);
   zeta1_i.setZero();
@@ -1811,6 +1827,22 @@ Type objective_function<Type>::operator() ()
     ////////////////////////
     // Covariate effects
     ////////////////////////
+
+    // If using spatially varying response to intercepts, replace covariate values
+    for(c=0; c<n_c; c++){
+    for(t=0; t<n_t; t++){
+    for(g=0; g<n_g; g++){
+      for(p=0; p<n_p1; p++){
+        if( X1config_cp(c,p)==4 ){
+          X1_gctp(g,c,t,p) = beta1_tc(t,c) + beta2_tc(t,c);
+        }
+      }
+      for(p=0; p<n_p2; p++){
+        if( X2config_cp(c,p)==4 ){
+          X2_gctp(g,c,t,p) = beta1_tc(t,c) + beta2_tc(t,c);
+        }
+      }
+    }}}
 
     array<Type> eta1_gct(n_g, n_c, n_t);
     eta1_gct.setZero();

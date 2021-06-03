@@ -147,6 +147,9 @@ If missing, the default is to assume a value of zero for each element (i.e., \co
   \item{\code{X1config_cp[c,p]=1}}{\code{X_ip[,p]} has a linear effect on 1st linear predictor for category c}
   \item{\code{X1config_cp[c,p]=2}}{\code{X_ip[,p]} has a spatially varying, zero-centered linear effect on 1st linear predictor for category c}
   \item{\code{X1config_cp[c,p]=3}}{\code{X_ip[,p]} has a spatially varying linear effect on 1st linear predictor for category c}
+  \item{\code{X1config_cp[c,p]=4}}{Replaces covariate \code{X_ip[,p]} with \code{beta1_tc[,c]+beta2_tc[,c]} for the corresponding
+                                            year and category, which has a zero-centered spatially varying effect on 1st linear predictor.
+                                            This then represents a density-dependent effect on distribution. (NOTE: still in beta testing)}
   \item{\code{X1config_cp[c,p]=-1}}{\code{X1config_cp[c,p]=-1} is the same as \code{X1config_cp[c,p]=2}, but without including the log-likelihood term; this is useful in special cases when carefully mirroring spatially varying coefficients, e.g., to use cohort effects in a age-structured spatio-temporal model}
 }}
 
@@ -172,8 +175,9 @@ by default (but can be specified to do so when an appropriate `formula` is suppl
 
 \item{Network_sz}{An interface to specify a directed acyclic graphic representing a stream network, used only when \code{Method="Stream_network"}.}
 
-\item{F_ct}{matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model
-and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)}
+\item{F_ct}{matrix of instantanous fishing mortality for each category c and year t.  Only feasible when using a Poisson-link delta model
+and specifying temporal structure on intercepts, when the temporal autocorrelation is equivalent to a Spawning Potential
+Ratio (SPR) proxy for fishing mortality targets given the implied Gompertz density dependence.}
 
 \item{F_init}{In a vector-autoregressive model specifying fishing mortality rates via \code{F_ct}, the initial conditions can be based on the stationary
 distribution assuming that the first year of fishing mortality had happened indefinitely prior to data \code{F_init=2}, or that fishing mortality

@@ -115,7 +115,7 @@ function( DataList,
     Map[['ln_H_input']] = factor( rep(NA,2) )
   }
   if( all(DataList[["FieldConfig"]][1:2,] == -1) ){
-    if( !( any(DataList[["X1config_cp"]][,]%in%c(2,3)) | any(DataList[["X2config_cp"]][,]%in%c(2,3)) | any(DataList[["Q1config_k"]]%in%c(2,3)) | any(DataList[["Q2config_k"]]%in%c(2,3)) ) ){
+    if( !( any(DataList[["X1config_cp"]][,]%in%c(2,3,4)) | any(DataList[["X2config_cp"]][,]%in%c(2,3,4)) | any(DataList[["Q1config_k"]]%in%c(2,3)) | any(DataList[["Q2config_k"]]%in%c(2,3)) ) ){
       Map[['ln_H_input']] = factor( rep(NA,2) )
     }
   }
@@ -194,7 +194,7 @@ function( DataList,
     if("L_epsilon1_z" %in% names(TmbParams)) Map[["L_epsilon1_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon1_z"]])) )
   }
   if( all(DataList[["FieldConfig"]][1:2,1] == -1) ){
-    if( !( any(DataList[["X1config_cp"]]%in%c(2,3)) | any(DataList[["Q1config_k"]]%in%c(2,3)) ) ){
+    if( !( any(DataList[["X1config_cp"]]%in%c(2,3,4)) | any(DataList[["Q1config_k"]]%in%c(2,3)) ) ){
       Map[["logkappa1"]] = factor(NA)
       if("rho_c1" %in% names(TmbParams)) Map[["rho_c1"]] = factor(NA)
     }
@@ -444,13 +444,13 @@ function( DataList,
       }
       for(cI in 1:DataList$n_c){
       for(pI in seq_pos(DataList$n_p1)){
-        if( DataList$X1config_cp[cI,pI] %in% c(-1,0,2) ){
+        if( DataList$X1config_cp[cI,pI] %in% c(-1,0,2,4) ){
           Map[["gamma1_cp"]][cI,pI] = NA
         }
       }}
       for(cI in 1:DataList$n_c){
       for(pI in seq_pos(DataList$n_p2)){
-        if( DataList$X2config_cp[cI,pI] %in% c(-1,0,2) ){
+        if( DataList$X2config_cp[cI,pI] %in% c(-1,0,2,4) ){
           Map[["gamma2_cp"]][cI,pI] = NA
         }
       }}
@@ -578,7 +578,7 @@ function( DataList,
   # Step 1: fix betas and/or epsilons for missing years if betas are fixed-effects
   #####
   Num_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'num_notna',drop=FALSE], drop=3)
-  if( sum(Num_ct==0)>0 ){
+  if( any(Num_ct==0) ){
     # Beta1 -- Fixed
     if( RhoConfig["Beta1"]==0 ){
       if( "beta1_ct" %in% names(TmbParams) ){

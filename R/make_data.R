@@ -126,6 +126,9 @@
 #'   \item{\code{X1config_cp[c,p]=1}}{\code{X_ip[,p]} has a linear effect on 1st linear predictor for category c}
 #'   \item{\code{X1config_cp[c,p]=2}}{\code{X_ip[,p]} has a spatially varying, zero-centered linear effect on 1st linear predictor for category c}
 #'   \item{\code{X1config_cp[c,p]=3}}{\code{X_ip[,p]} has a spatially varying linear effect on 1st linear predictor for category c}
+#'   \item{\code{X1config_cp[c,p]=4}}{Replaces covariate \code{X_ip[,p]} with \code{beta1_tc[,c]+beta2_tc[,c]} for the corresponding
+#'                                             year and category, which has a zero-centered spatially varying effect on 1st linear predictor.
+#'                                             This then represents a density-dependent effect on distribution. (NOTE: still in beta testing)}
 #'   \item{\code{X1config_cp[c,p]=-1}}{\code{X1config_cp[c,p]=-1} is the same as \code{X1config_cp[c,p]=2}, but without including the log-likelihood term; this is useful in special cases when carefully mirroring spatially varying coefficients, e.g., to use cohort effects in a age-structured spatio-temporal model}
 #' }
 #' @param X2config_cp Same as argument \code{X1config_cp} but for 2nd linear predictor
@@ -151,8 +154,9 @@
 #'        or the index is calculated as the weighted average of density weighted by the expanded value for another category
 #'        ("abundance weighted-average expansion" \code{Expansion[c1,1]=2}).  The 2nd column is only used when \code{Expansion[c1,1]=1} or \code{Expansion[c1,1]=2},
 #'        and specifies the category to use for abundance-weighted expansion, where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.
-#' @param F_ct matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model
-#'        and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)
+#' @param F_ct matrix of instantanous fishing mortality for each category c and year t.  Only feasible when using a Poisson-link delta model
+#'        and specifying temporal structure on intercepts, when the temporal autocorrelation is equivalent to a Spawning Potential
+#'        Ratio (SPR) proxy for fishing mortality targets given the implied Gompertz density dependence.
 #' @param Options a tagged-vector that is empty by default, \code{Options=c()}, but where the following slots might be helpful to add,
 #'        either by passing \code{Options} to \code{\link[FishStatsUtils]{make_settings}}, or editing after a call to that function:
 #' \describe{
@@ -488,7 +492,7 @@ function( b_i,
       if( !is.array(Xconfig_cp) || !(all(dim(Xconfig_cp)==c(n_c,n_p))) ){
         stop("`Xconfig_cp` has wrong dimensions")
       }
-      if( !all(Xconfig_cp %in% c(-1,0,1,2,3)) ){
+      if( !all(Xconfig_cp %in% c(-1,0,1,2,3,4)) ){
         stop("`Xconfig_cp` has some wrong element(s)")
       }
       if( any(Xconfig_cp %in% -1) ){
