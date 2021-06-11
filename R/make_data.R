@@ -248,7 +248,7 @@ function( b_i,
   Options2use = c('SD_site_density'=FALSE, 'SD_site_logdensity'=FALSE, 'Calculate_Range'=FALSE, 'SD_observation_density'=FALSE, 'Calculate_effective_area'=FALSE,
     'Calculate_Cov_SE'=FALSE, 'Calculate_Synchrony'=FALSE, 'Calculate_Coherence'=FALSE, 'Calculate_proportion'=FALSE, 'normalize_GMRF_in_CPP'=TRUE,
     'Calculate_Fratio'=FALSE, 'Estimate_B0'=FALSE, 'Project_factors'=FALSE, 'treat_nonencounter_as_zero'=FALSE, 'simulate_random_effects'=TRUE,
-    'observation_error_as_CV'=TRUE, 'report_additional_variables'=FALSE, 'zerosum_penalty'=0, 'EOF_unity_trace'=0 )
+    'observation_error_as_CV'=TRUE, 'report_additional_variables'=FALSE, 'zerosum_penalty'=0, 'EOF_unity_trace'=0, 'betaprime_complexity'=0 )
 
   # Replace defaults for `Options` with provided values (if any)
   for( i in seq_along(Options) ){

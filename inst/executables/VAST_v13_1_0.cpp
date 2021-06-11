@@ -104,10 +104,16 @@ Type posfun(Type x, Type lowerlimit, Type &pen){
   //return CppAD::CondExpGe(x, lowerlimit, x, eps*logspace_add(lowerlimit/eps, Type(0)));
 }
 
+// mean
+template<class Type>
+Type mean( vector<Type> vec ){
+  return vec.sum() / vec.size();
+}
+
 // Variance
 template<class Type>
 Type var( array<Type> vec ){
-  Type vec_mod = vec - (vec.sum()/vec.size());
+  Type vec_mod = vec - mean(vec);
   Type res = pow(vec_mod, 2.0).sum() / vec.size();
   return res;
 }
@@ -618,11 +624,11 @@ Type objective_function<Type>::operator() ()
   // Options_list.Options_vec
     // Slot 0 -- Aniso: 0=No, 1=Yes
     // Slot 1 -- DEPRECATED
-    // Slot 2 -- AR1 on beta1 (year intercepts for 1st linear predictor) to deal with missing years: 0=No, 1=Yes
-    // Slot 3 -- AR1 on beta2 (year intercepts for 2nd linear predictor) to deal with missing years: 0=No, 1=Yes
+    // Slot 2 -- DEPRECATED
+    // Slot 3 -- DEPRECATED
     // Slot 4 -- DEPRECATED
-    // Slot 5 -- Upper limit constant of integration calculation for infinite-series density functions (Conway-Maxwell-Poisson and Tweedie)
-    // Slot 6 -- Breakpoint in CMP density function
+    // Slot 5 -- DEPRECATED
+    // Slot 6 -- DEPRECATED
     // Slot 7 -- Whether to use SPDE or 2D-AR1 hyper-distribution for spatial process: 0=SPDE; 1=2D-AR1; 2=Stream-network
     // Slot 8 -- Whether to use F_ct or ignore it for speedup
   // Options_list.Options
@@ -643,6 +649,9 @@ Type objective_function<Type>::operator() ()
     // Slot 14: Does bootstrap simulator simulate new realizations of random effects (default) or condition on estimated values for random effects
     // Slot 15: Use CV for observation errors (default) or SD
     // Slot 16: Report additional variables or skip to simplified output (default = FALSE)
+    // Slot 17: REDUNDANT
+    // Slot 18: REDUNDANT
+    // Slot 19: Include mean of Epsiloninput1_sct and Epsiloninput2_sct to in betaprime_ct
   // Options_list.yearbounds_zz
     // Two columns, and 1+ rows, specifying first and last t for each period used in calculating synchrony
   // Options_list.Expansion_cz
@@ -1047,6 +1056,20 @@ Type objective_function<Type>::operator() ()
   }}
 
   // Project Epsiloninput1_sff to Epsiloninput1_sft without dividing by exp(logtau)
+  //Type cumsum;
+  //if( Options(19) == 1 ){
+  //  // Impose sum-to-zero constraint, to force interannual variation to be mainly composed of betas and covariates
+  //  for( int f1=0; f1<n_f1; f1++ ){
+  //  for( int f2=0; f2<Epsiloninput1_sff.cols(); f2++ ){
+  //    cumsum = 0;
+  //    for( s=0; s<n_s; s++ ){
+  //      cumsum += Epsiloninput1_sff(s,f1,f2);
+  //    }
+  //    for( s=0; s<n_s; s++ ){
+  //      Epsiloninput1_sff(s,f1,f2) -= cumsum / n_s;
+  //    }
+  //  }}
+  //}
   array<Type> Tmp_st( n_s, n_t );
   array<Type> Epsiloninput1_sft( n_s, n_f1, n_t );
   bool include_epsilon_prob_1;
@@ -1206,6 +1229,19 @@ Type objective_function<Type>::operator() ()
   }}
 
   // Project Epsiloninput2_sff to Epsiloninput2_sft without dividing by exp(logtau)
+  //if( Options(19) == 1 ){
+  //  // Impose sum-to-zero constraint, to force interannual variation to be mainly composed of betas and covariates
+  //  for( int f1=0; f1<n_f2; f1++ ){
+  //  for( int f2=0; f2<Epsiloninput2_sff.cols(); f2++ ){
+  //    cumsum = 0;
+  //    for( s=0; s<n_s; s++ ){
+  //      cumsum += Epsiloninput2_sff(s,f1,f2);
+  //    }
+  //    for( s=0; s<n_s; s++ ){
+  //      Epsiloninput2_sff(s,f1,f2) -= cumsum / n_s;
+  //    }
+  //  }}
+  //}
   array<Type> Epsiloninput2_sft( n_s, n_f2, n_t );
   bool include_epsilon_prob_2;
   if( FieldConfig(3,1) > 0 ){
@@ -1435,20 +1471,63 @@ Type objective_function<Type>::operator() ()
   // Covariate effects
   ////////////////////////
 
-  // If using spatially varying response to intercepts, replace covariate values
-  for( i=0; i<n_i; i++ ){
-  for( int zc=0; zc<c_iz.cols(); zc++ ){
-    for( p=0; p<n_p1; p++ ){
-      if( X1config_cp(c_iz(i,zc),p)==4 ){
-        X1_ip(i,p) = beta1_tc(t_i(i),c_iz(i,zc)) + beta2_tc(t_i(i),c_iz(i,zc));
-      }
+  // Calculate centered betas -- default is to ignore
+  // Used when calculating density-dependent effects for distribution
+  Type cumsum1;
+  Type cumsum2;
+  matrix<Type> betaprime_tc( n_t, n_c );
+  betaprime_tc.setZero();
+  for(c=0; c<n_c; c++){
+  for(t=0; t<n_t; t++){
+    // Impose sum-to-zero constraint, to force interannual variation to be mainly composed of betas and covariates
+    if( (Options(19)==1) | (Options(19)==2) | (Options(19)==3) ){
+      betaprime_tc(t,c) += beta1_tc(t,c) - (beta1_tc.col(c).sum() / n_t) + beta2_tc(t,c) - (beta2_tc.col(c).sum() / n_t);
     }
-    for( p=0; p<n_p2; p++ ){
-      if( X2config_cp(c_iz(i,zc),p)==4 ){
-        X2_ip(i,p) = beta1_tc(t_i(i),c_iz(i,zc)) + beta2_tc(t_i(i),c_iz(i,zc));
+    // Add average of Epsilon1_sct and Epsilon2_sct
+    if( Options(19) == 2 ){
+      cumsum1 = 0;
+      for( s=0; s<n_s; s++ ){
+        cumsum1 += Epsilon1_sct(s,c,t) + Epsilon2_sct(s,c,t);
       }
+      betaprime_tc(t,c) += (cumsum1 / n_s);
+    }
+    // Add weighted average of Epsilon1_sct and Epsilon2_sct, weighted by exp(Omega1_sc + Omega2_sc)
+    if( Options(19) == 3 ){
+      cumsum1 = 0;
+      if(t==0){
+        cumsum2 = 0;
+      }
+      for( s=0; s<n_s; s++ ){
+        cumsum1 += (Epsilon1_sct(s,c,t) + Epsilon2_sct(s,c,t)) * exp(Omega1_sc(s,c) + Omega2_sc(s,c));
+        if(t==0){
+          cumsum2 += exp(Omega1_sc(s,c) + Omega2_sc(s,c));
+        }
+      }
+      betaprime_tc(t,c) += (cumsum1 / cumsum2);
     }
   }}
+
+  // If using spatially varying response to intercepts, replace covariate values
+  for( i=0; i<n_i; i++ ){
+  for( p=0; p<n_p1; p++ ){
+  for( int zc=0; zc<c_iz.cols(); zc++ ){
+    if( X1config_cp(c_iz(i,zc),p)==4 ){
+      if(zc==0){
+        X1_ip(i,p) = 0;
+      }
+      X1_ip(i,p) += betaprime_tc(t_i(i),c_iz(i,zc));
+    }
+  }}}
+  for( i=0; i<n_i; i++ ){
+  for( p=0; p<n_p2; p++ ){
+  for( int zc=0; zc<c_iz.cols(); zc++ ){
+    if( X2config_cp(c_iz(i,zc),p)==4 ){
+      if( zc==0 ){
+        X2_ip(i,p) = 0;
+      }
+      X2_ip(i,p) += betaprime_tc(t_i(i),c_iz(i,zc));
+    }
+  }}}
 
   vector<Type> zeta1_i(n_i);
   zeta1_i.setZero();
@@ -1834,12 +1913,12 @@ Type objective_function<Type>::operator() ()
     for(g=0; g<n_g; g++){
       for(p=0; p<n_p1; p++){
         if( X1config_cp(c,p)==4 ){
-          X1_gctp(g,c,t,p) = beta1_tc(t,c) + beta2_tc(t,c);
+          X1_gctp(g,c,t,p) = betaprime_tc(t,c);
         }
       }
       for(p=0; p<n_p2; p++){
         if( X2config_cp(c,p)==4 ){
-          X2_gctp(g,c,t,p) = beta1_tc(t,c) + beta2_tc(t,c);
+          X2_gctp(g,c,t,p) = betaprime_tc(t,c);
         }
       }
     }}}
@@ -2445,6 +2524,7 @@ Type objective_function<Type>::operator() ()
     REPORT( zeta1_i );
     REPORT( zeta2_i );
     REPORT( iota_ct );
+    REPORT( betaprime_tc );
   }
 
   if( Options(3)==1 ){
