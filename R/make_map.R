@@ -529,6 +529,14 @@ function( DataList,
     Map[["Phiinput2_sk"]] = factor(Map[["Phiinput2_sk"]])
   }
 
+  # Lagrange multipliers
+  # Only enabled when X1config_cp[,]=4 AND Options[20]=4
+  if( "lagrange_tc" %in% names(TmbParams) ){
+    if( !(Options[20]==4 & (any(DataList$X1config_cp==4) | any(DataList$X2config_cp==4))) ){
+      Map[["lagrange_tc"]] = factor( array(NA, dim=c(DataList$n_t,DataList$n_c)) )
+    }
+  }
+
   #########################
   # Seasonal models
   #########################

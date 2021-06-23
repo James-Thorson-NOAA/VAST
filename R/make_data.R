@@ -35,7 +35,7 @@
 #'     this is only useful for \code{Epsilon_year} to "turn off" covariance among years while still including spatio-temporal variation}
 #' }
 #'
-#' \code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_itp} using \code{\link[FishStatsUtils]{make_covariates}};
+#' \code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_ip} using \code{\link[FishStatsUtils]{make_covariates}};
 #' see that function for more details.
 #'
 #' @param b_i Vector, providing sampled value (biomass, counts, etc.) for each observation i.
@@ -116,7 +116,9 @@
 #'   \item{\code{VamConfig[2]}}{Indicates whether interactions occur before spatio-temporal variation (\code{VamConfig[2]=0}) or after \code{VamConfig[2]=1}}
 #' }
 #' @param X1_formula right-sided formula affecting the 1st linear predictor for density, e.g.,
-#'        \code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}
+#'        \code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}.
+#'        It is allowed to include \code{Year} in the formula, although please check whether it is
+#'        interpreted as numeric or factor-valued.
 #' @param X2_formula same as \code{X1_formula} but affecting the 2nd linear predictor for density
 #' @param covariate_data data-frame of covariates for use when specifying \code{X1_formula} and \code{X2_formula}
 #' @param X1config_cp matrix of settings for each density covariate for the 1st lienar predictor,
@@ -245,10 +247,27 @@ function( b_i,
   if( "X_xj" %in% names(alternate_inputs) ) stop("`X_xj` is fully deprecated; please check inputs")
 
   # Specify default values for `Options`
-  Options2use = c('SD_site_density'=FALSE, 'SD_site_logdensity'=FALSE, 'Calculate_Range'=FALSE, 'SD_observation_density'=FALSE, 'Calculate_effective_area'=FALSE,
-    'Calculate_Cov_SE'=FALSE, 'Calculate_Synchrony'=FALSE, 'Calculate_Coherence'=FALSE, 'Calculate_proportion'=FALSE, 'normalize_GMRF_in_CPP'=TRUE,
-    'Calculate_Fratio'=FALSE, 'Estimate_B0'=FALSE, 'Project_factors'=FALSE, 'treat_nonencounter_as_zero'=FALSE, 'simulate_random_effects'=TRUE,
-    'observation_error_as_CV'=TRUE, 'report_additional_variables'=FALSE, 'zerosum_penalty'=0, 'EOF_unity_trace'=0, 'betaprime_complexity'=0 )
+  Options2use = c( 'SD_site_density' = FALSE,
+                   'SD_site_logdensity' = FALSE,
+                   'Calculate_Range' = FALSE,
+                   'SD_observation_density' = FALSE,
+                   'Calculate_effective_area' = FALSE,
+                   'Calculate_Cov_SE' = FALSE,
+                   'Calculate_Synchrony' = FALSE,
+                   'Calculate_Coherence' = FALSE,
+                   'Calculate_proportion' = FALSE,
+                   'normalize_GMRF_in_CPP' = TRUE,
+                   'Calculate_Fratio' = FALSE,
+                   'Estimate_B0' = FALSE,
+                   'Project_factors' = FALSE,
+                   'treat_nonencounter_as_zero' = FALSE,
+                   'simulate_random_effects' = TRUE,
+                   'observation_error_as_CV' = TRUE,
+                   'report_additional_variables' = FALSE,
+                   'zerosum_penalty' = 0,
+                   'EOF_unity_trace' = 0,
+                   'basin_method' = 0,
+                   'lagrange_multiplier' = 50 )
 
   # Replace defaults for `Options` with provided values (if any)
   for( i in seq_along(Options) ){
@@ -310,7 +329,7 @@ function( b_i,
   units(b_i) = b_units
   # Convert a_i to explicit units
   if( class(a_i) %in% c("numeric","integer") ){
-    message("Coercing `a_i` to have units `km^2`; I recommend using explicit units, e.g., `as_units(b_i,'km^2')` or `as_units(b_i,unitless)`")
+    message("Coercing `a_i` to have units `km^2`; I recommend using explicit units, e.g., `as_units(a_i,'km^2')` or `as_units(a_i,unitless)`")
     a_units = "km^2"
   }else if( class(a_i) == "units" ){
     a_units = units(a_i)
@@ -366,7 +385,7 @@ function( b_i,
   X_gctp = alternate_inputs[["X_gctp"]]
   X1_gctp = alternate_inputs[["X1_gctp"]]
   X2_gctp = alternate_inputs[["X2_gctp"]]
-  X_itp = alternate_inputs[["X_itp"]]
+  X_ip = alternate_inputs[["X_itp"]]
   X1_itp = alternate_inputs[["X1_itp"]]
   X2_itp = alternate_inputs[["X2_itp"]]
 

@@ -651,7 +651,8 @@ Type objective_function<Type>::operator() ()
     // Slot 16: Report additional variables or skip to simplified output (default = FALSE)
     // Slot 17: REDUNDANT
     // Slot 18: REDUNDANT
-    // Slot 19: Include mean of Epsiloninput1_sct and Epsiloninput2_sct to in betaprime_ct
+    // Slot 19: Complexity for calculation of lagrange_tc
+    // Slot 20: Value for lagrange_multiplier
   // Options_list.yearbounds_zz
     // Two columns, and 1+ rows, specifying first and last t for each period used in calculating synchrony
   // Options_list.Expansion_cz
@@ -785,6 +786,9 @@ Type objective_function<Type>::operator() ()
   // SigmaM[,0] indexed by e_i, e.g., SigmaM(e_i(i),0)
   // SigmaM[,1] and SigmaM[,2] indexed by c_i, e.g., SigmaM(c_i(i),2)
 
+  // Lagrange multipliers
+  PARAMETER_ARRAY(lagrange_tc);
+
   // -- positive catch rates random effects
   PARAMETER_VECTOR(delta_i);
   PARAMETER_MATRIX(eta2_vf);
@@ -801,7 +805,7 @@ Type objective_function<Type>::operator() ()
   int i,t,c,p,s,g,k;
 
   // Objective function
-  vector<Type> jnll_comp(20);
+  vector<Type> jnll_comp(21);
   // Slot 0 -- spatial, encounter
   // Slot 1 -- spatio-temporal, encounter
   // Slot 2 -- spatial, positive catch
@@ -822,6 +826,7 @@ Type objective_function<Type>::operator() ()
   // Slot 17 -- Spatially varying coefficient for catchability, positive catch
   // Slot 18 -- cdf aggregator for oneStepPredict_deltaModel
   // Slot 19 -- Penalty for loadings-matrix zero-centering
+  // Slot 20 -- Penalty for Lagrange multipliers
   jnll_comp.setZero();
   Type jnll = 0;
   Type discard_nll = 0;
@@ -1475,37 +1480,46 @@ Type objective_function<Type>::operator() ()
   // Used when calculating density-dependent effects for distribution
   Type cumsum1;
   Type cumsum2;
-  matrix<Type> betaprime_tc( n_t, n_c );
-  betaprime_tc.setZero();
-  for(c=0; c<n_c; c++){
-  for(t=0; t<n_t; t++){
-    // Impose sum-to-zero constraint, to force interannual variation to be mainly composed of betas and covariates
-    if( (Options(19)==1) | (Options(19)==2) | (Options(19)==3) ){
-      betaprime_tc(t,c) += beta1_tc(t,c) - (beta1_tc.col(c).sum() / n_t) + beta2_tc(t,c) - (beta2_tc.col(c).sum() / n_t);
-    }
-    // Add average of Epsilon1_sct and Epsilon2_sct
-    if( Options(19) == 2 ){
-      cumsum1 = 0;
-      for( s=0; s<n_s; s++ ){
-        cumsum1 += Epsilon1_sct(s,c,t) + Epsilon2_sct(s,c,t);
+  matrix<Type> lagrangeprime_tc( n_t, n_c );
+  if( (Options(19)==1) | (Options(19)==2) | (Options(19)==3) | (Options(19)==4) ){
+    // Overload input values
+    lagrangeprime_tc.setZero();
+    for(c=0; c<n_c; c++){
+    for(t=0; t<n_t; t++){
+      // Impose sum-to-zero constraint, to force interannual variation to be mainly composed of betas and covariates
+      if( (Options(19)==1) | (Options(19)==2) | (Options(19)==3) ){
+        lagrangeprime_tc(t,c) += beta1_tc(t,c) - (beta1_tc.col(c).sum() / n_t) + beta2_tc(t,c) - (beta2_tc.col(c).sum() / n_t);
       }
-      betaprime_tc(t,c) += (cumsum1 / n_s);
-    }
-    // Add weighted average of Epsilon1_sct and Epsilon2_sct, weighted by exp(Omega1_sc + Omega2_sc)
-    if( Options(19) == 3 ){
-      cumsum1 = 0;
-      if(t==0){
-        cumsum2 = 0;
-      }
-      for( s=0; s<n_s; s++ ){
-        cumsum1 += (Epsilon1_sct(s,c,t) + Epsilon2_sct(s,c,t)) * exp(Omega1_sc(s,c) + Omega2_sc(s,c));
-        if(t==0){
-          cumsum2 += exp(Omega1_sc(s,c) + Omega2_sc(s,c));
+      // Add average of Epsilon1_sct and Epsilon2_sct
+      if( Options(19) == 2 ){
+        cumsum1 = 0;
+        for( s=0; s<n_s; s++ ){
+          cumsum1 += Epsilon1_sct(s,c,t) + Epsilon2_sct(s,c,t);
         }
+        lagrangeprime_tc(t,c) += (cumsum1 / n_s);
       }
-      betaprime_tc(t,c) += (cumsum1 / cumsum2);
-    }
-  }}
+      // Add weighted average of Epsilon1_sct and Epsilon2_sct, weighted by exp(Omega1_sc + Omega2_sc)
+      if( Options(19) == 3 ){
+        cumsum1 = 0;
+        if(t==0){
+          cumsum2 = 0;
+        }
+        for( s=0; s<n_s; s++ ){
+          cumsum1 += (Epsilon1_sct(s,c,t) + Epsilon2_sct(s,c,t)) * exp(Omega1_sc(s,c) + Omega2_sc(s,c));
+          if(t==0){
+            cumsum2 += exp(Omega1_sc(s,c) + Omega2_sc(s,c));
+          }
+        }
+        lagrangeprime_tc(t,c) += (cumsum1 / cumsum2);
+      }
+      // Center lagrange_tc
+      if( Options(19) == 4 ){
+        lagrangeprime_tc(t,c) += lagrange_tc(t,c) - (sum(lagrange_tc.col(c)) / n_t);
+      }
+    }}
+    REPORT( lagrange_tc );
+    REPORT( lagrangeprime_tc );
+  }
 
   // If using spatially varying response to intercepts, replace covariate values
   for( i=0; i<n_i; i++ ){
@@ -1515,7 +1529,7 @@ Type objective_function<Type>::operator() ()
       if(zc==0){
         X1_ip(i,p) = 0;
       }
-      X1_ip(i,p) += betaprime_tc(t_i(i),c_iz(i,zc));
+      X1_ip(i,p) += lagrangeprime_tc(t_i(i),c_iz(i,zc));
     }
   }}}
   for( i=0; i<n_i; i++ ){
@@ -1525,7 +1539,7 @@ Type objective_function<Type>::operator() ()
       if( zc==0 ){
         X2_ip(i,p) = 0;
       }
-      X2_ip(i,p) += betaprime_tc(t_i(i),c_iz(i,zc));
+      X2_ip(i,p) += lagrangeprime_tc(t_i(i),c_iz(i,zc));
     }
   }}}
 
@@ -1853,10 +1867,6 @@ Type objective_function<Type>::operator() ()
   }
   REPORT( diag_iz );
 
-  // Joint likelihood
-  jnll = jnll_comp.sum();
-  REPORT( pred_jnll );
-
   ////////////////////////
   // Calculate index of abundance and density
   ////////////////////////
@@ -1913,12 +1923,12 @@ Type objective_function<Type>::operator() ()
     for(g=0; g<n_g; g++){
       for(p=0; p<n_p1; p++){
         if( X1config_cp(c,p)==4 ){
-          X1_gctp(g,c,t,p) = betaprime_tc(t,c);
+          X1_gctp(g,c,t,p) = lagrangeprime_tc(t,c);
         }
       }
       for(p=0; p<n_p2; p++){
         if( X2config_cp(c,p)==4 ){
-          X2_gctp(g,c,t,p) = betaprime_tc(t,c);
+          X2_gctp(g,c,t,p) = lagrangeprime_tc(t,c);
         }
       }
     }}}
@@ -2008,6 +2018,27 @@ Type objective_function<Type>::operator() ()
       }
     }}
     ln_Index_ctl = log( Index_ctl );
+
+    // Incorporate Lagrange multiplier for density dependence
+    if( Options(19) == 4 ){
+      matrix<Type> jnll_lagrange_ct(c,t);
+      jnll_lagrange_ct.setZero();
+      for( c=0; c<n_c; c++ ){
+      for( t=0; t<n_t; t++ ){
+        for( p=0; p<n_p1; p++ ){
+          if( X1config_cp(c,p)==4 ){
+            jnll_lagrange_ct(c,t) = Options(20) * square( lagrange_tc(t,c) - log(Index_ctl(c,t,0)) );
+          }
+        }
+        for( p=0; p<n_p2; p++ ){
+          if( X2config_cp(c,p)==4 ){
+            jnll_lagrange_ct(c,t) = Options(20) * square( lagrange_tc(t,c) - log(Index_ctl(c,t,0)) );
+          }
+        }
+      }}
+      jnll_comp(20) = sum( jnll_lagrange_ct );
+      REPORT( jnll_lagrange_ct );
+    }
 
     ////////////////////////
     // Calculate optional derived quantities
@@ -2524,7 +2555,6 @@ Type objective_function<Type>::operator() ()
     REPORT( zeta1_i );
     REPORT( zeta2_i );
     REPORT( iota_ct );
-    REPORT( betaprime_tc );
   }
 
   if( Options(3)==1 ){
@@ -2534,6 +2564,10 @@ Type objective_function<Type>::operator() ()
   SIMULATE{
     REPORT( b_i );
   }
+
+  // Joint likelihood
+  jnll = jnll_comp.sum();
+  REPORT( pred_jnll );
 
   return jnll;
 }
