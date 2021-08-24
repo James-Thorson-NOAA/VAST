@@ -1605,10 +1605,23 @@ Type objective_function<Type>::operator() ()
   diag_iz.setZero();  // Used to track diagnostics for Tweedie distribution (columns: 0=maxJ; 1=maxW; 2=lowerW; 3=upperW)
   P1_iz.setZero();
   P2_iz.setZero();
-
-  // Likelihood contribution from observations
   LogProb1_i.setZero();
   LogProb2_i.setZero();
+
+  // Calculate deviance relative to saturated model, where:
+  //   percent_deviance_explained = 1 - deviance_fit / deviance_null
+  //   deviance_fit = sum(deviance1_i) + sum(deviance2_i)
+  //   deviance_null = deviance_fit when using only single intercepts for both linear predictors
+  // Calculations:
+  //   Gamma -- https://stats.stackexchange.com/questions/474326/deviance-for-gamma-glm
+  //   Bernoulli -- https://stats.stackexchange.com/questions/208331/how-to-derive-bernoulli-deviance
+  //   Normal -- https://en.wikipedia.org/wiki/Deviance_(statistics)#Examples
+  vector<Type> deviance1_i(n_i);
+  vector<Type> deviance2_i(n_i);
+  deviance1_i.setZero();
+  deviance2_i.setZero();
+
+  // Likelihood contribution from observations
   Type logsd;
   for(i=0; i<n_i; i++){
     if( !isNA(b_i(i)) ){
@@ -1667,19 +1680,14 @@ Type objective_function<Type>::operator() ()
       // Likelihood for delta-models with continuous positive support
       if( (ObsModel_ez(e_i(i),0)==0) | (ObsModel_ez(e_i(i),0)==1) | (ObsModel_ez(e_i(i),0)==2) | (ObsModel_ez(e_i(i),0)==3) | (ObsModel_ez(e_i(i),0)==4) ){
         // Presence-absence likelihood
-        //if( (ObsModel_ez(e_i(i),1)==0) | (ObsModel_ez(e_i(i),1)==1) | (ObsModel_ez(e_i(i),1)==3) | (ObsModel_ez(e_i(i),1)==4) ){
-          if( b_i(i) > 0 ){
-            LogProb1_i(i) = log_R1_i(i);
-          }else{
-            LogProb1_i(i) = log_one_minus_R1_i(i);
-          }
-        //}else{
-        //  if( b_i(i) > 0 ){
-        //    LogProb1_i(i) = log( R1_i(i) );
-        //  }else{
-        //    LogProb1_i(i) = log( 1-R1_i(i) );
-        //  }
-        //}
+        // deviance1_fit = -2 * sum( y*log(mu) + (1-y)*log(1-mu) )
+        if( b_i(i) > 0 ){
+          LogProb1_i(i) = log_R1_i(i);
+          deviance1_i(i) = -2 * log_R1_i(i);
+        }else{
+          LogProb1_i(i) = log_one_minus_R1_i(i);
+          deviance1_i(i) = -2 * log_one_minus_R1_i(i);
+        }
         // CDF
         cdf_for_single_obs = squeeze(1.0 - R1_i(i));
         // Simulate new values when using obj.simulate()
@@ -1689,16 +1697,20 @@ Type objective_function<Type>::operator() ()
         // Positive density likelihood -- models with continuous positive support
         if( b_i(i) > 0 ){    // 1e-500 causes overflow on laptop
           // Normal distribution
+          // deviance2_fit = sum( (y-mu)^2 )
           if(ObsModel_ez(e_i(i),0)==0){
             LogProb2_i(i) = dnorm(b_i(i), R2_i(i), SigmaM(e_i(i),0), true);
+            deviance2_i(i) = square( b_i(i) - R2_i(i) );
             // Simulate new values when using obj.simulate()
             SIMULATE{
               b_i(i) = rnorm( R2_i(i), SigmaM(e_i(i),0) );
             }
           }
           // Lognormal;  mean, sd (in log-space) parameterization
+          // deviance2_fit = sum( (log(y)-log(mu))^2 )
           if(ObsModel_ez(e_i(i),0)==1){
             LogProb2_i(i) = dlnorm(b_i(i), log_R2_i(i)-square(SigmaM(e_i(i),0))/2, SigmaM(e_i(i),0), true); // log-space
+            deviance2_i(i) = square( log(b_i(i)) - (log_R2_i(i)-square(SigmaM(e_i(i),0))/2) );
             // CDF for oneStepPredict_deltaModel
             //cdf += (1.0-R1_i(i))*pnorm(log(b_i), log_R2_i(i)-square(SigmaM(e_i(i),0))/2, SigmaM(e_i(i),0));
             cdf_for_single_obs += squeeze(R1_i(i)) * pnorm(log(b_i(i)), log_R2_i(i)-square(SigmaM(e_i(i),0))/2, SigmaM(e_i(i),0));
@@ -1708,10 +1720,12 @@ Type objective_function<Type>::operator() ()
             }
           }
           // Gamma;  mean, CV parameterization (converting to shape, scale)
+          // deviance2_fit = 2 * sum( (y-mu)/mu - log(y/mu) )
           if(ObsModel_ez(e_i(i),0)==2){
             if( Options(15)==1 ){
               // shape = 1/CV^2;   scale = mean*CV^2
               LogProb2_i(i) = dgamma(b_i(i), 1/square(SigmaM(e_i(i),0)), R2_i(i)*square(SigmaM(e_i(i),0)), true);
+              deviance2_i(i) = 2 * ( (b_i(i)-R2_i(i))/R2_i(i) - log(b_i(i)/R2_i(i)) );
               // CDF for oneStepPredict_deltaModel
               cdf_for_single_obs += squeeze(R1_i(i)) * pgamma(b_i(i), 1/square(SigmaM(e_i(i),0)), R2_i(i)*square(SigmaM(e_i(i),0)));
               // Simulate new values when using obj.simulate()
@@ -1721,6 +1735,7 @@ Type objective_function<Type>::operator() ()
             }else{
               // shape = mean^2 / sd^2;   scale = sd^2 / mean
               LogProb2_i(i) = dgamma(b_i(i), square(R2_i(i))/square(SigmaM(e_i(i),0)), square(SigmaM(e_i(i),0))/R2_i(i), true);
+              deviance2_i(i) = NAN;
               // CDF for oneStepPredict_deltaModel
               cdf_for_single_obs += squeeze(R1_i(i)) * pgamma(b_i(i), square(R2_i(i))/square(SigmaM(e_i(i),0)), square(SigmaM(e_i(i),0))/R2_i(i));
               // Simulate new values when using obj.simulate()
@@ -1736,6 +1751,7 @@ Type objective_function<Type>::operator() ()
             }else{
               LogProb2_i(i) = dinverse_gaussian(b_i(i), R2_i(i), SigmaM(e_i(i),0)/R2_i(i), true);
             }
+            deviance2_i(i) = NAN;
             // Simulate new values when using obj.simulate()
             SIMULATE{
               b_i(i) = Type(1.0);   // Simulate as 1.0 so b_i distinguishes between simulated encounter/non-encounters
@@ -1752,6 +1768,7 @@ Type objective_function<Type>::operator() ()
               logsd = sqrt( log(square( SigmaM(e_i(i),0) / R2_i(i) )+1) );
             }
             LogProb2_i(i) = dlnorm(b_i(i), log_R2_i(i)-square(logsd)/2, logsd, true); // log-space
+            deviance2_i(i) = square( log(b_i(i)) - (log_R2_i(i)-square(logsd)/2) );
             // Simulate new values when using obj.simulate()
             SIMULATE{
               b_i(i) = exp(rnorm( log_R2_i(i)-square(logsd)/2, logsd ));
@@ -1768,6 +1785,7 @@ Type objective_function<Type>::operator() ()
         // dtweedie( Type y, Type mu, Type phi, Type p, int give_log=0 )
         // R1*R2 = mean
         LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0), true );
+        deviance2_i(i) = NAN;
         // Simulate new values when using obj.simulate()
         SIMULATE{
           b_i(i) = rTweedie( R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0) );   // Defined above
@@ -1783,6 +1801,7 @@ Type objective_function<Type>::operator() ()
         }else{
           LogProb2_i(i) = dnbinom2(b_i(i), R2_i(i), var_i(i), true) + log(R1_i(i)); // Pr[X=x] = NB(X=x)*phi
         }
+        deviance2_i(i) = NAN;
         // Simulate new values when using obj.simulate()
         SIMULATE{
           b_i(i) = rbinom( Type(1), R1_i(i) );
@@ -1799,6 +1818,7 @@ Type objective_function<Type>::operator() ()
         }else{
           LogProb2_i(i) = dpois(b_i(i), R2_i(i), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
         }
+        deviance2_i(i) = NAN;
         // Simulate new values when using obj.simulate()
         SIMULATE{
           b_i(i) = rbinom( Type(1), R1_i(i) );
@@ -1815,6 +1835,7 @@ Type objective_function<Type>::operator() ()
         }else{
           LogProb2_i(i) = dpois(b_i(i), R2_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2.0)), true) + log(R1_i(i)); // Pr[X=x] = Pois(X=x)*phi
         }
+        deviance2_i(i) = NAN;
         // Simulate new values when using obj.simulate()
         SIMULATE{
           b_i(i) = rbinom( Type(1), R1_i(i) );
@@ -1827,6 +1848,7 @@ Type objective_function<Type>::operator() ()
       if(ObsModel_ez(e_i(i),0)==12){
         LogProb2_i(i) = dpois(b_i(i), R1_i(i), true);
         // Simulate new values when using obj.simulate()
+        deviance2_i(i) = NAN;
         SIMULATE{
           b_i(i) = rpois( R1_i(i) );
         }
@@ -1838,6 +1860,7 @@ Type objective_function<Type>::operator() ()
         }else{
           LogProb2_i(i) = logspace_sub( log(Type(1.0)), dpois(Type(0), R1_i(i), true) );
         }
+        deviance2_i(i) = NAN;
         // Simulate new values when using obj.simulate()
         SIMULATE{
           b_i(i) = rpois( R1_i(i) );
@@ -1849,6 +1872,7 @@ Type objective_function<Type>::operator() ()
       // Non-zero-inflated Lognormal-Poisson using log link from 1st linear predictor
       if(ObsModel_ez(e_i(i),0)==14){
         LogProb2_i(i) = dpois(b_i(i), R1_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2.0)), true);
+        deviance2_i(i) = NAN;
         // Simulate new values when using obj.simulate()
         SIMULATE{
           b_i(i) = rpois( R1_i(i)*exp(SigmaM(e_i(i),0)*delta_i(i)-0.5*pow(SigmaM(e_i(i),0),2.0)) );
@@ -2469,12 +2493,14 @@ Type objective_function<Type>::operator() ()
 
   vector<Type> D_i( n_i );
   D_i = R1_i * R2_i;   // Used in DHARMa residual plotting
+  Type deviance = sum(deviance1_i) + sum(deviance2_i);
 
   /// Important outputs
-//  REPORT( B_ff );
+  //REPORT( B_ff );
   REPORT( SigmaM );
   REPORT( jnll );
   REPORT( jnll_comp );
+  REPORT( deviance );
 
   // Quantities derived from random effects and used for plotting
   REPORT( eta1_vc );
@@ -2528,6 +2554,8 @@ Type objective_function<Type>::operator() ()
     REPORT( var_i );
     REPORT( LogProb1_i );
     REPORT( LogProb2_i );
+    REPORT( deviance1_i );
+    REPORT( deviance2_i );
     REPORT( eta1_vf );
     REPORT( eta2_vf );
     REPORT( beta1_mean_tf );
