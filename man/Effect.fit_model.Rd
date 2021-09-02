@@ -9,6 +9,7 @@ Effect.fit_model(
   mod,
   which_formula = "X1",
   pad_values = c(),
+  category_number = NULL,
   ...
 )
 }
@@ -18,6 +19,8 @@ Effect.fit_model(
 \item{mod}{an object of the appropriate class.  If no method exists for that class, \code{Effect.default} will be called. }
 
 \item{which_formula}{which formula to use e.g., \code{"X1"}}
+
+\item{category_number}{which category code{c_i} to use when plotting density covariates}
 
 \item{...}{arguments to be passed down.}
 }

@@ -42,7 +42,8 @@
 #'        Users should provide values as class \code{\link[units]{units}}, e.g., \code{as_units(x, "kg")} for data in units kilograms,
 #'        \code{as_units(x, "count")} for numbers, or \code{as_units(x, "kg/km^2")} for area-standarized biomass, etc.
 #'        If units are missing, the default behavior is to coerce the vector to units "kg".
-#'        Units are then used in subsequent plotting.
+#'        Units are then used in subsequent plotting. Users can also specify \code{b_i=NA} for some observations,
+#'        e.g., when seeking to ensure that the model includes hindcast/forecast years that do not otherwise have sampling data
 #' @param a_i Vector containing values greater than zero, providing sampled area for each
 #'        observation i, e.g., \code{as_units(x, "km^2")} for area swept in square-kilometers.
 #'        use \code{as_units(1, unitless)} for observations without a natural area measurement

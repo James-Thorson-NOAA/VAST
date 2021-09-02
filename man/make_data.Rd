@@ -48,7 +48,8 @@ make_data(
 Users should provide values as class \code{\link[units]{units}}, e.g., \code{as_units(x, "kg")} for data in units kilograms,
 \code{as_units(x, "count")} for numbers, or \code{as_units(x, "kg/km^2")} for area-standarized biomass, etc.
 If units are missing, the default behavior is to coerce the vector to units "kg".
-Units are then used in subsequent plotting.}
+Units are then used in subsequent plotting. Users can also specify \code{b_i=NA} for some observations,
+e.g., when seeking to ensure that the model includes hindcast/forecast years that do not otherwise have sampling data}
 
 \item{a_i}{Vector containing values greater than zero, providing sampled area for each
 observation i, e.g., \code{as_units(x, "km^2")} for area swept in square-kilometers.
@@ -136,7 +137,9 @@ If missing, the default is to assume a value of zero for each element (i.e., \co
 \item{covariate_data}{data-frame of covariates for use when specifying \code{X1_formula} and \code{X2_formula}}
 
 \item{X1_formula}{right-sided formula affecting the 1st linear predictor for density, e.g.,
-\code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}}
+\code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}.
+It is allowed to include \code{Year} in the formula, although please check whether it is
+interpreted as numeric or factor-valued.}
 
 \item{X2_formula}{same as \code{X1_formula} but affecting the 2nd linear predictor for density}
 
@@ -260,6 +263,6 @@ In each slot of \code{FieldConfig}, the user can specify various options:
     this is only useful for \code{Epsilon_year} to "turn off" covariance among years while still including spatio-temporal variation}
 }
 
-\code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_itp} using \code{\link[FishStatsUtils]{make_covariates}};
+\code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_ip} using \code{\link[FishStatsUtils]{make_covariates}};
 see that function for more details.
 }
