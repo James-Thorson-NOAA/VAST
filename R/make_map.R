@@ -152,8 +152,8 @@ function( DataList,
       if( any(DataList$ObsModel_ez[,2]!=2) ) stop("ObsModel[1]=8 and ObsModel[1]=10 should use ObsModel[2]=2")
     }
     if(DataList$ObsModel_ez[eI,1]%in%c(9)){
-      if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( NA, NA )
-      if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( NA, NA, NA )
+      if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, 2 )
+      if(ncol(Map[["logSigmaM"]])==3) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, 2, NA )
     }
     if(DataList$ObsModel_ez[eI,1]%in%c(11)){
       if(ncol(Map[["logSigmaM"]])==2) Map[["logSigmaM"]][eI,] = max(c(0,Map[["logSigmaM"]]),na.rm=TRUE) + c( 1, NA )

@@ -148,6 +148,31 @@ Type dinverse_gaussian(Type x, Type mean, Type cv, int give_log=0){
   if(give_log) return logres; else return exp(logres);
 }
 
+// dgengamma
+// using Prentice-1974 parameterization for lambda instead of k, so that lognormal occurs as lambda -> 0
+// using mean parameterization to back out theta
+// CV is a function of sigma and lambda and NOT mean (i.e., CV is fixed for all values of mean)
+// See: C:\Users\James.Thorson\Desktop\Work files\AFSC\2021-10 -- Generalized gamma-lognormal\Explore gengamma.R
+template<class Type>
+Type dgengamma(Type x, Type mean, Type sigma, Type lambda, int give_log=0){
+  Type k = pow( lambda, -2 );
+  Type Shape = pow( sigma, -1 ) * lambda;
+  Type Scale = mean / exp(lgamma( (k*Shape+1)/Shape )) * exp(lgamma( k ));
+  Type logres = log(Shape) - lgamma(k) + (Shape * k - 1) * log(x) - Shape * k * log(Scale) - pow( x/Scale, Shape );
+  if(give_log) return logres; else return exp(logres);
+}
+// rgengamma
+template<class Type>
+Type rgengamma(Type mean, Type sigma, Type lambda){
+  // See: C:\Users\James.Thorson\Desktop\Work files\AFSC\2021-10 -- Generalized gamma-lognormal\Explore gengamma.R
+  Type k = pow( lambda, -2 );
+  Type Shape = pow( sigma, -1 ) * lambda;
+  Type Scale = mean / exp(lgamma( (k*Shape+1)/Shape )) * exp(lgamma( k ));
+  Type w = log(rgamma(k, Type(1.0)));
+  Type y = w/Shape + log(Scale);
+  return exp(y);
+}
+
 // Simulate from tweedie
 // Adapted from tweedie::rtweedie function in R
 template<class Type>
@@ -668,6 +693,19 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR(OverdispersionConfig);          // Input settings (vector, length 2)
   DATA_IMATRIX(ObsModel_ez);    // Observation model
   // Column 0: Probability distribution for data for each level of e_i
+    // 0: Normal
+    // 1: Lognormal
+    // 2: Gamma
+    // 3:  Inverse-Gaussian (DEPRECATED IN INTERFACE, STILL BELOW FOR TESTING)
+    // 4:  Lognormal using mean-CV
+    // 5:  Zero-inflated negative binomial
+    // 7:  Zero-inflated Poisson
+    // 9:  Generalized Gamma-Lognormal
+    // 10: Tweedie
+    // 11: Zero-inflated lognormal Poisson
+    // 12:  Poisson for combined data
+    // 13:  Bernoulli for combined data
+    // 14:  Lognormal-Poisson for combined data
   // Column 1: Link function for linear predictors for each level of c_i
   // NOTE:  nlevels(c_i) must be <= nlevels(e_i)
   DATA_IVECTOR(VamConfig);
@@ -1632,7 +1670,7 @@ Type objective_function<Type>::operator() ()
           P2_iz(i,zc) = Omega2_iz(i,zc) + zeta2_i(i) + eta2_vc(v_i(i),c_iz(i,zc)) + beta2_tc(t_i(i),c_iz(i,zc)) + Epsilon2_iz(i,zc) + eta2_iz(i,zc);
         }
       }
-      // Apply link function to calculate responses
+      // Apply inverse-link function to calculate responses
       if( (ObsModel_ez(e_i(i),1)==0) | (ObsModel_ez(e_i(i),1)==3) ){
         // Log and logit-link, where area-swept only affects positive catch rate exp(P2_i(i))
         // P1_i: Logit-Probability of occurrence;  R1_i:  Probability of occurrence
@@ -1678,7 +1716,7 @@ Type objective_function<Type>::operator() ()
         log_R2_i(i) = P2_iz(i,0);
       }
       // Likelihood for delta-models with continuous positive support
-      if( (ObsModel_ez(e_i(i),0)==0) | (ObsModel_ez(e_i(i),0)==1) | (ObsModel_ez(e_i(i),0)==2) | (ObsModel_ez(e_i(i),0)==3) | (ObsModel_ez(e_i(i),0)==4) ){
+      if( (ObsModel_ez(e_i(i),0)==0) | (ObsModel_ez(e_i(i),0)==1) | (ObsModel_ez(e_i(i),0)==2) | (ObsModel_ez(e_i(i),0)==3) | (ObsModel_ez(e_i(i),0)==4) | (ObsModel_ez(e_i(i),0)==9) ){
         // Presence-absence likelihood
         // deviance1_fit = -2 * sum( y*log(mu) + (1-y)*log(1-mu) )
         if( b_i(i) > 0 ){
@@ -1772,6 +1810,16 @@ Type objective_function<Type>::operator() ()
             // Simulate new values when using obj.simulate()
             SIMULATE{
               b_i(i) = exp(rnorm( log_R2_i(i)-square(logsd)/2, logsd ));
+            }
+          }
+          // Generalized-gamma;  mean, sigma, lambda parameterization
+          if(ObsModel_ez(e_i(i),0)==9){
+            LogProb2_i(i) = dgengamma(b_i(i), R2_i(i), SigmaM(e_i(i),0), SigmaM(e_i(i),1), true);
+            deviance2_i(i) = NAN;
+            // Simulate new values when using obj.simulate()
+            // Could be updated, available as rgengamma.orig
+            SIMULATE{
+              b_i(i) = rgengamma(R2_i(i), SigmaM(e_i(i),0), SigmaM(e_i(i),1));
             }
           }
         }else{

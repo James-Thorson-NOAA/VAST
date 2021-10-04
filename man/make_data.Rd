@@ -84,8 +84,9 @@ providing sampling category (e.g., vessel or tow) associated with overdispersed 
        instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
   \item{\code{ObsModel_ez[e,1]=2}}{Gamma}
   \item{\code{ObsModel_ez[e,1]=4}}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
-  \item{\code{ObsModel_ez[e,1]=5}}{Negative binomial}
-  \item{\code{ObsModel_ez[e,1]=7}}{Poisson (more numerically stable than negative-binomial)}
+  \item{\code{ObsModel_ez[e,1]=5}}{Zero-inflated negative binomial (1st linear predictor for logit-linked zero-inflation;  2nd linear predictor for log-linked conditional mean of NB), using two variance parameters for linear and quadratic components}
+  \item{\code{ObsModel_ez[e,1]=7}}{Zero-inflated Poisson (1st linear predictor for logit-linked zero-inflation;  2nd linear predictor for log-linked conditional mean of Poisson)}
+  \item{\code{ObsModel_ez[e,1]=9}}{Generalized gamma, which involves two variance parameters and includes the gamma and lognormal as nested submodels}
   \item{\code{ObsModel_ez[e,1]=10}}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
          variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast (i.e., comparable to delta-models)
          as long as random effects are turned off for the 1st component, but is otherwise extremely slow.}

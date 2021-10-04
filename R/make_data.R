@@ -78,8 +78,9 @@
 #'        instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
 #'   \item{\code{ObsModel_ez[e,1]=2}}{Gamma}
 #'   \item{\code{ObsModel_ez[e,1]=4}}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
-#'   \item{\code{ObsModel_ez[e,1]=5}}{Negative binomial}
-#'   \item{\code{ObsModel_ez[e,1]=7}}{Poisson (more numerically stable than negative-binomial)}
+#'   \item{\code{ObsModel_ez[e,1]=5}}{Zero-inflated negative binomial (1st linear predictor for logit-linked zero-inflation;  2nd linear predictor for log-linked conditional mean of NB), using two variance parameters for linear and quadratic components}
+#'   \item{\code{ObsModel_ez[e,1]=7}}{Zero-inflated Poisson (1st linear predictor for logit-linked zero-inflation;  2nd linear predictor for log-linked conditional mean of Poisson)}
+#'   \item{\code{ObsModel_ez[e,1]=9}}{Generalized gamma, which involves two variance parameters and includes the gamma and lognormal as nested submodels}
 #'   \item{\code{ObsModel_ez[e,1]=10}}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
 #'          variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast (i.e., comparable to delta-models)
 #'          as long as random effects are turned off for the 1st component, but is otherwise extremely slow.}
@@ -697,7 +698,7 @@ function( b_i,
         }
       }
     }
-    if( any(ObsModel_ez[,2] %in% c(0,1,3,4)) ){
+    if( any(ObsModel_ez[,2] %in% c(0,1,3,4,9)) ){
       # Require Options2use['treat_nonencounter_as_zero']=TRUE to use any standard link function without temporal smoother given that there's 0% encounters
       if( RhoConfig[1]==0 ){
         if( any(!is.na(Prop_nonzero) & (Prop_nonzero==0)) & Options2use['treat_nonencounter_as_zero']==FALSE ){
@@ -716,10 +717,10 @@ function( b_i,
     if( any(OverdispersionConfig>0) & length(unique(v_i))==1 ) stop("It doesn't make sense to use use `OverdispersionConfig` when using only one level of `v_i`")
     if( any(ObsModel_ez[,1] %in% c(12,13,14)) ){
       if( any(ObsModel_ez[,2] != 1) ) stop("If using `ObsModel_ez[e,1]` in {12,13,14} then must use `ObsModel_ez[e,2]=1`")
-      if( !any(ObsModel_ez[,1] %in% c(0,1,2,3,4)) ) stop("Using `ObsModel_ez[e,1]` in {12,13,14} is only intended when combining data with biomass-sampling data")
+      if( !any(ObsModel_ez[,1] %in% c(0,1,2,3,4,9)) ) stop("Using `ObsModel_ez[e,1]` in {12,13,14} is only intended when combining data with biomass-sampling data")
     }
     if( all(b_i>as_units(0,b_units)) & all(ObsModel_ez[,1]==0) & !all(FieldConfig_input[1:2,1]==-1) ) stop("All data are positive and using a conventional delta-model, so please turn off `Omega1` and `Epsilon1` terms")
-    if( !(all(ObsModel_ez[,1] %in% c(0,1,2,4,5,7,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
+    if( !(all(ObsModel_ez[,1] %in% c(0,1,2,4,5,7,9,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
     if( !(all(ObsModel_ez[,2] %in% c(0,1,2,3,4))) ) stop("Please check `ObsModel_ez[,2]` input")
     if( !all(RhoConfig[1]%in%c(0,1,2,3,4)) | !all(RhoConfig[2]%in%c(0,1,2,3,4,6)) | !all(RhoConfig[3]%in%c(0,1,2,4,5)) | !all(RhoConfig[4]%in%c(0,1,2,4,5,6)) ) stop("Check `RhoConfig` inputs")
     if( any(is.na(X_xtp)) ) stop("Some `X_xtp` is NA, and this is not allowed")
