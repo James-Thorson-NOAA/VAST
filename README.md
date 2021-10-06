@@ -22,7 +22,7 @@ There are eleven main resources for learning about VAST:
 *  *Guidance for user decisions*:  Please see [Thorson-2019](https://www.sciencedirect.com/science/article/abs/pii/S0165783618302820) for guidance regarding the 15 major decisions needed in every VAST model
 *  *High-level wrapper functions*:  I have recently added high-level wrapper functions, which provide a [gentle introduction](https://github.com/James-Thorson/VAST/wiki/Simple-example) to running `VAST`
 *  *Examples*:  The wiki also includes example code to run VAST for many common [use-cases](https://github.com/James-Thorson-NOAA/VAST/wiki), as listed in the right-hand-side toolbar at that link.
-*  *R-help documentation*:  Please see the standard R-help documentation, e.g., by typing `?VAST::Data_Fn` in the R-terminal after installing the package.
+*  *R-help documentation*:  Please see the standard R-help documentation, e.g., by typing `?fit_model` or `?make_data` in the R-terminal after installing the package and loading it using `library(VAST)`.
 *  *Publications*:  Please see the [publications list](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/wiki/Applications) to identify peer-reviewed publications regarding individual features.  These publications include statistical theory and model testing.
 *  *List-serv*: Consider joining the [FishStats listserve](https://groups.google.com/forum/#!forum/fishstats-listserv) for 4-6 updates per year, including training classes.
 *  *Slack channel*:  A [slack channel](https://join.slack.com/t/vastsupportgroup/shared_invite/zt-x53wupkg-U5cGF7gsHv9uDKyNMfPpaw) was developed by J. Morano and colleagues to allow real-time, casual discussions among new and longtime users.
