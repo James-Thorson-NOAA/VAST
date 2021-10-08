@@ -73,14 +73,14 @@
 #' @param ObsModel_ez an optional matrix with two columns where the first column specifies the distribution for positive catch rates,
 #'        and the second column specifies the functional form for encounter probabilities
 #' \describe{
-#'   \item{\code{ObsModel_ez[e,1]=0}}{Normal}
-#'   \item{\code{ObsModel_ez[e,1]=1}}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
+#'   \item{\code{ObsModel_ez[e,1]=0}}{Delta-Normal}
+#'   \item{\code{ObsModel_ez[e,1]=1}}{Delta-Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
 #'        instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
-#'   \item{\code{ObsModel_ez[e,1]=2}}{Gamma}
-#'   \item{\code{ObsModel_ez[e,1]=4}}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
+#'   \item{\code{ObsModel_ez[e,1]=2}}{Delta-Gamma}
+#'   \item{\code{ObsModel_ez[e,1]=4}}{Delta-Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
 #'   \item{\code{ObsModel_ez[e,1]=5}}{Zero-inflated negative binomial (1st linear predictor for logit-linked zero-inflation;  2nd linear predictor for log-linked conditional mean of NB), using two variance parameters for linear and quadratic components}
 #'   \item{\code{ObsModel_ez[e,1]=7}}{Zero-inflated Poisson (1st linear predictor for logit-linked zero-inflation;  2nd linear predictor for log-linked conditional mean of Poisson)}
-#'   \item{\code{ObsModel_ez[e,1]=9}}{Generalized gamma, which involves two variance parameters and includes the gamma and lognormal as nested submodels}
+#'   \item{\code{ObsModel_ez[e,1]=9}}{Delta-Generalized Gamma, which involves two variance parameters and includes the gamma and lognormal as nested submodels}
 #'   \item{\code{ObsModel_ez[e,1]=10}}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
 #'          variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast (i.e., comparable to delta-models)
 #'          as long as random effects are turned off for the 1st component, but is otherwise extremely slow.}
@@ -164,7 +164,6 @@
 #' @param Options a tagged-vector that is empty by default, \code{Options=c()}, but where the following slots might be helpful to add,
 #'        either by passing \code{Options} to \code{\link[FishStatsUtils]{make_settings}}, or editing after a call to that function:
 #' \describe{
-#'   \item{\code{Options["SD_site_logdensity"]=TRUE}}{Turns on standard error calculation for local log-density (which is very slow to calculate!)}
 #'   \item{\code{Options["Calculate_Range"]=TRUE}}{Turns on internal calculation and SE for center-of-gravity}
 #'   \item{\code{Options["Calculate_effective_area"]=TRUE}}{Turns on internal calculation and SE for effective area occupied measuring range expansion/contraction}
 #'   \item{\code{Options["Calculate_Cov_SE"]=TRUE}}{Turns on internal calculation and SE for covariance among categories (i.e. in factor model)}
@@ -870,10 +869,14 @@ function( b_i,
   # Check incompatibility of constant intercept + 0/100% encounter option
   if( CheckForErrors==TRUE ){
     if( any(RhoConfig[1:2]!=0) & any(ObsModel_ez[,2]==3) ){
-      stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=3:  Other options are not coded to work together" )
+      if( !all( is.nan(metadata_ctz[,,'prop_nonzero']) | metadata_ctz[,,'prop_nonzero']==1 ) ){
+        stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=3:  Other options are not coded to work together" )
+      }
     }
     if( any(RhoConfig[1:2]!=0) & any(ObsModel_ez[,2]==4) ){
-      stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=4:  Other options are not coded to work together" )
+      if( !all( is.nan(metadata_ctz[,,'prop_nonzero']) | metadata_ctz[,,'prop_nonzero']==1 ) ){
+        stop( "RhoConfig[1:2] must be 0 when using ObsModel[2]=4:  Other options are not coded to work together" )
+      }
     }
   }
 

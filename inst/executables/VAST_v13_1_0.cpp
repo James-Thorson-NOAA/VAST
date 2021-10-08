@@ -157,8 +157,21 @@ template<class Type>
 Type dgengamma(Type x, Type mean, Type sigma, Type lambda, int give_log=0){
   Type k = pow( lambda, -2 );
   Type Shape = pow( sigma, -1 ) * lambda;
-  Type Scale = mean / exp(lgamma( (k*Shape+1)/Shape )) * exp(lgamma( k ));
-  Type logres = log(Shape) - lgamma(k) + (Shape * k - 1) * log(x) - Shape * k * log(Scale) - pow( x/Scale, Shape );
+  // Numerically unstable
+    // Type Scale = mean / exp(lgamma( (k*Shape+1)/Shape )) * exp(lgamma( k ));
+    // Type logres = log(Shape) - lgamma(k) + (Shape * k - 1) * log(x) - Shape * k * log(Scale) - pow( x/Scale, Shape );
+  // Numerically stable
+  Type log_Scale = log(mean) - lgamma( (k*Shape+1)/Shape ) + lgamma( k );
+  Type mu = log_Scale + log(k) / Shape;
+  // Type Sigma = 1 / sqrt(k) / Shape;   abs(Sigma) := sigma
+  // Type Q = sqrt( 1/k );               Q := lambda
+  Type y = log(x);
+  Type w = (y - mu) / sigma;
+  Type q_square = square(lambda);  // = abs(Q);
+  Type qi = 1/square(lambda);
+  Type qw = lambda * w;
+  Type logres = -log(sigma*x) + 0.5*log(q_square) * (1 - 2 * qi) + qi * (qw - exp(qw)) - lgamma(qi);
+  // return stuff
   if(give_log) return logres; else return exp(logres);
 }
 // rgengamma
@@ -1814,7 +1827,7 @@ Type objective_function<Type>::operator() ()
           }
           // Generalized-gamma;  mean, sigma, lambda parameterization
           if(ObsModel_ez(e_i(i),0)==9){
-            LogProb2_i(i) = dgengamma(b_i(i), R2_i(i), SigmaM(e_i(i),0), SigmaM(e_i(i),1), true);
+            LogProb2_i(i) = dgengamma(b_i(i), R2_i(i), SigmaM(e_i(i),0), logSigmaM(e_i(i),1), true);
             deviance2_i(i) = NAN;
             // Simulate new values when using obj.simulate()
             // Could be updated, available as rgengamma.orig
