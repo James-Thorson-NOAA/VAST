@@ -79,14 +79,14 @@ providing sampling category (e.g., vessel or tow) associated with overdispersed 
 \item{ObsModel_ez}{an optional matrix with two columns where the first column specifies the distribution for positive catch rates,
        and the second column specifies the functional form for encounter probabilities
 \describe{
-  \item{\code{ObsModel_ez[e,1]=0}}{Normal}
-  \item{\code{ObsModel_ez[e,1]=1}}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
+  \item{\code{ObsModel_ez[e,1]=0}}{Delta-Normal}
+  \item{\code{ObsModel_ez[e,1]=1}}{Delta-Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
        instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
-  \item{\code{ObsModel_ez[e,1]=2}}{Gamma}
-  \item{\code{ObsModel_ez[e,1]=4}}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
+  \item{\code{ObsModel_ez[e,1]=2}}{Delta-Gamma}
+  \item{\code{ObsModel_ez[e,1]=4}}{Delta-Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
   \item{\code{ObsModel_ez[e,1]=5}}{Zero-inflated negative binomial (1st linear predictor for logit-linked zero-inflation;  2nd linear predictor for log-linked conditional mean of NB), using two variance parameters for linear and quadratic components}
   \item{\code{ObsModel_ez[e,1]=7}}{Zero-inflated Poisson (1st linear predictor for logit-linked zero-inflation;  2nd linear predictor for log-linked conditional mean of Poisson)}
-  \item{\code{ObsModel_ez[e,1]=9}}{Generalized gamma, which involves two variance parameters and includes the gamma and lognormal as nested submodels}
+  \item{\code{ObsModel_ez[e,1]=9}}{Delta-Generalized Gamma, which involves two variance parameters and includes the gamma and lognormal as nested submodels}
   \item{\code{ObsModel_ez[e,1]=10}}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
          variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast (i.e., comparable to delta-models)
          as long as random effects are turned off for the 1st component, but is otherwise extremely slow.}
@@ -137,12 +137,17 @@ If missing, the default is to assume a value of zero for each element (i.e., \co
 
 \item{covariate_data}{data-frame of covariates for use when specifying \code{X1_formula} and \code{X2_formula}}
 
-\item{X1_formula}{right-sided formula affecting the 1st linear predictor for density, e.g.,
-\code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}.
+\item{X1_formula}{right-sided formula affecting the 1st linear predictor
+which is then estimated independently for each model category \code{c_i}, e.g.,
+use \code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}
+that is estimated independently for each category.
+The effect of an estimated effect also used upon when predicting the value for each location
+in the extrapolation-grid.  Therefore, \code{X1_formula} is interepreted as affecting the "true"
+underlying value of each variable, and it affects both samples and extrapolated values.
 It is allowed to include \code{Year} in the formula, although please check whether it is
 interpreted as numeric or factor-valued.}
 
-\item{X2_formula}{same as \code{X1_formula} but affecting the 2nd linear predictor for density}
+\item{X2_formula}{same as \code{X1_formula} but affecting the 2nd linear predictor.}
 
 \item{X1config_cp}{matrix of settings for each density covariate for the 1st lienar predictor,
        where the row corresponds to model category, and column corresponds to each density covariate
@@ -165,9 +170,18 @@ By default uses \code{X1_contrasts = NULL}, which will set the first level of ea
 
 \item{catchability_data}{data-frame of covariates for use when specifying \code{Q1_formula} and \code{Q2_formula}}
 
-\item{Q1_formula}{same as \code{X1_formula} but affecting the 1st linear predictor for catchability (a.k.a. detectability)}
+\item{Q1_formula}{Similar to \code{X1_formula}, \code{Q1_formula} affects the 1st linear predictor for samples.
+However, the effect of \code{Q1_formula} is not used when predicting values at extrapolation-grid locations.
+Therefore, the \code{Q1_formula} is interpreted as affecting "catchability" (a.k.a. "detectabiility"), and it represents
+processes that affect the outcome of sampling but not the "true" underlying value of a variable being sampled.
+For example, a factor representing gear-type might be included to estimate the relative performacne of each gear type
+(relative to the base level of that factor).
+Note that \code{Q1_formula} defines a relationship that is applied to all samples (regardless of category \code{c_i}),
+whereas \code{X1_formula} defines a relationship that is estimated independently for each category.
+For a catchability covariate that varies by category, please include the category as factor in \code{catchability_data}
+and then include an interaction with category in \code{Q1_formula} for any variable which has an effect that varies among categories.}
 
-\item{Q2_formula}{same as \code{X1_formula} but affecting the 2nd linear predictor for catchability (a.k.a. detectability)}
+\item{Q2_formula}{same as \code{Q2_formula} but affecting the 2nd linear predictor.}
 
 \item{Q1config_k}{Same as argument \code{X1config_cp} but affecting affecting the 1st linear predictor for catchability,
 and note that it is a vector (instead of matrix) given that catchability responses do not vary among variables \code{c}
@@ -196,7 +210,6 @@ calculate changes in synchrony over time (only used if \code{Options['Calculate_
 \item{Options}{a tagged-vector that is empty by default, \code{Options=c()}, but where the following slots might be helpful to add,
        either by passing \code{Options} to \code{\link[FishStatsUtils]{make_settings}}, or editing after a call to that function:
 \describe{
-  \item{\code{Options["SD_site_logdensity"]=TRUE}}{Turns on standard error calculation for local log-density (which is very slow to calculate!)}
   \item{\code{Options["Calculate_Range"]=TRUE}}{Turns on internal calculation and SE for center-of-gravity}
   \item{\code{Options["Calculate_effective_area"]=TRUE}}{Turns on internal calculation and SE for effective area occupied measuring range expansion/contraction}
   \item{\code{Options["Calculate_Cov_SE"]=TRUE}}{Turns on internal calculation and SE for covariance among categories (i.e. in factor model)}

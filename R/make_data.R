@@ -117,11 +117,16 @@
 #'   \item{\code{VamConfig[1]}}{indicates the rank of the interaction matrix, indicating the number of community axes that have regulated dynamics}
 #'   \item{\code{VamConfig[2]}}{Indicates whether interactions occur before spatio-temporal variation (\code{VamConfig[2]=0}) or after \code{VamConfig[2]=1}}
 #' }
-#' @param X1_formula right-sided formula affecting the 1st linear predictor for density, e.g.,
-#'        \code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}.
+#' @param X1_formula right-sided formula affecting the 1st linear predictor
+#'        which is then estimated independently for each model category \code{c_i}, e.g.,
+#'        use \code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}
+#'        that is estimated independently for each category.
+#'        The effect of an estimated effect also used upon when predicting the value for each location
+#'        in the extrapolation-grid.  Therefore, \code{X1_formula} is interepreted as affecting the "true"
+#'        underlying value of each variable, and it affects both samples and extrapolated values.
 #'        It is allowed to include \code{Year} in the formula, although please check whether it is
 #'        interpreted as numeric or factor-valued.
-#' @param X2_formula same as \code{X1_formula} but affecting the 2nd linear predictor for density
+#' @param X2_formula same as \code{X1_formula} but affecting the 2nd linear predictor.
 #' @param covariate_data data-frame of covariates for use when specifying \code{X1_formula} and \code{X2_formula}
 #' @param X1config_cp matrix of settings for each density covariate for the 1st lienar predictor,
 #'        where the row corresponds to model category, and column corresponds to each density covariate
@@ -139,8 +144,17 @@
 #' @param X_contrasts list defining the contrasts for each density-covariate factor
 #'        specified in \code{X1_formula} or \code{X2_formula} with specification according to \code{\link[stats]{contrasts}}.
 #'        By default uses \code{X1_contrasts = NULL}, which will set the first level of each covariate factor as the reference level.
-#' @param Q1_formula same as \code{X1_formula} but affecting the 1st linear predictor for catchability (a.k.a. detectability)
-#' @param Q2_formula same as \code{X1_formula} but affecting the 2nd linear predictor for catchability (a.k.a. detectability)
+#' @param Q1_formula Similar to \code{X1_formula}, \code{Q1_formula} affects the 1st linear predictor for samples.
+#'        However, the effect of \code{Q1_formula} is not used when predicting values at extrapolation-grid locations.
+#'        Therefore, the \code{Q1_formula} is interpreted as affecting "catchability" (a.k.a. "detectabiility"), and it represents
+#'        processes that affect the outcome of sampling but not the "true" underlying value of a variable being sampled.
+#'        For example, a factor representing gear-type might be included to estimate the relative performacne of each gear type
+#'        (relative to the base level of that factor).
+#'        Note that \code{Q1_formula} defines a relationship that is applied to all samples (regardless of category \code{c_i}),
+#'        whereas \code{X1_formula} defines a relationship that is estimated independently for each category.
+#'        For a catchability covariate that varies by category, please include the category as factor in \code{catchability_data}
+#'        and then include an interaction with category in \code{Q1_formula} for any variable which has an effect that varies among categories.
+#' @param Q2_formula same as \code{Q2_formula} but affecting the 2nd linear predictor.
 #' @param catchability_data data-frame of covariates for use when specifying \code{Q1_formula} and \code{Q2_formula}
 #' @param Q1config_k Same as argument \code{X1config_cp} but affecting affecting the 1st linear predictor for catchability,
 #'        and note that it is a vector (instead of matrix) given that catchability responses do not vary among variables \code{c}
@@ -320,7 +334,7 @@ function( b_i,
 
   # Convert b_i to explicit units
   if( class(b_i) %in% c("numeric","integer") ){
-    message("Coercing `b_i` to have units `kg`; I recommend using explicit units, e.g., `as_units(b_i,'kg')` or `as_units(b_i,'count')`")
+    message("Coercing `b_i` to have units `kg`; I recommend using explicit units, e.g., `as_units(b_i,'kg')`, `as_units(b_i,'count') or `as_units(b_i,unitless)`")
     b_units = "kg"  # "count" or `unitless` also work
   }else if( class(b_i) == "units" ){
     b_units = units(b_i)
