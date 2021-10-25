@@ -55,10 +55,14 @@
 #'        This can be specified as a matrix, such that each observation is associated with multiple categories.
 #'        Such specification treats samples as arising from the sum across multiple categories, e.g.,
 #'        to account for unlabeled multispecies data.
-#' @param t_i Vector of integers, providing the time (e.g., calendar year) for each observation i
+#' @param t_i Vector of integers, providing the time (e.g., calendar year) for each observation i.
+#'        The first modeled interval will be \code{min(t_i)}, and last will be \code{max(t_i)},
+#'        and every interval corresponding to integers between \code{min(t_i)} and \code{max(t_i)} will also be modeled.
 #' @param e_i Optional vector of integers ranging from 0 to the number of different error distributions,
 #'        providing the error distribution to use for each observation i;
-#'        by default \code{e_i=c_iz[,1]} such that each category has a unique estimated magnitude of measurement error
+#'        by default \code{e_i=c_iz[,1]} such that each category has a unique estimated magnitude of measurement error.
+#'        This option can be useful to specify (1) time-blocks in the variance of measurement error, (2) differentg
+#'        distributions for subsets of samples, or various other applications.
 #' @param v_i Vector of integers ranging from 0 to the number of vessels minus 1,
 #'        providing sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
 #'        (by default \code{v_i=0} for all samples, which will not affect things given the default values for \code{OverdispersionConfig})
@@ -127,7 +131,8 @@
 #'        It is allowed to include \code{Year} in the formula, although please check whether it is
 #'        interpreted as numeric or factor-valued.
 #' @param X2_formula same as \code{X1_formula} but affecting the 2nd linear predictor.
-#' @param covariate_data data-frame of covariates for use when specifying \code{X1_formula} and \code{X2_formula}
+#' @param covariate_data data-frame of covariates that is used when constructing density covariates.
+#'        any variable referenced in \code{X1_formula} and \code{X2_formula} must be in \code{covariate_data}
 #' @param X1config_cp matrix of settings for each density covariate for the 1st lienar predictor,
 #'        where the row corresponds to model category, and column corresponds to each density covariate
 #' \describe{
@@ -195,7 +200,8 @@
 #' @param F_init In a vector-autoregressive model specifying fishing mortality rates via \code{F_ct}, the initial conditions can be based on the stationary
 #'        distribution assuming that the first year of fishing mortality had happened indefinitely prior to data \code{F_init=2}, or that fishing mortality
 #'        was zero prior to data, \code{F_init=1}
-#' @param overlap_zz A matrix with zero columns (and zero rows by default), indicating whether overlap metrics should be calculated as a derived quantity.
+#' @param overlap_zz A matrix with seven columns (and zero rows by default), indicating whether overlap metrics should be calculated as a derived quantity.
+#'        Each row of \code{overlap_zz} specifies an additional quantity to be calculated.
 #'
 #' @return Object of class \code{make_data}, containing inputs to function \code{\link{make_model}}
 

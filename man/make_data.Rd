@@ -58,7 +58,9 @@ use \code{as_units(1, unitless)} for observations without a natural area measure
 or for observations where the response \code{b_i} already standardizes for area, e.g.,
 \code{b_i = as_units(x, "kg/km^2")}}
 
-\item{t_i}{Vector of integers, providing the time (e.g., calendar year) for each observation i}
+\item{t_i}{Vector of integers, providing the time (e.g., calendar year) for each observation i.
+The first modeled interval will be \code{min(t_i)}, and last will be \code{max(t_i)},
+and every interval corresponding to integers between \code{min(t_i)} and \code{max(t_i)} will also be modeled.}
 
 \item{c_iz}{Vector of integers ranging from 0 to the number of variables minus 1, providing the
 category (e.g., species, length-bin) for each observation i.
@@ -68,7 +70,9 @@ to account for unlabeled multispecies data.}
 
 \item{e_i}{Optional vector of integers ranging from 0 to the number of different error distributions,
 providing the error distribution to use for each observation i;
-by default \code{e_i=c_iz[,1]} such that each category has a unique estimated magnitude of measurement error}
+by default \code{e_i=c_iz[,1]} such that each category has a unique estimated magnitude of measurement error.
+This option can be useful to specify (1) time-blocks in the variance of measurement error, (2) differentg
+distributions for subsets of samples, or various other applications.}
 
 \item{v_i}{Vector of integers ranging from 0 to the number of vessels minus 1,
 providing sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
@@ -135,7 +139,8 @@ If missing, the default is to assume a value of zero for each element (i.e., \co
 
 \item{PredTF_i}{OPTIONAL, whether each observation i is included in the likelihood, \code{PredTF_i[i]=0}, or in the predictive probability, \code{PredTF_i[i]=1}}
 
-\item{covariate_data}{data-frame of covariates for use when specifying \code{X1_formula} and \code{X2_formula}}
+\item{covariate_data}{data-frame of covariates that is used when constructing density covariates.
+any variable referenced in \code{X1_formula} and \code{X2_formula} must be in \code{covariate_data}}
 
 \item{X1_formula}{right-sided formula affecting the 1st linear predictor
 which is then estimated independently for each model category \code{c_i}, e.g.,
@@ -233,7 +238,8 @@ Defaults to eastings and northings for each knots or extrapolation-grid cell.}
 using \code{\link[FishStatsUtils]{get_latest_version}}.
 Can be used to specify using an older CPP, to maintain backwards compatibility.}
 
-\item{overlap_zz}{A matrix with zero columns (and zero rows by default), indicating whether overlap metrics should be calculated as a derived quantity.}
+\item{overlap_zz}{A matrix with seven columns (and zero rows by default), indicating whether overlap metrics should be calculated as a derived quantity.
+Each row of \code{overlap_zz} specifies an additional quantity to be calculated.}
 
 \item{...}{interface to pass deprecated inputs, included for backwards compatibility with previous versions which, e.g., specified elements of \code{spatial_list}
 individually instead of as a single object}
