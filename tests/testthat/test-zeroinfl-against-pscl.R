@@ -38,7 +38,7 @@ test_that("Zero-inflated Poisson gives identical results to pscl::zeroinfl(.) ",
                    Aniso = FALSE,
                    working_dir = multispecies_example_path,
                    FieldConfig = c(Omega1 = 0, Epsilon1 = 0,
-                                   Omega2 = 0, Epsilon2 = 0))
+                                   Omega2 = 0, Epsilon2 = 0) )
 
   #
   fit0_pscl <- pscl::zeroinfl(z ~ 1, data = xyz, dist = "poisson")

@@ -4,7 +4,14 @@
 \alias{Effect.fit_model}
 \title{Adapts package \code{effects}}
 \usage{
-Effect.fit_model(focal.predictors, mod, which_formula = "X1", ...)
+Effect.fit_model(
+  focal.predictors,
+  mod,
+  which_formula = "X1",
+  pad_values = c(),
+  category_number = NULL,
+  ...
+)
 }
 \arguments{
 \item{focal.predictors}{a character vector of one or more predictors in the model in any order.}
@@ -12,6 +19,8 @@ Effect.fit_model(focal.predictors, mod, which_formula = "X1", ...)
 \item{mod}{an object of the appropriate class.  If no method exists for that class, \code{Effect.default} will be called. }
 
 \item{which_formula}{which formula to use e.g., \code{"X1"}}
+
+\item{category_number}{which category code{c_i} to use when plotting density covariates}
 
 \item{...}{arguments to be passed down.}
 }

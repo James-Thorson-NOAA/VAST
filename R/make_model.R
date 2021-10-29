@@ -129,7 +129,9 @@ function( TmbData,
 
    # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
-  file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(CompileDir,"/",Version,".cpp"), overwrite=FALSE)
+  file.copy( from=paste0(TmbDir,"/",Version,".cpp"),
+    to=paste0(CompileDir,"/",Version,".cpp"),
+    overwrite=FALSE)
   origwd = getwd()
   on.exit(setwd(origwd),add=TRUE)
   setwd( CompileDir )
@@ -138,15 +140,21 @@ function( TmbData,
 
   # Build object
   dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version)) ) # random=Random,
-  Obj <- TMB::MakeADFun(data=TmbData, parameters=Parameters, hessian=FALSE, map=Map, random=Random, inner.method="newton", DLL=Version)  #
+  Obj <- TMB::MakeADFun(
+    data = lapply(TmbData,strip_units),
+    #data = Data,
+    parameters = Parameters,
+    hessian = FALSE,
+    map = Map,
+    random = Random,
+    inner.method = "newton",
+    DLL = Version)  #
   Obj$control <- list(parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 
   # Add normalization in
-  if( FishStatsUtils::convert_version_name(Version) >= FishStatsUtils::convert_version_name("VAST_v4_1_0") ){
-    if( Options['normalize_GMRF_in_CPP']==FALSE ){
-      message("Normalizing GMRF in R using `TMB::normalize` feature")
-      Obj = TMB::normalize(Obj, flag="include_data", value=FALSE)
-    }
+  if( Options['normalize_GMRF_in_CPP']==FALSE ){
+    message("Normalizing GMRF in R using `TMB::normalize` feature")
+    Obj = TMB::normalize(Obj, flag="include_data", value=FALSE)
   }
 
   # Diagnostic functions (optional)

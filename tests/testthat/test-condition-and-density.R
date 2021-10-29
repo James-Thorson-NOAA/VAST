@@ -62,6 +62,7 @@ test_that("Condition-and-density example is working ", {
     Map = Map,
   # END CODE BLOCK FROM WIKI
     getsd=FALSE,
+    #newtonsteps=0,
     backwards_compatible_kmeans=TRUE )
 
   # Comparisons

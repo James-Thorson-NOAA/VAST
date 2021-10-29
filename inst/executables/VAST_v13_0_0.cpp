@@ -853,16 +853,16 @@ Type objective_function<Type>::operator() ()
   }
 
   // Form loadings matrices
-  matrix<Type> L_omega1_cf = create_loadings_general( L_omega1_z, n_c, FieldConfig(0,0), zerosum_penalty(0,0), jnll_comp(19), true );
-  matrix<Type> L_omega2_cf = create_loadings_general( L_omega2_z, n_c, FieldConfig(0,1), zerosum_penalty(0,0), jnll_comp(19), true );
-  matrix<Type> L_epsilon1_cf = create_loadings_general( L_epsilon1_z, n_c, FieldConfig(1,0), zerosum_penalty(0,0), jnll_comp(19), true );
-  matrix<Type> L_epsilon2_cf = create_loadings_general( L_epsilon2_z, n_c, FieldConfig(1,1), zerosum_penalty(0,0), jnll_comp(19), true );
-  matrix<Type> L_beta1_cf = create_loadings_general( L_beta1_z, n_c, FieldConfig(2,0), zerosum_penalty(0,0), jnll_comp(19), true );
-  matrix<Type> L_beta2_cf = create_loadings_general( L_beta2_z, n_c, FieldConfig(2,1), zerosum_penalty(0,0), jnll_comp(19), true );
+  matrix<Type> L_omega1_cf = create_loadings_general( L_omega1_z, n_c, FieldConfig(0,0), Type(0.0), jnll_comp(19), true );
+  matrix<Type> L_omega2_cf = create_loadings_general( L_omega2_z, n_c, FieldConfig(0,1), Type(0.0), jnll_comp(19), true );
+  matrix<Type> L_epsilon1_cf = create_loadings_general( L_epsilon1_z, n_c, FieldConfig(1,0), Type(0.0), jnll_comp(19), true );
+  matrix<Type> L_epsilon2_cf = create_loadings_general( L_epsilon2_z, n_c, FieldConfig(1,1), Type(0.0), jnll_comp(19), true );
+  matrix<Type> L_beta1_cf = create_loadings_general( L_beta1_z, n_c, FieldConfig(2,0), Type(0.0), jnll_comp(19), true );
+  matrix<Type> L_beta2_cf = create_loadings_general( L_beta2_z, n_c, FieldConfig(2,1), Type(0.0), jnll_comp(19), true );
   matrix<Type> Ltime_epsilon1_tf = create_loadings_general( Ltime_epsilon1_z, n_t, FieldConfig(3,0), zerosum_penalty(0,0), jnll_comp(19), true );
   matrix<Type> Ltime_epsilon2_tf = create_loadings_general( Ltime_epsilon2_z, n_t, FieldConfig(3,1), zerosum_penalty(0,0), jnll_comp(19), true );
-  matrix<Type> L_eta1_cf = create_loadings_general( L_eta1_z, n_c, OverdispersionConfig(0), zerosum_penalty(0,0), jnll_comp(19), true );
-  matrix<Type> L_eta2_cf = create_loadings_general( L_eta2_z, n_c, OverdispersionConfig(1), zerosum_penalty(0,0), jnll_comp(19), true );
+  matrix<Type> L_eta1_cf = create_loadings_general( L_eta1_z, n_c, OverdispersionConfig(0), Type(0.0), jnll_comp(19), true );
+  matrix<Type> L_eta2_cf = create_loadings_general( L_eta2_z, n_c, OverdispersionConfig(1), Type(0.0), jnll_comp(19), true );
 
   ////////////////////////
   // Interactions and fishing mortality

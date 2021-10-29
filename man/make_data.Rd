@@ -44,20 +44,35 @@ make_data(
 )
 }
 \arguments{
-\item{b_i}{Numeric vector, providing sampled value (biomass, counts, etc.) for each observation i}
+\item{b_i}{Vector, providing sampled value (biomass, counts, etc.) for each observation i.
+Users should provide values as class \code{\link[units]{units}}, e.g., \code{as_units(x, "kg")} for data in units kilograms,
+\code{as_units(x, "count")} for numbers, or \code{as_units(x, "kg/km^2")} for area-standarized biomass, etc.
+If units are missing, the default behavior is to coerce the vector to units "kg".
+Units are then used in subsequent plotting. Users can also specify \code{b_i=NA} for some observations,
+e.g., when seeking to ensure that the model includes hindcast/forecast years that do not otherwise have sampling data}
 
-\item{a_i}{Numeric vector containing values greater than zero, providing sampled area for each
-observation i;  use \code{a_i=1} for observations without a natural area measurement, while
-noting that resulting densities no longer have interpretable units in that case)}
+\item{a_i}{Vector containing values greater than zero, providing sampled area for each
+observation i, e.g., \code{as_units(x, "km^2")} for area swept in square-kilometers.
+use \code{as_units(1, unitless)} for observations without a natural area measurement
+(noting that resulting densities no longer have interpretable units in that case),
+or for observations where the response \code{b_i} already standardizes for area, e.g.,
+\code{b_i = as_units(x, "kg/km^2")}}
 
-\item{t_i}{Vector of integers, providing the time (e.g., calendar year) for each observation i}
+\item{t_i}{Vector of integers, providing the time (e.g., calendar year) for each observation i.
+The first modeled interval will be \code{min(t_i)}, and last will be \code{max(t_i)},
+and every interval corresponding to integers between \code{min(t_i)} and \code{max(t_i)} will also be modeled.}
 
 \item{c_iz}{Vector of integers ranging from 0 to the number of variables minus 1, providing the
-category (e.g., species, length-bin) for each observation i}
+category (e.g., species, length-bin) for each observation i.
+This can be specified as a matrix, such that each observation is associated with multiple categories.
+Such specification treats samples as arising from the sum across multiple categories, e.g.,
+to account for unlabeled multispecies data.}
 
 \item{e_i}{Optional vector of integers ranging from 0 to the number of different error distributions,
 providing the error distribution to use for each observation i;
-by default \code{e_i=c_iz[,1]} such that each category has a unique estimated magnitude of measurement error}
+by default \code{e_i=c_iz[,1]} such that each category has a unique estimated magnitude of measurement error.
+This option can be useful to specify (1) time-blocks in the variance of measurement error, (2) differentg
+distributions for subsets of samples, or various other applications.}
 
 \item{v_i}{Vector of integers ranging from 0 to the number of vessels minus 1,
 providing sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
@@ -68,13 +83,14 @@ providing sampling category (e.g., vessel or tow) associated with overdispersed 
 \item{ObsModel_ez}{an optional matrix with two columns where the first column specifies the distribution for positive catch rates,
        and the second column specifies the functional form for encounter probabilities
 \describe{
-  \item{\code{ObsModel_ez[e,1]=0}}{Normal}
-  \item{\code{ObsModel_ez[e,1]=1}}{Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
+  \item{\code{ObsModel_ez[e,1]=0}}{Delta-Normal}
+  \item{\code{ObsModel_ez[e,1]=1}}{Delta-Lognormal, using bias-corrected-mean and log-sd as parameters; I recommend using \code{ObsModel_ez[e,1]=4}
        instead for consistent interpretation of logSigmaM as log-CV as used for Gamma and inverse-Gaussian distribution}
-  \item{\code{ObsModel_ez[e,1]=2}}{Gamma}
-  \item{\code{ObsModel_ez[e,1]=4}}{Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
-  \item{\code{ObsModel_ez[e,1]=5}}{Negative binomial}
-  \item{\code{ObsModel_ez[e,1]=7}}{Poisson (more numerically stable than negative-binomial)}
+  \item{\code{ObsModel_ez[e,1]=2}}{Delta-Gamma}
+  \item{\code{ObsModel_ez[e,1]=4}}{Delta-Lornormal, using bias-corrected-mean and log-coefficient of variation (CV) as parameters;  see note for \code{ObsModel_ez[e,1]=1}}
+  \item{\code{ObsModel_ez[e,1]=5}}{Zero-inflated negative binomial (1st linear predictor for logit-linked zero-inflation;  2nd linear predictor for log-linked conditional mean of NB), using two variance parameters for linear and quadratic components}
+  \item{\code{ObsModel_ez[e,1]=7}}{Zero-inflated Poisson (1st linear predictor for logit-linked zero-inflation;  2nd linear predictor for log-linked conditional mean of Poisson)}
+  \item{\code{ObsModel_ez[e,1]=9}}{Delta-Generalized Gamma, which involves two variance parameters and includes the gamma and lognormal as nested submodels}
   \item{\code{ObsModel_ez[e,1]=10}}{Tweedie distribution, where expected biomass (lambda) is the product of 1st-component and 2nd-component,
          variance scalar (phi) is the 1st component, and logis-SigmaM is the power. This parameterization is fast (i.e., comparable to delta-models)
          as long as random effects are turned off for the 1st component, but is otherwise extremely slow.}
@@ -123,12 +139,20 @@ If missing, the default is to assume a value of zero for each element (i.e., \co
 
 \item{PredTF_i}{OPTIONAL, whether each observation i is included in the likelihood, \code{PredTF_i[i]=0}, or in the predictive probability, \code{PredTF_i[i]=1}}
 
-\item{covariate_data}{data-frame of covariates for use when specifying \code{X1_formula} and \code{X2_formula}}
+\item{covariate_data}{data-frame of covariates that is used when constructing density covariates.
+any variable referenced in \code{X1_formula} and \code{X2_formula} must be in \code{covariate_data}}
 
-\item{X1_formula}{right-sided formula affecting the 1st linear predictor for density, e.g.,
-\code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}}
+\item{X1_formula}{right-sided formula affecting the 1st linear predictor
+which is then estimated independently for each model category \code{c_i}, e.g.,
+use \code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}
+that is estimated independently for each category.
+The effect of an estimated effect also used upon when predicting the value for each location
+in the extrapolation-grid.  Therefore, \code{X1_formula} is interepreted as affecting the "true"
+underlying value of each variable, and it affects both samples and extrapolated values.
+It is allowed to include \code{Year} in the formula, although please check whether it is
+interpreted as numeric or factor-valued.}
 
-\item{X2_formula}{same as \code{X1_formula} but affecting the 2nd linear predictor for density}
+\item{X2_formula}{same as \code{X1_formula} but affecting the 2nd linear predictor.}
 
 \item{X1config_cp}{matrix of settings for each density covariate for the 1st lienar predictor,
        where the row corresponds to model category, and column corresponds to each density covariate
@@ -137,20 +161,32 @@ If missing, the default is to assume a value of zero for each element (i.e., \co
   \item{\code{X1config_cp[c,p]=1}}{\code{X_ip[,p]} has a linear effect on 1st linear predictor for category c}
   \item{\code{X1config_cp[c,p]=2}}{\code{X_ip[,p]} has a spatially varying, zero-centered linear effect on 1st linear predictor for category c}
   \item{\code{X1config_cp[c,p]=3}}{\code{X_ip[,p]} has a spatially varying linear effect on 1st linear predictor for category c}
+  \item{\code{X1config_cp[c,p]=4}}{Replaces covariate \code{X_ip[,p]} with \code{beta1_tc[,c]+beta2_tc[,c]} for the corresponding
+                                            year and category, which has a zero-centered spatially varying effect on 1st linear predictor.
+                                            This then represents a density-dependent effect on distribution. (NOTE: still in beta testing)}
   \item{\code{X1config_cp[c,p]=-1}}{\code{X1config_cp[c,p]=-1} is the same as \code{X1config_cp[c,p]=2}, but without including the log-likelihood term; this is useful in special cases when carefully mirroring spatially varying coefficients, e.g., to use cohort effects in a age-structured spatio-temporal model}
 }}
 
 \item{X2config_cp}{Same as argument \code{X1config_cp} but for 2nd linear predictor}
 
 \item{X_contrasts}{list defining the contrasts for each density-covariate factor
-specified in \code{X1_formula} or \code{X2_formula} with specification according to \code{\link{stats::contrasts}}.
+specified in \code{X1_formula} or \code{X2_formula} with specification according to \code{\link[stats]{contrasts}}.
 By default uses \code{X1_contrasts = NULL}, which will set the first level of each covariate factor as the reference level.}
 
 \item{catchability_data}{data-frame of covariates for use when specifying \code{Q1_formula} and \code{Q2_formula}}
 
-\item{Q1_formula}{same as \code{X1_formula} but affecting the 1st linear predictor for catchability (a.k.a. detectability)}
+\item{Q1_formula}{Similar to \code{X1_formula}, \code{Q1_formula} affects the 1st linear predictor for samples.
+However, the effect of \code{Q1_formula} is not used when predicting values at extrapolation-grid locations.
+Therefore, the \code{Q1_formula} is interpreted as affecting "catchability" (a.k.a. "detectabiility"), and it represents
+processes that affect the outcome of sampling but not the "true" underlying value of a variable being sampled.
+For example, a factor representing gear-type might be included to estimate the relative performacne of each gear type
+(relative to the base level of that factor).
+Note that \code{Q1_formula} defines a relationship that is applied to all samples (regardless of category \code{c_i}),
+whereas \code{X1_formula} defines a relationship that is estimated independently for each category.
+For a catchability covariate that varies by category, please include the category as factor in \code{catchability_data}
+and then include an interaction with category in \code{Q1_formula} for any variable which has an effect that varies among categories.}
 
-\item{Q2_formula}{same as \code{X1_formula} but affecting the 2nd linear predictor for catchability (a.k.a. detectability)}
+\item{Q2_formula}{same as \code{Q2_formula} but affecting the 2nd linear predictor.}
 
 \item{Q1config_k}{Same as argument \code{X1config_cp} but affecting affecting the 1st linear predictor for catchability,
 and note that it is a vector (instead of matrix) given that catchability responses do not vary among variables \code{c}
@@ -162,8 +198,9 @@ by default (but can be specified to do so when an appropriate `formula` is suppl
 
 \item{Network_sz}{An interface to specify a directed acyclic graphic representing a stream network, used only when \code{Method="Stream_network"}.}
 
-\item{F_ct}{matrix of fishing mortality for each category c and year t (only feasible when using a Poisson-link delta model
-and specifying temporal structure on intercepts, and mainly interpretable when species interactions via VamConfig)}
+\item{F_ct}{matrix of instantanous fishing mortality for each category c and year t.  Only feasible when using a Poisson-link delta model
+and specifying temporal structure on intercepts, when the temporal autocorrelation is equivalent to a Spawning Potential
+Ratio (SPR) proxy for fishing mortality targets given the implied Gompertz density dependence.}
 
 \item{F_init}{In a vector-autoregressive model specifying fishing mortality rates via \code{F_ct}, the initial conditions can be based on the stationary
 distribution assuming that the first year of fishing mortality had happened indefinitely prior to data \code{F_init=2}, or that fishing mortality
@@ -178,7 +215,6 @@ calculate changes in synchrony over time (only used if \code{Options['Calculate_
 \item{Options}{a tagged-vector that is empty by default, \code{Options=c()}, but where the following slots might be helpful to add,
        either by passing \code{Options} to \code{\link[FishStatsUtils]{make_settings}}, or editing after a call to that function:
 \describe{
-  \item{\code{Options["SD_site_logdensity"]=TRUE}}{Turns on standard error calculation for local log-density (which is very slow to calculate!)}
   \item{\code{Options["Calculate_Range"]=TRUE}}{Turns on internal calculation and SE for center-of-gravity}
   \item{\code{Options["Calculate_effective_area"]=TRUE}}{Turns on internal calculation and SE for effective area occupied measuring range expansion/contraction}
   \item{\code{Options["Calculate_Cov_SE"]=TRUE}}{Turns on internal calculation and SE for covariance among categories (i.e. in factor model)}
@@ -198,10 +234,12 @@ and specifies the category to use for abundance-weighted expansion, where \code{
 \item{Z_gm}{matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics.
 Defaults to eastings and northings for each knots or extrapolation-grid cell.}
 
-\item{Version}{Which CPP version to use.  If missing, defaults to latest version using \code{\link[FishStatsUtils]{get_latest_version}}.
+\item{Version}{Which CPP version to use.  If missing, defaults to latest version
+using \code{\link[FishStatsUtils]{get_latest_version}}.
 Can be used to specify using an older CPP, to maintain backwards compatibility.}
 
-\item{overlap_zz}{A matrix with zero columns (and zero rows by default), indicating whether overlap metrics should be calculated as a derived quantity.}
+\item{overlap_zz}{A matrix with seven columns (and zero rows by default), indicating whether overlap metrics should be calculated as a derived quantity.
+Each row of \code{overlap_zz} specifies an additional quantity to be calculated.}
 
 \item{...}{interface to pass deprecated inputs, included for backwards compatibility with previous versions which, e.g., specified elements of \code{spatial_list}
 individually instead of as a single object}
@@ -225,10 +263,10 @@ Argument \code{FieldConfig} is a matrix of form
 Both vector (simplified) and matrix (full) specification of \code{FieldConfig} involve named elements
   using the following naming conventions:
 \describe{
-   \item{Omega}{specifies whether spatial variation is present and/or correlated among variables}
-   \item{Epsilon}{specifies whether spatio-temporal variation is present and/or correlated among variables}
-   \item{Beta}{specifies whether temporal variation (a.k.a. "intercepts") is present and/or correlated among variables}
-   \item{Epsilon_year}{specifies whether spatio-temporal variation is correlated among years}
+   \item{\code{Omega}}{specifies whether spatial variation is present and/or correlated among variables}
+   \item{\code{Epsilon}}{specifies whether spatio-temporal variation is present and/or correlated among variables}
+   \item{\code{Beta}}{specifies whether temporal variation (a.k.a. "intercepts") is present and/or correlated among variables}
+   \item{\code{Epsilon_year}}{specifies whether spatio-temporal variation is correlated among years}
 }
 Meanwhile, \code{Component_1} (or the numeral "1" after a component name) refers to the 1st lienar predictor (e.g., of a delta-model),
   while \code{Component_2} (or the numeral "2" after a component name) refers to the 2nd linear predictor.
@@ -237,14 +275,14 @@ Meanwhile, \code{Component_1} (or the numeral "1" after a component name) refers
 
 In each slot of \code{FieldConfig}, the user can specify various options:
 \describe{
-  \item{0}{turns off a given model component}
-  \item{integer greater than zero}{specifies the rank (number of factors) in a factor-analysis covariance matrix}
-  \item{"AR1"}{specifies that a model component is correlated following an first-order autoregressive process}
-  \item{"IID"}{specifies that a given model component is a random effect that is independent for every level}
-  \item{"Identity"}{specifies that a given model component has covariance of an identity-matrix;
+  \item{\code{0}}{turns off a given model component}
+  \item{\code{integer greater than zero}}{specifies the rank (number of factors) in a factor-analysis covariance matrix}
+  \item{\code{"AR1"}}{specifies that a model component is correlated following an first-order autoregressive process}
+  \item{\code{"IID"}}{specifies that a given model component is a random effect that is independent for every level}
+  \item{\code{"Identity"}}{specifies that a given model component has covariance of an identity-matrix;
     this is only useful for \code{Epsilon_year} to "turn off" covariance among years while still including spatio-temporal variation}
 }
 
-\code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_itp} using \code{\link[FishStatsUtils]{make_covariates}};
+\code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_ip} using \code{\link[FishStatsUtils]{make_covariates}};
 see that function for more details.
 }

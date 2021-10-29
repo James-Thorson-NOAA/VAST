@@ -17,7 +17,8 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Catchability covariates give identical results to glm(.) ", {
-  #skip_on_ci()
+  # Previously worked with CI, but not anymore
+  skip_on_ci()
   skip_if(skip_local)
 
   # load data set
