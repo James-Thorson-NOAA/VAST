@@ -30,7 +30,7 @@
 
   if( !"FishStatsUtils" %in% utils::installed.packages()[,1] || utils::packageVersion("FishStatsUtils") < numeric_version("2.10.0") ){
     packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.10.0")
-    devtools::install_github("james-thorson/FishStatsUtils", ref="dev")
+    devtools::install_github("james-thorson/FishStatsUtils", ref="2.10.0")
     ## devtools::install_github("james-thorson/FishStatsUtils", ref='development', INSTALL_opts="--no-staged-install")
   }
   packageStartupMessage( "Loading package `FishStatsUtils` version ", packageVersion("FishStatsUtils") )
