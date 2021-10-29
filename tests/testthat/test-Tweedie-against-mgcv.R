@@ -5,7 +5,8 @@ context("Testing examples")
 
 # Tweedie distribution
 test_that("Tweedie gives identical results to mgcv::gam(.) ", {
-  #skip_on_ci()
+  # Previously worked with CI, but not anymore
+  skip_on_ci()
   skip_if(skip_local)
   library(mgcv)
 

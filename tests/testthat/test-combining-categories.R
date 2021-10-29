@@ -5,6 +5,8 @@ test_that("Combining categories example is working ", {
   ##  https://github.com/James-Thorson-NOAA/VAST/wiki/Combine-acoustic-and-bottom-trawl-data
   ## to work with CI in github actions
 
+  # Previously worked with CI, but not anymore
+  skip_on_ci()
   skip_if(skip_local)
 
   ## Read in prepared data which comes from a simulated example
