@@ -16,8 +16,8 @@
 make_map <-
 function( DataList,
           TmbParams,
-          RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
-          Npool=0 ){
+          RhoConfig = c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
+          Npool = 0 ){
 
   # Local functions
   fix_value <- function( fixvalTF ){

@@ -89,11 +89,18 @@ function( TmbData,
 
   # Parameters
     # TmbData=TmbData
-  if( length(Parameters)==1 && Parameters=="generate" ) Parameters = make_parameters( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
+  if( length(Parameters)==1 && Parameters=="generate" ){
+    Parameters = make_parameters( Version = Version,
+                                  DataList = TmbData,
+                                  RhoConfig = RhoConfig )
+  }
 
   # Which parameters are turned off
   if( length(Map)==1 && Map=="generate" ){
-    Map = make_map( DataList=TmbData, TmbParams=Parameters, RhoConfig=RhoConfig, Npool=Npool )
+    Map = make_map( DataList = TmbData,
+                    TmbParams = Parameters,
+                    RhoConfig = RhoConfig,
+                    Npool = Npool )
   }else{
     warning( "Please carefully check starting values for all parameters to ensure that mapping off parameters will work as expected.")
   }

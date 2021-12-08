@@ -1485,7 +1485,7 @@ Type objective_function<Type>::operator() ()
   for( t=0; t<n_t; t++ ){
     beta1_tc(t,c) += Beta_mean1_c(c) + Beta_mean1_t(t);
   }}
-  if( (RhoConfig(0)==1) | (RhoConfig(0)==2) | (RhoConfig(0)==4) ){
+  if( (RhoConfig(0)==1) | (RhoConfig(0)==2) | (RhoConfig(0)==4) | (RhoConfig(0)==5) ){
     jnll_comp(8) = jnll_beta1;
   }
 
@@ -1508,7 +1508,7 @@ Type objective_function<Type>::operator() ()
   for( t=0; t<n_t; t++ ){
     beta2_tc(t,c) += Beta_mean2_c(c) + Beta_mean2_t(t);
   }}
-  if( (RhoConfig(1)==1) | (RhoConfig(1)==2) | (RhoConfig(1)==4) | (RhoConfig(1)==6) ){
+  if( (RhoConfig(1)==1) | (RhoConfig(1)==2) | (RhoConfig(1)==4) | (RhoConfig(1)==5) | (RhoConfig(1)==6) ){
     jnll_comp(9) = jnll_beta2;
   }
 
