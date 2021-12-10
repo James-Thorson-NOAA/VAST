@@ -32,6 +32,7 @@ Depends:
     TMB,
     R (>= 3.5.0),
 Suggests:
+    FishStatsUtils,
     testthat,
     knitr,
     rmarkdown,
@@ -40,6 +41,7 @@ Suggests:
     mgcv,
     lme4
 Remotes:
+    james-thorson-NOAA/FishStatsUtils,
     james-thorson/utilities,
     nwfsc-assess/geostatistical_delta-GLMM
 License: file LICENSE
