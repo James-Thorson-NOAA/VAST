@@ -6,7 +6,7 @@ context("Testing examples")
 # Eastern Bering Sea pollcok
 test_that("Density covariates give identical results to glmer(.) ", {
   # Previously worked with CI, but not anymore
-  skip_on_ci()
+  #skip_on_ci()
   skip_if(skip_local)
   library(lme4)
 
