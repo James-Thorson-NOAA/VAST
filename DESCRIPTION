@@ -20,14 +20,13 @@ Description: VAST is an R package for conducting spatio-temporal analysis
     factor-analysis or autoregressive correlations among categories, with derived
     calculation of abundance indices, center-of-gravity, and area-occupied.
 Imports:
-    deldir,
-    stats,
-    devtools,
     abind,
-    MatrixModels,
-    ThorsonUtilities,
+    devtools,
     effects,
     INLA,
+    stats,
+    ThorsonUtilities,
+    utils,
     SpatialDeltaGLMM
 Depends:
     TMB,
@@ -36,13 +35,11 @@ Suggests:
     testthat,
     knitr,
     rmarkdown,
-    FishStatsUtils,
     pscl,
     tweedie,
     mgcv,
     lme4
 Remotes:
-    james-thorson-NOAA/FishStatsUtils,
     james-thorson/utilities,
     nwfsc-assess/geostatistical_delta-GLMM
 License: file LICENSE
