@@ -44,6 +44,7 @@ Remotes:
     james-thorson-NOAA/FishStatsUtils,
     james-thorson/utilities,
     nwfsc-assess/geostatistical_delta-GLMM
+Additional_repositories: https://inla.r-inla-download.org/R/stable
 License: file LICENSE
 LazyData: true
 Encoding: UTF-8
