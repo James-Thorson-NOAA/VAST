@@ -5,7 +5,7 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Zero-inflated Poisson gives identical results to pscl::zeroinfl(.) ", {
-  skip_on_ci()
+  #skip_on_ci()
   skip_if(skip_local)
 
   ## Simulate
