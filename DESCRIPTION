@@ -23,10 +23,8 @@ Imports:
     abind,
     devtools,
     effects,
-    FishStatsUtils,
     INLA,
     stats,
-    ThorsonUtilities,
     utils
 Depends:
     TMB,
