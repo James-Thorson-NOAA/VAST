@@ -40,7 +40,7 @@ Suggests:
     mgcv,
     lme4
 Remotes:
-    james-thorson-NOAA/FishStatsUtils,
+    james-thorson-NOAA/FishStatsUtils@dev,
     james-thorson/utilities
 Additional_repositories: https://inla.r-inla-download.org/R/stable
 License: file LICENSE
