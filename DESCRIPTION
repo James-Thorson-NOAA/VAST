@@ -21,15 +21,14 @@ Description: VAST is an R package for conducting spatio-temporal analysis
     calculation of abundance indices, center-of-gravity, and area-occupied.
 Imports:
     abind,
-    devtools,
     effects,
-    FishStatsUtils,
     INLA,
     stats,
     ThorsonUtilities,
     utils
 Depends:
     TMB,
+    FishStatsUtils,
     R (>= 3.5.0),
 Suggests:
     testthat,
