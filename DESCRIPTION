@@ -23,6 +23,7 @@ Imports:
     abind,
     devtools,
     effects,
+    FishStatsUtils,
     INLA,
     stats,
     ThorsonUtilities,
@@ -31,7 +32,6 @@ Depends:
     TMB,
     R (>= 3.5.0),
 Suggests:
-    FishStatsUtils,
     testthat,
     knitr,
     rmarkdown,
