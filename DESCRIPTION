@@ -28,7 +28,6 @@ Imports:
     utils
 Depends:
     TMB,
-    FishStatsUtils (>= 2.11.0),
     R (>= 3.5.0),
 Suggests:
     testthat,
@@ -39,7 +38,6 @@ Suggests:
     mgcv,
     lme4
 Remotes:
-    james-thorson-NOAA/FishStatsUtils@dev,
     james-thorson/utilities
 Additional_repositories: https://inla.r-inla-download.org/R/stable
 License: file LICENSE

@@ -23,16 +23,13 @@
   #  }
   #}
   #
-  ## Load `FishStatsUtils` via .onAttach because importFrom wasn't working
-  ## Also requries moving FishStatsUtils to SUGGESTS, so that it
-  ## doesn't isntall main branch
-  #
-  #if( !"FishStatsUtils" %in% utils::installed.packages()[,1] || utils::packageVersion("FishStatsUtils") < numeric_version("2.11.0") ){
-  #  packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.11.0")
-  #  devtools::install_github("james-thorson/FishStatsUtils", ref="dev")
-  #}
-  #packageStartupMessage( "Loading package `FishStatsUtils` version ", packageVersion("FishStatsUtils") )
-  #library(FishStatsUtils)
+  ## Load `FishStatsUtils` via .onAttach because Remotes doessn't enforce branch properly
+  if( !"FishStatsUtils" %in% utils::installed.packages()[,1] || utils::packageVersion("FishStatsUtils") < numeric_version("2.11.0") ){
+    packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.11.0")
+    devtools::install_github("james-thorson/FishStatsUtils", ref="dev")
+  }
+  packageStartupMessage( "Loading package `FishStatsUtils` version ", packageVersion("FishStatsUtils") )
+  library(FishStatsUtils)
 }
 
 #' Copy of VAST::make_model
