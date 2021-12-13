@@ -25,7 +25,8 @@ Imports:
     INLA,
     stats,
     ThorsonUtilities,
-    utils
+    utils,
+    remotes
 Depends:
     TMB,
     R (>= 3.5.0),

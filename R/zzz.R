@@ -26,7 +26,7 @@
   ## Load `FishStatsUtils` via .onAttach because Remotes doessn't enforce branch properly
   if( !"FishStatsUtils" %in% utils::installed.packages()[,1] || utils::packageVersion("FishStatsUtils") < numeric_version("2.11.0") ){
     packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.11.0")
-    devtools::install_github("james-thorson/FishStatsUtils", ref="dev")
+    remotes::install_github("james-thorson/FishStatsUtils", ref="dev")
   }
   packageStartupMessage( "Loading package `FishStatsUtils` version ", packageVersion("FishStatsUtils") )
   library(FishStatsUtils)
