@@ -190,12 +190,22 @@ Type rgengamma(Type mean, Type sigma, Type lambda){
 // Adapted from tweedie::rtweedie function in R
 template<class Type>
 Type rTweedie( Type mu, Type phi, Type power){
- Type lambda = pow(mu, Type(2.0) - power) / (phi * (Type(2.0) - power));
- Type alpha = (Type(2.0) - power) / (Type(1.0) - power);
- Type gam = phi * (power - Type(1.0)) * pow(mu, power - Type(1.0));
- Type N = rpois(lambda);
- Type B = rgamma(-N * alpha, gam);   /// Using Shape-Scale parameterization
- return B;
+  Type lambda = pow(mu, Type(2.0) - power) / (phi * (Type(2.0) - power));
+  Type alpha = (Type(2.0) - power) / (Type(1.0) - power);
+  Type gam = phi * (power - Type(1.0)) * pow(mu, power - Type(1.0));
+  Type N = rpois(lambda);
+  Type B = rgamma(-N * alpha, gam);   /// Using Shape-Scale parameterization
+  return B;
+}
+
+// Deviance for the Tweedie
+// https://en.wikipedia.org/wiki/Tweedie_distribution#Properties
+template<class Type>
+Type deviance_tweedie( Type y, Type mu, Type p ){
+  Type c1 = pow( y, 2.0-p ) / (1.0-p) / (2.0-p);
+  Type c2 = y * pow( mu, 1.0-p ) / (1.0-p);
+  Type c3 = pow( mu, 2.0-p ) / (2.0-p);
+  return 2 * (c1 - c2 + c3 );
 }
 
 // Generate loadings matrix for covariance
@@ -1846,7 +1856,7 @@ Type objective_function<Type>::operator() ()
         // dtweedie( Type y, Type mu, Type phi, Type p, int give_log=0 )
         // R1*R2 = mean
         LogProb2_i(i) = dtweedie( b_i(i), R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0), true );
-        deviance2_i(i) = NAN;
+        deviance2_i(i) = deviance_tweedie( b_i(i), R1_i(i)*R2_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0) );
         // Simulate new values when using obj.simulate()
         SIMULATE{
           b_i(i) = rTweedie( R1_i(i)*R2_i(i), R1_i(i), invlogit(logSigmaM(e_i(i),0))+Type(1.0) );   // Defined above
