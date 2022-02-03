@@ -2084,7 +2084,6 @@ Type objective_function<Type>::operator() ()
     Index_ctl.setZero();
     for(t=0; t<n_t; t++){
     for(int l=0; l<n_l; l++){
-      // Expand by area and convert from kg to metric tonnes
       for(c=0; c<n_c; c++){
         if( Expansion_cz(c,0)==0 ){
           for(g=0; g<n_g; g++){
