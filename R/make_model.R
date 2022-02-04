@@ -41,20 +41,21 @@
 make_model <-
 function( TmbData,
           Version,
-          RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
-          Method="Mesh",
-          Npool=0,
-          ConvergeTol=1,
-          Use_REML=FALSE,
-          loc_x=NULL,
-          Parameters="generate",
-          Random="generate",
-          Map="generate",
-          DiagnosticDir=NULL,
-          TmbDir=system.file("executables",package="VAST"),
-          RunDir=getwd(),
-          CompileDir=TmbDir,
-          build_model=TRUE ){
+          RhoConfig = c("Beta1" = 0,"Beta2" = 0,"Epsilon1" = 0,"Epsilon2" = 0),
+          Method = "Mesh",
+          Npool = 0,
+          ConvergeTol = 1,
+          Use_REML = FALSE,
+          loc_x = NULL,
+          Parameters = "generate",
+          Random = "generate",
+          Map = "generate",
+          DiagnosticDir = NULL,
+          TmbDir = system.file("executables",package = "VAST"),
+          RunDir = getwd(),
+          CompileDir = TmbDir,
+          build_model = TRUE,
+          framework = getOption("tmb.ad.framework") ){
 
   # Extract Options and Options_vec (depends upon version)
   if( all(c("Options","Options_vec") %in% names(TmbData)) ){
@@ -143,7 +144,9 @@ function( TmbData,
   on.exit(setwd(origwd),add=TRUE)
   setwd( CompileDir )
   # SEE https://github.com/kaskr/adcomp/issues/321 for flags argument
-  TMB::compile( paste0(Version,".cpp"), flags="-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" )
+  TMB::compile( file = paste0(Version,".cpp"),
+                framework = framework,
+                flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" )
 
   # Build object
   dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version)) ) # random=Random,
