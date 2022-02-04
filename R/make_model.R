@@ -144,21 +144,42 @@ function( TmbData,
   on.exit(setwd(origwd),add=TRUE)
   setwd( CompileDir )
   # SEE https://github.com/kaskr/adcomp/issues/321 for flags argument
-  TMB::compile( file = paste0(Version,".cpp"),
-                framework = framework,
-                flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" )
+  if( "framework" %in% formalArgs(TMB::compile)){
+    TMB::compile( file = paste0(Version,".cpp"),
+                  framework = framework,
+                  flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" )
+  }else{
+    TMB::compile( file = paste0(Version,".cpp"),
+                  flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" )
+  }
 
   # Build object
   dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version)) ) # random=Random,
-  Obj <- TMB::MakeADFun(
-    data = lapply(TmbData,strip_units),
-    #data = Data,
-    parameters = Parameters,
-    hessian = FALSE,
-    map = Map,
-    random = Random,
-    inner.method = "newton",
-    DLL = Version)  #
+  if( "framework" %in% formalArgs(TMB::compile) & framework=="TMBad" ){
+    control <- list(sparse=TRUE, lowrank=TRUE, trace=TRUE)
+    message("Using experimental gradient feature")
+    Obj <- TMB::MakeADFun(
+      data = lapply(TmbData,strip_units),
+      #data = Data,
+      parameters = Parameters,
+      hessian = FALSE,
+      map = Map,
+      random = Random,
+      inner.method = "newton",
+      DLL = Version,
+      intern = TRUE,
+      inner.control = control )  #
+  }else{
+    Obj <- TMB::MakeADFun(
+      data = lapply(TmbData,strip_units),
+      #data = Data,
+      parameters = Parameters,
+      hessian = FALSE,
+      map = Map,
+      random = Random,
+      inner.method = "newton",
+      DLL = Version )  #
+  }
   Obj$control <- list(parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 
   # Add normalization in
