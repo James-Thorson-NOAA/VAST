@@ -2122,7 +2122,7 @@ Type objective_function<Type>::operator() ()
       for(int t=0; t<n_t; t++){
       for(int l=0; l<n_l; l++){                 // .col(0).cols()
         S = newton::Tag( Index_ctl(c,t,l) ); // Set lowrank tag on S = sum(exp(x))
-        jnll_comp(21) += eps_Index_ctl(c,t,l) * log(S);
+        jnll_comp(21) += eps_Index_ctl(c,t,l) * S;
       }}}
     }
 
