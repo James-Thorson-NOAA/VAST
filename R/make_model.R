@@ -59,7 +59,8 @@ function( TmbData,
           build_model = TRUE,
           framework = getOption("tmb.ad.framework"),
           intern = FALSE,
-          inner.control = list(sparse=TRUE, lowrank=TRUE, trace=TRUE) ){
+          inner.control = list(sparse=TRUE, lowrank=TRUE, trace=TRUE),
+          supernodal = FALSE ){
 
   # Extract Options and Options_vec (depends upon version)
   if( all(c("Options","Options_vec") %in% names(TmbData)) ){
@@ -151,7 +152,8 @@ function( TmbData,
   if( "framework" %in% formalArgs(TMB::compile)){
     TMB::compile( file = paste0(Version,".cpp"),
                   framework = framework,
-                  flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" )
+                  flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign",
+                  supernodal = supernodal )
   }else{
     TMB::compile( file = paste0(Version,".cpp"),
                   flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" )

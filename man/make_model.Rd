@@ -20,7 +20,11 @@ make_model(
   TmbDir = system.file("executables", package = "VAST"),
   RunDir = getwd(),
   CompileDir = TmbDir,
-  build_model = TRUE
+  build_model = TRUE,
+  framework = getOption("tmb.ad.framework"),
+  intern = FALSE,
+  inner.control = list(sparse = TRUE, lowrank = TRUE, trace = TRUE),
+  supernodal = FALSE
 )
 }
 \arguments{
@@ -76,6 +80,14 @@ from the list of outputs, modifying it manually, and then passing it explicitly,
 (must have write privileges or else the function will crash); by default uses \code{TmbDir} (OPTIONAL)}
 
 \item{build_model}{Boolean indicating whether to build the model, \code{build_model=TRUE}, or simply build the inputs, \code{build_model=FALSE}}
+
+\item{framework}{Which AD framework to use ('TMBad' or 'CppAD')}
+
+\item{intern}{Do Laplace approximation on C++ side ? See details (Experimental - may change without notice)}
+
+\item{inner.control}{List controlling inner optimization.}
+
+\item{supernodal}{Turn on preprocessor flag to use supernodal sparse Cholesky/Inverse from system wide suitesparse library}
 }
 \value{
 Object of class \code{make_model}, containing objects for running a VAST model
