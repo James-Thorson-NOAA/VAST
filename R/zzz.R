@@ -11,6 +11,7 @@
   #  options(repos = c("CRAN" = "http://cran.us.r-project.org"))
   #}
   #
+  # URL for ZIP files to download and install locally: https://inla.r-inla-download.org/R/stable/src/contrib/
   #if( !"INLA" %in% utils::installed.packages()[,1] ){
   #  packageStartupMessage("Installing package: INLA...")
   #
@@ -19,7 +20,7 @@
   #  if( Rvers<numeric_version("3.6.0") & Rvers>numeric_version("3.5.0") ){
   #    utils::install.packages( "https://inla.r-inla-download.org/R/stable/bin/windows/contrib/3.5/INLA_18.07.12.zip" )
   #  }else{
-  #    utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=NA)
+  #    utils::install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
   #  }
   #}
   #
