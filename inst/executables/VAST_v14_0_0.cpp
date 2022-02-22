@@ -2060,6 +2060,8 @@ Type objective_function<Type>::operator() ()
       // Calculate linear predictors
       P1_gct(g,c,t) = Omega1_gc(g,c) + beta1_tc(t,c) + Epsilon1_gct(g,c,t) + eta1_gct(g,c,t) + iota_ct(c,t);
       P2_gct(g,c,t) = Omega2_gc(g,c) + beta2_tc(t,c) + Epsilon2_gct(g,c,t) + eta2_gct(g,c,t);
+      //P1_gct(g,c,t) = newton::Tag( P1_gct(g,c,t) );
+      //P2_gct(g,c,t) = newton::Tag( P2_gct(g,c,t) );
       // Calculate predictors in link-space
       if( (ObsModel_ez(c,1)==0) | (ObsModel_ez(c,1)==3) ){
         R1_gct(g,c,t) = invlogit( P1_gct(g,c,t) );
@@ -2076,6 +2078,7 @@ Type objective_function<Type>::operator() ()
         R2_gct(g,c,t) = exp( P2_gct(g,c,t) );
         D_gct(g,c,t) = R1_gct(g,c,t) * R2_gct(g,c,t);
       }
+      //D_gct(g,c,t) = newton::Tag( D_gct(g,c,t) );
     }}}
 
     // Calculate indices
@@ -2086,6 +2089,7 @@ Type objective_function<Type>::operator() ()
     for(t=0; t<n_t; t++){
     for(int l=0; l<n_l; l++){
       for(c=0; c<n_c; c++){
+        // Area-weighted expansion
         if( Expansion_cz(c,0)==0 ){
           for(g=0; g<n_g; g++){
             Index_gctl(g,c,t,l) = D_gct(g,c,t) * a_gl(g,l);
@@ -2121,7 +2125,8 @@ Type objective_function<Type>::operator() ()
       for(c=0; c<n_c; c++){
       for(int t=0; t<n_t; t++){
       for(int l=0; l<n_l; l++){                 // .col(0).cols()
-        S = newton::Tag( Index_ctl(c,t,l) ); // Set lowrank tag on S = sum(exp(x))
+        //S = newton::Tag( Index_ctl(c,t,l) ); // Set lowrank tag on S = sum(exp(x))
+        S = Index_ctl(c,t,l); // Set lowrank tag on S = sum(exp(x))
         jnll_comp(21) += eps_Index_ctl(c,t,l) * S;
       }}}
     }
