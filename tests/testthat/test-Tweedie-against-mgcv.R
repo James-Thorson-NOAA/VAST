@@ -162,7 +162,47 @@ test_that("Covariate effects when using a smoother gives identical results to mg
     family=gaussian, offset=log(Area_km2), data=Data[which(Data$catch>0),], method="ML" )
 
   # slopes
-  expect_equal( as.numeric(fit$ParHat$gamma1_cp), as.numeric(summary(gam1)$p.coeff[c('Temp_i','I(Temp_i^2)')]), tolerance=0.1 )
-  expect_equal( as.numeric(fit$ParHat$gamma2_cp), as.numeric(summary(gam2)$p.coeff[c('Temp_i','I(Temp_i^2)')]), tolerance=0.1 )
+  match1 = match( c('Temp_i','I(Temp_i^2)'), names(summary(gam1)$p.coeff) )
+  expect_equal( as.numeric(fit$ParHat$gamma1_cp), as.numeric(summary(gam1)$p.coeff[match1]), tolerance=0.1 )
+  #expect_equal( as.numeric(fit$ParHat$beta1_ft), as.numeric(summary(gam1)$p.coeff[-match1]), tolerance=0.1 )
+  match2 = match( c('Temp_i','I(Temp_i^2)'), names(summary(gam2)$p.coeff) )
+  expect_equal( as.numeric(fit$ParHat$gamma2_cp), as.numeric(summary(gam2)$p.coeff[match2]), tolerance=0.1 )
+  #expect_equal( as.numeric(fit$ParHat$beta2_ft), as.numeric(summary(gam2)$p.coeff[-match2]), tolerance=0.1 )
+
+  ##################
+  # Try predict ... I haven't gotten this to work yet
+  ##################
+
+  if( FALSE ){
+    # Randomize new data
+    newdata = Data
+    for(cI in 1:ncol(Data)) newdata[,cI] = sample( newdata[,cI], replace=FALSE )
+    #covariate_new = data.frame( "Lat"=newdata$lat, "Lon"=newdata$long, "Year"=newdata$year, "Temp"=newdata$waterTmpC)
+
+    # predict.fit_model test  -- Component 1
+    pred1_gam = predict( gam1, newdata=newdata, type="response" )
+    pred1_vast = predict( fit,
+      Lat_i = newdata[,'lat'],
+      Lon_i = newdata[,'long'],
+      t_i = newdata[,'year'],
+      a_i = newdata[,'Area_km2'],
+      what = "R1_i",
+      new_covariate_data = covariate_data,
+      working_dir = multispecies_example_path,
+      do_checks = FALSE )
+    expect_equal( as.numeric(pred1_gam), pred1_vast, tolerance=0.001 )
+
+    pred2_gam = predict( gam2, newdata=newdata, type="response" )
+    pred2_vast = predict( fit,
+      Lat_i = newdata[,'lat'],
+      Lon_i = newdata[,'long'],
+      t_i = newdata[,'year'],
+      a_i = newdata[,'Area_km2'],
+      what = "R2_i",
+      new_covariate_data = covariate_data,
+      working_dir = multispecies_example_path,
+      do_checks = FALSE )
+    expect_equal( exp(as.numeric(pred2_gam)), pred2_vast, tolerance=0.001 )
+  }
 })
 
