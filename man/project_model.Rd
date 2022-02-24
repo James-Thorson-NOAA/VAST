@@ -35,3 +35,17 @@ All \code{obj$report()} output for a single simulation of historical period
        generate a predictive interval without actually re-fitting model.
        This is useful e.g., to generate end-of-century projections.
 }
+\examples{
+\dontrun{
+# Run model
+fit = fit_model( ... )
+
+# Add projection
+project_model( x = fit,
+               n_proj = 80,
+               new_covariate_data = NULL,
+               historical_uncertainty = "both",
+               seed = NULL )
+}
+
+}

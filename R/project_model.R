@@ -17,6 +17,19 @@
 #' @return All \code{obj$report()} output for a single simulation of historical period
 #'         as well as \code{n_proj} forecast intervals
 #'
+#' @examples
+#' \dontrun{
+#' # Run model
+#' fit = fit_model( ... )
+#'
+#' # Add projection
+#' project_model( x = fit,
+#'                n_proj = 80,
+#'                new_covariate_data = NULL,
+#'                historical_uncertainty = "both",
+#'                seed = NULL )
+#' }
+#'
 #' @export
 project_model <-
 function( x,
@@ -175,11 +188,21 @@ function( x,
   Sim = simulate_data( fit = x2,
                        type = 1,
                        random_seed = NULL )
+
+  # Amend labels
   if( FALSE ){
-    Sim$D_gct[1,1,]
-    Sim$Epsilon1_gct[1,1,]
-    Sim$beta1_tc[,1]
+    fit = x2
+    TmbData = fit$data_list
+    Report = fit$Report
+    extrapolation_list = fit$extrapolation_list
+    Map = fit$tmb_list$Map
+    Sdreport = fit$parameter_estimates$SD
+    year_labels = fit$year_labels
+    category_names = fit$category_names
+    strata_names = fit$strata_names
   }
+  x2$Report = Sim
+  Sim = amend_output(x2)
 
   return(Sim)
 }
