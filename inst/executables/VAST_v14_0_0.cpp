@@ -56,6 +56,7 @@ struct options_list {
   matrix<int> overlap_zz;
   matrix<Type> zerosum_penalty;
   vector<Type> trace_sum_penalty;
+  vector<int> simulate_t;
   options_list(SEXP x){ // Constructor
     Options_vec = asVector<int>(getListElement(x,"Options_vec"));
     Options = asVector<int>(getListElement(x,"Options"));
@@ -64,6 +65,7 @@ struct options_list {
     overlap_zz = asMatrix<int>(getListElement(x,"overlap_zz"));
     zerosum_penalty = asMatrix<Type>(getListElement(x,"zerosum_penalty"));
     trace_sum_penalty = asVector<Type>(getListElement(x,"trace_sum_penalty"));
+    simulate_t = asVector<int>(getListElement(x,"simulate_t"));
   }
 };
 
@@ -350,8 +352,15 @@ matrix<Type> create_loadings_general( vector<Type> L_val, int n_rows, int n_f, T
 // OUT: jnll_comp; eta1_vc
 // eta_jf could be either eta_vf (for overdispersion) or eta_tf (for year effects)
 template<class Type>
-matrix<Type> covariation_by_category_nll( int n_f, int n_j, int n_c, matrix<Type> eta_jf, matrix<Type> eta_mean_jf,
-  matrix<Type> L_cf, int simulate_random_effects, Type &jnll_pointer, objective_function<Type>* of){
+matrix<Type> covariation_by_category_nll( int n_f,
+                                          int n_j,
+                                          int n_c,
+                                          matrix<Type> eta_jf,
+                                          matrix<Type> eta_mean_jf,
+                                          matrix<Type> L_cf,
+                                          vector<int> simulate_j,
+                                          Type &jnll_pointer,
+                                          objective_function<Type>* of){
 
   // Book-keeping
   using namespace density;
@@ -363,7 +372,8 @@ matrix<Type> covariation_by_category_nll( int n_f, int n_j, int n_c, matrix<Type
     for( int f=0; f<eta_jf.cols(); f++ ){
       jnll_pointer -= dnorm( eta_jf(j,f), eta_mean_jf(j,f), Type(1.0), true );
       // Simulate new values when using obj.simulate()
-      if( simulate_random_effects==1 ){
+      // Simulate if simulate_f is an integer OR if it is length n_t and >= 1
+      if( ((simulate_j.size()==1) && (simulate_j(0)>=1)) | ((simulate_j.size()==n_j) && (simulate_j(j)>=1)) ){
         if(isDouble<Type>::value && of->do_simulate){
           eta_jf(j,f) = rnorm( eta_mean_jf(j,f), Type(1.0) );
         }
@@ -435,7 +445,7 @@ matrix<Type> gmrf_by_category_nll( int n_f, bool include_probability, int method
         jnll_pointer += gmrf_Q(gmrf_input_sf.col(f) - gmrf_mean_sf.col(f));
       }
       // Simulate new values when using obj.simulate()
-      if( simulate_random_effects==1 ){
+      if( simulate_random_effects>=1 ){
         if(isDouble<Type>::value && of->do_simulate) {
           for( int f=0; f<gmrf_input_sf.cols(); f++ ){
             gmrf_Q.simulate(gmrf_s);
@@ -469,7 +479,7 @@ matrix<Type> gmrf_by_category_nll( int n_f, bool include_probability, int method
       Cov_cc = L_cf * L_cf.transpose();
       jnll_pointer += SCALE(SEPARABLE(MVNORM(Cov_cc), gmrf_Q), exp(-logtau))( diff_gmrf_sc );
       // Simulate new values when using obj.simulate()
-      if( simulate_random_effects==1 ){
+      if( simulate_random_effects>=1 ){
         if(isDouble<Type>::value && of->do_simulate) {
           SEPARABLE(MVNORM(Cov_cc), gmrf_Q).simulate( diff_gmrf_sc );
           gmrf_sc = gmrf_mean_sf + diff_gmrf_sc * exp(-logtau);
@@ -499,7 +509,7 @@ matrix<Type> gmrf_stationary_nll( int method, int n_s, int n_c, Type logkappa, a
   // Calculate likelihood
   jnll_pointer += SCALE(SEPARABLE(MVNORM(Cov_cc), gmrf_Q), exp(-logtau))( gmrf_sc );
   // Simulate new values when using obj.simulate()
-  if( simulate_random_effects==1 ){
+  if( simulate_random_effects>=1 ){
     if(isDouble<Type>::value && of->do_simulate) {
       SEPARABLE(MVNORM(Cov_cc), gmrf_Q).simulate( gmrf_sc );
       gmrf_sc = gmrf_sc / exp(logtau);
@@ -711,6 +721,8 @@ Type objective_function<Type>::operator() ()
     // Scalar (for now) indicating whether loadings matrices are not zero centered (value=0) or zero-centered, where the value is a penalty on squared-sum of loadings
   // Options_list.trace_sum_penalty
     // Scalar (for now) indicating whether loadings matrices have unconstrained magnitude (value=0) or have a sum-of-squares of 1.0 (value>0), where the value is a penalty on natural-log of sum-of-squared loadings values (i.e., trace of resulting covariance)
+  // Options_list.simulate_t
+    // Vector of length n_t indicating whether to include year in simulation ... useful for projecting forward conditional upon a fit
   DATA_IMATRIX(FieldConfig);  // Input settings (vector, length 4)
   DATA_IVECTOR(RhoConfig);
   DATA_IVECTOR(OverdispersionConfig);          // Input settings (vector, length 2)
@@ -908,6 +920,8 @@ Type objective_function<Type>::operator() ()
   zerosum_penalty = Options_list.zerosum_penalty;
   vector<Type> trace_sum_penalty( 1 );
   trace_sum_penalty = Options_list.trace_sum_penalty;
+  vector<int> simulate_t( n_t );
+  simulate_t = Options_list.simulate_t;
 
   // Derived parameters
   Type Range_raw1, Range_raw2;
@@ -1103,6 +1117,7 @@ Type objective_function<Type>::operator() ()
   // 1st component
   /////
   gmrf_Q = GMRF( Q1, bool(Options(9)) );
+  int simulate_var;
 
   // Omega1
   array<Type> Omegamean1_sf(n_s, Omegainput1_sf.cols() );
@@ -1148,7 +1163,7 @@ Type objective_function<Type>::operator() ()
     Zeros1_sf.setZero();
     for( int f1=0; f1<n_f1; f1++ ){
       Tmp1_sf = extract_2D_from_3D_array( Epsiloninput1_sff, 2, f1 );
-      Tmp_st = gmrf_by_category_nll(FieldConfig(3,0), true, int(2), int(0), n_s, n_t, logkappa1, Tmp1_sf, Zeros1_sf, Ltime_epsilon1_tf, gmrf_Q, Options(14), jnll_comp(1), this);
+      Tmp_st = gmrf_by_category_nll(FieldConfig(3,0), true, int(2), int(0), n_s, n_t, logkappa1, Tmp1_sf, Zeros1_sf, Ltime_epsilon1_tf, gmrf_Q, int(0), jnll_comp(1), this);
       for( int f2=0; f2<n_t; f2++ ){
       for( s=0; s<n_s; s++ ){
         Epsiloninput1_sft(s,f1,f2) = Tmp_st(s,f2);
@@ -1173,7 +1188,8 @@ Type objective_function<Type>::operator() ()
     if( t==(Options(11)+0) ){
       Epsilonmean1_sf.setZero();
       Temp1_sf = extract_2D_from_3D_array( Epsiloninput1_sft, int(3), t );
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), include_epsilon_prob_1, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Temp1_sf, Epsilonmean1_sf, L_epsilon1_cf, gmrf_Q, Options(14), jnll_comp(1), this);
+      simulate_var = Options(14) + simulate_t(t);
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), include_epsilon_prob_1, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Temp1_sf, Epsilonmean1_sf, L_epsilon1_cf, gmrf_Q, simulate_var, jnll_comp(1), this);
     }
     // PDF for subsequent years of autoregression
     if( t>=(Options(11)+1) ){
@@ -1203,7 +1219,8 @@ Type objective_function<Type>::operator() ()
       }
       // Hyperdistribution for spatio-temporal component
       Temp1_sf = extract_2D_from_3D_array( Epsiloninput1_sft, int(3), t );
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), include_epsilon_prob_1, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Temp1_sf, Epsilonmean1_sf, L_epsilon1_cf, gmrf_Q, Options(14), jnll_comp(1), this);
+      simulate_var = Options(14) + simulate_t(t);
+      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), include_epsilon_prob_1, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Temp1_sf, Epsilonmean1_sf, L_epsilon1_cf, gmrf_Q, simulate_var, jnll_comp(1), this);
     }
   }
 
@@ -1319,7 +1336,7 @@ Type objective_function<Type>::operator() ()
     Zeros2_sf.setZero();
     for( int f1=0; f1<n_f2; f1++ ){
       Tmp2_sf = extract_2D_from_3D_array( Epsiloninput2_sff, 2, f1 );
-      Tmp_st = gmrf_by_category_nll(FieldConfig(3,1), true, int(2), int(0), n_s, n_t, logkappa2, Tmp2_sf, Zeros2_sf, Ltime_epsilon2_tf, gmrf_Q, Options(14), jnll_comp(3), this);
+      Tmp_st = gmrf_by_category_nll(FieldConfig(3,1), true, int(2), int(0), n_s, n_t, logkappa2, Tmp2_sf, Zeros2_sf, Ltime_epsilon2_tf, gmrf_Q, int(0), jnll_comp(3), this);
       for( int f2=0; f2<n_t; f2++ ){
       for( s=0; s<n_s; s++ ){
         Epsiloninput2_sft(s,f1,f2) = Tmp_st(s,f2);
@@ -1344,7 +1361,8 @@ Type objective_function<Type>::operator() ()
     if( t==(Options(11)+0) ){
       Epsilonmean2_sf.setZero();
       Temp2_sf = extract_2D_from_3D_array( Epsiloninput2_sft, int(3), t );
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), include_epsilon_prob_2, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Temp2_sf, Epsilonmean2_sf, L_epsilon2_cf, gmrf_Q, Options(14), jnll_comp(3), this);
+      simulate_var = Options(14) + simulate_t(t);
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), include_epsilon_prob_2, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Temp2_sf, Epsilonmean2_sf, L_epsilon2_cf, gmrf_Q, simulate_var, jnll_comp(3), this);
     }
     // PDF for subsequent years of autoregression
     if( t>=(Options(11)+1) ){
@@ -1373,8 +1391,9 @@ Type objective_function<Type>::operator() ()
         }}}
       }
       // Hyperdistribution for spatio-temporal component
+      simulate_var = Options(14) + simulate_t(t);
       Temp2_sf = extract_2D_from_3D_array( Epsiloninput2_sft, int(3), t );
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), include_epsilon_prob_2, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Temp2_sf, Epsilonmean2_sf, L_epsilon2_cf, gmrf_Q, Options(14), jnll_comp(3), this);
+      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), include_epsilon_prob_2, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Temp2_sf, Epsilonmean2_sf, L_epsilon2_cf, gmrf_Q, simulate_var, jnll_comp(3), this);
     }
   }
 
@@ -1491,7 +1510,9 @@ Type objective_function<Type>::operator() ()
     }
   }
   matrix<Type> beta1_tc(n_t, n_c);
-  beta1_tc = covariation_by_category_nll( FieldConfig(2,0), n_t, n_c, beta1_tf, beta1_mean_tf, L_beta1_cf, Options(14), jnll_beta1, this );
+  vector<int> simulate_vec( n_t );
+  simulate_vec = Options(14) + simulate_t;                                                          //
+  beta1_tc = covariation_by_category_nll( FieldConfig(2,0), n_t, n_c, beta1_tf, beta1_mean_tf, L_beta1_cf, simulate_vec, jnll_beta1, this );
   for( c=0; c<n_c; c++ ){
   for( t=0; t<n_t; t++ ){
     beta1_tc(t,c) += Beta_mean1_c(c) + Beta_mean1_t(t);
@@ -1499,6 +1520,7 @@ Type objective_function<Type>::operator() ()
   if( (RhoConfig(0)==1) | (RhoConfig(0)==2) | (RhoConfig(0)==4) | (RhoConfig(0)==5) ){
     jnll_comp(8) = jnll_beta1;
   }
+  REPORT( simulate_vec );
 
   // 2nd component
   Type jnll_beta2 = 0;
@@ -1514,7 +1536,8 @@ Type objective_function<Type>::operator() ()
     }
   }
   matrix<Type> beta2_tc(n_t, n_c);
-  beta2_tc = covariation_by_category_nll( FieldConfig(2,1), n_t, n_c, beta2_tf, beta2_mean_tf, L_beta2_cf, Options(14), jnll_beta2, this );
+  //simulate_var = Options(14); //  + simulate_t(t);                                                       //
+  beta2_tc = covariation_by_category_nll( FieldConfig(2,1), n_t, n_c, beta2_tf, beta2_mean_tf, L_beta2_cf, simulate_vec, jnll_beta2, this );
   for( c=0; c<n_c; c++ ){
   for( t=0; t<n_t; t++ ){
     beta2_tc(t,c) += Beta_mean2_c(c) + Beta_mean2_t(t);
