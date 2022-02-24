@@ -190,17 +190,6 @@ function( x,
                        random_seed = NULL )
 
   # Amend labels
-  if( FALSE ){
-    fit = x2
-    TmbData = fit$data_list
-    Report = fit$Report
-    extrapolation_list = fit$extrapolation_list
-    Map = fit$tmb_list$Map
-    Sdreport = fit$parameter_estimates$SD
-    year_labels = fit$year_labels
-    category_names = fit$category_names
-    strata_names = fit$strata_names
-  }
   x2$Report = Sim
   Sim = amend_output(x2)
 
