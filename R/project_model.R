@@ -180,4 +180,7 @@ function( x,
     Sim$Epsilon1_gct[1,1,]
     Sim$beta1_tc[,1]
   }
+
+  return(Sim)
 }
+
