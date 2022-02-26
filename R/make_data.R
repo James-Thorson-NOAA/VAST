@@ -812,6 +812,7 @@ function( b_i,
 
   # Interactions
   if( VamConfig[1]!=0 ){
+    stop("`VamConfig` has been disabled, but could be re-added if helpful; please contact package author if interested in exploring")
     if( any(ObsModel_ez[,2]!=1) ){
       stop("Must use Poisson-link delta model when estimating interactions")
     }
