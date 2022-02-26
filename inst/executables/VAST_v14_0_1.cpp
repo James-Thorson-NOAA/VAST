@@ -1430,7 +1430,7 @@ Type objective_function<Type>::operator() ()
       for( s=0; s<n_s; s++ ){
       for( int f2=0; f2<n_t2; f2++ ){
         Epsiloninput2_sft(s,f1,t) = Tmp2_sf(s,f2) * Ltime_epsilon2_tf(t,f2);
-      }}
+      }}}
     }
   }else{
     Epsiloninput2_sft = Epsiloninput2_sff;
