@@ -35,6 +35,15 @@ All \code{obj$report()} output for a single simulation of historical period
        generate a predictive interval without actually re-fitting model.
        This is useful e.g., to generate end-of-century projections.
 }
+\details{
+Note that the model may behave poorly when \code{historical_uncertainty="both"}
+     and the estimation model includes an AR1 process for any component.
+     Given this combination of features, some samples may have a `rho` value >1
+     or <1, which will result in exponential growth for any such sampled value.
+     This behavior could be improved in future code updates by using \code{tmbstan}
+     instead of the normal approximation to generate parametric uncertainty
+     during the historical period.
+}
 \examples{
 \dontrun{
 # Run model
