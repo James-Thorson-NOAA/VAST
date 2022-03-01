@@ -86,13 +86,16 @@ function( x,
   if( historical_uncertainty == "both" ){
     u_z = rmvnorm_prec( mu=Obj$env$last.par.best, prec=Sdreport$jointPrecision, n.sims=1, seed=seed)[,1]
   }else if( historical_uncertainty == "random" ){
-    #stop("`historical_uncertainty == "random"` isn't working")
-    # Obj appears to be over-written and crashes when project_model is called twice
+    # Retape and call once to get last.par.best to work
     Obj$retape()
-    set.seed(seed)
+    Obj$fn(x$parameter_estimates$par)
     u_z = Obj$env$last.par.best
+    # Simulate random effects
+    set.seed(seed)
     MC = Obj$env$MC( keep=TRUE, n=1, antithetic=FALSE )
     u_z[Obj$env$random] = attr(MC, "samples")[,1]
+    #Hess = Obj$env$spHess(par=u_z, random=TRUE)
+    #u_z[-Obj$env$lfixed()] = rmvnorm_prec( mu=u_z[-Obj$env$lfixed()], prec=Hess, n.sims=1, seed=seed)[,1]
   }else if( historical_uncertainty == "none" ){
     u_z = Obj$env$last.par.best
   }else{
