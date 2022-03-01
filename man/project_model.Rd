@@ -43,6 +43,11 @@ Note that the model may behave poorly when \code{historical_uncertainty="both"}
      This behavior could be improved in future code updates by using \code{tmbstan}
      instead of the normal approximation to generate parametric uncertainty
      during the historical period.
+
+Similarly, estimating a RW process for epsilon will result in an exponential increase
+     in forecasted total abundance over time.  This occurs because the variance across locations
+     of epsilon increases progressively during the forecast period, such that
+     the index is again dominanated by the forecasted density at a few sites.
 }
 \examples{
 \dontrun{
