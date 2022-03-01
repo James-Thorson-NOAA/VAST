@@ -86,6 +86,9 @@ function( x,
   if( historical_uncertainty == "both" ){
     u_z = rmvnorm_prec( mu=Obj$env$last.par.best, prec=Sdreport$jointPrecision, n.sims=1, seed=seed)[,1]
   }else if( historical_uncertainty == "random" ){
+    #stop("`historical_uncertainty == "random"` isn't working")
+    # Obj appears to be over-written and crashes when project_model is called twice
+    Obj$retape()
     set.seed(seed)
     u_z = Obj$env$last.par.best
     MC = Obj$env$MC( keep=TRUE, n=1, antithetic=FALSE )
