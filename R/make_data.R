@@ -189,6 +189,7 @@
 #'   \item{\code{Options["Calculate_proportion"]=TRUE}}{Turns on internal calculation and SE for proportion of response within each category (e.g., for calculating proportion-at-age or species turnover)}
 #'   \item{\code{Options["Calculate_Synchrony"]=TRUE}}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
 #'   \item{\code{Options["report_additional_variables"]=TRUE}}{Export additional variables to \code{Report} object, to use for diagnostics or additional exploration}
+#'   \item{\code{Options["basin_method"]}}{Controls how the density-dependent index is generated from model variables.  Default \code{Options["basin_method"]=2}) uses annual mean of betas and epsilons as index.  Alternative \code{Options["basin_method"]=4}) uses a Lagrange multiplier to penalize index towards total abundance}
 #' }
 #' @param yearbounds_zz matrix with two columns, giving first and last years for defining one or more periods (rows) used to
 #'        calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})
@@ -287,7 +288,7 @@ function( b_i,
                    'report_additional_variables' = FALSE,
                    'zerosum_penalty' = 0,
                    'EOF_unity_trace' = 0,
-                   'basin_method' = 0,
+                   'basin_method' = 2,
                    'lagrange_multiplier' = 50 )
 
   # Replace defaults for `Options` with provided values (if any)

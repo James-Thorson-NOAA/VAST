@@ -9,7 +9,8 @@ project_model(
   n_proj,
   new_covariate_data = NULL,
   historical_uncertainty = "both",
-  seed = 123456
+  seed = 123456,
+  working_dir = paste0(getwd(), "/")
 )
 }
 \arguments{
