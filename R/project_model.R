@@ -50,7 +50,8 @@ function( x,
           n_proj,
           new_covariate_data = NULL,
           historical_uncertainty = "both",
-          seed = 123456 ){
+          seed = 123456,
+          working_dir = paste0(getwd(),"/") ){
 
   # Unpack
   Obj = x$tmb_list$Obj
@@ -116,11 +117,11 @@ function( x,
   ##############
 
   t_i = c( x$data_frame$t_i, max(x$data_frame$t_i)+rep(1:n_proj,each=2) )
-  b_i = c( x$data_frame$b_i, rep(c(0,mean(x$data_frame$b_i)),n_proj) )
+  b_i = c( x$data_list$b_i, as_units(rep(c(0,mean(x$data_frame$b_i)),n_proj), units(x$data_list$b_i)) )
   v_i = c( x$data_frame$v_i, rep(0,2*n_proj) )
   Lon_i = c( x$data_frame$Lon_i, rep(mean(x$data_frame$Lon_i),2*n_proj) )
   Lat_i = c( x$data_frame$Lat_i, rep(mean(x$data_frame$Lat_i),2*n_proj) )
-  a_i = c( x$data_frame$a_i, rep(mean(x$data_frame$a_i),2*n_proj) )
+  a_i = c( x$data_list$a_i, as_units(rep(mean(x$data_frame$a_i),2*n_proj), units(fit$data_list$a_i)) )
   PredTF_i = c( x$data_list$PredTF_i, rep(1,2*n_proj) )
   c_iz = rbind( x$data_list$c_iz, x$data_list$c_iz[rep(1:n_proj,each=2),,drop=FALSE] )
   new_catchability_data = rbind( x$catchability_data, x$catchability_data[rep(1:n_proj,each=2),,drop=FALSE] )
@@ -148,7 +149,8 @@ function( x,
     Q2config_k = x$Q2config_k,
     Q1_formula = x$Q1_formula,
     Q2_formula = x$Q2_formula,
-    build_model = FALSE )
+    build_model = FALSE,
+    working_dir = working_dir )
 
   # Get full size
   #ParList1 = x1$tmb_list$Obj$env$parList()
@@ -164,7 +166,7 @@ function( x,
     if( sum(dim_match==FALSE)==0 ){
       ParList1[[i]] = ParList[[i]]
     }else if( sum(dim_match==FALSE)==1 ){
-      dim_list = lapply( dim(ParList[[i]]), FUN=function(x){1:x} )
+      dim_list = lapply( dim(ParList[[i]]), FUN=function(x){seq_len(x)} )
       ParList1[[i]][as.matrix(expand.grid(dim_list))] = ParList[[i]][as.matrix(expand.grid(dim_list))]
     }else if( sum(dim_match==FALSE)>=2 ){
       stop("Check matching")
@@ -195,7 +197,8 @@ function( x,
     Q1_formula = x$Q1_formula,
     Q2_formula = x$Q2_formula,
     run_model = FALSE,
-    Parameters = ParList1 )
+    Parameters = ParList1,
+    working_dir = working_dir )
 
   ##############
   # Step 5: Simulate random effects
