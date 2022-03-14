@@ -164,7 +164,7 @@
 #'        and then include an interaction with category in \code{Q1_formula} for any variable which has an effect that varies among categories.
 #'        Note that \code{Q1_formula} is internally updated (and resulting design-matrices are modified) to avoid
 #'        any category-specific intercept from arising in \code{Q1_ik}, to avoid identifiability issues between category-specific
-#'        covariates andintercepts.
+#'        covariates and intercepts.
 #' @param Q2_formula same as \code{Q2_formula} but affecting the 2nd linear predictor.
 #' @param catchability_data data-frame of covariates for use when specifying \code{Q1_formula} and \code{Q2_formula}
 #' @param Q1config_k Same as argument \code{X1config_cp} but affecting affecting the 1st linear predictor for catchability,
@@ -587,7 +587,7 @@ function( b_i,
     if( !is.null(catchability_data) ){
       if( nrow(catchability_data)!=n_i ) stop("`catchability_data` has the wrong number of rows; please supply one row for each observation `i`")
       if( !("category" %in% names(catchability_data)) ){
-        catchability_data = cbind( catchability_data, "category"=factor(c_i) )
+        catchability_data = cbind( catchability_data, "category"=factor(c_iz[,1]) )
       }else{
         #catchability_data$category = factor(catchability_data$category)
         if(!is.factor(catchability_data$category)) warning("`catchability_data$category` is not a factor, so catchability formulae might not function as intended")
