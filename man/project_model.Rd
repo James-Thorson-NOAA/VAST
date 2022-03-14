@@ -37,6 +37,12 @@ All \code{obj$report()} output for a single simulation of historical period
        This is useful e.g., to generate end-of-century projections.
 }
 \details{
+The function specifically simulates new values for random effects occurring
+     during forecasted years.  This includes some combination of intercepts
+     {beta1/beta2} and spatio-temporal terms {epsilon1/epsilon2} depending on which
+     are treated as random during estimation.  It does *not* generate new values of
+     covariates or random-effects that are not indexed by time {omega1/omega2}
+
 Note that the model may behave poorly when \code{historical_uncertainty="both"}
      and the estimation model includes an AR1 process for any component.
      Given this combination of features, some samples may have a `rho` value >1

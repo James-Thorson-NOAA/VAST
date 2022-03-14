@@ -125,11 +125,14 @@
 #'        which is then estimated independently for each model category \code{c_i}, e.g.,
 #'        use \code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}
 #'        that is estimated independently for each category.
-#'        The effect of an estimated effect also used upon when predicting the value for each location
+#'        The effect of an estimated effect is also used when predicting the value for each location
 #'        in the extrapolation-grid.  Therefore, \code{X1_formula} is interepreted as affecting the "true"
 #'        underlying value of each variable, and it affects both samples and extrapolated values.
 #'        It is allowed to include \code{Year} in the formula, although please check whether it is
 #'        interpreted as numeric or factor-valued.
+#'        Note that \code{X1_formula} is internally updated (and resulting design-matrices are modified) to avoid
+#'        any intercept from arising in \code{X1_ip} and \code{X1_gctp}, to avoid identifiability issues between covariates and
+#'        intercepts for each category.
 #' @param X2_formula same as \code{X1_formula} but affecting the 2nd linear predictor.
 #' @param covariate_data data-frame of covariates that is used when constructing density covariates.
 #'        any variable referenced in \code{X1_formula} and \code{X2_formula} must be in \code{covariate_data}
@@ -159,6 +162,9 @@
 #'        whereas \code{X1_formula} defines a relationship that is estimated independently for each category.
 #'        For a catchability covariate that varies by category, please include the category as factor in \code{catchability_data}
 #'        and then include an interaction with category in \code{Q1_formula} for any variable which has an effect that varies among categories.
+#'        Note that \code{Q1_formula} is internally updated (and resulting design-matrices are modified) to avoid
+#'        any category-specific intercept from arising in \code{Q1_ik}, to avoid identifiability issues between category-specific
+#'        covariates andintercepts.
 #' @param Q2_formula same as \code{Q2_formula} but affecting the 2nd linear predictor.
 #' @param catchability_data data-frame of covariates for use when specifying \code{Q1_formula} and \code{Q2_formula}
 #' @param Q1config_k Same as argument \code{X1config_cp} but affecting affecting the 1st linear predictor for catchability,
@@ -580,15 +586,25 @@ function( b_i,
   if( Catchability_created==FALSE ){
     if( !is.null(catchability_data) ){
       if( nrow(catchability_data)!=n_i ) stop("`catchability_data` has the wrong number of rows; please supply one row for each observation `i`")
+      if( !("category" %in% names(catchability_data)) ){
+        catchability_data = cbind( catchability_data, "category"=factor(c_i) )
+      }else{
+        #catchability_data$category = factor(catchability_data$category)
+        if(!is.factor(catchability_data$category)) warning("`catchability_data$category` is not a factor, so catchability formulae might not function as intended")
+      }
       Catchability_created = TRUE
       # First predictor
-      Model_matrix1 = stats::model.matrix( stats::update.formula(Q1_formula, ~.+1), data=catchability_data )
-      Columns_to_keep = which( attr(Model_matrix1,"assign") != 0 )
+      Q1_formula_updated = stats::update.formula(Q1_formula, ~.+0+category)
+      Model_matrix1 = stats::model.matrix( Q1_formula_updated, data=catchability_data )
+      Terms1 = attr( terms(Q1_formula_updated), "term.labels" )
+      Columns_to_keep = which( !(attr(Model_matrix1,"assign") %in% c(0,which(Terms1=="category"))) )
       coefficient_names_Q1 = attr(Model_matrix1,"dimnames")[[2]][Columns_to_keep]
       Q1_ik = Model_matrix1[,Columns_to_keep,drop=FALSE]
       # First predictor
-      Model_matrix2 = stats::model.matrix( stats::update.formula(Q2_formula, ~.+1), data=catchability_data )
-      Columns_to_keep = which( attr(Model_matrix2,"assign") != 0 )
+      Q2_formula_updated = stats::update.formula(Q2_formula, ~.+0+category)
+      Model_matrix2 = stats::model.matrix( Q2_formula_updated, data=catchability_data )
+      Terms2 = attr( terms(Q2_formula_updated), "term.labels" )
+      Columns_to_keep = which( !(attr(Model_matrix2,"assign") %in% c(0,which(Terms2=="category"))) )
       coefficient_names_Q2 = attr(Model_matrix2,"dimnames")[[2]][Columns_to_keep]
       Q2_ik = Model_matrix2[,Columns_to_keep,drop=FALSE]
     }
@@ -742,7 +758,7 @@ function( b_i,
     if( all(b_i>as_units(0,b_units)) & all(ObsModel_ez[,1]==0) & !all(FieldConfig_input[1:2,1]==-1) ) stop("All data are positive and using a conventional delta-model, so please turn off `Omega1` and `Epsilon1` terms")
     if( !(all(ObsModel_ez[,1] %in% c(0,1,2,4,5,7,9,10,11,12,13,14))) ) stop("Please check `ObsModel_ez[,1]` input")
     if( !(all(ObsModel_ez[,2] %in% c(0,1,2,3,4))) ) stop("Please check `ObsModel_ez[,2]` input")
-    if( !all(RhoConfig[1]%in%c(0,1,2,3,4)) | !all(RhoConfig[2]%in%c(0,1,2,3,4,6)) | !all(RhoConfig[3]%in%c(0,1,2,4,5)) | !all(RhoConfig[4]%in%c(0,1,2,4,5,6)) ) stop("Check `RhoConfig` inputs")
+    if( !all(RhoConfig[1]%in%c(0,1,2,3,4,5)) | !all(RhoConfig[2]%in%c(0,1,2,3,4,5,6)) | !all(RhoConfig[3]%in%c(0,1,2,4,5)) | !all(RhoConfig[4]%in%c(0,1,2,4,5,6)) ) stop("Check `RhoConfig` inputs")
     if( any(is.na(X_xtp)) ) stop("Some `X_xtp` is NA, and this is not allowed")
     if( any(is.na(X1_gctp)) ) stop("Some `X1_gctp` is NA, and this is not allowed")
     if( any(is.na(X1_ip)) ) stop("Some `X1_ip` is NA, and this is not allowed")

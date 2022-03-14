@@ -146,11 +146,14 @@ any variable referenced in \code{X1_formula} and \code{X2_formula} must be in \c
 which is then estimated independently for each model category \code{c_i}, e.g.,
 use \code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}
 that is estimated independently for each category.
-The effect of an estimated effect also used upon when predicting the value for each location
+The effect of an estimated effect is also used when predicting the value for each location
 in the extrapolation-grid.  Therefore, \code{X1_formula} is interepreted as affecting the "true"
 underlying value of each variable, and it affects both samples and extrapolated values.
 It is allowed to include \code{Year} in the formula, although please check whether it is
-interpreted as numeric or factor-valued.}
+interpreted as numeric or factor-valued.
+Note that \code{X1_formula} is internally updated (and resulting design-matrices are modified) to avoid
+any intercept from arising in \code{X1_ip} and \code{X1_gctp}, to avoid identifiability issues between covariates and
+intercepts for each category.}
 
 \item{X2_formula}{same as \code{X1_formula} but affecting the 2nd linear predictor.}
 
@@ -184,7 +187,10 @@ For example, a factor representing gear-type might be included to estimate the r
 Note that \code{Q1_formula} defines a relationship that is applied to all samples (regardless of category \code{c_i}),
 whereas \code{X1_formula} defines a relationship that is estimated independently for each category.
 For a catchability covariate that varies by category, please include the category as factor in \code{catchability_data}
-and then include an interaction with category in \code{Q1_formula} for any variable which has an effect that varies among categories.}
+and then include an interaction with category in \code{Q1_formula} for any variable which has an effect that varies among categories.
+Note that \code{Q1_formula} is internally updated (and resulting design-matrices are modified) to avoid
+any category-specific intercept from arising in \code{Q1_ik}, to avoid identifiability issues between category-specific
+covariates andintercepts.}
 
 \item{Q2_formula}{same as \code{Q2_formula} but affecting the 2nd linear predictor.}
 

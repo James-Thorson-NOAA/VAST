@@ -4,6 +4,12 @@
 #'        generate a predictive interval without actually re-fitting model.
 #'        This is useful e.g., to generate end-of-century projections.
 #'
+#' The function specifically simulates new values for random effects occurring
+#'      during forecasted years.  This includes some combination of intercepts
+#'      {beta1/beta2} and spatio-temporal terms {epsilon1/epsilon2} depending on which
+#'      are treated as random during estimation.  It does *not* generate new values of
+#'      covariates or random-effects that are not indexed by time {omega1/omega2}
+#'
 #' Note that the model may behave poorly when \code{historical_uncertainty="both"}
 #'      and the estimation model includes an AR1 process for any component.
 #'      Given this combination of features, some samples may have a `rho` value >1
@@ -58,6 +64,7 @@ function( x,
   Sdreport = x$parameter_estimates$SD
 
   # Warnings
+  # REVISE: remove historical years from new_covariate_data to avoid new data changing fit in earlier years
   if( is.null(new_covariate_data) ){
     new_covariate_data = x$covariate_data
   }else{
