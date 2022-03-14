@@ -594,17 +594,27 @@ function( b_i,
       }
       Catchability_created = TRUE
       # First predictor
-      Q1_formula_updated = stats::update.formula(Q1_formula, ~.+0+category)
+      if( nlevels(catchability_data$category)>1 ){
+        Q1_formula_updated = stats::update.formula( Q1_formula, ~ . + 1 + category + factor(category) )
+      }else{
+        Q1_formula_updated = stats::update.formula( Q1_formula, ~ . + 1 )
+      }
       Model_matrix1 = stats::model.matrix( Q1_formula_updated, data=catchability_data )
       Terms1 = attr( terms(Q1_formula_updated), "term.labels" )
-      Columns_to_keep = which( !(attr(Model_matrix1,"assign") %in% c(0,which(Terms1=="category"))) )
+      #Columns_to_keep = which( !(attr(Model_matrix1,"assign") %in% c(0,which(Terms1=="category"))) )
+      Columns_to_keep = which( !(attr(Model_matrix1,"assign") %in% c( 0, which(Terms1 %in% c("category","factor(category)")))) )
       coefficient_names_Q1 = attr(Model_matrix1,"dimnames")[[2]][Columns_to_keep]
       Q1_ik = Model_matrix1[,Columns_to_keep,drop=FALSE]
-      # First predictor
-      Q2_formula_updated = stats::update.formula(Q2_formula, ~.+0+category)
+      # Second predictor
+      if( nlevels(catchability_data$category)>1 ){
+        Q2_formula_updated = stats::update.formula( Q2_formula, ~ . + 1 + category + factor(category) )
+      }else{
+        Q2_formula_updated = stats::update.formula( Q2_formula, ~ . + 1 )
+      }
       Model_matrix2 = stats::model.matrix( Q2_formula_updated, data=catchability_data )
       Terms2 = attr( terms(Q2_formula_updated), "term.labels" )
-      Columns_to_keep = which( !(attr(Model_matrix2,"assign") %in% c(0,which(Terms2=="category"))) )
+      #Columns_to_keep = which( !(attr(Model_matrix2,"assign") %in% c(0,which(Terms2=="category"))) )
+      Columns_to_keep = which( !(attr(Model_matrix2,"assign") %in% c( 0, which(Terms2 %in% c("category","factor(category)")))) )
       coefficient_names_Q2 = attr(Model_matrix2,"dimnames")[[2]][Columns_to_keep]
       Q2_ik = Model_matrix2[,Columns_to_keep,drop=FALSE]
     }
