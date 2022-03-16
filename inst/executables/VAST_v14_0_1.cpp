@@ -1247,6 +1247,7 @@ Type objective_function<Type>::operator() ()
   // Project Epsiloninput1_sff to Epsiloninput1_sft without dividing by exp(logtau)
   //array<Type> Tmp_st( n_s, n_t );
   array<Type> Epsiloninput1_sft( n_s, n_f1, n_t );
+  Epsiloninput1_sft.setZero();
   bool include_epsilon_prob_1;
   if( FieldConfig(3,0) > 0 ){
     include_epsilon_prob_1 = false;
@@ -1260,7 +1261,7 @@ Type objective_function<Type>::operator() ()
       for( t=0; t<n_t; t++ ){
       for( s=0; s<n_s; s++ ){
       for( int f2=0; f2<n_t1; f2++ ){
-        Epsiloninput1_sft(s,f1,t) = Tmp1_sf(s,f2) * Ltime_epsilon1_tf(t,f2);
+        Epsiloninput1_sft(s,f1,t) += Tmp1_sf(s,f2) * Ltime_epsilon1_tf(t,f2);
       }}}
     }
   }else{
@@ -1416,6 +1417,7 @@ Type objective_function<Type>::operator() ()
 
   // Project Epsiloninput2_sff to Epsiloninput2_sft without dividing by exp(logtau)
   array<Type> Epsiloninput2_sft( n_s, n_f2, n_t );
+  Epsiloninput2_sft.setZero();
   bool include_epsilon_prob_2;
   if( FieldConfig(3,1) > 0 ){
     include_epsilon_prob_2 = false;
@@ -1429,7 +1431,7 @@ Type objective_function<Type>::operator() ()
       for( t=0; t<n_t; t++ ){
       for( s=0; s<n_s; s++ ){
       for( int f2=0; f2<n_t2; f2++ ){
-        Epsiloninput2_sft(s,f1,t) = Tmp2_sf(s,f2) * Ltime_epsilon2_tf(t,f2);
+        Epsiloninput2_sft(s,f1,t) += Tmp2_sf(s,f2) * Ltime_epsilon2_tf(t,f2);
       }}}
     }
   }else{
