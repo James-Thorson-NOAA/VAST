@@ -10,7 +10,7 @@ test_that("EOF is working ", {
   #skip_on_ci()
   skip_if(skip_local)
 
-  test_path = file.path(multispecies_example_path,"EOF/")
+  test_path = file.path(multispecies_example_path,"EOF")
   load( file.path(test_path,"parameter_estimates.RData") )
   #file.copy( from=paste0(test_path,"/Kmeans_extrapolation-2000.RData"), to=paste0(test_path,"/Kmeans_extrapolation-2000.RData") )
   #file.copy( from=paste0(test_path,"/Kmeans_knots-50.RData"), to=paste0(test_path,"/Kmeans_knots-50.RData") )
