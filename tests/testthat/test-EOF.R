@@ -23,12 +23,13 @@ test_that("EOF is working ", {
   # Make settings:
   # including modifications from default settings to match
   # analysis in original paper
-  settings = make_settings( n_x=50,
-    Region=example$Region,
-    purpose="EOF3",
-    n_categories=2,
-    ObsModel=c(1,1),
-    RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) )
+  settings = make_settings( n_x = 50,
+    Region = example$Region,
+    purpose = "EOF3",
+    Version = Version_VAST,
+    n_categories = 2,
+    ObsModel = c(1,1),
+    RhoConfig = c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0) )
   #settings$Version = "VAST_v14_0_0"
 
   # Run model (including settings to speed up run)
