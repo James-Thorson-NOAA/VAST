@@ -47,10 +47,10 @@ test_that("EOF is working ", {
     Use_REML = TRUE,
     working_dir = test_path )
 
-  # Comparisons
+  # Comparisons -- Use abs(.) to avoid label switching
   Par1 = fit$parameter_estimates$par[names(fit$parameter_estimates$par)%in%c("ln_H_input","L_omega1_z","Ltime_epsilon1_z","logkappa1","logSigmaM")]
   Par2 = parameter_estimates$par[names(parameter_estimates$par)%in%c("ln_H_input","L_omega1_z","Ltime_epsilon1_z","logkappa1","logSigmaM")]
-  expect_equal( as.vector(Par1), as.vector(Par2), tolerance=1e-3 )
+  expect_equal( abs(as.vector(Par1)), abs(as.vector(Par2)), tolerance=1e-3 )
   expect_equal( as.numeric(parameter_estimates$objective), as.numeric(fit$parameter_estimates$objective), tolerance=1e-3 )
 
 })
