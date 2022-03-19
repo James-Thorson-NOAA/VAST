@@ -7,6 +7,9 @@ test_that("Gulf of Alaska MICE-in-space example is working ", {
   skip_on_ci()
   skip_if(skip_local)
 
+  # VAM is disabled for now
+  skip_if(TRUE)
+
   # Prepping
   test_path = file.path(multispecies_example_path,"goa_mice_example")
   example = load_example( "GOA_MICE_example" )

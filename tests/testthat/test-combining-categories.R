@@ -9,6 +9,9 @@ test_that("Combining categories example is working ", {
   skip_on_ci()
   skip_if(skip_local)
 
+  # Disabled because it's using hte old EBS grid
+  skip_if(TRUE)
+
   ## Read in prepared data which comes from a simulated example
   ## loosely conditioned on EBS pollock.
 
