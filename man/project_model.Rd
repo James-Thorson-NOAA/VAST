@@ -20,7 +20,7 @@ project_model(
 
 \item{new_covariate_data}{New covariates to include for future intervals}
 
-\item{historical_uncertainty}{Whether to inoorporate uncertainty about fitted interval
+\item{historical_uncertainty}{Whether to incorporate uncertainty about fitted interval
 \describe{
    \item{\code{historical_uncertainty="both"}}{Include uncertainty in fixed and random effects using joint precision matrix}
    \item{\code{historical_uncertainty="random"}}{Include uncertainty in random effects using inner Hessian matrix}
@@ -32,8 +32,8 @@ All \code{obj$report()} output for a single simulation of historical period
         as well as \code{n_proj} forecast intervals
 }
 \description{
-\code{project_model} simulates random effects fotward in time, for use to
-       generate a predictive interval without actually re-fitting model.
+\code{project_model} simulates random effects forward in time, for use to
+       generate a predictive interval without actually re-fitting the model.
        This is useful e.g., to generate end-of-century projections.
 }
 \details{
@@ -54,7 +54,7 @@ Note that the model may behave poorly when \code{historical_uncertainty="both"}
 Similarly, estimating a RW process for epsilon will result in an exponential increase
      in forecasted total abundance over time.  This occurs because the variance across locations
      of epsilon increases progressively during the forecast period, such that
-     the index is again dominanated by the forecasted density at a few sites.
+     the index is again dominated by the forecasted density at a few sites.
 }
 \examples{
 \dontrun{

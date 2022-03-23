@@ -81,7 +81,13 @@ from the list of outputs, modifying it manually, and then passing it explicitly,
 
 \item{build_model}{Boolean indicating whether to build the model, \code{build_model=TRUE}, or simply build the inputs, \code{build_model=FALSE}}
 
+\item{framework}{Which AD framework to use ('TMBad' or 'CppAD')}
+
+\item{intern}{Do Laplace approximation on C++ side ? See details (Experimental - may change without notice)}
+
 \item{inner.control}{List controlling inner optimization.}
+
+\item{supernodal}{Turn on preprocessor flag to use supernodal sparse Cholesky/Inverse from system wide suitesparse library}
 }
 \value{
 Object of class \code{make_model}, containing objects for running a VAST model
