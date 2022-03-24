@@ -773,6 +773,7 @@ function( b_i,
     if( any(is.na(X1_gctp)) ) stop("Some `X1_gctp` is NA, and this is not allowed")
     if( any(is.na(X1_ip)) ) stop("Some `X1_ip` is NA, and this is not allowed")
     if( n_c==1 && !all(FieldConfig_input[1:3,] %in% c(-3,-2,-1,1)) ) stop("If using a univariate model, `FieldConfig` must be 0, 1, or `IID` for all entries")
+    if( any(is.na(catchability_data)) | any(is.nan(catchability_data)) | any(is.infinite(catchability_data)) ) stop("Please remove NA, NaN, and Inf values from `catchability_data`")
   }
 
   # Check for wrong dimensions
