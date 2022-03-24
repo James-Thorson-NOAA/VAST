@@ -791,6 +791,7 @@ function( b_i,
     if( ncol(overlap_zz) != 7 ) stop("Input `overlap_zz` must contain 7 columns but doesn't")
     if( any(overlap_zz[,c(1,3)] >= n_c) ) stop("Check `overlap_zz[,c(1,3)]` entries")
     if( any(overlap_zz[,c(2,4)] >= n_t) ) stop("Check `overlap_zz[,c(2,4)]` entries")
+    if( nrow(Q1_ik)!= n_i | nrow(Q2_ik)!= n_i ) stop("Please check number of rows for `Q1_ik` and `Q2_ik`")
   }
 
   ###################
