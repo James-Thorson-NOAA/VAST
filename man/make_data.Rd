@@ -190,7 +190,7 @@ For a catchability covariate that varies by category, please include the categor
 and then include an interaction with category in \code{Q1_formula} for any variable which has an effect that varies among categories.
 Note that \code{Q1_formula} is internally updated (and resulting design-matrices are modified) to avoid
 any category-specific intercept from arising in \code{Q1_ik}, to avoid identifiability issues between category-specific
-covariates andintercepts.}
+covariates and intercepts.}
 
 \item{Q2_formula}{same as \code{Q2_formula} but affecting the 2nd linear predictor.}
 
