@@ -773,6 +773,7 @@ function( b_i,
     if( any(is.na(X1_gctp)) ) stop("Some `X1_gctp` is NA, and this is not allowed")
     if( any(is.na(X1_ip)) ) stop("Some `X1_ip` is NA, and this is not allowed")
     if( n_c==1 && !all(FieldConfig_input[1:3,] %in% c(-3,-2,-1,1)) ) stop("If using a univariate model, `FieldConfig` must be 0, 1, or `IID` for all entries")
+    if( any(sapply( catchability_data, FUN=function(x){any(is.infinite(x)|is.na(x)|is.nan(x))} )) ) stop("Please remove NA, NaN, and Inf values from `catchability_data`")
   }
 
   # Check for wrong dimensions
@@ -790,6 +791,7 @@ function( b_i,
     if( ncol(overlap_zz) != 7 ) stop("Input `overlap_zz` must contain 7 columns but doesn't")
     if( any(overlap_zz[,c(1,3)] >= n_c) ) stop("Check `overlap_zz[,c(1,3)]` entries")
     if( any(overlap_zz[,c(2,4)] >= n_t) ) stop("Check `overlap_zz[,c(2,4)]` entries")
+    if( nrow(Q1_ik)!= n_i | nrow(Q2_ik)!= n_i ) stop("Please check number of rows for `Q1_ik` and `Q2_ik`")
   }
 
   ###################
