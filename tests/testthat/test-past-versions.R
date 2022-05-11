@@ -17,8 +17,7 @@ context("Testing examples")
 
 # Eastern Bering Sea pollcok
 test_that("Eastern Bering Sea pollock is working ", {
-  # Previously worked with CI, but not anymore
-  #skip_on_ci()
+  skip_on_ci()
   skip_if(skip_local)
 
   # Prepping
