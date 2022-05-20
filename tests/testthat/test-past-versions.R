@@ -46,8 +46,8 @@ test_that("Eastern Bering Sea pollock is working ", {
   #  "VAST_v14_0_1" )
   version_set = setdiff( version_set, get_latest_version() )
 
-  cpp_exists = paste0(version_set,".cpp") %in% list.files(system.file("executables", package = "VAST"))
-  expect_equal( all(cpp_exists), TRUE )
+  #cpp_exists = paste0(version_set,".cpp") %in% list.files(system.file("executables", package = "VAST"))
+  #expect_equal( all(cpp_exists), TRUE )
 
   for( vI in seq_along(version_set) ){
     # Run model
