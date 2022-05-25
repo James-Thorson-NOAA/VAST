@@ -69,8 +69,8 @@ function( DataList,
   # Fill in X1config_cp / X2config_cp for CPP versions < 10ish
   if( !all(c("X1config_cp","X2config_cp") %in% names(DataList)) ){
     if( "Xconfig_zcp" %in% names(DataList) ){
-      DataList$X1config_cp = array( DataList$Xconfig_zcp[1,,], dim=dim(DataList$X1config_zcp)[2:3] )
-      DataList$X2config_cp = array( DataList$Xconfig_zcp[2,,], dim=dim(DataList$X1config_zcp)[2:3] )
+      DataList$X1config_cp = array( DataList$Xconfig_zcp[1,,], dim=dim(DataList$Xconfig_zcp)[2:3] )
+      DataList$X2config_cp = array( DataList$Xconfig_zcp[2,,], dim=dim(DataList$Xconfig_zcp)[2:3] )
     }else{
       DataList$X1config_cp = DataList$X2config_cp = array( 1, dim=c(DataList$n_c,DataList$n_p) )
     }

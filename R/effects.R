@@ -65,7 +65,7 @@ function( focal.predictors,
   # Identify which parameters to extract from par and cov
   whichnum = which( names(mod$parameter_estimates$par) == parname )
   map_indices = mod$tmb_list$Parameters[[parname]]
-  if( "parname" %in% names(mod$tmb_list$Obj$env$map) ){
+  if( parname %in% names(mod$tmb_list$Obj$env$map) ){
     map_indices[] = mod$tmb_list$Obj$env$map[[parname]]
     if( any(table(map_indices)>1) ) stop("`Effects.fit_model` not designed to work with mapping of duplicate values")
   }else{
@@ -142,7 +142,7 @@ function( focal.predictors,
   }
 
   # Bundle arguments
-  args = list(call = mod$call,
+  args = list( call = mod$call,
                coefficients = mod$coefficients,
                vcov = mod$vcov,
                family = fam,

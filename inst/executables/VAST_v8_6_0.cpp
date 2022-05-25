@@ -1793,7 +1793,7 @@ Type objective_function<Type>::operator() ()
         ADREPORT( lowercov_uppercor_epsilon2 );
       }
       if( FieldConfig(2,1)>0 ){
-        matrix<Type> L1_beta_cf = create_loadings_covariance( L_beta2_z, n_c, FieldConfig(2,1) );
+        matrix<Type> L2_beta_cf = create_loadings_covariance( L_beta2_z, n_c, FieldConfig(2,1) );
         matrix<Type> lowercov_uppercor_beta2 = L2_beta_cf * L2_beta_cf.transpose();
         lowercov_uppercor_beta2 = convert_upper_cov_to_cor( lowercov_uppercor_beta2 );
         REPORT( lowercov_uppercor_beta2 );
