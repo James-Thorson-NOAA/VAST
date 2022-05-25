@@ -42,13 +42,15 @@ function( fit,
   names(new_values) = eps_name
   fixed = c( fixed, new_values )
 
+  tmbad <- isTRUE(getOption("tmb.ad.framework"))
+  tmbad <- utils::packageVersion("TMB")>="1.8.0" && tmbad
   # detect sparse + lowrank hessian ... appears to freeze with lowrank=FALSE
   obj = MakeADFun( data = lapply(Data, FUN=data_function),
                     parameters = New_params,
                     map = Map,
                     random = Random,
-                    intern = TRUE,
                     DLL = fit$settings$Version,
+                    intern = !tmbad, # typically faster with TMBad if FALSE?
                     inner.control = inner.control )
   obj$env$beSilent()
   gradient = obj$gr(fixed)
