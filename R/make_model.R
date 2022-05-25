@@ -148,15 +148,19 @@ function( TmbData,
   origwd = getwd()
   on.exit(setwd(origwd),add=TRUE)
   setwd( CompileDir )
+
   # SEE https://github.com/kaskr/adcomp/issues/321 for flags argument
+  flags <- "-Wno-ignored-attributes -O2 -mstackrealign"
+  arch64 <- grepl("^aarch64", utils::sessionInfo()$platform) # e.g., M1 macOS
+  if (!arch64) flags <- paste(flags, "-mfpmath=sse -msse2")
   if( utils::packageVersion("TMB")>="1.8.0" ){
     TMB::compile( file = paste0(Version,".cpp"),
                   framework = framework,
-                  flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign",
+                  flags = flags,
                   supernodal = supernodal )
   }else{
     TMB::compile( file = paste0(Version,".cpp"),
-                  flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" )
+                  flags = flags )
   }
 
   # Build object
