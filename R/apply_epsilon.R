@@ -42,7 +42,7 @@ function( fit,
   names(new_values) = eps_name
   fixed = c( fixed, new_values )
 
-  tmbad <- isTRUE(getOption("tmb.ad.framework"))
+  tmbad <- isTRUE(getOption("tmb.ad.framework") == "TMBad")
   tmbad <- utils::packageVersion("TMB")>="1.8.0" && tmbad
   # detect sparse + lowrank hessian ... appears to freeze with lowrank=FALSE
   obj = MakeADFun( data = lapply(Data, FUN=data_function),
