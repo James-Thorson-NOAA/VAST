@@ -48,6 +48,7 @@ function( fit,
                     map = Map,
                     random = Random,
                     intern = TRUE,
+                    DLL = fit$settings$Version,
                     inner.control = inner.control )
   obj$env$beSilent()
   gradient = obj$gr(fixed)
