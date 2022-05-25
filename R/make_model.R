@@ -149,7 +149,7 @@ function( TmbData,
   on.exit(setwd(origwd),add=TRUE)
   setwd( CompileDir )
   # SEE https://github.com/kaskr/adcomp/issues/321 for flags argument
-  if( "framework" %in% formalArgs(TMB::compile)){
+  if( utils::packageVersion("TMB")>="1.8.0" ){
     TMB::compile( file = paste0(Version,".cpp"),
                   framework = framework,
                   flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign",
@@ -161,7 +161,7 @@ function( TmbData,
 
   # Build object
   dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version)) ) # random=Random,
-  if( ("framework" %in% formalArgs(TMB::compile)) && !is.null(framework) && (framework=="TMBad") ){
+  if( utils::packageVersion("TMB")>="1.8.0" && isTRUE(framework=="TMBad") ){
     message("Using experimental gradient feature")
     Obj <- TMB::MakeADFun(
       data = lapply(TmbData,strip_units),
