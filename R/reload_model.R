@@ -24,31 +24,32 @@
 reload_model <-
 function( x,
           check_gradient = TRUE,
-          CompileDir = system.file("executables",package = "VAST") ){
+          CompileDir = system.file("executables",package = "VAST"),
+          Version = x$settings$Version,
+          Obj = x$tmb_list$Obj ){
 
   # Load old one
   origwd = getwd()
   on.exit( setwd(origwd), add=TRUE )
   setwd(CompileDir)
-  Version = x$settings$Version
   TMB::compile( paste0(Version,".cpp"), flags="-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" )
   dyn.load( TMB::dynlib(Version) ) # random=Random,
 
   # Retape
-  x$tmb_list$Obj$retape()
+  Obj$retape()
 
   # Ensure that last.par and last.par.best are right
-  x$tmb_list$Obj$fn(x$par$par)
+  Obj$fn(x$parameter_estimates$par)
 
   # Check gradient
   if( check_gradient==TRUE ){
-    Gr = x$tmb_list$Obj$gr(x$par$par)
+    Gr = Obj$gr(x$parameter_estimates$par)
     if(max(abs(Gr))>1){
-      stop("Maximum absolute gradient of ", max(abs(Gr)), ": does not seem converged")
+      stop("Maximum absolute gradient of ", signif(max(abs(Gr)),3), ": does not seem converged")
     }else if(max(abs(Gr))>0.01){
-      warning("Maximum absolute gradient of ", max(abs(Gr)), ": might not be converged")
+      warning("Maximum absolute gradient of ", signif(max(abs(Gr)),3), ": might not be converged")
     }else{
-      print("Maximum absolute gradient of ", max(abs(Gr)), ": might be converged")
+      message("Maximum absolute gradient of ", signif(max(abs(Gr)),3), ": No evidence of non-convergence")
     }
   }
 
