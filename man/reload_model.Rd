@@ -7,7 +7,9 @@
 reload_model(
   x,
   check_gradient = TRUE,
-  CompileDir = system.file("executables", package = "VAST")
+  CompileDir = system.file("executables", package = "VAST"),
+  Version = x$settings$Version,
+  Obj = x$tmb_list$Obj
 )
 }
 \arguments{
@@ -17,6 +19,10 @@ reload_model(
 
 \item{CompileDir}{a directory where the CPP file is copied, copiled, and run
 (must have write privileges or else the function will crash); by default uses \code{TmbDir} (OPTIONAL)}
+
+\item{Version}{Which CPP version to use.  If missing, defaults to latest version
+using \code{\link[FishStatsUtils]{get_latest_version}}.
+Can be used to specify using an older CPP, to maintain backwards compatibility.}
 }
 \value{
 Output from \code{\link{fit_model}} with DLLs relinked

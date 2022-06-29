@@ -237,9 +237,12 @@ calculate changes in synchrony over time (only used if \code{Options['Calculate_
 The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates,
 where density is weighted by area ("area-weighted expansion", \code{Expansion[c,1]=0}, the default),
 where density is weighted by the expanded value for another category ("abundance weighted expansion" \code{Expansion[c1,1]=1}),
-or the index is calculated as the weighted average of density weighted by the expanded value for another category
-("abundance weighted-average expansion" \code{Expansion[c1,1]=2}).  The 2nd column is only used when \code{Expansion[c1,1]=1} or \code{Expansion[c1,1]=2},
-and specifies the category to use for abundance-weighted expansion, where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.}
+the index is calculated as the weighted average of density weighted by the expanded value for another category
+("abundance weighted-average expansion" \code{Expansion[c1,1]=2}), or the area-weighted abundance is added to the expanded
+abundance for a prior category \code{Expansion[c1,1]=3}).
+The 2nd column is used when \code{Expansion[c1,1]=1} or \code{Expansion[c1,1]=2} or \code{Expansion[c1,1]=3},
+and specifies the category to use for abundance-weighted expansion/average/summation,
+where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.}
 
 \item{Z_gm}{matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics.
 Defaults to eastings and northings for each knots or extrapolation-grid cell.}

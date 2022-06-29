@@ -45,7 +45,7 @@ function( x,
   if( check_gradient==TRUE ){
     Gr = Obj$gr(x$parameter_estimates$par)
     if(max(abs(Gr))>1){
-      stop("Maximum absolute gradient of ", signif(max(abs(Gr)),3), ": does not seem converged")
+      warning("Maximum absolute gradient of ", signif(max(abs(Gr)),3), ": does not seem converged")
     }else if(max(abs(Gr))>0.01){
       warning("Maximum absolute gradient of ", signif(max(abs(Gr)),3), ": might not be converged")
     }else{

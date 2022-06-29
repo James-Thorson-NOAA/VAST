@@ -2272,30 +2272,24 @@ Type objective_function<Type>::operator() ()
     for(t=0; t<n_t; t++){
     for(int l=0; l<n_l; l++){
       for(c=0; c<n_c; c++){
-        // Area-weighted expansion
-        if( Expansion_cz(c,0)==0 ){
-          for(g=0; g<n_g; g++){
+        for(g=0; g<n_g; g++){
+          // Area-weighted expansion
+          if( Expansion_cz(c,0)==0 ){
             Index_gctl(g,c,t,l) = D_gct(g,c,t) * a_gl(g,l);
-            Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
           }
-        }
-      }
-      // Expand by biomass for another category
-      for(c=0; c<n_c; c++){
-        if( Expansion_cz(c,0)==1 ){
-          for(g=0; g<n_g; g++){
+          // Expand by biomass for another category
+          if( Expansion_cz(c,0)==1 ){
             Index_gctl(g,c,t,l) = D_gct(g,c,t) * Index_gctl(g,Expansion_cz(c,1),t,l);
-            Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
           }
-        }
-      }
-      // Expand as weighted-average of biomass for another category
-      for(c=0; c<n_c; c++){
-        if( Expansion_cz(c,0)==2 ){
-          for(g=0; g<n_g; g++){
+          // Expand as weighted-average of biomass for another category
+          if( Expansion_cz(c,0)==2 ){
             Index_gctl(g,c,t,l) = D_gct(g,c,t) * Index_gctl(g,Expansion_cz(c,1),t,l) / Index_ctl(Expansion_cz(c,1),t,l);
-            Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
           }
+          // Add to another category, e.g., to get a running sum across categories
+          if( Expansion_cz(c,0)==3 ){
+            Index_gctl(g,c,t,l) = D_gct(g,c,t) * a_gl(g,l) + Index_gctl(g,Expansion_cz(c,1),t,l);
+          }
+          Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
         }
       }
     }}
