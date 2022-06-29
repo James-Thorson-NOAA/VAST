@@ -2265,6 +2265,7 @@ Type objective_function<Type>::operator() ()
     }}}
 
     // Calculate indices
+    // g-loop must be inside Expansion_cz logic check because Expansion_cz(c,0)==2 depends on full sweep across g for prior categories
     array<Type> Index_gctl(n_g, n_c, n_t, n_l);
     array<Type> Index_ctl(n_c, n_t, n_l);
     array<Type> ln_Index_ctl(n_c, n_t, n_l);
@@ -2272,24 +2273,33 @@ Type objective_function<Type>::operator() ()
     for(t=0; t<n_t; t++){
     for(int l=0; l<n_l; l++){
       for(c=0; c<n_c; c++){
-        for(g=0; g<n_g; g++){
-          // Area-weighted expansion
-          if( Expansion_cz(c,0)==0 ){
+        // Area-weighted expansion
+        if( Expansion_cz(c,0)==0 ){
+          for(g=0; g<n_g; g++){
             Index_gctl(g,c,t,l) = D_gct(g,c,t) * a_gl(g,l);
+            Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
           }
-          // Expand by biomass for another category
-          if( Expansion_cz(c,0)==1 ){
+        }
+        // Expand by biomass for another category
+        if( Expansion_cz(c,0)==1 ){
+          for(g=0; g<n_g; g++){
             Index_gctl(g,c,t,l) = D_gct(g,c,t) * Index_gctl(g,Expansion_cz(c,1),t,l);
+            Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
           }
-          // Expand as weighted-average of biomass for another category
-          if( Expansion_cz(c,0)==2 ){
+        }
+        // Expand as weighted-average of biomass for another category
+        if( Expansion_cz(c,0)==2 ){
+          for(g=0; g<n_g; g++){
             Index_gctl(g,c,t,l) = D_gct(g,c,t) * Index_gctl(g,Expansion_cz(c,1),t,l) / Index_ctl(Expansion_cz(c,1),t,l);
+            Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
           }
-          // Add to another category, e.g., to get a running sum across categories
-          if( Expansion_cz(c,0)==3 ){
+        }
+        // Add to another category, e.g., to get a running sum across categories
+        if( Expansion_cz(c,0)==3 ){
+          for(g=0; g<n_g; g++){
             Index_gctl(g,c,t,l) = D_gct(g,c,t) * a_gl(g,l) + Index_gctl(g,Expansion_cz(c,1),t,l);
+            Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
           }
-          Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
         }
       }
     }}
