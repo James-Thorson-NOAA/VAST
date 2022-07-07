@@ -1022,10 +1022,12 @@ Type objective_function<Type>::operator() ()
   if( Options_vec(7)==0 ){
     Range_raw1 = sqrt(8.0) / exp( logkappa1 );   // Range = approx. distance @ 10% correlation; use 8.0 to avoid ambiguity about type
     Range_raw2 = sqrt(8.0) / exp( logkappa2 );     // Range = approx. distance @ 10% correlation; use 8.0 to avoid ambiguity about type
-  }
-  if( (Options_vec(7)==1) | (Options_vec(7)==2) ){
+  }else if( (Options_vec(7)==1) | (Options_vec(7)==2) ){
     Range_raw1 = log(0.1) / logkappa1;   // Range = approx. distance @ 10% correlation
     Range_raw2 = log(0.1) / logkappa2;     // Range = approx. distance @ 10% correlation
+  }else{
+    Range_raw1 = NAN;
+    Range_raw2 = NAN;
   }
   array<Type> SigmaM( n_e, 3 );
   array<Type> sigmaXi1_cp( n_c, n_p1 );
@@ -2823,8 +2825,6 @@ Type objective_function<Type>::operator() ()
   REPORT( H );
   REPORT( Range_raw1 );
   REPORT( Range_raw2 );
-  ADREPORT( Range_raw1 );
-  ADREPORT( Range_raw2 );
 
   /// Optional diagnostic outputs
   if( Options(16) == true ){

@@ -671,7 +671,7 @@ function( b_i,
       stop("`Expansion_cz[c,2]` must be less than c for each row")
     }
     if( !all(Expansion_cz[,1] %in% c(0,1,2,3)) ){
-      stop("`Expansion_cz[c,1]` must be one of the available options {0,1,2,3}")
+      stop("`Expansion_cz[c,1]` must be one of the available options: {0,1,2,3}")
     }
   }
 
