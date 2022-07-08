@@ -189,6 +189,7 @@
 #'   \item{\code{Options["Calculate_proportion"]=TRUE}}{Turns on internal calculation and SE for proportion of response within each category (e.g., for calculating proportion-at-age or species turnover)}
 #'   \item{\code{Options["Calculate_Synchrony"]=TRUE}}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
 #'   \item{\code{Options["report_additional_variables"]=TRUE}}{Export additional variables to \code{Report} object, to use for diagnostics or additional exploration}
+#'   \item{\code{Options["range_fraction"]}}{The decorrelation range when passing over land relative to over water; the default value \code{Options["range_fraction"]=0.2} indicates that the range is shorter over land, i.e., that correlations are strongest via water, while changing to \code{Options["range_fraction"]=5} would represent correlations transfer via land more than water}
 #' }
 #' @param yearbounds_zz matrix with two columns, giving first and last years for defining one or more periods (rows) used to
 #'        calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})
@@ -288,7 +289,8 @@ function( b_i,
                    'zerosum_penalty' = 0,
                    'EOF_unity_trace' = 0,
                    'basin_method' = 0,
-                   'lagrange_multiplier' = 50 )
+                   'lagrange_multiplier' = 50,
+                   'range_fraction' = 0.2 )
 
   # Replace defaults for `Options` with provided values (if any)
   for( i in seq_along(Options) ){
@@ -1011,7 +1013,7 @@ function( b_i,
   if( "spde_aniso" %in% names(Return) ) Return[['spde_aniso']] = list("n_s"=MeshList$anisotropic_spde$n.spde, "n_tri"=nrow(MeshList$anisotropic_mesh$graph$tv), "Tri_Area"=MeshList$Tri_Area, "E0"=MeshList$E0, "E1"=MeshList$E1, "E2"=MeshList$E2, "TV"=MeshList$TV-1, "G0"=MeshList$anisotropic_spde$param.inla$M0, "G0_inv"=INLA::inla.as.dgTMatrix(solve(MeshList$anisotropic_spde$param.inla$M0)) )
   if( "spdeMatricesBarrier" %in% names(Return) ){
     Return[['spdeMatricesBarrier']] = MeshList$barrier_list
-    Return[['Barrier_scaling']] = c(0.2, 1)
+    Return[['Barrier_scaling']] = c(1, Options2use['range_fraction'])
   }
 
   #assign(x="X1_itp", value=X1_itp, envir=.GlobalEnv)
