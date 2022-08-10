@@ -7,15 +7,23 @@
 #' @param which_formula which formula to use e.g., \code{"X1"}
 #' @param category_number which category code{c_i} to use when plotting density covariates
 #'
+#' If getting the error \code{non-conformable arguments}, consider exploring \code{pad_values}
+#'   The error arises in when constructing the linear predictor without an intercept,
+#'   and the default \code{pad_values = 1} attempts to insert a dummy intercept with estimate and SE
+#'   equal to zero.
+#'
 #' @rawNamespace S3method(effects::Effect, fit_model)
 #' @export
 Effect.fit_model <-
 function( focal.predictors,
           mod,
           which_formula = "X1",
-          pad_values = c(),
+          pad_values = c(1),
           category_number = NULL,
           ...) {
+
+  #
+  message("please read `?Effect.fit_model` for details")
 
   # Error checks
   #if( mod$data_list$n_c>1 & which_formula%in%c("X1","X2") ){
@@ -110,11 +118,17 @@ function( focal.predictors,
   #rownames(mod$covhat) = colnames(mod$covhat) = names(mod$parhat)
 
   # Augment stuff
-  formula_full = stats::update.formula(formula_orig, linear_predictor~.+0)
+  formula_full = stats::update.formula(formula_orig, linear_predictor~.+1)
   mod$coefficients = mod$parhat
   mod$vcov = mod$covhat
   mod$formula = formula_full
   mod$family = stats::gaussian(link = "identity")
+
+  #
+  if( FALSE ){
+    formula_full = update.formula(mod$formula, linear_predictor~.+0)
+    mod$call = lm( formula_full, data=catchability_data_full)$call
+  }
 
   if( FALSE ){
     Tmp = model.matrix( formula_full, data=fit$effects$catchability_data )
@@ -149,8 +163,8 @@ function( focal.predictors,
                formula = formula_full)
 
   # Do call
-  effects::Effect.default(focal.predictors,
+  tmp = effects::Effect.default(focal.predictors,
     mod,
-    ...,
+    #...,
     sources = args)
 }

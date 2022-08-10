@@ -23,7 +23,8 @@ test_that("Zero-inflated Poisson gives identical results to pscl::zeroinfl(.) ",
                             Region = "other",
                             ObsModel = c(7, 0),
                             purpose = "index",
-                            Version = Version_VAST )
+                            Version = Version_VAST,
+                            bias.correct = FALSE )
 
   ## Run zero-inflated Poisson
   fit0 <- fit_model(settings = settings,
@@ -36,6 +37,8 @@ test_that("Zero-inflated Poisson gives identical results to pscl::zeroinfl(.) ",
                    observations_LL = xyz[,c('Lat','Lon')],
                    ObsModel = c(7, 0),
                    Aniso = FALSE,
+                   #run_model = TRUE,
+                   #getsd = FALSE,
                    working_dir = multispecies_example_path,
                    FieldConfig = c(Omega1 = 0, Epsilon1 = 0,
                                    Omega2 = 0, Epsilon2 = 0) )

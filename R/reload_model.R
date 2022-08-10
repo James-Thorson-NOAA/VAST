@@ -26,14 +26,19 @@ function( x,
           check_gradient = TRUE,
           CompileDir = system.file("executables",package = "VAST"),
           Version = x$settings$Version,
+          framework = x$input_args$model_args_input$framework,
           Obj = x$tmb_list$Obj ){
 
   # Load old one
+  if( is.null(framework) ){
+    Version_framework = Version
+  }else{
+    Version_framework = paste0( Version, "_", framework )
+  }
   origwd = getwd()
   on.exit( setwd(origwd), add=TRUE )
   setwd(CompileDir)
-  TMB::compile( paste0(Version,".cpp"), flags="-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" )
-  dyn.load( TMB::dynlib(Version) ) # random=Random,
+  dyn.load( TMB::dynlib(Version_framework) ) # random=Random,
 
   # Retape
   Obj$retape()

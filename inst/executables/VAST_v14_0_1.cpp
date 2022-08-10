@@ -1871,7 +1871,11 @@ Type objective_function<Type>::operator() ()
   // Likelihood contribution from observations
   Type logsd;
   for(i=0; i<n_i; i++){
-    if( !isNA(b_i(i)) ){
+    if( isNA(b_i(i)) ){
+      // Initialize as NAN
+      R1_i(i) = NAN;
+      R2_i(i) = NAN;
+    }else{
       // Linear predictors
       for( int zc=0; zc<c_iz.cols(); zc++ ){
         if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
@@ -2768,20 +2772,17 @@ Type objective_function<Type>::operator() ()
   // Diagnostic outputs
   ////////////////////////
 
-  vector<Type> D_i( n_i );
-  D_i = R1_i * R2_i;   // Used in DHARMa residual plotting
-  Type deviance = sum(deviance1_i) + sum(deviance2_i);
-
   // Joint likelihood
   jnll = jnll_comp.sum();
 
   /// Important outputs
+  Type deviance = sum(deviance1_i) + sum(deviance2_i);
+  REPORT( deviance );
   //REPORT( B_ff );
   REPORT( SigmaM );
   REPORT( jnll );
   REPORT( jnll_comp );
   REPORT( pred_jnll );
-  REPORT( deviance );
 
   // Quantities derived from random effects and used for plotting
   REPORT( eta1_vc );
@@ -2805,11 +2806,16 @@ Type objective_function<Type>::operator() ()
   REPORT( Epsiloninput2_sft );
 
   // Predictors
+  vector<Type> D_i( n_i );
+  D_i = R1_i * R2_i;   // used in DHARMa residual plotting
   REPORT( D_i );
   REPORT( P1_iz );
   REPORT( P2_iz );
   REPORT( R1_i );
   REPORT( R2_i );
+  if( Options(3)==1 ){
+    ADREPORT( D_i );
+  }
 
   // Loadings matrices
   REPORT( L_omega1_cf );
@@ -2864,10 +2870,6 @@ Type objective_function<Type>::operator() ()
     REPORT( zeta1_i );
     REPORT( zeta2_i );
     REPORT( iota_ct );
-  }
-
-  if( Options(3)==1 ){
-    ADREPORT( D_i );
   }
 
   SIMULATE{

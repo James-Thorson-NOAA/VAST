@@ -57,9 +57,9 @@ function( TmbData,
           RunDir = getwd(),
           CompileDir = TmbDir,
           build_model = TRUE,
-          framework = getOption("tmb.ad.framework"),
+          framework = "TMBad",
           intern = FALSE,
-          inner.control = list(sparse=TRUE, lowrank=TRUE, trace=TRUE),
+          inner.control = list(sparse=TRUE, lowrank=TRUE, trace=FALSE),
           supernodal = FALSE ){
 
   # Extract Options and Options_vec (depends upon version)
@@ -142,25 +142,26 @@ function( TmbData,
 
    # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
+  Version_framework = paste0( Version, "_", framework )
   file.copy( from=paste0(TmbDir,"/",Version,".cpp"),
-    to=paste0(CompileDir,"/",Version,".cpp"),
+    to=paste0(CompileDir,"/",Version_framework,".cpp"),
     overwrite=FALSE)
   origwd = getwd()
   on.exit(setwd(origwd),add=TRUE)
   setwd( CompileDir )
   # SEE https://github.com/kaskr/adcomp/issues/321 for flags argument
   if( "framework" %in% formalArgs(TMB::compile)){
-    TMB::compile( file = paste0(Version,".cpp"),
+    TMB::compile( file = paste0(Version_framework,".cpp"),
                   framework = framework,
                   flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign",
                   supernodal = supernodal )
   }else{
-    TMB::compile( file = paste0(Version,".cpp"),
+    TMB::compile( file = paste0(Version_framework,".cpp"),
                   flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" )
   }
 
   # Build object
-  dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version)) ) # random=Random,
+  dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version_framework)) ) # random=Random,
   if( ("framework" %in% formalArgs(TMB::compile)) && !is.null(framework) && (framework=="TMBad") ){
     message("Using experimental gradient feature")
     Obj <- TMB::MakeADFun(
@@ -170,7 +171,7 @@ function( TmbData,
       map = Map,
       random = Random,
       inner.method = "newton",
-      DLL = Version,
+      DLL = Version_framework,
       intern = intern,
       inner.control = inner.control )  #
   }else{
@@ -181,7 +182,7 @@ function( TmbData,
       map = Map,
       random = Random,
       inner.method = "newton",
-      DLL = Version )  #
+      DLL = Version_framework )  #
   }
   Obj$control <- list(parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 

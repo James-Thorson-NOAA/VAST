@@ -29,7 +29,7 @@ Imports:
     remotes,
     devtools
 Depends:
-    TMB,
+    TMB (>= 1.8.0),
     FishStatsUtils,
     R (>= 3.5.0)
 Suggests:

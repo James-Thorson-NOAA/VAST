@@ -33,17 +33,17 @@ test_that("Eastern Bering Sea pollock is working ", {
   settings$FieldConfig[c("Omega","Epsilon"),"Component_2"] = 0
 
   # Add
-  version_set = list.files(system.file("executables", package = "VAST"))
-    version_set = sapply( version_set, FUN=function(char){strsplit(char,".",fixed=TRUE)[[1]][1]} )
-  #version_set = c(
-  #  paste0("VAST_v8_",0:6,"_0"),
-  #  paste0("VAST_v9_",0:4,"_0"),
-  #  "VAST_v10_0_0",
-  #  "VAST_v11_0_0",
-  #  "VAST_v12_0_0",
-  #  paste0("VAST_v13_",0:1,"_0"),
-  #  "VAST_v14_0_0",
-  #  "VAST_v14_0_1" )
+  #version_set = list.files(system.file("executables", package = "VAST"))
+  #  version_set = sapply( version_set, FUN=function(char){strsplit(char,".",fixed=TRUE)[[1]][1]} )
+  version_set = c(
+    paste0("VAST_v8_",0:6,"_0"),
+    paste0("VAST_v9_",0:4,"_0"),
+    "VAST_v10_0_0",
+    "VAST_v11_0_0",
+    "VAST_v12_0_0",
+    paste0("VAST_v13_",0:1,"_0"),
+    "VAST_v14_0_0",
+    "VAST_v14_0_1" )
   version_set = setdiff( version_set, get_latest_version() )
 
   #cpp_exists = paste0(version_set,".cpp") %in% list.files(system.file("executables", package = "VAST"))

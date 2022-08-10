@@ -6,6 +6,11 @@ test_that("Male lingcod compositional expansion is working ", {
   skip_on_ci()
   skip_if(skip_local)
 
+  # MakeADFun crashes for TMBad .. see:
+  #  C:\Users\James.Thorson\Desktop\Work files\AFSC\2022-08 -- testthat fix for comp-expansion
+  #  https://github.com/kaskr/adcomp/issues/365
+  # skip_if(TRUE)
+
   # Prepping
   test_path = file.path(multispecies_example_path,"Lingcod_comp_expansion")
   load( file=file.path(test_path,"Data_Geostat.RData") )
@@ -38,8 +43,10 @@ test_that("Male lingcod compositional expansion is working ", {
       "getsd" = FALSE,
       "savedir" = NULL,
       #run_model  =  FALSE,
+      #build_model = FALSE,
       "newtonsteps" = 1,
       "test_fit" = FALSE,
+      #framework = "TMBad",
       "working_dir" = test_path )
 
   # Comparisons
