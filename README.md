@@ -55,7 +55,7 @@ First, install the "devtools" package from CRAN
 Next, please install the VAST package from this GitHub repository using a function in the "devtools" package.  This may require using the `INSTALL_opts` option depending upon your version of R:
 
     # Install package
-    install_github("james-thorson/VAST", INSTALL_opts="--no-staged-install")
+    install_github("james-thorson/VAST@main", INSTALL_opts="--no-staged-install")
     # Load package
     library(VAST)
 
@@ -66,7 +66,7 @@ If you are having problems with installation, please consider installing depende
     # Install INLA using currently recommended method
     install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
     # Install FishStatsUtils from CRAN
-    install_github("james-thorson/FishStatsUtils", INSTALL_opts="--no-staged-install")
+    install_github("james-thorson/FishStatsUtils@main", INSTALL_opts="--no-staged-install")
 
 Finally, please confirm that VAST is installed by running a model, e.g., following the simple example [here](https://github.com/James-Thorson-NOAA/VAST/wiki/Index-standardization).
 
