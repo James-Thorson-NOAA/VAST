@@ -26,6 +26,9 @@
 #'
 #' @param x Output from \code{\link{fit_model}}
 #' @param n_proj Number of time-steps to include in projection
+#' @param n_samples Number of samples to include.  If \code{n_samples=1} then \code{project_model}
+#'        just returns the list of REPORTed variables.  If \code{n_samples>1} then \code{project_model}
+#'        returns a list of lists, where each element is the list of REPORTed variables.
 #' @param new_covariate_data New covariates to include for future intervals
 #' @param historical_uncertainty Whether to incorporate uncertainty about fitted interval
 #' \describe{
@@ -54,10 +57,12 @@
 project_model <-
 function( x,
           n_proj,
+          n_samples = 1,
           new_covariate_data = NULL,
           historical_uncertainty = "both",
           seed = 123456,
-          working_dir = paste0(getwd(),"/") ){
+          working_dir = paste0(getwd(),"/"),
+          what = "Index_gctl" ){
 
   # Unpack
   Obj = x$tmb_list$Obj
@@ -98,26 +103,23 @@ function( x,
 
   # Sample from joint distribution
   if( historical_uncertainty == "both" ){
-    u_z = rmvnorm_prec( mu=Obj$env$last.par.best, prec=Sdreport$jointPrecision, n.sims=1, seed=seed)[,1]
+    u_zr = rmvnorm_prec( mu=Obj$env$last.par.best, prec=Sdreport$jointPrecision, n.sims=n_samples, seed=seed)[,1]
   }else if( historical_uncertainty == "random" ){
     # Retape and call once to get last.par.best to work
     Obj$retape()
     Obj$fn(x$parameter_estimates$par)
-    u_z = Obj$env$last.par.best
+    u_zr = Obj$env$last.par.best %o% rep(1, n_samples)
     # Simulate random effects
     set.seed(seed)
-    MC = Obj$env$MC( keep=TRUE, n=1, antithetic=FALSE )
-    u_z[Obj$env$random] = attr(MC, "samples")[,1]
+    MC = Obj$env$MC( keep=TRUE, n=n_samples, antithetic=FALSE )
+    u_zr[Obj$env$random,] = attr(MC, "samples")
     #Hess = Obj$env$spHess(par=u_z, random=TRUE)
     #u_z[-Obj$env$lfixed()] = rmvnorm_prec( mu=u_z[-Obj$env$lfixed()], prec=Hess, n.sims=1, seed=seed)[,1]
   }else if( historical_uncertainty == "none" ){
-    u_z = Obj$env$last.par.best
+    u_zr = Obj$env$last.par.best %o% rep(1, n_samples)
   }else{
     stop("Check `historical_uncertainty` argument")
   }
-
-  # Get ParList
-  ParList = Obj$env$parList( par = u_z )
 
   ##############
   # Step 2: Generate uncertainty in historical period
@@ -159,70 +161,82 @@ function( x,
     build_model = FALSE,
     working_dir = working_dir )
 
-  # Get full size
-  #ParList1 = x1$tmb_list$Obj$env$parList()
-  ParList1 = x1$tmb_list$Parameters
+  # Object to keep output
+  Sim = vector("list", length=n_samples)
 
-  ##############
-  # Step 4: Merge ParList and ParList1
-  ##############
+  # Loop through 1:n_samples
+  for( sampleI in seq_len(n_samples) ){
+    ##############
+    # Step 4: Merge ParList and ParList1
+    ##############
 
-  for( i in seq_along(ParList) ){
-    dim = function(x) if(is.vector(x)){return(length(x))}else{return(base::dim(x))}
-    dim_match = ( dim(ParList[[i]]) == dim(ParList1[[i]]) )
-    if( sum(dim_match==FALSE)==0 ){
-      ParList1[[i]] = ParList[[i]]
-    }else if( sum(dim_match==FALSE)==1 ){
-      dim_list = lapply( dim(ParList[[i]]), FUN=function(x){seq_len(x)} )
-      ParList1[[i]][as.matrix(expand.grid(dim_list))] = ParList[[i]][as.matrix(expand.grid(dim_list))]
-    }else if( sum(dim_match==FALSE)>=2 ){
-      stop("Check matching")
+    # Get full size
+    #ParList1 = x1$tmb_list$Obj$env$parList()
+    ParList1 = x1$tmb_list$Parameters
+
+    # Get ParList
+    ParList = Obj$env$parList( par = u_zr[,sampleI] )
+
+    for( i in seq_along(ParList) ){
+      dim = function(x) if(is.vector(x)){return(length(x))}else{return(base::dim(x))}
+      dim_match = ( dim(ParList[[i]]) == dim(ParList1[[i]]) )
+      if( sum(dim_match==FALSE)==0 ){
+        ParList1[[i]] = ParList[[i]]
+      }else if( sum(dim_match==FALSE)==1 ){
+        dim_list = lapply( dim(ParList[[i]]), FUN=function(x){seq_len(x)} )
+        ParList1[[i]][as.matrix(expand.grid(dim_list))] = ParList[[i]][as.matrix(expand.grid(dim_list))]
+      }else if( sum(dim_match==FALSE)>=2 ){
+        stop("Check matching")
+      }
     }
+
+    ##############
+    # Step 5: Re-build model
+    ##############
+
+    x2 = fit_model( settings = x$settings,
+      Lat_i = Lat_i,
+      Lon_i = Lon_i,
+      t_i = t_i,
+      b_i = b_i,
+      a_i = a_i,
+      v_i = v_i,
+      c_iz = c_iz,
+      PredTF_i = PredTF_i,
+      covariate_data = new_covariate_data,
+      X1_formula = x$X1_formula,
+      X2_formula = x$X2_formula,
+      X1config_cp = x$X1config_cp,
+      X2config_cp = x$X2config_cp,
+      catchability_data = new_catchability_data,
+      Q1config_k = x$Q1config_k,
+      Q2config_k = x$Q2config_k,
+      Q1_formula = x$Q1_formula,
+      Q2_formula = x$Q2_formula,
+      run_model = FALSE,
+      Parameters = ParList1,
+      working_dir = working_dir )
+
+    ##############
+    # Step 5: Simulate random effects
+    ##############
+
+    # Simulate Epsiloninput / Betainput for projection years
+    x2$tmb_list$Obj$env$data$Options_list$simulate_t[] = c( rep(0,x$data_list$n_t), rep(1,n_proj) )
+
+    # Simulate type=1 so Omegas and other random effects are held fixed
+    Sim[[sampleI]] = simulate_data( fit = x2,
+                         type = 1,
+                         random_seed = NULL )
+
+    # Amend labels
+    x2$Report = Sim[[sampleI]]
+    Sim[[sampleI]] = amend_output(x2)
   }
 
-  ##############
-  # Step 5: Re-build model
-  ##############
-
-  x2 = fit_model( settings = x$settings,
-    Lat_i = Lat_i,
-    Lon_i = Lon_i,
-    t_i = t_i,
-    b_i = b_i,
-    a_i = a_i,
-    v_i = v_i,
-    c_iz = c_iz,
-    PredTF_i = PredTF_i,
-    covariate_data = new_covariate_data,
-    X1_formula = x$X1_formula,
-    X2_formula = x$X2_formula,
-    X1config_cp = x$X1config_cp,
-    X2config_cp = x$X2config_cp,
-    catchability_data = new_catchability_data,
-    Q1config_k = x$Q1config_k,
-    Q2config_k = x$Q2config_k,
-    Q1_formula = x$Q1_formula,
-    Q2_formula = x$Q2_formula,
-    run_model = FALSE,
-    Parameters = ParList1,
-    working_dir = working_dir )
-
-  ##############
-  # Step 5: Simulate random effects
-  ##############
-
-  # Simulate Epsiloninput / Betainput for projection years
-  x2$tmb_list$Obj$env$data$Options_list$simulate_t[] = c( rep(0,x$data_list$n_t), rep(1,n_proj) )
-
-  # Simulate type=1 so Omegas and other random effects are held fixed
-  Sim = simulate_data( fit = x2,
-                       type = 1,
-                       random_seed = NULL )
-
-  # Amend labels
-  x2$Report = Sim
-  Sim = amend_output(x2)
-
+  if( n_samples==1 ){
+    Sim = Sim[[1]]
+  }
   return(Sim)
 }
 
