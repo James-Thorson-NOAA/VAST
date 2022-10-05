@@ -103,7 +103,7 @@ function( x,
 
   # Sample from joint distribution
   if( historical_uncertainty == "both" ){
-    u_zr = rmvnorm_prec( mu=Obj$env$last.par.best, prec=Sdreport$jointPrecision, n.sims=n_samples, seed=seed)[,1]
+    u_zr = rmvnorm_prec( mu=Obj$env$last.par.best, prec=Sdreport$jointPrecision, n.sims=n_samples, seed=seed)
   }else if( historical_uncertainty == "random" ){
     # Retape and call once to get last.par.best to work
     Obj$retape()
@@ -162,7 +162,7 @@ function( x,
     working_dir = working_dir )
 
   # Object to keep output
-  Sim = vector("list", length=n_samples)
+  out = vector("list", length=n_samples)
 
   # Loop through 1:n_samples
   for( sampleI in seq_len(n_samples) ){
@@ -225,18 +225,18 @@ function( x,
     x2$tmb_list$Obj$env$data$Options_list$simulate_t[] = c( rep(0,x$data_list$n_t), rep(1,n_proj) )
 
     # Simulate type=1 so Omegas and other random effects are held fixed
-    Sim[[sampleI]] = simulate_data( fit = x2,
+    out[[sampleI]] = simulate_data( fit = x2,
                          type = 1,
                          random_seed = NULL )
 
     # Amend labels
-    x2$Report = Sim[[sampleI]]
-    Sim[[sampleI]] = amend_output(x2)
+    x2$Report = out[[sampleI]]
+    out[[sampleI]] = amend_output(x2)
   }
 
   if( n_samples==1 ){
-    Sim = Sim[[1]]
+    out = out[[1]]
   }
-  return(Sim)
+  return(out)
 }
 
