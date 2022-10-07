@@ -62,7 +62,7 @@ function( x,
           historical_uncertainty = "both",
           seed = 123456,
           working_dir = paste0(getwd(),"/"),
-          what = "Index_gctl" ){
+          what = NULL ){
 
   # Unpack
   Obj = x$tmb_list$Obj
@@ -232,6 +232,11 @@ function( x,
     # Amend labels
     x2$Report = out[[sampleI]]
     out[[sampleI]] = amend_output(x2)
+
+    # Subset to values specified in "what"
+    if( !is.null(what) ){
+      out[[sampleI]] = out[[sampleI]][which(names(out[[sampleI]]) %in% what)]
+    }
   }
 
   if( n_samples==1 ){
