@@ -60,8 +60,7 @@ function( fit,
   # Expand SD
   SD = fit$parameter_estimates$SD
   if( is.null(SD$unbiased) ){
-    SD$unbiased = list( "value"=NA, "sd"=NA, "cov"=array(NA,c(1,1)) )
-    SD$unbiased$value = SD$value
+    SD$unbiased = list( "value"=SD$value, "sd"=NA, "cov"=array(NA,c(1,1)) )
     SD$unbiased$value[] = NA
   }else{
     if( any(!is.na(SD$unbiased$value[ADREPORT_name])) ){
@@ -70,10 +69,12 @@ function( fit,
   }
 
   # Merge gradient into SD
-  i = which( names(SD$unbiased$value) == ADREPORT_name )
+  i = which( names(SD$value) == ADREPORT_name )
   j = which( names(obj$par) == eps_name )
   if( length(i)==length(j) ){
     SD$unbiased$value[i] = gradient[j]
+  }else{
+    warning("Check `apply_epsilon` for bugs")
   }
 
   # return SD
