@@ -130,7 +130,7 @@ function( x,
   v_i = c( x$data_frame$v_i, rep(0,2*n_proj) )
   Lon_i = c( x$data_frame$Lon_i, rep(mean(x$data_frame$Lon_i),2*n_proj) )
   Lat_i = c( x$data_frame$Lat_i, rep(mean(x$data_frame$Lat_i),2*n_proj) )
-  a_i = c( x$data_list$a_i, as_units(rep(mean(x$data_frame$a_i),2*n_proj), units(fit$data_list$a_i)) )
+  a_i = c( x$data_list$a_i, as_units(rep(mean(x$data_frame$a_i),2*n_proj), units(x$data_list$a_i)) )
   PredTF_i = c( x$data_list$PredTF_i, rep(1,2*n_proj) )
   c_iz = rbind( x$data_list$c_iz, x$data_list$c_iz[rep(1:n_proj,each=2),,drop=FALSE] )
   new_catchability_data = rbind( x$catchability_data, x$catchability_data[rep(1:n_proj,each=2),,drop=FALSE] )
