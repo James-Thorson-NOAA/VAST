@@ -1033,7 +1033,7 @@ function( b_i,
 
   # Check for NAs
   if( CheckForErrors==TRUE ){
-    NoNAs = setdiff( names(Return), c("t_iz","t_yz","c_iz","Network_sz","b_i") )
+    NoNAs = setdiff( names(Return), c("t_iz","t_yz","c_iz","Network_sz","b_i","v_i") )
     if( any(sapply(Return[NoNAs], FUN=function(Array){any(is.na(Array))})==TRUE) ) stop("Please find and eliminate the NA from your inputs")
   }
 
