@@ -1881,7 +1881,8 @@ Type objective_function<Type>::operator() ()
         if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
           P1_iz(i,zc) = Omega1_iz(i,zc) + zeta1_i(i) + beta1_tc(t_i(i),c_iz(i,zc)) + Epsilon1_iz(i,zc) + eta1_iz(i,zc) + iota_ct(c_iz(i,zc),t_i(i));
           P2_iz(i,zc) = Omega2_iz(i,zc) + zeta2_i(i) + beta2_tc(t_i(i),c_iz(i,zc)) + Epsilon2_iz(i,zc) + eta2_iz(i,zc);
-          if( !isNA(v_i(i)) ){
+          // isNA doesn't work for IVECTOR so check within bounds instead
+          if( (v_i(i)>=0) & (v_i(i)<n_v) ){    // (!isNA(v_i(i))) & 
             P1_iz(i,zc) += eta1_vc(v_i(i),c_iz(i,zc));
             P2_iz(i,zc) += eta2_vc(v_i(i),c_iz(i,zc));
           }
