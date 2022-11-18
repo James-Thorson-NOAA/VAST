@@ -25,7 +25,7 @@ There are eleven main resources for learning about VAST:
 *  *R-help documentation*:  Please see the standard R-help documentation, e.g., by typing `?fit_model` or `?make_data` in the R-terminal after installing the package and loading it using `library(VAST)`.
 *  *Publications*:  Please see the [publications list](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/wiki/Applications) to identify peer-reviewed publications regarding individual features.  These publications include statistical theory and model testing.
 *  *List-serv*: Consider joining the [FishStats listserve](https://groups.google.com/forum/#!forum/fishstats-listserv) for 4-6 updates per year, including training classes.
-*  *Slack channel*:  A [slack channel](https://join.slack.com/t/vastsupportgroup/shared_invite/zt-x53wupkg-U5cGF7gsHv9uDKyNMfPpaw) was developed by J. Morano and colleagues to allow real-time, casual discussions among new and longtime users.
+*  *Slack channel*:  A [slack channel](https://join.slack.com/t/vastsupportgroup/shared_invite/zt-18zyad1zl-dLQKYE3kOPI~n~h7PM6coA) was developed by J. Morano and colleagues to allow real-time, casual discussions among new and longtime users.
 *  *Talks available online*:  We post recorded talks and seminars [online](https://www.youtube.com/channel/UCNgFcss1X9Hgox3eWSTRI3Q/)
 *  *Issue-tracker*:  Before posting new issues, users should explore the previous issues in the github issue tracker for [VAST](https://github.com/James-Thorson/VAST/issues), [SpatialDeltaGLMM](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/issues), and [FishStatsUtils](https://github.com/james-thorson/FishStatsUtils/issues), including a search for old and closed issues.
 *  *Wiki*:  Users should read and are encouraged to actively contribute to the wiki, which is housed at [the github for SpatialDeltaGLMM](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/wiki)
@@ -55,7 +55,7 @@ First, install the "devtools" package from CRAN
 Next, please install the VAST package from this GitHub repository using a function in the "devtools" package.  This may require using the `INSTALL_opts` option depending upon your version of R:
 
     # Install package
-    install_github("james-thorson/VAST", INSTALL_opts="--no-staged-install")
+    install_github("james-thorson/VAST@main", INSTALL_opts="--no-staged-install")
     # Load package
     library(VAST)
 
@@ -66,7 +66,7 @@ If you are having problems with installation, please consider installing depende
     # Install INLA using currently recommended method
     install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
     # Install FishStatsUtils from CRAN
-    install_github("james-thorson/FishStatsUtils", INSTALL_opts="--no-staged-install")
+    install_github("james-thorson/FishStatsUtils@main", INSTALL_opts="--no-staged-install")
 
 Finally, please confirm that VAST is installed by running a model, e.g., following the simple example [here](https://github.com/James-Thorson-NOAA/VAST/wiki/Index-standardization).
 
