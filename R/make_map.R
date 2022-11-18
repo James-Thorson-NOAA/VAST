@@ -16,8 +16,8 @@
 make_map <-
 function( DataList,
           TmbParams,
-          RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
-          Npool=0 ){
+          RhoConfig = c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0),
+          Npool = 0 ){
 
   # Local functions
   fix_value <- function( fixvalTF ){
@@ -69,8 +69,8 @@ function( DataList,
   # Fill in X1config_cp / X2config_cp for CPP versions < 10ish
   if( !all(c("X1config_cp","X2config_cp") %in% names(DataList)) ){
     if( "Xconfig_zcp" %in% names(DataList) ){
-      DataList$X1config_cp = array( DataList$Xconfig_zcp[1,,], dim=dim(DataList$X1config_zcp)[2:3] )
-      DataList$X2config_cp = array( DataList$Xconfig_zcp[2,,], dim=dim(DataList$X1config_zcp)[2:3] )
+      DataList$X1config_cp = array( DataList$Xconfig_zcp[1,,], dim=dim(DataList$Xconfig_zcp)[2:3] )
+      DataList$X2config_cp = array( DataList$Xconfig_zcp[2,,], dim=dim(DataList$Xconfig_zcp)[2:3] )
     }else{
       DataList$X1config_cp = DataList$X2config_cp = array( 1, dim=c(DataList$n_c,DataList$n_p) )
     }
@@ -294,6 +294,9 @@ function( DataList,
     # Change Epsilons
     Map[["L_epsilon1_z"]] = factor(pool(EncNum_c<Npool))
     Map[["L_epsilon2_z"]] = factor(pool(EncNum_c<Npool))
+    # Change Epsilons
+    Map[["L_beta1_z"]] = factor(pool(EncNum_c<Npool))
+    Map[["L_beta2_z"]] = factor(pool(EncNum_c<Npool))
   }
 
   #########################
@@ -802,6 +805,13 @@ function( DataList,
       Map[["beta1_ft"]] = factor( row(TmbParams$beta1_ft) )
       Map[["L_beta1_z"]] = factor( rep(NA,length(TmbParams$L_beta1_z)) ) # Turn off all because Data_Fn has thrown an error whenever not using IID
     }
+    # Beta1 -- AR with shared
+    if( RhoConfig["Beta1"]==4){
+      Map[["Beta_rho1_f"]] = factor( rep(1,nrow(TmbParams$beta1_ft)) )
+    }
+    # Beta1 -- AR with separate Rho
+    if( RhoConfig["Beta1"]==5){
+    }
     # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
     if( RhoConfig["Beta2"] %in% c(0,6) ){
       Map[["Beta_mean2_c"]] = factor( rep(NA,DataList$n_c) )
@@ -824,6 +834,13 @@ function( DataList,
       Map[["Beta_rho2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
       Map[["beta2_ft"]] = factor( row(TmbParams$beta2_ft) )
       Map[["L_beta2_z"]] = factor( rep(NA,length(TmbParams$L_beta2_z)) ) # Turn off all because Data_Fn has thrown an error whenever not using IID
+    }
+    # Beta1 -- AR with shared
+    if( RhoConfig["Beta2"]==4){
+      Map[["Beta_rho2_f"]] = factor( rep(1,nrow(TmbParams$beta2_ft)) )
+    }
+    # Beta1 -- AR with separate Rho
+    if( RhoConfig["Beta2"]==5){
     }
     # Warnings
     if( DataList$n_c >= 2 ){

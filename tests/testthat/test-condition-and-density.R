@@ -61,6 +61,7 @@ test_that("Condition-and-density example is working ", {
     Expansion_cz = Expansion_cz,
     Map = Map,
   # END CODE BLOCK FROM WIKI
+    #framework = "CppAD",
     getsd=FALSE,
     #newtonsteps=0,
     backwards_compatible_kmeans=TRUE )

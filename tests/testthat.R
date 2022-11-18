@@ -1,12 +1,12 @@
 
-# devtools::install_github("james-thorson/FishStatsUtils", ref="development")
-# devtools::install_github("james-thorson/VAST", ref="development")
-# devtools::install_local("C:/Users/James.Thorson/Desktop/Git/TMB_contrib_R/TMBhelper", force=TRUE, dep=FALSE)
+# remotes::install_github("james-thorson-NOAA/FishStatsUtils", ref="dev")
+# remotes::install_github("james-thorson-NOAA/VAST", ref="dev")
+# remotes::install_local("C:/Users/James.Thorson/Desktop/Git/TMB_contrib_R/TMBhelper", force=TRUE, dep=FALSE)
 
 # devtools::document("C:/Users/James.Thorson/Desktop/Git/FishStatsUtils")
-# devtools::install_local("C:/Users/James.Thorson/Desktop/Git/FishStatsUtils", force=TRUE, dep=FALSE)
+# remotes::install_local("C:/Users/James.Thorson/Desktop/Git/FishStatsUtils", force=TRUE, dep=TRUE)
 # devtools::document("C:/Users/James.Thorson/Desktop/Git/VAST")
-# devtools::install_local("C:/Users/James.Thorson/Desktop/Git/VAST", force=TRUE, dep=FALSE)
+# remotes::install_local("C:/Users/James.Thorson/Desktop/Git/VAST", force=TRUE, dep=FALSE)
 # devtools::document("C:/Users/James.Thorson/Desktop/Git/FishStatsUtils")
 
 
@@ -34,7 +34,6 @@ testthat::test_check("VAST")
 ################
 
 # Use local path
-# singlespecies_example_path="C:/Users/James.Thorson/Desktop/Git/geostatistical_delta-GLMM/inst/extdata/";  multispecies_example_path="C:/Users/James.Thorson/Desktop/Git/VAST/inst/extdata/"
 # source( "C:/Users/James.Thorson/Desktop/Git/VAST/tests/testthat/setup.R" )
 
 # Run from local directory

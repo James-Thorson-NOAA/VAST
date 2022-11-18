@@ -146,11 +146,14 @@ any variable referenced in \code{X1_formula} and \code{X2_formula} must be in \c
 which is then estimated independently for each model category \code{c_i}, e.g.,
 use \code{X1_formula=~BOT_DEPTH+BOT_DEPTH^2} for a quadratic effect of variable \code{BOT_DEPTH}
 that is estimated independently for each category.
-The effect of an estimated effect also used upon when predicting the value for each location
+The effect of an estimated effect is also used when predicting the value for each location
 in the extrapolation-grid.  Therefore, \code{X1_formula} is interepreted as affecting the "true"
 underlying value of each variable, and it affects both samples and extrapolated values.
 It is allowed to include \code{Year} in the formula, although please check whether it is
-interpreted as numeric or factor-valued.}
+interpreted as numeric or factor-valued.
+Note that \code{X1_formula} is internally updated (and resulting design-matrices are modified) to avoid
+any intercept from arising in \code{X1_ip} and \code{X1_gctp}, to avoid identifiability issues between covariates and
+intercepts for each category.}
 
 \item{X2_formula}{same as \code{X1_formula} but affecting the 2nd linear predictor.}
 
@@ -179,12 +182,18 @@ By default uses \code{X1_contrasts = NULL}, which will set the first level of ea
 However, the effect of \code{Q1_formula} is not used when predicting values at extrapolation-grid locations.
 Therefore, the \code{Q1_formula} is interpreted as affecting "catchability" (a.k.a. "detectabiility"), and it represents
 processes that affect the outcome of sampling but not the "true" underlying value of a variable being sampled.
-For example, a factor representing gear-type might be included to estimate the relative performacne of each gear type
-(relative to the base level of that factor).
+For example, to estimate the relative performance of differeng gear types, include \code{catchability_data = data.frame(gear=gear_factor)}
+where \code{gear_factor} is a factor-valued indicator for different gear types and \code{Q1_formula = ... + gear},
+and this will estimate the catchability for each level relative to the base level of that factor.
 Note that \code{Q1_formula} defines a relationship that is applied to all samples (regardless of category \code{c_i}),
 whereas \code{X1_formula} defines a relationship that is estimated independently for each category.
-For a catchability covariate that varies by category, please include the category as factor in \code{catchability_data}
-and then include an interaction with category in \code{Q1_formula} for any variable which has an effect that varies among categories.}
+Also note that \code{\link{make_data}} includes \code{c_iz[,1]} as a column labeled \code{category} in \code{catchability_data},
+and that \code{Q1_formula} is internally updated (and resulting design-matrices are modified) to avoid
+any category-specific intercept from arising in \code{Q1_ik}, to avoid identifiability issues between category-specific
+covariates and intercepts.
+For example, for a catchability covariate that varies by category, include an interaction with category in \code{Q1_formula},
+e.g., \code{Q1_formula = ... + category:gear} where \code{gear} is a factor to estimate category-specific catchability ratio for
+different levels of \code{gear}.}
 
 \item{Q2_formula}{same as \code{Q2_formula} but affecting the 2nd linear predictor.}
 
@@ -221,16 +230,19 @@ calculate changes in synchrony over time (only used if \code{Options['Calculate_
   \item{\code{Options["Calculate_proportion"]=TRUE}}{Turns on internal calculation and SE for proportion of response within each category (e.g., for calculating proportion-at-age or species turnover)}
   \item{\code{Options["Calculate_Synchrony"]=TRUE}}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
   \item{\code{Options["report_additional_variables"]=TRUE}}{Export additional variables to \code{Report} object, to use for diagnostics or additional exploration}
-  \item{\code{Options["range_fraction"]}}{The decorrelation range when passing over land relative to over water; the default value \code{Options["range_fraction"]=0.2} indicates that the range is shorter over land, i.e., that correlations are strongest via water, while changing to \code{Options["range_fraction"]=5} would represent correlations transfer via land more than water}
-}}
+  \item{\code{Options["basin_method"]}}{Controls how the density-dependent index is generated from model variables.  Default \code{Options["basin_method"]=2}) uses annual mean of betas and epsilons as index.  Alternative \code{Options["basin_method"]=4}) uses a Lagrange multiplier to penalize index towards total abundance}
+  \item{\code{Options["range_fraction"]}}{The decorrelation range when passing over land relative to over water; the default value \code{Options["range_fraction"]=0.2} indicates that the range is shorter over land, i.e., that correlations are strongest via water, while changing to \code{Options["range_fraction"]=5} would represent correlations transfer via land more than water}#' }}
 
 \item{Expansion_cz}{matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.
 The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates,
 where density is weighted by area ("area-weighted expansion", \code{Expansion[c,1]=0}, the default),
 where density is weighted by the expanded value for another category ("abundance weighted expansion" \code{Expansion[c1,1]=1}),
-or the index is calculated as the weighted average of density weighted by the expanded value for another category
-("abundance weighted-average expansion" \code{Expansion[c1,1]=2}).  The 2nd column is only used when \code{Expansion[c1,1]=1} or \code{Expansion[c1,1]=2},
-and specifies the category to use for abundance-weighted expansion, where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.}
+the index is calculated as the weighted average of density weighted by the expanded value for another category
+("abundance weighted-average expansion" \code{Expansion[c1,1]=2}), or the area-weighted abundance is added to the expanded
+abundance for a prior category \code{Expansion[c1,1]=3}).
+The 2nd column is used when \code{Expansion[c1,1]=1} or \code{Expansion[c1,1]=2} or \code{Expansion[c1,1]=3},
+and specifies the category to use for abundance-weighted expansion/average/summation,
+where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.}
 
 \item{Z_gm}{matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics.
 Defaults to eastings and northings for each knots or extrapolation-grid cell.}

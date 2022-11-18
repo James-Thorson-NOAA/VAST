@@ -1,8 +1,8 @@
 Package: VAST
 Type: Package
 Title: Vector-Autoregressive Spatio-Temporal (VAST) Model
-Version: 3.9.1
-Date: 2022-07-07
+Version: 3.10.0
+Date: 2022-11-18
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -20,35 +20,34 @@ Description: VAST is an R package for conducting spatio-temporal analysis
     factor-analysis or autoregressive correlations among categories, with derived
     calculation of abundance indices, center-of-gravity, and area-occupied.
 Imports:
-    deldir,
-    stats,
-    devtools,
     abind,
-    MatrixModels,
-    ThorsonUtilities,
     effects,
     INLA,
-    SpatialDeltaGLMM
+    stats,
+    ThorsonUtilities,
+    utils,
+    remotes,
+    devtools
 Depends:
-    TMB,
-    R (>= 3.5.0),
+    TMB (>= 1.8.0),
+    FishStatsUtils,
+    R (>= 3.5.0)
 Suggests:
     testthat,
     knitr,
     rmarkdown,
-    FishStatsUtils,
     pscl,
     tweedie,
     mgcv,
     lme4
 Remotes:
     james-thorson-NOAA/FishStatsUtils,
-    james-thorson/utilities,
-    nwfsc-assess/geostatistical_delta-GLMM
+    james-thorson/utilities
+Additional_repositories: https://inla.r-inla-download.org/R/stable
 License: file LICENSE
 LazyData: true
 Encoding: UTF-8
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.2
 ByteCompile: true
 URL: http://github.com/James-Thorson-NOAA/VAST
 BugReports: http://github.com/James-Thorson-NOAA/VAST/issues

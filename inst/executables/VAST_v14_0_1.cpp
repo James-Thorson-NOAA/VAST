@@ -23,7 +23,10 @@ struct spde_barrier_t{
 // Function to calculate Q (precision) matrix using barrier-SPDE
 // Reused with permission from Olav Nikolai Breivik and Hans Skaug
 template<class Type>
-Eigen::SparseMatrix<Type> Q_spde(spde_barrier_t<Type> spde, Type kappa, vector<Type> c){
+Eigen::SparseMatrix<Type> Q_spde( spde_barrier_t<Type> spde,
+                                  Type kappa,
+                                  vector<Type> c){
+
   //using namespace Eigen;
   vector <Type> range(2);
   range(0) = sqrt(8.0)/kappa*c(0);
@@ -56,6 +59,7 @@ struct options_list {
   matrix<int> overlap_zz;
   matrix<Type> zerosum_penalty;
   vector<Type> trace_sum_penalty;
+  vector<int> simulate_t;
   options_list(SEXP x){ // Constructor
     Options_vec = asVector<int>(getListElement(x,"Options_vec"));
     Options = asVector<int>(getListElement(x,"Options"));
@@ -64,12 +68,18 @@ struct options_list {
     overlap_zz = asMatrix<int>(getListElement(x,"overlap_zz"));
     zerosum_penalty = asMatrix<Type>(getListElement(x,"zerosum_penalty"));
     trace_sum_penalty = asVector<Type>(getListElement(x,"trace_sum_penalty"));
+    simulate_t = asVector<int>(getListElement(x,"simulate_t"));
   }
 };
 
 // Needed for returning SparseMatrix for Ornstein-Uhlenbeck network correlations
 template<class Type>
-Eigen::SparseMatrix<Type> Q_network( Type log_theta, int n_s, vector<int> parent_s, vector<int> child_s, vector<Type> dist_s ){
+Eigen::SparseMatrix<Type> Q_network( Type log_theta,
+                                     int n_s,
+                                     vector<int> parent_s,
+                                     vector<int> child_s,
+                                     vector<Type> dist_s ){
+
   Eigen::SparseMatrix<Type> Q( n_s, n_s );
   Type theta = exp( log_theta );
   for(int s=0; s<n_s; s++){
@@ -94,7 +104,10 @@ bool isNA(Type x){
 
 // Posfun
 template<class Type>
-Type posfun(Type x, Type lowerlimit, Type &pen){
+Type posfun( Type x,
+             Type lowerlimit,
+             Type &pen){
+
   // Version 1: https://github.com/kaskr/adcomp/issues/7#issuecomment-67519437
   pen += CppAD::CondExpLt(x, lowerlimit, Type(0.01)*pow(x-lowerlimit,2.0), Type(0.0) );
   return CppAD::CondExpGe(x, lowerlimit, x, lowerlimit/(Type(2.0)-x/lowerlimit) );
@@ -132,7 +145,11 @@ Type sqrt(Type x){
 
 // dlnorm
 template<class Type>
-Type dlnorm(Type x, Type meanlog, Type sdlog, int give_log=0){
+Type dlnorm( Type x,
+             Type meanlog,
+             Type sdlog,
+             int give_log=0){
+
   //return 1/(sqrt(2*M_PI)*sd) * exp(-.5*pow((x-mean)/sd,2));
   Type logres = dnorm( log(x), meanlog, sdlog, true) - log(x);
   if(give_log) return logres; else return exp(logres);
@@ -140,7 +157,11 @@ Type dlnorm(Type x, Type meanlog, Type sdlog, int give_log=0){
 
 // dinverse_gaussian
 template<class Type>
-Type dinverse_gaussian(Type x, Type mean, Type cv, int give_log=0){
+Type dinverse_gaussian( Type x,
+                        Type mean,
+                        Type cv,
+                        int give_log=0){
+
   //return sqrt(lambda/(2*M_PI*pow(x,3))) * exp( -1.0 * lambda*pow(x-mean,2) / (2*pow(mean,2)*x) );
   Type sd = cv * mean;
   Type lambda = pow(mean,3.0) / pow(sd,2.0);
@@ -154,7 +175,12 @@ Type dinverse_gaussian(Type x, Type mean, Type cv, int give_log=0){
 // CV is a function of sigma and lambda and NOT mean (i.e., CV is fixed for all values of mean)
 // See: C:\Users\James.Thorson\Desktop\Work files\AFSC\2021-10 -- Generalized gamma-lognormal\Explore gengamma.R
 template<class Type>
-Type dgengamma(Type x, Type mean, Type sigma, Type lambda, int give_log=0){
+Type dgengamma( Type x,
+                Type mean,
+                Type sigma,
+                Type lambda,
+                int give_log=0){
+
   Type k = pow( lambda, -2 );
   Type Shape = pow( sigma, -1 ) * lambda;
   // Numerically unstable
@@ -174,9 +200,13 @@ Type dgengamma(Type x, Type mean, Type sigma, Type lambda, int give_log=0){
   // return stuff
   if(give_log) return logres; else return exp(logres);
 }
+
 // rgengamma
 template<class Type>
-Type rgengamma(Type mean, Type sigma, Type lambda){
+Type rgengamma( Type mean,
+                Type sigma,
+                Type lambda){
+
   // See: C:\Users\James.Thorson\Desktop\Work files\AFSC\2021-10 -- Generalized gamma-lognormal\Explore gengamma.R
   Type k = pow( lambda, -2 );
   Type Shape = pow( sigma, -1 ) * lambda;
@@ -189,7 +219,10 @@ Type rgengamma(Type mean, Type sigma, Type lambda){
 // Simulate from tweedie
 // Adapted from tweedie::rtweedie function in R
 template<class Type>
-Type rTweedie( Type mu, Type phi, Type power){
+Type rTweedie( Type mu,
+               Type phi,
+               Type power){
+
   Type lambda = pow(mu, Type(2.0) - power) / (phi * (Type(2.0) - power));
   Type alpha = (Type(2.0) - power) / (Type(1.0) - power);
   Type gam = phi * (power - Type(1.0)) * pow(mu, power - Type(1.0));
@@ -201,7 +234,10 @@ Type rTweedie( Type mu, Type phi, Type power){
 // Deviance for the Tweedie
 // https://en.wikipedia.org/wiki/Tweedie_distribution#Properties
 template<class Type>
-Type deviance_tweedie( Type y, Type mu, Type p ){
+Type deviance_tweedie( Type y,
+                       Type mu,
+                       Type p ){
+
   Type c1 = pow( y, 2.0-p ) / (1.0-p) / (2.0-p);
   Type c2 = y * pow( mu, 1.0-p ) / (1.0-p);
   Type c3 = pow( mu, 2.0-p ) / (2.0-p);
@@ -212,7 +248,13 @@ Type deviance_tweedie( Type y, Type mu, Type p ){
 // zerosum_penalty -- used for EOF indices when also estimating Omega (such that EOF is zero-centered index)
 // trace_sum_penalty -- used for sum of squared elements,
 template<class Type>
-matrix<Type> create_loadings_covariance( vector<Type> L_val, int n_rows, int n_cols, Type zerosum_penalty, Type trace_sum_penalty, Type &jnll_pointer ){
+matrix<Type> create_loadings_covariance( vector<Type> L_val,
+                                         int n_rows,
+                                         int n_cols,
+                                         Type zerosum_penalty,
+                                         Type trace_sum_penalty,
+                                         Type &jnll_pointer ){
+
   matrix<Type> L_rc(n_rows, n_cols);
   int Count = 0;
   for(int r=0; r<n_rows; r++){
@@ -261,7 +303,10 @@ matrix<Type> create_loadings_covariance( vector<Type> L_val, int n_rows, int n_c
 // Generate loadings matrix for correlation
 // https://mc-stan.org/docs/2_21/reference-manual/cholesky-factors-of-correlation-matrices-1.html
 template<class Type>
-matrix<Type> create_loadings_correlation( vector<Type> L_val, int n_rows, int n_cols ){
+matrix<Type> create_loadings_correlation( vector<Type> L_val,
+                                          int n_rows,
+                                          int n_cols ){
+
   matrix<Type> L_rc(n_rows, n_cols);
   matrix<Type> Z_rc(n_rows, n_cols);
   int Count = 0;
@@ -293,7 +338,10 @@ matrix<Type> create_loadings_correlation( vector<Type> L_val, int n_rows, int n_
 
 // Generate loadings matrix for stationary AR1 process, matching density::AR1()
 template<class Type>
-matrix<Type> create_loadings_AR1( Type rhoinput, Type ln_margsd, int n_rows ){
+matrix<Type> create_loadings_AR1( Type rhoinput,
+                                  Type ln_margsd,
+                                  int n_rows ){
+
   Type rho = 2.0*invlogit(rhoinput) - 1;
   Type margsd = exp( ln_margsd );
   matrix<Type> L_rc(n_rows, n_rows);
@@ -310,7 +358,13 @@ matrix<Type> create_loadings_AR1( Type rhoinput, Type ln_margsd, int n_rows ){
 
 // Create loadings matrix for general case,
 template<class Type>
-matrix<Type> create_loadings_general( vector<Type> L_val, int n_rows, int n_f, Type zerosum_penalty, Type trace_sum_penalty, Type &jnll_pointer ){
+matrix<Type> create_loadings_general( vector<Type> L_val,
+                                      int n_rows,
+                                      int n_f,
+                                      Type zerosum_penalty,
+                                      Type trace_sum_penalty,
+                                      Type &jnll_pointer ){
+
   if( n_f == -2 ){
     // IID
     matrix<Type> L_rc(n_rows, n_rows);
@@ -349,33 +403,41 @@ matrix<Type> create_loadings_general( vector<Type> L_val, int n_rows, int n_f, T
 // IN: eta1_vf; L1_z
 // OUT: jnll_comp; eta1_vc
 // eta_jf could be either eta_vf (for overdispersion) or eta_tf (for year effects)
-template<class Type>
-matrix<Type> covariation_by_category_nll( int n_f, int n_j, int n_c, matrix<Type> eta_jf, matrix<Type> eta_mean_jf,
-  matrix<Type> L_cf, int simulate_random_effects, Type &jnll_pointer, objective_function<Type>* of){
-
-  // Book-keeping
-  using namespace density;
-  matrix<Type> eta_jc(n_j, n_c);
-
-  // Calculate probability and/or simulate
-  if( (n_f != -1) & (n_f != -3) ){
-    for( int j=0; j<eta_jf.rows(); j++ ){
-    for( int f=0; f<eta_jf.cols(); f++ ){
-      jnll_pointer -= dnorm( eta_jf(j,f), eta_mean_jf(j,f), Type(1.0), true );
-      // Simulate new values when using obj.simulate()
-      if( simulate_random_effects==1 ){
-        if(isDouble<Type>::value && of->do_simulate){
-          eta_jf(j,f) = rnorm( eta_mean_jf(j,f), Type(1.0) );
-        }
-      }
-    }}
-  }
-
-  // Project using loadings matrix
-  eta_jc = eta_jf * L_cf.transpose();
-
-  return eta_jc;
-}
+//template<class Type>
+//matrix<Type> covariation_by_category_nll( int n_f,
+//                                          int n_j,
+//                                          int n_c,
+//                                          matrix<Type> eta_jf,
+//                                          matrix<Type> eta_mean_jf,
+//                                          matrix<Type> L_cf,
+//                                          vector<int> simulate_j,
+//                                          Type &jnll_pointer,
+//                                          objective_function<Type>* of){
+//
+//  // Book-keeping
+//  using namespace density;
+//  matrix<Type> eta_jc(n_j, n_c);
+//
+//  // Calculate probability and/or simulate
+//  if( (n_f != -1) & (n_f != -3) ){
+//    for( int j=0; j<eta_jf.rows(); j++ ){
+//    for( int f=0; f<eta_jf.cols(); f++ ){
+//      jnll_pointer -= dnorm( eta_jf(j,f), eta_mean_jf(j,f), Type(1.0), true );
+//      // Simulate new values when using obj.simulate()
+//      // Simulate if simulate_f is an integer OR if it is length n_t and >= 1
+//      if( ((simulate_j.size()==1) && (simulate_j(0)>=1)) | ((simulate_j.size()==n_j) && (simulate_j(j)>=1)) ){
+//        if(isDouble<Type>::value && of->do_simulate){
+//          eta_jf(j,f) = rnorm( eta_mean_jf(j,f), Type(1.0) );
+//        }
+//      }
+//    }}
+//  }
+//
+//  // Project using loadings matrix
+//  eta_jc = eta_jf * L_cf.transpose();
+//
+//  return eta_jc;
+//}
 
 template<class Type>                                                                                        //
 matrix<Type> convert_upper_cov_to_cor( matrix<Type> cov ){
@@ -389,7 +451,14 @@ matrix<Type> convert_upper_cov_to_cor( matrix<Type> cov ){
 
 // Input:  n_g, n_f, n_t, logical_flag, Ags_ij, Ags_x, Mat_sc
 template<class Type>                                                                                        //
-array<Type> project_knots( int n_g, int n_f, int n_t, int is_epsilon, array<Type> Mat_sft, matrix<int> A_ij, vector<Type> A_x ){
+array<Type> project_knots( int n_g,
+                           int n_f,
+                           int n_t,
+                           int is_epsilon,
+                           array<Type> Mat_sft,
+                           matrix<int> A_ij,
+                           vector<Type> A_x ){
+
   array<Type> Mat_gf(n_g, n_f);
   array<Type> Mat_gft(n_g, n_f, n_t);
   if( is_epsilon!=1 ) Mat_gf.setZero();
@@ -409,22 +478,33 @@ array<Type> project_knots( int n_g, int n_f, int n_t, int is_epsilon, array<Type
 // Input: L_omega1_z, Q1, Omegainput1_sf, n_f, n_s, n_c, FieldConfig(0,0)
 // Output: jnll_comp(0), Omega1_sc
 template<class Type>                                                                                        //
-matrix<Type> gmrf_by_category_nll( int n_f, bool include_probability, int method, int timing,
-  int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sf, array<Type> gmrf_mean_sf, matrix<Type> L_cf,
-  density::GMRF_t<Type> gmrf_Q, int simulate_random_effects, Type &jnll_pointer, objective_function<Type>* of){
+matrix<Type> gmrf_by_category_nll( int n_f,
+                                   bool include_probability,
+                                   Type logtau,
+                                   int timing,
+                                   int n_s,
+                                   int n_c,
+                                   Type logkappa,
+                                   array<Type> gmrf_input_sf,
+                                   array<Type> gmrf_mean_sf,
+                                   matrix<Type> L_cf,
+                                   density::GMRF_t<Type> gmrf_Q,
+                                   int simulate_random_effects,
+                                   Type &jnll_pointer,
+                                   objective_function<Type>* of){
 
   // Book-keeping
   using namespace density;
-  matrix<Type> gmrf_sc(n_s, n_c);
+  //matrix<Type> gmrf_sc(n_s, n_c);
   vector<Type> gmrf_s(n_s);
-  matrix<Type> Cov_cc(n_c,n_c);
-  array<Type> diff_gmrf_sc(n_s, n_c); // Requires an array
+  //matrix<Type> Cov_cc(n_c,n_c);
+  //array<Type> diff_gmrf_sc(n_s, n_c); // Requires an array
 
   // Deal with different treatments of tau
-  Type logtau;
-  if(method==0) logtau = log( 1.0 / (exp(logkappa) * sqrt(4.0*M_PI)) );
-  if(method==1) logtau = log( 1.0 / sqrt(1-exp(logkappa*2.0)) );
-  if( (method!=0) & (method!=1) ) logtau = Type(0.0);
+  //Type logtau;
+  //if(method==0) logtau = log( 1.0 / (exp(logkappa) * sqrt(4.0*M_PI)) );
+  //if(method==1) logtau = log( 1.0 / sqrt(1-exp(logkappa*2.0)) );
+  //if( (method!=0) & (method!=1) ) logtau = Type(0.0);
 
   // PDF if density-dependence/interactions occurs prior to correlated dynamics
   if( timing==0 ){
@@ -435,7 +515,7 @@ matrix<Type> gmrf_by_category_nll( int n_f, bool include_probability, int method
         jnll_pointer += gmrf_Q(gmrf_input_sf.col(f) - gmrf_mean_sf.col(f));
       }
       // Simulate new values when using obj.simulate()
-      if( simulate_random_effects==1 ){
+      if( simulate_random_effects>=1 ){
         if(isDouble<Type>::value && of->do_simulate) {
           for( int f=0; f<gmrf_input_sf.cols(); f++ ){
             gmrf_Q.simulate(gmrf_s);
@@ -446,39 +526,39 @@ matrix<Type> gmrf_by_category_nll( int n_f, bool include_probability, int method
     }
 
     // Make loadings matrix and project
-    if( gmrf_input_sf.cols() > 0 ){
-      gmrf_sc = (gmrf_input_sf.matrix() * L_cf.transpose()) / exp(logtau);
-    }else{
-      gmrf_sc.setZero();
-    }
+    //if( gmrf_input_sf.cols() > 0 ){
+    //  gmrf_sc = (gmrf_input_sf.matrix() * L_cf.transpose()) / exp(logtau);
+    //}else{
+    //  gmrf_sc.setZero();
+    //}
   }
 
   // PDF if density-dependence/interactions occurs after correlated dynamics (Only makes sense if n_f == n_c)
   // Note:  this won't easily work with spatially varying L_cf
-  if( timing==1 ){
+  //if( timing==1 ){
+  //
+  //  // Calculate difference without rescaling
+  //  gmrf_sc = gmrf_input_sf.matrix();
+  //  for( int s=0; s<n_s; s++){
+  //  for( int c=0; c<n_c; c++){
+  //    diff_gmrf_sc(s,c) = gmrf_sc(s,c) - gmrf_mean_sf(s,c);
+  //  }}
+  //
+  //  // Calculate likelihood
+  //  if( (include_probability == true) & (n_f != -1) & (n_f != -3) ){
+  //    Cov_cc = L_cf * L_cf.transpose();
+  //    jnll_pointer += SCALE(SEPARABLE(MVNORM(Cov_cc), gmrf_Q), exp(-logtau))( diff_gmrf_sc );
+  //    // Simulate new values when using obj.simulate()
+  //    if( simulate_random_effects>=1 ){
+  //      if(isDouble<Type>::value && of->do_simulate) {
+  //        SEPARABLE(MVNORM(Cov_cc), gmrf_Q).simulate( diff_gmrf_sc );
+  //        gmrf_sc = gmrf_mean_sf + diff_gmrf_sc * exp(-logtau);
+  //      }
+  //    }
+  //  }
+  //}
 
-    // Calculate difference without rescaling
-    gmrf_sc = gmrf_input_sf.matrix();
-    for( int s=0; s<n_s; s++){
-    for( int c=0; c<n_c; c++){
-      diff_gmrf_sc(s,c) = gmrf_sc(s,c) - gmrf_mean_sf(s,c);
-    }}
-
-    // Calculate likelihood
-    if( (include_probability == true) & (n_f != -1) & (n_f != -3) ){
-      Cov_cc = L_cf * L_cf.transpose();
-      jnll_pointer += SCALE(SEPARABLE(MVNORM(Cov_cc), gmrf_Q), exp(-logtau))( diff_gmrf_sc );
-      // Simulate new values when using obj.simulate()
-      if( simulate_random_effects==1 ){
-        if(isDouble<Type>::value && of->do_simulate) {
-          SEPARABLE(MVNORM(Cov_cc), gmrf_Q).simulate( diff_gmrf_sc );
-          gmrf_sc = gmrf_mean_sf + diff_gmrf_sc * exp(-logtau);
-        }
-      }
-    }
-  }
-
-  return gmrf_sc;
+  return gmrf_input_sf;
 }
 
 // Used to calculate GMRF PDF for initial condition given covariance Cov_cc
@@ -487,19 +567,30 @@ matrix<Type> gmrf_by_category_nll( int n_f, bool include_probability, int method
 // 2. Spatial Gompertz model conditions
 // 3. Timing = 1
 template<class Type>
-matrix<Type> gmrf_stationary_nll( int method, int n_s, int n_c, Type logkappa, array<Type> gmrf_input_sc, matrix<Type> Cov_cc, density::GMRF_t<Type> gmrf_Q, int simulate_random_effects, Type &jnll_pointer, objective_function<Type>* of){
+matrix<Type> gmrf_stationary_nll( Type logtau,
+                                  int n_s,
+                                  int n_c,
+                                  Type logkappa,
+                                  array<Type>
+                                  gmrf_input_sc,
+                                  matrix<Type> Cov_cc,
+                                  density::GMRF_t<Type> gmrf_Q,
+                                  int simulate_random_effects,
+                                  Type &jnll_pointer,
+                                  objective_function<Type>* of){
+
   using namespace density;
   array<Type> gmrf_sc(n_s, n_c);
-  Type logtau;
-  if(method==0) logtau = log( 1.0 / (exp(logkappa) * sqrt(4.0*M_PI)) );
-  if(method==1) logtau = log( 1.0 / sqrt(1-exp(logkappa*2.0)) );
-  if( (method!=0) & (method!=1) ) logtau = Type(0.0);
+  //Type logtau;
+  //if(method==0) logtau = log( 1.0 / (exp(logkappa) * sqrt(4.0*M_PI)) );
+  //if(method==1) logtau = log( 1.0 / sqrt(1-exp(logkappa*2.0)) );
+  //if( (method!=0) & (method!=1) ) logtau = Type(0.0);
   // PDF if density-dependence/interactions occurs after correlated dynamics (Only makes sense if n_f == n_c)
   gmrf_sc = gmrf_input_sc.matrix();
   // Calculate likelihood
   jnll_pointer += SCALE(SEPARABLE(MVNORM(Cov_cc), gmrf_Q), exp(-logtau))( gmrf_sc );
   // Simulate new values when using obj.simulate()
-  if( simulate_random_effects==1 ){
+  if( simulate_random_effects>=1 ){
     if(isDouble<Type>::value && of->do_simulate) {
       SEPARABLE(MVNORM(Cov_cc), gmrf_Q).simulate( gmrf_sc );
       gmrf_sc = gmrf_sc / exp(logtau);
@@ -510,7 +601,14 @@ matrix<Type> gmrf_stationary_nll( int method, int n_s, int n_c, Type logkappa, a
 
 // Calculate B_cc
 template<class Type>
-matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, matrix<Type> Psi_fr, Type &jnll_pointer ){
+matrix<Type> calculate_B( int method,
+                          int n_f,
+                          int n_r,
+                          matrix<Type>
+                          Chi_fr,
+                          matrix<Type> Psi_fr,
+                          Type &jnll_pointer ){
+
   matrix<Type> B_ff( n_f, n_f );
   matrix<Type> BplusI_ff( n_f, n_f );
   matrix<Type> Chi_rf = Chi_fr.transpose();
@@ -593,7 +691,10 @@ matrix<Type> calculate_B( int method, int n_f, int n_r, matrix<Type> Chi_fr, mat
 
 // Calculate variance of stationary distributino
 template<class Type>
-matrix<Type> stationary_variance( int n_c, matrix<Type> B_cc, matrix<Type> Cov_cc ){
+matrix<Type> stationary_variance( int n_c,
+                                  matrix<Type> B_cc,
+                                  matrix<Type> Cov_cc ){
+
   int n2_c = n_c*n_c;
   matrix<Type> Kronecker_c2c2(n2_c,n2_c);
   matrix<Type> InvDiff_c2c2(n2_c, n2_c);
@@ -618,7 +719,10 @@ matrix<Type> stationary_variance( int n_c, matrix<Type> B_cc, matrix<Type> Cov_c
 // Return a 2D slice from a 3D array
 // Importantly, this works even when middle dimension has length-0, which otherwise throws errors when doing input_zzz.col(0)
 template<class Type>
-array<Type> extract_2D_from_3D_array( array<Type> input_zzz, int along, int index ){
+array<Type> extract_2D_from_3D_array( array<Type> input_zzz,
+                                      int along,
+                                      int index ){
+
   int n_z1 = input_zzz.rows();
   int n_z3 = input_zzz.cols();
   int n_z2 = input_zzz.size() / (n_z1 * n_z3);
@@ -711,6 +815,8 @@ Type objective_function<Type>::operator() ()
     // Scalar (for now) indicating whether loadings matrices are not zero centered (value=0) or zero-centered, where the value is a penalty on squared-sum of loadings
   // Options_list.trace_sum_penalty
     // Scalar (for now) indicating whether loadings matrices have unconstrained magnitude (value=0) or have a sum-of-squares of 1.0 (value>0), where the value is a penalty on natural-log of sum-of-squared loadings values (i.e., trace of resulting covariance)
+  // Options_list.simulate_t
+    // Vector of length n_t indicating whether to include year in simulation ... useful for projecting forward conditional upon a fit
   DATA_IMATRIX(FieldConfig);  // Input settings (vector, length 4)
   DATA_IVECTOR(RhoConfig);
   DATA_IVECTOR(OverdispersionConfig);          // Input settings (vector, length 2)
@@ -866,7 +972,7 @@ Type objective_function<Type>::operator() ()
   int i,t,c,p,s,g,k;
 
   // Objective function
-  vector<Type> jnll_comp(21);
+  vector<Type> jnll_comp(22);
   // Slot 0 -- spatial, encounter
   // Slot 1 -- spatio-temporal, encounter
   // Slot 2 -- spatial, positive catch
@@ -888,6 +994,7 @@ Type objective_function<Type>::operator() ()
   // Slot 18 -- cdf aggregator for oneStepPredict_deltaModel
   // Slot 19 -- Penalty for loadings-matrix zero-centering
   // Slot 20 -- Penalty for Lagrange multipliers
+  // Slot 21 -- Epsilon method
   jnll_comp.setZero();
   Type jnll = 0;
   Type discard_nll = 0;
@@ -907,16 +1014,20 @@ Type objective_function<Type>::operator() ()
   zerosum_penalty = Options_list.zerosum_penalty;
   vector<Type> trace_sum_penalty( 1 );
   trace_sum_penalty = Options_list.trace_sum_penalty;
+  vector<int> simulate_t( n_t );
+  simulate_t = Options_list.simulate_t;
 
   // Derived parameters
   Type Range_raw1, Range_raw2;
   if( Options_vec(7)==0 ){
     Range_raw1 = sqrt(8.0) / exp( logkappa1 );   // Range = approx. distance @ 10% correlation; use 8.0 to avoid ambiguity about type
     Range_raw2 = sqrt(8.0) / exp( logkappa2 );     // Range = approx. distance @ 10% correlation; use 8.0 to avoid ambiguity about type
-  }
-  if( (Options_vec(7)==1) | (Options_vec(7)==2) ){
+  }else if( (Options_vec(7)==1) | (Options_vec(7)==2) ){
     Range_raw1 = log(0.1) / logkappa1;   // Range = approx. distance @ 10% correlation
     Range_raw2 = log(0.1) / logkappa2;     // Range = approx. distance @ 10% correlation
+  }else{
+    Range_raw1 = NAN;
+    Range_raw2 = NAN;
   }
   array<Type> SigmaM( n_e, 3 );
   array<Type> sigmaXi1_cp( n_c, n_p1 );
@@ -935,6 +1046,18 @@ Type objective_function<Type>::operator() ()
   H(1,0) = ln_H_input(1);
   H(0,1) = ln_H_input(1);
   H(1,1) = (1+ln_H_input(1)*ln_H_input(1)) / exp(ln_H_input(0));
+
+  // Deal with different treatments of tau
+  Type logtau1 = 0;
+  Type logtau2 = 0;
+  if( Options_vec(7)==0 ){
+    logtau1 = log( 1.0 / (exp(logkappa1) * sqrt(4.0*M_PI)) );
+    logtau2 = log( 1.0 / (exp(logkappa2) * sqrt(4.0*M_PI)) );
+  }
+  if( Options_vec(7)==1 ){
+    logtau1 = log( 1.0 / sqrt(1-exp(logkappa1*2.0)) );
+    logtau2 = log( 1.0 / sqrt(1-exp(logkappa2*2.0)) );
+  }
 
   // Dimensionality
   // Do not use Epsiloninput1_sff.col(0).cols() because .cols() does not return a matrix when middle dimension has length-0
@@ -1102,12 +1225,14 @@ Type objective_function<Type>::operator() ()
   // 1st component
   /////
   gmrf_Q = GMRF( Q1, bool(Options(9)) );
+  int simulate_var;
 
   // Omega1
   array<Type> Omegamean1_sf(n_s, Omegainput1_sf.cols() );
   Omegamean1_sf.setZero();
   array<Type> Omega1_sc(n_s, n_c);
-  Omega1_sc = gmrf_by_category_nll(FieldConfig(0,0), true, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_cf, gmrf_Q, Options(14), jnll_comp(0), this);
+  Omegainput1_sf = gmrf_by_category_nll(FieldConfig(0,0), true, logtau1, VamConfig(2), n_s, n_c, logkappa1, Omegainput1_sf, Omegamean1_sf, L_omega1_cf, gmrf_Q, Options(14), jnll_comp(0), this);
+  Omega1_sc = (Omegainput1_sf.matrix() * L_omega1_cf.transpose()) / exp(logtau1);
 
   // Projection for Omega1
   array<Type> Omega1_iz(n_i, c_iz.cols());
@@ -1122,22 +1247,9 @@ Type objective_function<Type>::operator() ()
   }}
 
   // Project Epsiloninput1_sff to Epsiloninput1_sft without dividing by exp(logtau)
-  //Type cumsum;
-  //if( Options(19) == 1 ){
-  //  // Impose sum-to-zero constraint, to force interannual variation to be mainly composed of betas and covariates
-  //  for( int f1=0; f1<n_f1; f1++ ){
-  //  for( int f2=0; f2<Epsiloninput1_sff.cols(); f2++ ){
-  //    cumsum = 0;
-  //    for( s=0; s<n_s; s++ ){
-  //      cumsum += Epsiloninput1_sff(s,f1,f2);
-  //    }
-  //    for( s=0; s<n_s; s++ ){
-  //      Epsiloninput1_sff(s,f1,f2) -= cumsum / n_s;
-  //    }
-  //  }}
-  //}
-  array<Type> Tmp_st( n_s, n_t );
+  //array<Type> Tmp_st( n_s, n_t );
   array<Type> Epsiloninput1_sft( n_s, n_f1, n_t );
+  Epsiloninput1_sft.setZero();
   bool include_epsilon_prob_1;
   if( FieldConfig(3,0) > 0 ){
     include_epsilon_prob_1 = false;
@@ -1147,11 +1259,12 @@ Type objective_function<Type>::operator() ()
     Zeros1_sf.setZero();
     for( int f1=0; f1<n_f1; f1++ ){
       Tmp1_sf = extract_2D_from_3D_array( Epsiloninput1_sff, 2, f1 );
-      Tmp_st = gmrf_by_category_nll(FieldConfig(3,0), true, int(2), int(0), n_s, n_t, logkappa1, Tmp1_sf, Zeros1_sf, Ltime_epsilon1_tf, gmrf_Q, Options(14), jnll_comp(1), this);
-      for( int f2=0; f2<n_t; f2++ ){
+      Tmp1_sf = gmrf_by_category_nll(FieldConfig(3,0), true, Type(0.0), int(0), n_s, n_t, logkappa1, Tmp1_sf, Zeros1_sf, Ltime_epsilon1_tf, gmrf_Q, int(0), jnll_comp(1), this);
+      for( t=0; t<n_t; t++ ){
       for( s=0; s<n_s; s++ ){
-        Epsiloninput1_sft(s,f1,f2) = Tmp_st(s,f2);
-      }}
+      for( int f2=0; f2<n_t1; f2++ ){
+        Epsiloninput1_sft(s,f1,t) += Tmp1_sf(s,f2) * Ltime_epsilon1_tf(t,f2);
+      }}}
     }
   }else{
     Epsiloninput1_sft = Epsiloninput1_sff;
@@ -1166,13 +1279,17 @@ Type objective_function<Type>::operator() ()
   for(t=0; t<n_t; t++){
     // PDF for B0 (not tied to autoregressive variation)
     if( (Options(11)==1) & (t==(Options(11)-1)) ){
-      Epsilon1_sct.col(t) = gmrf_stationary_nll( Options_vec(7), n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), covE1_cc, gmrf_Q, Options(14), jnll_comp(1), this);
+      Epsilon1_sct.col(t) = gmrf_stationary_nll( logtau1, n_s, n_c, logkappa1, Epsiloninput1_sft.col(t), covE1_cc, gmrf_Q, Options(14), jnll_comp(1), this);
     }
     // PDF for first year of autoregression
+    Temp1_sf = extract_2D_from_3D_array( Epsiloninput1_sft, int(3), t );
+    simulate_var = Options(14) + simulate_t(t);
     if( t==(Options(11)+0) ){
       Epsilonmean1_sf.setZero();
-      Temp1_sf = extract_2D_from_3D_array( Epsiloninput1_sft, int(3), t );
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), include_epsilon_prob_1, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Temp1_sf, Epsilonmean1_sf, L_epsilon1_cf, gmrf_Q, Options(14), jnll_comp(1), this);
+      if( n_f1 > 0 ){
+        Epsiloninput1_sft.col(t) = gmrf_by_category_nll(FieldConfig(1,0), include_epsilon_prob_1, logtau1, VamConfig(2), n_s, n_c, logkappa1, Temp1_sf, Epsilonmean1_sf, L_epsilon1_cf, gmrf_Q, simulate_var, jnll_comp(1), this);
+        Epsilon1_sct.col(t) = (Epsiloninput1_sft.col(t).matrix() * L_epsilon1_cf.transpose()) / exp(logtau1);
+      }
     }
     // PDF for subsequent years of autoregression
     if( t>=(Options(11)+1) ){
@@ -1184,25 +1301,27 @@ Type objective_function<Type>::operator() ()
         for(int f=0; f<n_f1; f++){
           Epsilonmean1_sf(s,f) = Epsilon_rho1_f(f) * Epsiloninput1_sft(s,f,t-1);
         }}
+        if( n_f1 > 0 ){
+          Epsiloninput1_sft.col(t) = gmrf_by_category_nll(FieldConfig(1,0), include_epsilon_prob_1, logtau1, VamConfig(2), n_s, n_c, logkappa1, Temp1_sf, Epsilonmean1_sf, L_epsilon1_cf, gmrf_Q, simulate_var, jnll_comp(1), this);
+          Epsilon1_sct.col(t) = (Epsiloninput1_sft.col(t).matrix() * L_epsilon1_cf.transpose()) / exp(logtau1);
+        }
       }else{
-        // Impact of interactions, B_ff
-        Epsilonmean1_sf.setZero();
-        for(s=0; s<n_s; s++){
-        for(int f1=0; f1<n_f1; f1++){
-        for(int f2=0; f2<n_f1; f2++){
-          if( VamConfig(2)==0 ){
-            Epsilonmean1_sf(s,f1) += B_ff(f1,f2) * Epsiloninput1_sft(s,f2,t-1);
-            if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1_f(f1) * Epsiloninput1_sft(s,f2,t-1);
-          }
-          if( VamConfig(2)==1 ){
-            Epsilonmean1_sf(s,f1) += B_ff(f1,f2) * Epsilon1_sct(s,f2,t-1);
-            if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1_f(f1) * Epsilon1_sct(s,f2,t-1);
-          }
-        }}}
+        //// Impact of interactions, B_ff
+        //Epsilonmean1_sf.setZero();
+        //for(s=0; s<n_s; s++){
+        //for(int f1=0; f1<n_f1; f1++){
+        //for(int f2=0; f2<n_f1; f2++){
+        //  if( VamConfig(2)==0 ){
+        //    Epsilonmean1_sf(s,f1) += B_ff(f1,f2) * Epsiloninput1_sft(s,f2,t-1);
+        //    if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1_f(f1) * Epsiloninput1_sft(s,f2,t-1);
+        //  }else{
+        //    Epsilonmean1_sf(s,f1) += B_ff(f1,f2) * Epsilon1_sct(s,f2,t-1);
+        //    if( f1==f2 ) Epsilonmean1_sf(s,f1) += Epsilon_rho1_f(f1) * Epsilon1_sct(s,f2,t-1);
+        //  }
+        //}}}
       }
       // Hyperdistribution for spatio-temporal component
-      Temp1_sf = extract_2D_from_3D_array( Epsiloninput1_sft, int(3), t );
-      Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), include_epsilon_prob_1, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Temp1_sf, Epsilonmean1_sf, L_epsilon1_cf, gmrf_Q, Options(14), jnll_comp(1), this);
+      //Epsilon1_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,0), include_epsilon_prob_1, Options_vec(7), VamConfig(2), n_s, n_c, logkappa1, Temp1_sf, Epsilonmean1_sf, L_epsilon1_cf, gmrf_Q, simulate_var, jnll_comp(1), this);
     }
   }
 
@@ -1227,12 +1346,14 @@ Type objective_function<Type>::operator() ()
     if( (X1config_cp(c,p)==2) | (X1config_cp(c,p)==3) | (X1config_cp(c,p)==4) ){
       Sigma_11(0,0) = sigmaXi1_cp(c,p);
       Tmp_s1.col(0) = Xiinput1_scp.col(p).col(c);
-      Xi1_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa1, Tmp_s1, Zeros_s1, Sigma_11, gmrf_Q, Options(14), jnll_comp(14), this);
+      Xi1_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, logtau1, VamConfig(2), n_s, int(1), logkappa1, Tmp_s1, Zeros_s1, Sigma_11, gmrf_Q, Options(14), jnll_comp(14), this);
+      Xi1_scp.col(p).col(c) = Xi1_scp.col(p).col(c) * sigmaXi1_cp(c,p) / exp(logtau1);
     }
     if( X1config_cp(c,p) == -1 ){
       Sigma_11(0,0) = sigmaXi1_cp(c,p);
       Tmp_s1.col(0) = Xiinput1_scp.col(p).col(c);
-      Xi1_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa1, Tmp_s1, Zeros_s1, Sigma_11, gmrf_Q, Options(14), discard_nll, this);
+      Xi1_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, logtau1, VamConfig(2), n_s, int(1), logkappa1, Tmp_s1, Zeros_s1, Sigma_11, gmrf_Q, Options(14), discard_nll, this);
+      Xi1_scp.col(p).col(c) = Xi1_scp.col(p).col(c) * sigmaXi1_cp(c,p) / exp(logtau1);
     }
   }}
 
@@ -1257,7 +1378,8 @@ Type objective_function<Type>::operator() ()
     if( (Q1config_k(k)==2) | (Q1config_k(k)==3) ){
       Sigma_11(0,0) = sigmaPhi1_k(k);
       Tmp_s1.col(0) = Phiinput1_sk.col(k);
-      Phi1_sk.col(k) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa1, Tmp_s1, Zeros_s1, Sigma_11, gmrf_Q, Options(14), jnll_comp(16), this);
+      Phi1_sk.col(k) = gmrf_by_category_nll( int(-2), true, logtau1, VamConfig(2), n_s, int(1), logkappa1, Tmp_s1, Zeros_s1, Sigma_11, gmrf_Q, Options(14), jnll_comp(16), this);
+      Phi1_sk.col(k) = Phi1_sk.col(k) * sigmaPhi1_k(k) / exp(logtau1);
     }
   }
 
@@ -1280,7 +1402,8 @@ Type objective_function<Type>::operator() ()
   array<Type> Omegamean2_sf(n_s, Omegainput2_sf.cols() );
   Omegamean2_sf.setZero();
   array<Type> Omega2_sc(n_s, n_c);
-  Omega2_sc = gmrf_by_category_nll(FieldConfig(0,1), true, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_cf, gmrf_Q, Options(14), jnll_comp(2), this);
+  Omegainput2_sf = gmrf_by_category_nll(FieldConfig(0,1), true, logtau2, VamConfig(2), n_s, n_c, logkappa2, Omegainput2_sf, Omegamean2_sf, L_omega2_cf, gmrf_Q, Options(14), jnll_comp(2), this);
+  Omega2_sc = (Omegainput2_sf.matrix() * L_omega2_cf.transpose()) / exp(logtau2);
 
   // Projection for Omega2
   array<Type> Omega2_iz(n_i, c_iz.cols());
@@ -1295,20 +1418,8 @@ Type objective_function<Type>::operator() ()
   }}
 
   // Project Epsiloninput2_sff to Epsiloninput2_sft without dividing by exp(logtau)
-  //if( Options(19) == 1 ){
-  //  // Impose sum-to-zero constraint, to force interannual variation to be mainly composed of betas and covariates
-  //  for( int f1=0; f1<n_f2; f1++ ){
-  //  for( int f2=0; f2<Epsiloninput2_sff.cols(); f2++ ){
-  //    cumsum = 0;
-  //    for( s=0; s<n_s; s++ ){
-  //      cumsum += Epsiloninput2_sff(s,f1,f2);
-  //    }
-  //    for( s=0; s<n_s; s++ ){
-  //      Epsiloninput2_sff(s,f1,f2) -= cumsum / n_s;
-  //    }
-  //  }}
-  //}
   array<Type> Epsiloninput2_sft( n_s, n_f2, n_t );
+  Epsiloninput2_sft.setZero();
   bool include_epsilon_prob_2;
   if( FieldConfig(3,1) > 0 ){
     include_epsilon_prob_2 = false;
@@ -1318,11 +1429,12 @@ Type objective_function<Type>::operator() ()
     Zeros2_sf.setZero();
     for( int f1=0; f1<n_f2; f1++ ){
       Tmp2_sf = extract_2D_from_3D_array( Epsiloninput2_sff, 2, f1 );
-      Tmp_st = gmrf_by_category_nll(FieldConfig(3,1), true, int(2), int(0), n_s, n_t, logkappa2, Tmp2_sf, Zeros2_sf, Ltime_epsilon2_tf, gmrf_Q, Options(14), jnll_comp(3), this);
-      for( int f2=0; f2<n_t; f2++ ){
+      Tmp2_sf = gmrf_by_category_nll(FieldConfig(3,1), true, Type(0.0), int(0), n_s, n_t, logkappa2, Tmp2_sf, Zeros2_sf, Ltime_epsilon2_tf, gmrf_Q, int(0), jnll_comp(3), this);
+      for( t=0; t<n_t; t++ ){
       for( s=0; s<n_s; s++ ){
-        Epsiloninput2_sft(s,f1,f2) = Tmp_st(s,f2);
-      }}
+      for( int f2=0; f2<n_t2; f2++ ){
+        Epsiloninput2_sft(s,f1,t) += Tmp2_sf(s,f2) * Ltime_epsilon2_tf(t,f2);
+      }}}
     }
   }else{
     Epsiloninput2_sft = Epsiloninput2_sff;
@@ -1337,13 +1449,17 @@ Type objective_function<Type>::operator() ()
   for(t=0; t<n_t; t++){
     // PDF for B0 (not tied to autoregressive variation)
     if( (Options(11)==1) & (t==(Options(11)-1)) ){
-      Epsilon2_sct.col(t) = gmrf_stationary_nll( Options_vec(7), n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), covE2_cc, gmrf_Q, Options(14), jnll_comp(3), this);
+      Epsilon2_sct.col(t) = gmrf_stationary_nll( logtau2, n_s, n_c, logkappa2, Epsiloninput2_sft.col(t), covE2_cc, gmrf_Q, Options(14), jnll_comp(3), this);
     }
     // PDF for first year of autoregression
+    Temp2_sf = extract_2D_from_3D_array( Epsiloninput2_sft, int(3), t );
+    simulate_var = Options(14) + simulate_t(t);
     if( t==(Options(11)+0) ){
       Epsilonmean2_sf.setZero();
-      Temp2_sf = extract_2D_from_3D_array( Epsiloninput2_sft, int(3), t );
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), include_epsilon_prob_2, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Temp2_sf, Epsilonmean2_sf, L_epsilon2_cf, gmrf_Q, Options(14), jnll_comp(3), this);
+      if( n_f2 > 0 ){
+        Epsiloninput2_sft.col(t) = gmrf_by_category_nll(FieldConfig(1,1), include_epsilon_prob_2, logtau2, VamConfig(2), n_s, n_c, logkappa2, Temp2_sf, Epsilonmean2_sf, L_epsilon2_cf, gmrf_Q, simulate_var, jnll_comp(3), this);
+        Epsilon2_sct.col(t) = (Epsiloninput2_sft.col(t).matrix() * L_epsilon2_cf.transpose()) / exp(logtau2);
+      }
     }
     // PDF for subsequent years of autoregression
     if( t>=(Options(11)+1) ){
@@ -1355,25 +1471,28 @@ Type objective_function<Type>::operator() ()
         for(int f=0; f<n_f2; f++){
           Epsilonmean2_sf(s,f) = Epsilon_rho2_f(f) * Epsiloninput2_sft(s,f,t-1);   // WORKS
         }}
+        if( n_f2 > 0 ){
+          Epsiloninput2_sft.col(t) = gmrf_by_category_nll(FieldConfig(1,1), include_epsilon_prob_2, logtau2, VamConfig(2), n_s, n_c, logkappa2, Temp2_sf, Epsilonmean2_sf, L_epsilon2_cf, gmrf_Q, simulate_var, jnll_comp(3), this);
+          Epsilon2_sct.col(t) = (Epsiloninput2_sft.col(t).matrix() * L_epsilon2_cf.transpose()) / exp(logtau2);
+        }
       }else{
-        // Impact of interactions, B_ff
-        Epsilonmean2_sf.setZero();
-        for(s=0; s<n_s; s++){
-        for(int f1=0; f1<n_f2; f1++){
-        for(int f2=0; f2<n_f2; f2++){
-          if( VamConfig(2)==0 ){
-            Epsilonmean2_sf(s,f1) += B_ff(f1,f2) * Epsiloninput2_sft(s,f2,t-1);
-            if( f1==f2 ) Epsilonmean2_sf(s,f1) += Epsilon_rho2_f(f1) * Epsiloninput2_sft(s,f2,t-1);
-          }
-          if( VamConfig(2)==1 ){
-            Epsilonmean2_sf(s,f1) += B_ff(f1,f2) * Epsilon2_sct(s,f2,t-1);
-            if( f1==f2 ) Epsilonmean2_sf(s,f1) += Epsilon_rho2_f(f1) * Epsilon2_sct(s,f2,t-1);
-          }
-        }}}
+        //// Impact of interactions, B_ff
+        //Epsilonmean2_sf.setZero();
+        //for(s=0; s<n_s; s++){
+        //for(int f1=0; f1<n_f2; f1++){
+        //for(int f2=0; f2<n_f2; f2++){
+        //  if( VamConfig(2)==0 ){
+        //    Epsilonmean2_sf(s,f1) += B_ff(f1,f2) * Epsiloninput2_sft(s,f2,t-1);
+        //    if( f1==f2 ) Epsilonmean2_sf(s,f1) += Epsilon_rho2_f(f1) * Epsiloninput2_sft(s,f2,t-1);
+        //  }
+        //  if( VamConfig(2)==1 ){
+        //    Epsilonmean2_sf(s,f1) += B_ff(f1,f2) * Epsilon2_sct(s,f2,t-1);
+        //    if( f1==f2 ) Epsilonmean2_sf(s,f1) += Epsilon_rho2_f(f1) * Epsilon2_sct(s,f2,t-1);
+        //  }
+        //}}}
       }
       // Hyperdistribution for spatio-temporal component
-      Temp2_sf = extract_2D_from_3D_array( Epsiloninput2_sft, int(3), t );
-      Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), include_epsilon_prob_2, Options_vec(7), VamConfig(2), n_s, n_c, logkappa2, Temp2_sf, Epsilonmean2_sf, L_epsilon2_cf, gmrf_Q, Options(14), jnll_comp(3), this);
+      //Epsilon2_sct.col(t) = gmrf_by_category_nll(FieldConfig(1,1), include_epsilon_prob_2, logtau2, VamConfig(2), n_s, n_c, logkappa2, Temp2_sf, Epsilonmean2_sf, L_epsilon2_cf, gmrf_Q, simulate_var, jnll_comp(3), this);
     }
   }
 
@@ -1402,12 +1521,14 @@ Type objective_function<Type>::operator() ()
     if( (X2config_cp(c,p)==2) | (X2config_cp(c,p)==3) | (X2config_cp(c,p)==4) ){
       Tmp2_sc.col(0) = Xiinput2_scp.col(p).col(c);
       Sigma2_cf(0,0) = sigmaXi2_cp(c,p);
-      Xi2_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa2, Tmp2_sc, Ximean2_sc, Sigma2_cf, gmrf_Q, Options(14), jnll_comp(15), this);
+      Xi2_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, logtau2, VamConfig(2), n_s, int(1), logkappa2, Tmp2_sc, Ximean2_sc, Sigma2_cf, gmrf_Q, Options(14), jnll_comp(15), this);
+      Xi2_scp.col(p).col(c) = Xi2_scp.col(p).col(c) * sigmaXi2_cp(c,p) / exp(logtau2);
     }
     if( X2config_cp(c,p) == -1 ){
       Tmp2_sc.col(0) = Xiinput2_scp.col(p).col(c);
       Sigma2_cf(0,0) = sigmaXi2_cp(c,p);
-      Xi2_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa2, Tmp2_sc, Ximean2_sc, Sigma2_cf, gmrf_Q, Options(14), discard_nll, this);
+      Xi2_scp.col(p).col(c) = gmrf_by_category_nll( int(-2), true, logtau2, VamConfig(2), n_s, int(1), logkappa2, Tmp2_sc, Ximean2_sc, Sigma2_cf, gmrf_Q, Options(14), discard_nll, this);
+      Xi2_scp.col(p).col(c) = Xi2_scp.col(p).col(c) * sigmaXi2_cp(c,p) / exp(logtau2);
     }
   }}
 
@@ -1432,7 +1553,8 @@ Type objective_function<Type>::operator() ()
     if( (Q2config_k(k)==2) | (Q2config_k(k)==3) ){
       Sigma_11(0,0) = sigmaPhi2_k(k);
       Tmp_s1.col(0) = Phiinput2_sk.col(k);
-      Phi2_sk.col(k) = gmrf_by_category_nll( int(-2), true, Options_vec(7), VamConfig(2), n_s, int(1), logkappa2, Tmp_s1, Zeros_s1, Sigma_11, gmrf_Q, Options(14), jnll_comp(17), this);
+      Phi2_sk.col(k) = gmrf_by_category_nll( int(-2), true, logtau2, VamConfig(2), n_s, int(1), logkappa2, Tmp_s1, Zeros_s1, Sigma_11, gmrf_Q, Options(14), jnll_comp(17), this);
+      Phi2_sk.col(k) = Phi2_sk.col(k) * sigmaPhi2_k(k) / exp(logtau2);
     }
   }
 
@@ -1463,17 +1585,44 @@ Type objective_function<Type>::operator() ()
   // 1st component
   int n_eta_f1;
   n_eta_f1 = eta1_vf.cols();
-  matrix<Type> eta1_mean_vf(n_v, n_eta_f1);
-  eta1_mean_vf.setZero();
+//  matrix<Type> eta1_mean_vf(n_v, n_eta_f1);
+//  eta1_mean_vf.setZero();
   matrix<Type> eta1_vc(n_v, n_c);
-  eta1_vc = covariation_by_category_nll( OverdispersionConfig(0), n_v, n_c, eta1_vf, eta1_mean_vf, L_eta1_cf, Options(14), jnll_comp(4), this );
+  //eta1_vc = covariation_by_category_nll( OverdispersionConfig(0), n_v, n_c, eta1_vf, eta1_mean_vf, L_eta1_cf, Options(14), jnll_comp(4), this );
+  if( (OverdispersionConfig(0) != -1) & (OverdispersionConfig(0) != -3) ){
+    for( int v=0; v<eta1_vf.rows(); v++ ){
+    for( int f=0; f<eta1_vf.cols(); f++ ){
+      jnll_comp(4) -= dnorm( eta1_vf(v,f), Type(0.0), Type(1.0), true );
+      // Simulate new values when using obj.simulate()
+      if( Options(14) == 1 ){
+        SIMULATE{
+          eta1_vf(v,f) = rnorm( Type(0.0), Type(1.0) );
+        }
+      }
+    }}
+  }
+  eta1_vc = eta1_vf * L_eta1_cf.transpose();
+
   // 1st component
   int n_eta_f2;
   n_eta_f2 = eta2_vf.cols();
-  matrix<Type> eta2_mean_vf(n_v, n_eta_f2);
-  eta2_mean_vf.setZero();
+//  matrix<Type> eta2_mean_vf(n_v, n_eta_f2);
+//  eta2_mean_vf.setZero();
   matrix<Type> eta2_vc(n_v, n_c);
-  eta2_vc = covariation_by_category_nll( OverdispersionConfig(1), n_v, n_c, eta2_vf, eta2_mean_vf, L_eta2_cf, Options(14), jnll_comp(5), this );
+  //eta2_vc = covariation_by_category_nll( OverdispersionConfig(1), n_v, n_c, eta2_vf, eta2_mean_vf, L_eta2_cf, Options(14), jnll_comp(5), this );
+  if( (OverdispersionConfig(1) != -1) & (OverdispersionConfig(1) != -3) ){
+    for( int v=0; v<eta2_vf.rows(); v++ ){
+    for( int f=0; f<eta2_vf.cols(); f++ ){
+      jnll_comp(5) -= dnorm( eta2_vf(v,f), Type(0.0), Type(1.0), true );
+      // Simulate new values when using obj.simulate()
+      if( Options(14) == 1 ){
+        SIMULATE{
+          eta2_vf(v,f) = rnorm( Type(0.0), Type(1.0) );
+        }
+      }
+    }}
+  }
+  eta2_vc = eta2_vf * L_eta2_cf.transpose();
 
   ////// Probability of correlated innovations on intercepts
   // 1st component
@@ -1481,16 +1630,35 @@ Type objective_function<Type>::operator() ()
   int n_beta_f1;
   n_beta_f1 = beta1_ft.rows();
   matrix<Type> beta1_mean_tf(n_t, n_beta_f1);
+  beta1_mean_tf.setZero();
   matrix<Type> beta1_tf( n_t, n_beta_f1 );
   beta1_tf = beta1_ft.transpose();
-  for( int f=0; f<n_beta_f1; f++ ){
-    beta1_mean_tf(0,f) = Type(0.0);
-    for( t=1; t<n_t; t++ ){
-      beta1_mean_tf(t,f) = beta1_tf(t-1,f) * Beta_rho1_f(f);
-    }
+  //for( int f=0; f<n_beta_f1; f++ ){
+  //  beta1_mean_tf(0,f) = Type(0.0);
+  //  for( t=1; t<n_t; t++ ){
+  //    beta1_mean_tf(t,f) = beta1_tf(t-1,f) * Beta_rho1_f(f);
+  //  }
+  //}
+  if( (FieldConfig(2,0) != -1) & (FieldConfig(2,0) != -3) ){
+    for( int t=0; t<beta1_tf.rows(); t++ ){
+    for( int f=0; f<beta1_tf.cols(); f++ ){
+      if(t>=1){
+        beta1_mean_tf(t,f) = beta1_tf(t-1,f) * Beta_rho1_f(f);
+      }
+      jnll_beta1 -= dnorm( beta1_tf(t,f), beta1_mean_tf(t,f), Type(1.0), true );
+      // Simulate new values when using obj.simulate()
+      if( (Options(14) == 1) | (simulate_t(t) == 1) ){
+        SIMULATE{
+          beta1_tf(t,f) = rnorm( beta1_mean_tf(t,f), Type(1.0) );
+        }
+      }
+    }}
   }
   matrix<Type> beta1_tc(n_t, n_c);
-  beta1_tc = covariation_by_category_nll( FieldConfig(2,0), n_t, n_c, beta1_tf, beta1_mean_tf, L_beta1_cf, Options(14), jnll_beta1, this );
+  //vector<int> simulate_vec( n_t );
+  //simulate_vec = Options(14) + simulate_t;                                                          //
+  //beta1_tc = covariation_by_category_nll( FieldConfig(2,0), n_t, n_c, beta1_tf, beta1_mean_tf, L_beta1_cf, simulate_vec, jnll_beta1, this );
+  beta1_tc = beta1_tf * L_beta1_cf.transpose();
   for( c=0; c<n_c; c++ ){
   for( t=0; t<n_t; t++ ){
     beta1_tc(t,c) += Beta_mean1_c(c) + Beta_mean1_t(t);
@@ -1498,22 +1666,40 @@ Type objective_function<Type>::operator() ()
   if( (RhoConfig(0)==1) | (RhoConfig(0)==2) | (RhoConfig(0)==4) | (RhoConfig(0)==5) ){
     jnll_comp(8) = jnll_beta1;
   }
+  //REPORT( simulate_vec );
 
   // 2nd component
   Type jnll_beta2 = 0;
   int n_beta_f2;
   n_beta_f2 = beta2_ft.rows();
   matrix<Type> beta2_mean_tf(n_t, n_beta_f2);
+  beta2_mean_tf.setZero();
   matrix<Type> beta2_tf( n_t, n_beta_f2 );
   beta2_tf = beta2_ft.transpose();
-  for( int f=0; f<n_beta_f2; f++ ){
-    beta2_mean_tf(0,f) = Type(0.0);
-    for( t=1; t<n_t; t++ ){
-      beta2_mean_tf(t,f) = beta2_tf(t-1,f) * Beta_rho2_f(f);
-    }
+  //for( int f=0; f<n_beta_f2; f++ ){
+  //  beta2_mean_tf(0,f) = Type(0.0);
+  //  for( t=1; t<n_t; t++ ){
+  //    beta2_mean_tf(t,f) = beta2_tf(t-1,f) * Beta_rho2_f(f);
+  //  }
+  //}
+  if( (FieldConfig(2,1) != -1) & (FieldConfig(2,1) != -3) ){
+    for( int t=0; t<beta2_tf.rows(); t++ ){
+    for( int f=0; f<beta2_tf.cols(); f++ ){
+      if(t>=1){
+        beta2_mean_tf(t,f) = beta2_tf(t-1,f) * Beta_rho2_f(f);
+      }
+      jnll_beta2 -= dnorm( beta2_tf(t,f), beta2_mean_tf(t,f), Type(1.0), true );
+      // Simulate new values when using obj.simulate()
+      if( (Options(14) == 1) | (simulate_t(t) == 1) ){
+        SIMULATE{
+          beta2_tf(t,f) = rnorm( beta2_mean_tf(t,f), Type(1.0) );
+        }
+      }
+    }}
   }
   matrix<Type> beta2_tc(n_t, n_c);
-  beta2_tc = covariation_by_category_nll( FieldConfig(2,1), n_t, n_c, beta2_tf, beta2_mean_tf, L_beta2_cf, Options(14), jnll_beta2, this );
+  //beta2_tc = covariation_by_category_nll( FieldConfig(2,1), n_t, n_c, beta2_tf, beta2_mean_tf, L_beta2_cf, simulate_vec, jnll_beta2, this );
+  beta2_tc = beta2_tf * L_beta2_cf.transpose();
   for( c=0; c<n_c; c++ ){
   for( t=0; t<n_t; t++ ){
     beta2_tc(t,c) += Beta_mean2_c(c) + Beta_mean2_t(t);
@@ -1685,12 +1871,21 @@ Type objective_function<Type>::operator() ()
   // Likelihood contribution from observations
   Type logsd;
   for(i=0; i<n_i; i++){
-    if( !isNA(b_i(i)) ){
+    if( isNA(b_i(i)) ){
+      // Initialize as NAN
+      R1_i(i) = NAN;
+      R2_i(i) = NAN;
+    }else{
       // Linear predictors
       for( int zc=0; zc<c_iz.cols(); zc++ ){
         if( (c_iz(i,zc)>=0) & (c_iz(i,zc)<n_c) ){
-          P1_iz(i,zc) = Omega1_iz(i,zc) + zeta1_i(i) + eta1_vc(v_i(i),c_iz(i,zc)) + beta1_tc(t_i(i),c_iz(i,zc)) + Epsilon1_iz(i,zc) + eta1_iz(i,zc) + iota_ct(c_iz(i,zc),t_i(i));
-          P2_iz(i,zc) = Omega2_iz(i,zc) + zeta2_i(i) + eta2_vc(v_i(i),c_iz(i,zc)) + beta2_tc(t_i(i),c_iz(i,zc)) + Epsilon2_iz(i,zc) + eta2_iz(i,zc);
+          P1_iz(i,zc) = Omega1_iz(i,zc) + zeta1_i(i) + beta1_tc(t_i(i),c_iz(i,zc)) + Epsilon1_iz(i,zc) + eta1_iz(i,zc) + iota_ct(c_iz(i,zc),t_i(i));
+          P2_iz(i,zc) = Omega2_iz(i,zc) + zeta2_i(i) + beta2_tc(t_i(i),c_iz(i,zc)) + Epsilon2_iz(i,zc) + eta2_iz(i,zc);
+          // isNA doesn't work for IVECTOR so check within bounds instead
+          if( (v_i(i)>=0) & (v_i(i)<n_v) ){    // (!isNA(v_i(i))) & 
+            P1_iz(i,zc) += eta1_vc(v_i(i),c_iz(i,zc));
+            P2_iz(i,zc) += eta2_vc(v_i(i),c_iz(i,zc));
+          }
         }
       }
       // Apply inverse-link function to calculate responses
@@ -2059,6 +2254,8 @@ Type objective_function<Type>::operator() ()
       // Calculate linear predictors
       P1_gct(g,c,t) = Omega1_gc(g,c) + beta1_tc(t,c) + Epsilon1_gct(g,c,t) + eta1_gct(g,c,t) + iota_ct(c,t);
       P2_gct(g,c,t) = Omega2_gc(g,c) + beta2_tc(t,c) + Epsilon2_gct(g,c,t) + eta2_gct(g,c,t);
+      //P1_gct(g,c,t) = newton::Tag( P1_gct(g,c,t) );
+      //P2_gct(g,c,t) = newton::Tag( P2_gct(g,c,t) );
       // Calculate predictors in link-space
       if( (ObsModel_ez(c,1)==0) | (ObsModel_ez(c,1)==3) ){
         R1_gct(g,c,t) = invlogit( P1_gct(g,c,t) );
@@ -2075,9 +2272,11 @@ Type objective_function<Type>::operator() ()
         R2_gct(g,c,t) = exp( P2_gct(g,c,t) );
         D_gct(g,c,t) = R1_gct(g,c,t) * R2_gct(g,c,t);
       }
+      //D_gct(g,c,t) = newton::Tag( D_gct(g,c,t) );
     }}}
 
     // Calculate indices
+    // g-loop must be inside Expansion_cz logic check because Expansion_cz(c,0)==2 depends on full sweep across g for prior categories
     array<Type> Index_gctl(n_g, n_c, n_t, n_l);
     array<Type> Index_ctl(n_c, n_t, n_l);
     array<Type> ln_Index_ctl(n_c, n_t, n_l);
@@ -2085,33 +2284,50 @@ Type objective_function<Type>::operator() ()
     for(t=0; t<n_t; t++){
     for(int l=0; l<n_l; l++){
       for(c=0; c<n_c; c++){
+        // Area-weighted expansion
         if( Expansion_cz(c,0)==0 ){
           for(g=0; g<n_g; g++){
             Index_gctl(g,c,t,l) = D_gct(g,c,t) * a_gl(g,l);
             Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
           }
         }
-      }
-      // Expand by biomass for another category
-      for(c=0; c<n_c; c++){
+        // Expand by biomass for another category
         if( Expansion_cz(c,0)==1 ){
           for(g=0; g<n_g; g++){
             Index_gctl(g,c,t,l) = D_gct(g,c,t) * Index_gctl(g,Expansion_cz(c,1),t,l);
             Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
           }
         }
-      }
-      // Expand as weighted-average of biomass for another category
-      for(c=0; c<n_c; c++){
+        // Expand as weighted-average of biomass for another category
         if( Expansion_cz(c,0)==2 ){
           for(g=0; g<n_g; g++){
             Index_gctl(g,c,t,l) = D_gct(g,c,t) * Index_gctl(g,Expansion_cz(c,1),t,l) / Index_ctl(Expansion_cz(c,1),t,l);
             Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
           }
         }
+        // Add to another category, e.g., to get a running sum across categories
+        if( Expansion_cz(c,0)==3 ){
+          for(g=0; g<n_g; g++){
+            Index_gctl(g,c,t,l) = D_gct(g,c,t) * a_gl(g,l) + Index_gctl(g,Expansion_cz(c,1),t,l);
+            Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
+          }
+        }
       }
     }}
     ln_Index_ctl = log( Index_ctl );
+
+    // Low-rank sparse hessian bias-correction
+    PARAMETER_ARRAY( eps_Index_ctl )
+    if (eps_Index_ctl.size() > 0) {
+      Type S;
+      for(c=0; c<n_c; c++){
+      for(int t=0; t<n_t; t++){
+      for(int l=0; l<n_l; l++){                 // .col(0).cols()
+        //S = newton::Tag( Index_ctl(c,t,l) ); // Set lowrank tag on S = sum(exp(x))
+        S = Index_ctl(c,t,l); // Set lowrank tag on S = sum(exp(x))
+        jnll_comp(21) += eps_Index_ctl(c,t,l) * S;
+      }}}
+    }
 
     // Incorporate Lagrange multiplier for density dependence
     if( Options(19) == 4 ){
@@ -2561,16 +2777,17 @@ Type objective_function<Type>::operator() ()
   // Diagnostic outputs
   ////////////////////////
 
-  vector<Type> D_i( n_i );
-  D_i = R1_i * R2_i;   // Used in DHARMa residual plotting
-  Type deviance = sum(deviance1_i) + sum(deviance2_i);
+  // Joint likelihood
+  jnll = jnll_comp.sum();
 
   /// Important outputs
+  Type deviance = sum(deviance1_i) + sum(deviance2_i);
+  REPORT( deviance );
   //REPORT( B_ff );
   REPORT( SigmaM );
   REPORT( jnll );
   REPORT( jnll_comp );
-  REPORT( deviance );
+  REPORT( pred_jnll );
 
   // Quantities derived from random effects and used for plotting
   REPORT( eta1_vc );
@@ -2594,11 +2811,16 @@ Type objective_function<Type>::operator() ()
   REPORT( Epsiloninput2_sft );
 
   // Predictors
+  vector<Type> D_i( n_i );
+  D_i = R1_i * R2_i;   // used in DHARMa residual plotting
   REPORT( D_i );
   REPORT( P1_iz );
   REPORT( P2_iz );
   REPORT( R1_i );
   REPORT( R2_i );
+  if( Options(3)==1 ){
+    ADREPORT( D_i );
+  }
 
   // Loadings matrices
   REPORT( L_omega1_cf );
@@ -2614,13 +2836,13 @@ Type objective_function<Type>::operator() ()
   REPORT( H );
   REPORT( Range_raw1 );
   REPORT( Range_raw2 );
-  ADREPORT( Range_raw1 );
-  ADREPORT( Range_raw2 );
 
   /// Optional diagnostic outputs
   if( Options(16) == true ){
     REPORT( Q1 );
     REPORT( Q2 );
+    REPORT( logtau1 );
+    REPORT( logtau2 );
     REPORT( var_i );
     REPORT( LogProb1_i );
     REPORT( LogProb2_i );
@@ -2655,17 +2877,9 @@ Type objective_function<Type>::operator() ()
     REPORT( iota_ct );
   }
 
-  if( Options(3)==1 ){
-    ADREPORT( D_i );
-  }
-
   SIMULATE{
     REPORT( b_i );
   }
-
-  // Joint likelihood
-  jnll = jnll_comp.sum();
-  REPORT( pred_jnll );
 
   return jnll;
 }
