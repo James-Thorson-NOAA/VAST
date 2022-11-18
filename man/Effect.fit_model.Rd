@@ -8,7 +8,7 @@ Effect.fit_model(
   focal.predictors,
   mod,
   which_formula = "X1",
-  pad_values = c(),
+  pad_values = c(1),
   category_number = NULL,
   ...
 )
@@ -20,7 +20,12 @@ Effect.fit_model(
 
 \item{which_formula}{which formula to use e.g., \code{"X1"}}
 
-\item{category_number}{which category code{c_i} to use when plotting density covariates}
+\item{category_number}{which category code{c_i} to use when plotting density covariates
+
+If getting the error \code{non-conformable arguments}, consider exploring \code{pad_values}
+  The error arises in when constructing the linear predictor without an intercept,
+  and the default \code{pad_values = 1} attempts to insert a dummy intercept with estimate and SE
+  equal to zero.}
 
 \item{...}{arguments to be passed down.}
 }

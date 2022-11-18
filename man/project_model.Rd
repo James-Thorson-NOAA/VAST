@@ -7,16 +7,22 @@
 project_model(
   x,
   n_proj,
+  n_samples = 1,
   new_covariate_data = NULL,
   historical_uncertainty = "both",
   seed = 123456,
-  working_dir = paste0(getwd(), "/")
+  working_dir = paste0(getwd(), "/"),
+  what = NULL
 )
 }
 \arguments{
 \item{x}{Output from \code{\link{fit_model}}}
 
 \item{n_proj}{Number of time-steps to include in projection}
+
+\item{n_samples}{Number of samples to include.  If \code{n_samples=1} then \code{project_model}
+just returns the list of REPORTed variables.  If \code{n_samples>1} then \code{project_model}
+returns a list of lists, where each element is the list of REPORTed variables.}
 
 \item{new_covariate_data}{New covariates to include for future intervals}
 

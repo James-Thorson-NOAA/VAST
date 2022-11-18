@@ -8,20 +8,17 @@ apply_epsilon(
   fit,
   ADREPORT_name = "Index_ctl",
   eps_name = "eps_Index_ctl",
-  data_function = identity,
-  inner.control = list(sparse = TRUE, lowrank = TRUE, trace = TRUE)
+  inner.control = list(sparse = TRUE, lowrank = TRUE, trace = FALSE)
 )
 }
 \arguments{
-\item{fit}{output from \code{\link[FishStatsUtils]{fit_model}}}
+\item{fit}{output from \code{\link[FishStatsUtils]{fit_model}}, specifically using
+slotes \code{tmb_list}, \code{input_args}, \code{parameter_estimates$SD}}
 
 \item{ADREPORT_name}{string indicating name of ADREPORT'ed variable}
 
 \item{eps_name}{string indicating name of PARAMETER used internally by TMB
 for calculating desired gradient}
-
-\item{data_function}{function to apply to \code{fit$data_list} prior to passing
-to \code{\link[TMB]{MakeADFun}}, e.g., for VAST use \code{strip_units}}
 
 \item{inner.control}{List controlling inner optimization.}
 }

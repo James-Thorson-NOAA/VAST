@@ -21,9 +21,9 @@ make_model(
   RunDir = getwd(),
   CompileDir = TmbDir,
   build_model = TRUE,
-  framework = getOption("tmb.ad.framework"),
+  framework = "TMBad",
   intern = FALSE,
-  inner.control = list(sparse = TRUE, lowrank = TRUE, trace = TRUE),
+  inner.control = list(sparse = TRUE, lowrank = TRUE, trace = FALSE),
   supernodal = FALSE
 )
 }

@@ -9,6 +9,7 @@ reload_model(
   check_gradient = TRUE,
   CompileDir = system.file("executables", package = "VAST"),
   Version = x$settings$Version,
+  framework = x$input_args$model_args_input$framework,
   Obj = x$tmb_list$Obj
 )
 }
@@ -23,6 +24,8 @@ reload_model(
 \item{Version}{Which CPP version to use.  If missing, defaults to latest version
 using \code{\link[FishStatsUtils]{get_latest_version}}.
 Can be used to specify using an older CPP, to maintain backwards compatibility.}
+
+\item{framework}{Which AD framework to use ('TMBad' or 'CppAD')}
 }
 \value{
 Output from \code{\link{fit_model}} with DLLs relinked

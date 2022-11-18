@@ -163,7 +163,6 @@ function( TmbData,
   # Build object
   dyn.load( paste0(CompileDir,"/",TMB::dynlib(Version_framework)) ) # random=Random,
   if( ("framework" %in% formalArgs(TMB::compile)) && !is.null(framework) && (framework=="TMBad") ){
-    message("Using experimental gradient feature")
     Obj <- TMB::MakeADFun(
       data = lapply(TmbData,strip_units),
       parameters = Parameters,

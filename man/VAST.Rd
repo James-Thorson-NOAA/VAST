@@ -19,8 +19,11 @@ Features are built to be compatible among model types, e.g., by allowing catchab
 }
 \details{
 See \code{\link[FishStatsUtils]{fit_model}} for a simple example of high-level wrapper functions for using VAST.
-Also see the wiki \url{https://github.com/James-Thorson-NOAA/VAST/wiki} for examples documenting many different use-cases and features.
 }
 \seealso{
 \code{\link[VAST]{VAST}} for general documentation, \code{\link[FishStatsUtils]{make_settings}} for generic settings, \code{\link[FishStatsUtils]{fit_model}} for model fitting, and \code{\link[FishStatsUtils]{plot_results}} for generic plots
+
+VAST wiki \url{https://github.com/James-Thorson-NOAA/VAST/wiki} for examples documenting many different use-cases and features.
+
+GitHub mainpage \url{https://github.com/James-Thorson-NOAA/VAST#description} for a list of user resources and publications documenting features
 }
