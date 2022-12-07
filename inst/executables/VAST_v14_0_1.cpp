@@ -210,9 +210,10 @@ Type rgengamma( Type mean,
   // See: C:\Users\James.Thorson\Desktop\Work files\AFSC\2021-10 -- Generalized gamma-lognormal\Explore gengamma.R
   Type k = pow( lambda, -2 );
   Type Shape = pow( sigma, -1 ) * lambda;
-  Type Scale = mean / exp(lgamma( (k*Shape+1)/Shape )) * exp(lgamma( k ));
+  //Type Scale = mean / exp(lgamma( (k*Shape+1)/Shape )) * exp(lgamma( k ));
+  Type log_Scale = log(mean) - lgamma( (k*Shape+1)/Shape ) + lgamma( k );
   Type w = log(rgamma(k, Type(1.0)));
-  Type y = w/Shape + log(Scale);
+  Type y = w/Shape + log_Scale;
   return exp(y);
 }
 
@@ -2032,7 +2033,7 @@ Type objective_function<Type>::operator() ()
           }
           // Generalized-gamma;  mean, sigma, lambda parameterization
           if(ObsModel_ez(e_i(i),0)==9){
-            LogProb2_i(i) = dgengamma(b_i(i), R2_i(i), SigmaM(e_i(i),0), logSigmaM(e_i(i),1), true);
+            LogProb2_i(i) = dgengamma(b_i(i), R2_i(i), SigmaM(e_i(i),0), SigmaM(e_i(i),1), true);
             deviance2_i(i) = NAN;
             // Simulate new values when using obj.simulate()
             // Could be updated, available as rgengamma.orig
