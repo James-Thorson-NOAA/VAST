@@ -86,6 +86,11 @@ function( x,
     }
   }
 
+  # Errors
+  if( any(fit$data_list$RhoConfig %in% c(0,3)) ){
+    stop("`project_model` is currently designed to work only with temporally varying epsilon and beta terms")
+  }
+
   ##############
   # Step 1: Generate uncertainty in historical period
   ##############
@@ -216,6 +221,25 @@ function( x,
       run_model = FALSE,
       Parameters = ParList1,
       working_dir = working_dir )
+
+    # Debugging comparisons
+    if( FALSE ){
+      # Samples
+      range(u_zr[,1] - Obj$env$last.par.best)
+      # Compare fixed effects
+      v0 - x$tmb_list$Obj$env$last.par.best[-x$tmb_list$Obj$env$random]
+      v2 = x2$tmb_list$Obj$env$last.par.best[-x2$tmb_list$Obj$env$random]
+      range(v0 - v2)
+      # Compare parameters
+      v0 = unlist(x$tmb_list$Parameters[-match(x$tmb_list$Random,names(ParList))])
+      #v1 = unlist(ParList1[-match(x1$tmb_list$Random,names(ParList))])
+      v2 = unlist(x2$tmb_list$Parameters[-match(x2$tmb_list$Random,names(ParList))])
+      range(v1-v2)
+      # compare last.par.best
+      v0 = x$tmb_list$Obj$env$last.par.best[-x$tmb_list$Obj$env$random]
+      v2 = x2$tmb_list$Obj$env$last.par.best[-x2$tmb_list$Obj$env$random]
+      range( v0 - v2 )
+    }
 
     ##############
     # Step 5: Simulate random effects

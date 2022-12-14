@@ -1649,8 +1649,10 @@ Type objective_function<Type>::operator() ()
       jnll_beta1 -= dnorm( beta1_tf(t,f), beta1_mean_tf(t,f), Type(1.0), true );
       // Simulate new values when using obj.simulate()
       if( (Options(14) == 1) | (simulate_t(t) == 1) ){
-        SIMULATE{
-          beta1_tf(t,f) = rnorm( beta1_mean_tf(t,f), Type(1.0) );
+        if( (RhoConfig(0)==1) | (RhoConfig(0)==2) | (RhoConfig(0)==4) | (RhoConfig(0)==5) ){
+          SIMULATE{
+            beta1_tf(t,f) = rnorm( beta1_mean_tf(t,f), Type(1.0) );
+          }
         }
       }
     }}
@@ -1692,8 +1694,10 @@ Type objective_function<Type>::operator() ()
       jnll_beta2 -= dnorm( beta2_tf(t,f), beta2_mean_tf(t,f), Type(1.0), true );
       // Simulate new values when using obj.simulate()
       if( (Options(14) == 1) | (simulate_t(t) == 1) ){
-        SIMULATE{
-          beta2_tf(t,f) = rnorm( beta2_mean_tf(t,f), Type(1.0) );
+        if( (RhoConfig(1)==1) | (RhoConfig(1)==2) | (RhoConfig(1)==4) | (RhoConfig(1)==5) | (RhoConfig(1)==6) ){
+          SIMULATE{
+            beta2_tf(t,f) = rnorm( beta2_mean_tf(t,f), Type(1.0) );
+          }
         }
       }
     }}
