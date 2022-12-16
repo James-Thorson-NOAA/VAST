@@ -90,7 +90,7 @@ function( x,
   if( any(x$data_list$RhoConfig %in% c(0,3)) ){
     #stop("`project_model` is currently designed to work only with temporally varying epsilon and beta terms")
   }
-  if( any(x$data_list$RhoConfig[c("Beta1","Beta2")] %in% c(0) ){
+  if( any(x$data_list$RhoConfig[c("Beta1","Beta2")] %in% c(0)) ){
     stop("`project_model` is currently designed to work only with temporally varying or constant beta terms")
   }
 
