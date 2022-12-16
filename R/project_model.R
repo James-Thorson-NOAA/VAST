@@ -133,15 +133,15 @@ function( x,
   # Step 2: Generate uncertainty in historical period
   ##############
 
-  t_i = c( x$data_frame$t_i, max(x$data_frame$t_i)+rep(1:n_proj,each=2) )
+  t_i = c( x$data_frame$t_i, max(x$data_frame$t_i)+rep(seq_len(n_proj),each=2) )
   b_i = c( x$data_list$b_i, as_units(rep(c(0,mean(x$data_frame$b_i)),n_proj), units(x$data_list$b_i)) )
   v_i = c( x$data_frame$v_i, rep(0,2*n_proj) )
   Lon_i = c( x$data_frame$Lon_i, rep(mean(x$data_frame$Lon_i),2*n_proj) )
   Lat_i = c( x$data_frame$Lat_i, rep(mean(x$data_frame$Lat_i),2*n_proj) )
   a_i = c( x$data_list$a_i, as_units(rep(mean(x$data_frame$a_i),2*n_proj), units(x$data_list$a_i)) )
   PredTF_i = c( x$data_list$PredTF_i, rep(1,2*n_proj) )
-  c_iz = rbind( x$data_list$c_iz, x$data_list$c_iz[rep(1:n_proj,each=2),,drop=FALSE] )
-  new_catchability_data = rbind( x$catchability_data, x$catchability_data[rep(1:n_proj,each=2),,drop=FALSE] )
+  c_iz = rbind( x$data_list$c_iz, x$data_list$c_iz[rep(seq_len(n_proj),each=2),,drop=FALSE] )
+  new_catchability_data = rbind( x$catchability_data, x$catchability_data[rep(seq_len(n_proj),each=2),,drop=FALSE] )
   proj_t = x$data_list$n_t + seq_len( n_proj )
 
   ##############
@@ -183,18 +183,6 @@ function( x,
     #ParList1 = x1$tmb_list$Obj$env$parList()
     ParList1 = x1$tmb_list$Parameters
 
-    # Deal with beta1/beta2 = 3
-    if( x$data_list$RhoConfig["Beta1"]==3 ){
-      tmp = ParList1$beta1_ft
-      tmp[,proj_t] = NA
-      ParList1$beta1_ft = ifelse( is.na(tmp), rowMeans(tmp,na.rm=TRUE)%o%rep(1,ncol(tmp)), ParList1$beta1_ft )
-    }
-    if( x$data_list$RhoConfig["Beta2"]==3 ){
-      tmp = ParList1$beta2_ft
-      tmp[,proj_t] = NA
-      ParList1$beta2_ft = ifelse( is.na(tmp), rowMeans(tmp,na.rm=TRUE)%o%rep(1,ncol(tmp)), ParList1$beta2_ft )
-    }
-
     # Get ParList
     ParList = Obj$env$parList( par = u_zr[,sampleI] )
 
@@ -209,6 +197,18 @@ function( x,
       }else if( sum(dim_match==FALSE)>=2 ){
         stop("Check matching")
       }
+    }
+
+    # Deal with beta1/beta2 = 3
+    if( x$data_list$RhoConfig["Beta1"]==3 ){
+      tmp = ParList1$beta1_ft
+      tmp[,proj_t] = NA
+      ParList1$beta1_ft = ifelse( is.na(tmp), rowMeans(tmp,na.rm=TRUE)%o%rep(1,ncol(tmp)), ParList1$beta1_ft )
+    }
+    if( x$data_list$RhoConfig["Beta2"]==3 ){
+      tmp = ParList1$beta2_ft
+      tmp[,proj_t] = NA
+      ParList1$beta2_ft = ifelse( is.na(tmp), rowMeans(tmp,na.rm=TRUE)%o%rep(1,ncol(tmp)), ParList1$beta2_ft )
     }
 
     ##############
