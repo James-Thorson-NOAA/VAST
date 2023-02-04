@@ -30,7 +30,7 @@ Imports:
     devtools
 Depends:
     TMB (>= 1.8.0),
-    FishStatsUtils,
+    FishStatsUtils (>= 2.12.1),
     R (>= 3.5.0)
 Suggests:
     testthat,
