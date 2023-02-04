@@ -859,7 +859,7 @@ function( b_i,
   # Mirroring
   if( RhoConfig[4]==6 ){
     if( FieldConfig_input[2,1]!=FieldConfig_input[2,2] ){
-      stop("To fix 'Epsilon_rho2_f` equal to 'Epsilon_rho2_f`, you must specify the same rank using `FieldConfig_input[2,1]` equal to `FieldConfig_input[2,2]`")
+      stop("To fix 'Epsilon_rho2_f` equal to 'Epsilon_rho1_f`, you must specify the same rank using `FieldConfig_input[2,1]` equal to `FieldConfig_input[2,2]`")
     }
   }
 

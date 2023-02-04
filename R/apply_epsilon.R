@@ -36,6 +36,7 @@ function( fit,
   Data = Obj$env$data
   Map = Obj$env$map
   Random = fit$tmb_list$Random
+  Version_framework = paste0( fit$input_args$model_args_input$Version, "_", fit$input_args$model_args_input$framework )
 
   # Extract and modify parameters
   New_params = fit$ParHat
@@ -53,7 +54,8 @@ function( fit,
                     map = Map,
                     random = Random,
                     intern = TRUE,
-                    inner.control = inner.control )
+                    inner.control = inner.control,
+                    DLL = Version_framework )
   obj$env$beSilent()
   gradient = obj$gr(fixed)
 
