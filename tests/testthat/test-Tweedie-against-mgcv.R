@@ -59,6 +59,8 @@ test_that("Tweedie gives identical results to mgcv::gam(.) ", {
   expect_equal( as.numeric(p_hat), as.numeric(p), tolerance=0.01 )
   # Comparison -- scale
   expect_equal( as.numeric(exp(fit$ParHat$beta1_ft)), as.numeric(mgcv_gam$scale), tolerance=0.05 )
+  # Comparison -- AIC
+  expect_equal( as.numeric(fit$par$AIC), AIC(mgcv_gam), tolerance=1 )
 })
 
 # Eastern Bering Sea pollcok
@@ -121,6 +123,9 @@ test_that("Covariate effects when using a smoother gives identical results to mg
   expect_equal( as.numeric(fit_tweedie$ParHat$gamma2_cp), as.numeric(summary(mgcv_gam)$p.coeff[c('Temp_i','I(Temp_i^2)')]), tolerance=0.01 )
   expect_equal( as.numeric(p_hat), as.numeric(p), tolerance=0.01 )
 
+  # Comparison -- AIC ... doesn't match exactly but seems close
+  #expect_equal( as.numeric(fit_tweedie$par$AIC), AIC(mgcv_gam), tolerance=1 )
+
   ##################
   # Conventional delta-lognormal
   #  1.  Doesn't work well for 1st linear predictor for reasons I don't understand
@@ -168,6 +173,10 @@ test_that("Covariate effects when using a smoother gives identical results to mg
   match2 = match( c('Temp_i','I(Temp_i^2)'), names(summary(gam2)$p.coeff) )
   expect_equal( as.numeric(fit$ParHat$gamma2_cp), as.numeric(summary(gam2)$p.coeff[match2]), tolerance=0.1 )
   #expect_equal( as.numeric(fit$ParHat$beta2_ft), as.numeric(summary(gam2)$p.coeff[-match2]), tolerance=0.1 )
+  
+  # Comparison -- AIC ... doesn't match exactly but seems close
+  # Must include the log(x) correction for converting normal to lognormal distribution in gam2
+  #expect_equal( as.numeric(fit$par$AIC), AIC(gam1)+AIC(gam2)+2*sum(log(Data[which(Data$catch>0),'catch'])), tolerance=1 )
 
   ##################
   # Try predict ... I haven't gotten this to work yet
