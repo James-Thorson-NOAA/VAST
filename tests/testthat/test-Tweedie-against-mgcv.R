@@ -28,10 +28,7 @@ test_that("Tweedie gives identical results to mgcv::gam(.) ", {
   mgcv_gam = gam( d_i ~ 1, family=tw )
   p = 1 + plogis(mgcv_gam$family$getTheta())
 
-  # load data set
-  example = load_example( data_set="EBS_pollock" )
-
-  # Make settings (turning off bias.correct to save time for example)
+  # Make settings
   settings = make_settings( n_x=100,
     Region="other",
     purpose="index2",
@@ -106,7 +103,7 @@ test_that("Covariate effects when using a smoother gives identical results to mg
     X2_formula = ~ Temp + I(Temp^2),
     working_dir = multispecies_example_path,
     getsd = FALSE,
-    Use_REML = TRUE )
+    Use_REML = FALSE )
   p_hat = 1 + plogis( fit_tweedie$ParHat$logSigmaM[1,1] )
 
   # Fit using GAM
