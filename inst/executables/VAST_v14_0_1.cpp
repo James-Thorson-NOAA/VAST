@@ -178,25 +178,30 @@ template<class Type>
 Type dgengamma( Type x,
                 Type mean,
                 Type sigma,
-                Type lambda,
+                Type Q,
                 int give_log=0){
 
-  Type k = pow( lambda, -2 );
-  Type Shape = pow( sigma, -1 ) * lambda;
-  // Numerically unstable
-    // Type Scale = mean / exp(lgamma( (k*Shape+1)/Shape )) * exp(lgamma( k ));
-    // Type logres = log(Shape) - lgamma(k) + (Shape * k - 1) * log(x) - Shape * k * log(Scale) - pow( x/Scale, Shape );
-  // Numerically stable
-  Type log_Scale = log(mean) - lgamma( (k*Shape+1)/Shape ) + lgamma( k );
-  Type mu = log_Scale + log(k) / Shape;
-  // Type Sigma = 1 / sqrt(k) / Shape;   abs(Sigma) := sigma
-  // Type Q = sqrt( 1/k );               Q := lambda
+
+  // First convert from mean to mu
+  // Rename based on flexdist
+  Type lambda = Q;
+  // Using https://stats.stackexchange.com/questions/345564/generalized-gamma-log-normal-as-limiting-special-case
+  Type k = pow( lambda, -2);
+  Type beta = pow( sigma, -1) * lambda;
+  // Use wikipedia expression for the mean:   mean = a * gamma((d+1)/p) / gamma(d/p) where d/p = k, theta = a, and beta = p
+  // https://en.wikipedia.org/wiki/Generalized_gamma_distribution#Software_implementation
+  Type log_theta = log(mean) - lgamma( (k*beta+1)/beta ) + lgamma( k );
+  // Using https://stats.stackexchange.com/questions/345564/generalized-gamma-log-normal-as-limiting-special-case
+  Type mu = log_theta + log(k) / beta;
+
+  // Next evaluate PDF
+  // from https://github.com/chjackson/flexsurv-dev/blob/master/src/gengamma.h#L54-L56
   Type y = log(x);
   Type w = (y - mu) / sigma;
-  Type q_square = square(lambda);  // = abs(Q);
-  Type qi = 1/square(lambda);
-  Type qw = lambda * w;
-  Type logres = -log(sigma*x) + 0.5*log(q_square) * (1 - 2 * qi) + qi * (qw - exp(qw)) - lgamma(qi);
+  Type qi = 1/square(Q);
+  Type qw = Q * w;
+  Type logres = -log(sigma*x) + 0.5*log(square(lambda)) * (1 - 2 * qi) + qi * (qw - exp(qw)) - lgamma(qi);
+
   // return stuff
   if(give_log) return logres; else return exp(logres);
 }
@@ -205,15 +210,15 @@ Type dgengamma( Type x,
 template<class Type>
 Type rgengamma( Type mean,
                 Type sigma,
-                Type lambda){
+                Type Q){
 
   // See: C:\Users\James.Thorson\Desktop\Work files\AFSC\2021-10 -- Generalized gamma-lognormal\Explore gengamma.R
+  Type lambda = Q;
   Type k = pow( lambda, -2 );
-  Type Shape = pow( sigma, -1 ) * lambda;
-  //Type Scale = mean / exp(lgamma( (k*Shape+1)/Shape )) * exp(lgamma( k ));
-  Type log_Scale = log(mean) - lgamma( (k*Shape+1)/Shape ) + lgamma( k );
+  Type beta = pow( sigma, -1 ) * lambda;
+  Type log_theta = log(mean) - lgamma( (k*beta+1)/beta ) + lgamma( k );
   Type w = log(rgamma(k, Type(1.0)));
-  Type y = w/Shape + log_Scale;
+  Type y = w/beta + log_theta;
   return exp(y);
 }
 
@@ -2037,12 +2042,12 @@ Type objective_function<Type>::operator() ()
           }
           // Generalized-gamma;  mean, sigma, lambda parameterization
           if(ObsModel_ez(e_i(i),0)==9){
-            LogProb2_i(i) = dgengamma(b_i(i), R2_i(i), SigmaM(e_i(i),0), SigmaM(e_i(i),1), true);
+            LogProb2_i(i) = dgengamma(b_i(i), R2_i(i), SigmaM(e_i(i),0), logSigmaM(e_i(i),1), true);
             deviance2_i(i) = NAN;
             // Simulate new values when using obj.simulate()
             // Could be updated, available as rgengamma.orig
             SIMULATE{
-              b_i(i) = rgengamma(R2_i(i), SigmaM(e_i(i),0), SigmaM(e_i(i),1));
+              b_i(i) = rgengamma(R2_i(i), SigmaM(e_i(i),0), logSigmaM(e_i(i),1));
             }
           }
         }else{
