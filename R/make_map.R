@@ -20,12 +20,11 @@ function( DataList,
           Npool = 0 ){
 
   # Local functions
-  fix_value <- function( fixvalTF ){
-    vec = rep(0,length(fixvalTF))
-    if(sum(fixvalTF)>0) vec[which(fixvalTF==1)] = NA
-    if(sum(!fixvalTF)>0) vec[which(!is.na(vec))] = 1:sum(!is.na(vec))
-    vec = factor( vec )
-    return( vec )
+  fix_value <- function( fixvalTF, orig_value=NULL ){
+    if(is.null(orig_value)) orig_value = rep(1,length(fixvalTF))
+    new_value = orig_value
+    new_value = ifelse( fixvalTF==TRUE, NA, orig_value )
+    return( new_value )
   }
   seq_pos <- function( length.out ){
     seq(from=1, to=length.out, length.out=max(length.out,0))
@@ -112,11 +111,11 @@ function( DataList,
 
   # Turn off geometric anisotropy parameters
   if( Options_vec["Aniso"]==0 ){
-    Map[['ln_H_input']] = factor( rep(NA,2) )
+    Map[['ln_H_input']] = rep(NA,2)
   }
   if( all(DataList[["FieldConfig"]][1:2,] == -1) ){
     if( !( any(DataList[["X1config_cp"]][,]%in%c(2,3,4)) | any(DataList[["X2config_cp"]][,]%in%c(2,3,4)) | any(DataList[["Q1config_k"]]%in%c(2,3)) | any(DataList[["Q2config_k"]]%in%c(2,3)) ) ){
-      Map[['ln_H_input']] = factor( rep(NA,2) )
+      Map[['ln_H_input']] = rep(NA,2)
     }
   }
 
@@ -172,10 +171,6 @@ function( DataList,
       if( any(DataList$ObsModel_ez[,2]!=1) ) stop("ObsModel[1]=14 should use ObsModel[2]=1")
     }
   }
-  Map[["logSigmaM"]] = factor(Map[["logSigmaM"]])
-  if( "delta_i" %in% names(TmbParams)){
-    Map[["delta_i"]] = factor(Map[["delta_i"]])
-  }
 
   #########################
   # Variance for spatial and spatio-temporal
@@ -183,61 +178,61 @@ function( DataList,
 
   # Configurations of spatial and spatiotemporal error
   if(DataList[["FieldConfig"]][1,1] == -1){
-    if("Omegainput1_sc" %in% names(TmbParams)) Map[["Omegainput1_sc"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput1_sc"]])) )
-    if("Omegainput1_sf" %in% names(TmbParams)) Map[["Omegainput1_sf"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput1_sf"]])) )
-    if("L_omega1_z" %in% names(TmbParams)) Map[["L_omega1_z"]] = factor( rep(NA,length(TmbParams[["L_omega1_z"]])) )
+    if("Omegainput1_sc" %in% names(TmbParams)) Map[["Omegainput1_sc"]] = ( array(NA,dim=dim(TmbParams[["Omegainput1_sc"]])) )
+    if("Omegainput1_sf" %in% names(TmbParams)) Map[["Omegainput1_sf"]] = ( array(NA,dim=dim(TmbParams[["Omegainput1_sf"]])) )
+    if("L_omega1_z" %in% names(TmbParams)) Map[["L_omega1_z"]] = ( rep(NA,length(TmbParams[["L_omega1_z"]])) )
   }
   if(DataList[["FieldConfig"]][2,1] == -1){
-    if("Epsiloninput1_sct" %in% names(TmbParams)) Map[["Epsiloninput1_sct"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sct"]])) )
-    if("Epsiloninput1_sft" %in% names(TmbParams)) Map[["Epsiloninput1_sft"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sft"]])) )
-    if("Epsiloninput1_sff" %in% names(TmbParams)) Map[["Epsiloninput1_sff"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sff"]])) )
-    if("L_epsilon1_z" %in% names(TmbParams)) Map[["L_epsilon1_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon1_z"]])) )
+    if("Epsiloninput1_sct" %in% names(TmbParams)) Map[["Epsiloninput1_sct"]] = ( array(NA,dim=dim(TmbParams[["Epsiloninput1_sct"]])) )
+    if("Epsiloninput1_sft" %in% names(TmbParams)) Map[["Epsiloninput1_sft"]] = ( array(NA,dim=dim(TmbParams[["Epsiloninput1_sft"]])) )
+    if("Epsiloninput1_sff" %in% names(TmbParams)) Map[["Epsiloninput1_sff"]] = ( array(NA,dim=dim(TmbParams[["Epsiloninput1_sff"]])) )
+    if("L_epsilon1_z" %in% names(TmbParams)) Map[["L_epsilon1_z"]] = ( rep(NA,length(TmbParams[["L_epsilon1_z"]])) )
   }
   if( all(DataList[["FieldConfig"]][1:2,1] == -1) ){
     if( !( any(DataList[["X1config_cp"]]%in%c(2,3,4)) | any(DataList[["Q1config_k"]]%in%c(2,3)) ) ){
-      Map[["logkappa1"]] = factor(NA)
-      if("rho_c1" %in% names(TmbParams)) Map[["rho_c1"]] = factor(NA)
+      Map[["logkappa1"]] = (NA)
+      if("rho_c1" %in% names(TmbParams)) Map[["rho_c1"]] = (NA)
     }
   }
   if(DataList[["FieldConfig"]][1,2] == -1){
-    if("Omegainput2_sc" %in% names(TmbParams)) Map[["Omegainput2_sc"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput2_sc"]])) )
-    if("Omegainput2_sf" %in% names(TmbParams)) Map[["Omegainput2_sf"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput2_sf"]])) )
-    if("L_omega2_z" %in% names(TmbParams)) Map[["L_omega2_z"]] = factor( rep(NA,length(TmbParams[["L_omega2_z"]])) )
+    if("Omegainput2_sc" %in% names(TmbParams)) Map[["Omegainput2_sc"]] = ( array(NA,dim=dim(TmbParams[["Omegainput2_sc"]])) )
+    if("Omegainput2_sf" %in% names(TmbParams)) Map[["Omegainput2_sf"]] = ( array(NA,dim=dim(TmbParams[["Omegainput2_sf"]])) )
+    if("L_omega2_z" %in% names(TmbParams)) Map[["L_omega2_z"]] = ( rep(NA,length(TmbParams[["L_omega2_z"]])) )
   }
   if(DataList[["FieldConfig"]][2,2] == -1){
-    if("Epsiloninput2_sct" %in% names(TmbParams)) Map[["Epsiloninput2_sct"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sct"]])) )
-    if("Epsiloninput2_sft" %in% names(TmbParams)) Map[["Epsiloninput2_sft"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sft"]])) )
-    if("Epsiloninput2_sff" %in% names(TmbParams)) Map[["Epsiloninput2_sff"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sff"]])) )
-    if("L_epsilon2_z" %in% names(TmbParams)) Map[["L_epsilon2_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon2_z"]])) )
+    if("Epsiloninput2_sct" %in% names(TmbParams)) Map[["Epsiloninput2_sct"]] = ( array(NA,dim=dim(TmbParams[["Epsiloninput2_sct"]])) )
+    if("Epsiloninput2_sft" %in% names(TmbParams)) Map[["Epsiloninput2_sft"]] = ( array(NA,dim=dim(TmbParams[["Epsiloninput2_sft"]])) )
+    if("Epsiloninput2_sff" %in% names(TmbParams)) Map[["Epsiloninput2_sff"]] = ( array(NA,dim=dim(TmbParams[["Epsiloninput2_sff"]])) )
+    if("L_epsilon2_z" %in% names(TmbParams)) Map[["L_epsilon2_z"]] = ( rep(NA,length(TmbParams[["L_epsilon2_z"]])) )
   }
   if( all(DataList[["FieldConfig"]][1:2,2] == -1 )){
     if( !( "Xconfig_zcp" %in% names(DataList) && any(DataList[["Xconfig_zcp"]][2,,] %in% c(2,3)) ) ){
-      Map[["logkappa2"]] = factor(NA)
-      if("rho_c2" %in% names(TmbParams)) Map[["rho_c2"]] = factor(NA)
+      Map[["logkappa2"]] = (NA)
+      if("rho_c2" %in% names(TmbParams)) Map[["rho_c2"]] = (NA)
     }
   }
 
   # Epsilon1 -- Fixed OR White-noise OR Random walk
   if( RhoConfig["Epsilon1"] %in% c(0,1,2) ){
-    if( "Epsilon_rho1" %in% names(TmbParams) ) Map[["Epsilon_rho1"]] = factor( NA )
-    if( "Epsilon_rho1_f" %in% names(TmbParams) ) Map[["Epsilon_rho1_f"]] = factor( rep(NA,length(TmbParams$Epsilon_rho1_f)) )
+    if( "Epsilon_rho1" %in% names(TmbParams) ) Map[["Epsilon_rho1"]] = ( NA )
+    if( "Epsilon_rho1_f" %in% names(TmbParams) ) Map[["Epsilon_rho1_f"]] = ( rep(NA,length(TmbParams$Epsilon_rho1_f)) )
   }
   if( RhoConfig["Epsilon1"] %in% c(4) ){
-    if( "Epsilon_rho1_f" %in% names(TmbParams) ) Map[["Epsilon_rho1_f"]] = factor( rep(1,length(TmbParams$Epsilon_rho1_f)) )
+    if( "Epsilon_rho1_f" %in% names(TmbParams) ) Map[["Epsilon_rho1_f"]] = ( rep(1,length(TmbParams$Epsilon_rho1_f)) )
   }
   # Epsilon2 -- Fixed OR White-noise OR Random walk OR mirroring Epsilon_rho1_f
   if( RhoConfig["Epsilon2"] %in% c(0,1,2,6) ){
-    if( "Epsilon_rho2" %in% names(TmbParams) ) Map[["Epsilon_rho2"]] = factor( NA )
-    if( "Epsilon_rho2_f" %in% names(TmbParams) ) Map[["Epsilon_rho2_f"]] = factor( rep(NA,length(TmbParams$Epsilon_rho2_f)) )
+    if( "Epsilon_rho2" %in% names(TmbParams) ) Map[["Epsilon_rho2"]] = ( NA )
+    if( "Epsilon_rho2_f" %in% names(TmbParams) ) Map[["Epsilon_rho2_f"]] = ( rep(NA,length(TmbParams$Epsilon_rho2_f)) )
   }
   if( RhoConfig["Epsilon2"] %in% c(4) ){
-    if( "Epsilon_rho2_f" %in% names(TmbParams) ) Map[["Epsilon_rho2_f"]] = factor( rep(1,length(TmbParams$Epsilon_rho2_f)) )
+    if( "Epsilon_rho2_f" %in% names(TmbParams) ) Map[["Epsilon_rho2_f"]] = ( rep(1,length(TmbParams$Epsilon_rho2_f)) )
   }
 
   # fix AR across bins
   if( DataList$n_c==1 & ("rho_c1" %in% names(TmbParams)) ){
-    Map[["rho_c1"]] = factor(NA)
-    Map[["rho_c2"]] = factor(NA)
+    Map[["rho_c1"]] = (NA)
+    Map[["rho_c2"]] = (NA)
   }
 
 
@@ -247,21 +242,21 @@ function( DataList,
 
   # Overdispersion parameters
   if( ("n_f_input"%in%names(DataList)) && "n_v"%in%names(DataList) && DataList[["n_f_input"]]<0 ){
-    Map[["L1_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
-    Map[["eta1_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta1_vf"]])))
-    Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L2_z"]])))
-    Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
+    Map[["L1_z"]] = (rep(NA,length(TmbParams[["L1_z"]])))
+    Map[["eta1_vf"]] = (array(NA,dim=dim(TmbParams[["eta1_vf"]])))
+    Map[["L2_z"]] = (rep(NA,length(TmbParams[["L2_z"]])))
+    Map[["eta2_vf"]] = (array(NA,dim=dim(TmbParams[["eta2_vf"]])))
   }
   if( ("OverdispersionConfig"%in%names(DataList)) && "n_v"%in%names(DataList) ){
     if( DataList[["OverdispersionConfig"]][1] == -1 ){
-      if("L1_z"%in%names(TmbParams)) Map[["L1_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
-      if("L_eta1_z"%in%names(TmbParams)) Map[["L_eta1_z"]] = factor(rep(NA,length(TmbParams[["L_eta1_z"]])))
-      Map[["eta1_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta1_vf"]])))
+      if("L1_z"%in%names(TmbParams)) Map[["L1_z"]] = (rep(NA,length(TmbParams[["L1_z"]])))
+      if("L_eta1_z"%in%names(TmbParams)) Map[["L_eta1_z"]] = (rep(NA,length(TmbParams[["L_eta1_z"]])))
+      Map[["eta1_vf"]] = (array(NA,dim=dim(TmbParams[["eta1_vf"]])))
     }
     if( DataList[["OverdispersionConfig"]][2] == -1 ){
-      if("L2_z"%in%names(TmbParams)) Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L2_z"]])))
-      if("L_eta2_z"%in%names(TmbParams)) Map[["L_eta2_z"]] = factor(rep(NA,length(TmbParams[["L_eta2_z"]])))
-      Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
+      if("L2_z"%in%names(TmbParams)) Map[["L2_z"]] = (rep(NA,length(TmbParams[["L2_z"]])))
+      if("L_eta2_z"%in%names(TmbParams)) Map[["L_eta2_z"]] = (rep(NA,length(TmbParams[["L_eta2_z"]])))
+      Map[["eta2_vf"]] = (array(NA,dim=dim(TmbParams[["eta2_vf"]])))
     }
   }
 
@@ -272,7 +267,7 @@ function( DataList,
 
   # Make all category-specific variances (SigmaM, Omega, Epsilon) constant for models with EncNum_a < Npool
   if( Npool>0 ){
-    if( !all(DataList$FieldConfig[1:3,] %in% c(-2)) | !all(DataList$FieldConfig[4,] %in% c(-3)) ){
+    if( !all(DataList$FieldConfig[1:3,] %in% c(-1,-2)) | !all(DataList$FieldConfig[4,] %in% c(-3)) ){
       stop("Npool should only be specified when using 'IID' variation for `FieldConfig`")
     }
   }
@@ -280,23 +275,23 @@ function( DataList,
   EncNum_c = rowSums( Prop_ct )
   if( any(EncNum_c < Npool) ){
     pool = function(poolTF){
-      Return = 1:length(poolTF)
+      Return = seq_along(poolTF)
       Return = ifelse( poolTF==TRUE, length(poolTF)+1, Return )
       return(Return)
     }
     # Change SigmaM / L_omega1_z / L_omega2_z / L_epsilon1_z / L_epsilon2_z
     Map[["logSigmaM"]] = array( as.numeric(Map$logSigmaM), dim=dim(TmbParams$logSigmaM) )
     Map[["logSigmaM"]][ which(EncNum_c < Npool), ] = rep(1,sum(EncNum_c<Npool)) %o% Map[["logSigmaM"]][ which(EncNum_c < Npool)[1], ]
-    Map[["logSigmaM"]] = factor( Map[["logSigmaM"]] )
+    Map[["logSigmaM"]] = ( Map[["logSigmaM"]] )
     # Change Omegas
-    Map[["L_omega1_z"]] = factor(pool(EncNum_c<Npool))
-    Map[["L_omega2_z"]] = factor(pool(EncNum_c<Npool))
+    if(length(TmbParams$L_omega1_z)>0) Map[["L_omega1_z"]] = (pool(EncNum_c<Npool))
+    if(length(TmbParams$L_omega2_z)>0) Map[["L_omega2_z"]] = (pool(EncNum_c<Npool))
     # Change Epsilons
-    Map[["L_epsilon1_z"]] = factor(pool(EncNum_c<Npool))
-    Map[["L_epsilon2_z"]] = factor(pool(EncNum_c<Npool))
+    if(length(TmbParams$L_epsilon1_z)>0) Map[["L_epsilon1_z"]] = (pool(EncNum_c<Npool))
+    if(length(TmbParams$L_epsilon2_z)>0) Map[["L_epsilon2_z"]] = (pool(EncNum_c<Npool))
     # Change Epsilons
-    Map[["L_beta1_z"]] = factor(pool(EncNum_c<Npool))
-    Map[["L_beta2_z"]] = factor(pool(EncNum_c<Npool))
+    Map[["L_beta1_z"]] = (pool(EncNum_c<Npool))
+    Map[["L_beta2_z"]] = (pool(EncNum_c<Npool))
   }
 
   #########################
@@ -314,8 +309,8 @@ function( DataList,
         Map[["gamma2_j"]][j] = NA
       }
     }
-    Map[["gamma1_j"]] = factor(Map[["gamma1_j"]])
-    Map[["gamma2_j"]] = factor(Map[["gamma2_j"]])
+    Map[["gamma1_j"]] = (Map[["gamma1_j"]])
+    Map[["gamma2_j"]] = (Map[["gamma2_j"]])
   }
 
   ### Catchability variables
@@ -344,8 +339,8 @@ function( DataList,
         Map[["lambda2_k"]][kI] = NA
       }
     }
-    Map[["lambda1_k"]] = factor(Map[["lambda1_k"]])
-    Map[["lambda2_k"]] = factor(Map[["lambda2_k"]])
+    Map[["lambda1_k"]] = (Map[["lambda1_k"]])
+    Map[["lambda2_k"]] = (Map[["lambda2_k"]])
 
     if( all(c("log_sigmaPhi1_k","log_sigmaPhi2_k") %in% names(TmbParams)) ){
       Map[["log_sigmaPhi1_k"]] = seq_pos(ncol(DataList$Q1_ik))
@@ -360,8 +355,8 @@ function( DataList,
           Map[["log_sigmaPhi2_k"]][kI] = NA
         }
       }
-      Map[["log_sigmaPhi1_k"]] = factor(Map[["log_sigmaPhi1_k"]])
-      Map[["log_sigmaPhi2_k"]] = factor(Map[["log_sigmaPhi2_k"]])
+      Map[["log_sigmaPhi1_k"]] = (Map[["log_sigmaPhi1_k"]])
+      Map[["log_sigmaPhi2_k"]] = (Map[["log_sigmaPhi2_k"]])
     }
   }
 
@@ -397,8 +392,8 @@ function( DataList,
           Map[["gamma2_tp"]][,p] = rep( Map[["gamma2_tp"]][1,p], DataList$n_t )
         }
       }
-      Map[["gamma1_tp"]] = factor(Map[["gamma1_tp"]])
-      Map[["gamma2_tp"]] = factor(Map[["gamma2_tp"]])
+      Map[["gamma1_tp"]] = (Map[["gamma1_tp"]])
+      Map[["gamma2_tp"]] = (Map[["gamma2_tp"]])
     }
     if( all(c("gamma1_ctp","gamma2_ctp") %in% names(TmbParams)) ){
       Map[["gamma1_ctp"]] = array( seq_pos(DataList$n_c*DataList$n_t*DataList$n_p1), dim=c(DataList$n_c,DataList$n_t,DataList$n_p1) )
@@ -428,8 +423,8 @@ function( DataList,
           }
         }}
       }
-      Map[["gamma1_ctp"]] = factor(Map[["gamma1_ctp"]])
-      Map[["gamma2_ctp"]] = factor(Map[["gamma2_ctp"]])
+      Map[["gamma1_ctp"]] = (Map[["gamma1_ctp"]])
+      Map[["gamma2_ctp"]] = (Map[["gamma2_ctp"]])
     }
     if( all(c("gamma1_cp","gamma2_cp") %in% names(TmbParams)) ){
       Map[["gamma1_cp"]] = array( seq_pos(DataList$n_c*DataList$n_p1), dim=c(DataList$n_c,DataList$n_p1) )
@@ -457,8 +452,8 @@ function( DataList,
           Map[["gamma2_cp"]][cI,pI] = NA
         }
       }}
-      Map[["gamma1_cp"]] = factor(Map[["gamma1_cp"]])
-      Map[["gamma2_cp"]] = factor(Map[["gamma2_cp"]])
+      Map[["gamma1_cp"]] = (Map[["gamma1_cp"]])
+      Map[["gamma2_cp"]] = (Map[["gamma2_cp"]])
     }
     if( all(c("log_sigmaXi1_cp","log_sigmaXi2_cp") %in% names(TmbParams)) ){
       Map[["log_sigmaXi1_cp"]] = array( seq_pos(DataList$n_c*DataList$n_p1), dim=c(DataList$n_c,DataList$n_p1) )
@@ -488,8 +483,8 @@ function( DataList,
           }
         }}
       }
-      Map[["log_sigmaXi1_cp"]] = factor(Map[["log_sigmaXi1_cp"]])
-      Map[["log_sigmaXi2_cp"]] = factor(Map[["log_sigmaXi2_cp"]])
+      Map[["log_sigmaXi1_cp"]] = (Map[["log_sigmaXi1_cp"]])
+      Map[["log_sigmaXi2_cp"]] = (Map[["log_sigmaXi2_cp"]])
     }
   }
 
@@ -514,8 +509,8 @@ function( DataList,
         if(DataList$X2config_cp[cI,pI] %in% c(0,1)) Map[["Xiinput2_scp"]][,cI,pI] = NA
       }}
     }
-    Map[["Xiinput1_scp"]] = factor(Map[["Xiinput1_scp"]])
-    Map[["Xiinput2_scp"]] = factor(Map[["Xiinput2_scp"]])
+    Map[["Xiinput1_scp"]] = (Map[["Xiinput1_scp"]])
+    Map[["Xiinput2_scp"]] = (Map[["Xiinput2_scp"]])
   }
 
   # Spatially varying coefficients -- catchability
@@ -528,15 +523,15 @@ function( DataList,
     for(kI in seq_pos(ncol(DataList$Q2_ik))){
       if(DataList$Q2config_k[kI] %in% c(0,1)) Map[["Phiinput2_sk"]][,kI] = NA
     }
-    Map[["Phiinput1_sk"]] = factor(Map[["Phiinput1_sk"]])
-    Map[["Phiinput2_sk"]] = factor(Map[["Phiinput2_sk"]])
+    Map[["Phiinput1_sk"]] = (Map[["Phiinput1_sk"]])
+    Map[["Phiinput2_sk"]] = (Map[["Phiinput2_sk"]])
   }
 
   # Lagrange multipliers
   # Only enabled when X1config_cp[,]=4 AND Options[20]=4
   if( "lagrange_tc" %in% names(TmbParams) ){
     if( !(Options[20]==4 & (any(DataList$X1config_cp==4) | any(DataList$X2config_cp==4))) ){
-      Map[["lagrange_tc"]] = factor( array(NA, dim=c(DataList$n_t,DataList$n_c)) )
+      Map[["lagrange_tc"]] = ( array(NA, dim=c(DataList$n_t,DataList$n_c)) )
     }
   }
 
@@ -546,10 +541,10 @@ function( DataList,
 
   # fix variance-ratio for columns of t_iz
   if( "log_sigmaratio1_z" %in% names(TmbParams) ){
-    Map[["log_sigmaratio1_z"]] = factor( NA )
+    Map[["log_sigmaratio1_z"]] = ( NA )
   }
   if( "log_sigmaratio2_z" %in% names(TmbParams) ){
-    Map[["log_sigmaratio2_z"]] = factor( NA )
+    Map[["log_sigmaratio2_z"]] = ( NA )
   }
 
   #########################
@@ -559,24 +554,24 @@ function( DataList,
   if( "VamConfig"%in%names(DataList) & all(c("Chi_fr","Psi_fr")%in%names(TmbParams)) ){
     # Turn off interactions
     if( DataList$VamConfig[1]==0 ){
-      Map[["Chi_fr"]] = factor( rep(NA,prod(dim(TmbParams$Chi_fr))) )
-      Map[["Psi_fr"]] = factor( rep(NA,prod(dim(TmbParams$Psi_fr))) )
+      Map[["Chi_fr"]] = ( rep(NA,prod(dim(TmbParams$Chi_fr))) )
+      Map[["Psi_fr"]] = ( rep(NA,prod(dim(TmbParams$Psi_fr))) )
     }
     # Reduce degrees of freedom for interactions
     if( DataList$VamConfig[1] %in% c(1,3) ){
       Map[["Psi_fr"]] = array( seq_pos(prod(dim(TmbParams$Psi_fr))), dim=dim(TmbParams$Psi_fr) )
       Map[["Psi_fr"]][seq_pos(ncol(Map[["Psi_fr"]])),] = NA
-      Map[["Psi_fr"]] = factor(Map[["Psi_fr"]])
+      Map[["Psi_fr"]] = (Map[["Psi_fr"]])
     }
     # Reduce degrees of freedom for interactions
     if( DataList$VamConfig[1]==2 ){
       Map[["Psi_fr"]] = array( 1:prod(dim(TmbParams$Psi_fr)), dim=dim(TmbParams$Psi_fr) )
       Map[["Psi_fr"]][1:ncol(Map[["Psi_fr"]]),] = NA
-      Map[["Psi_fr"]] = factor(Map[["Psi_fr"]])
+      Map[["Psi_fr"]] = (Map[["Psi_fr"]])
       Map[["Psi_fr"]] = array( 1:prod(dim(TmbParams$Psi_fr)), dim=dim(TmbParams$Psi_fr) )
       Map[["Psi_fr"]][1:ncol(Map[["Psi_fr"]]),] = NA
       Map[["Psi_fr"]][cbind(1:ncol(Map[["Psi_fr"]]),1:ncol(Map[["Psi_fr"]]))] = max(c(0,Map[["Psi_fr"]]),na.rm=TRUE) + 1:ncol(Map[["Psi_fr"]])
-      Map[["Psi_fr"]] = factor(Map[["Psi_fr"]])
+      Map[["Psi_fr"]] = (Map[["Psi_fr"]])
     }
   }
 
@@ -585,38 +580,41 @@ function( DataList,
   # 2. Hyper-parameters for intercepts
   #########################
 
+  Num_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'num_notna',drop=FALSE], drop=3)
+  Map[["beta1_ft"]] = array( seq_len(prod(dim(TmbParams$beta1_ft))), dim=dim(TmbParams$beta1_ft) )
+  Map[["beta2_ft"]] = array( seq_len(prod(dim(TmbParams$beta2_ft))), dim=dim(TmbParams$beta2_ft) )
+
   #####
   # Step 1: fix betas and/or epsilons for missing years if betas are fixed-effects
   #####
-  Num_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'num_notna',drop=FALSE], drop=3)
   if( any(Num_ct==0) ){
     # Beta1 -- Fixed
     if( RhoConfig["Beta1"]==0 ){
-      if( "beta1_ct" %in% names(TmbParams) ){
-        Map[["beta1_ct"]] = fix_value( fixvalTF=(Num_ct==0) )
-      }
-      if( "beta1_ft" %in% names(TmbParams) ){
+      #if( "beta1_ct" %in% names(TmbParams) ){
+      #  Map[["beta1_ct"]] = fix_value( fixvalTF=(Num_ct==0) )
+      #}
+      #if( "beta1_ft" %in% names(TmbParams) ){
         if( DataList[["FieldConfig"]][3,1] == -2 ){
-          Map[["beta1_ft"]] = fix_value( fixvalTF=(Num_ct==0) )
+          Map[["beta1_ft"]] = fix_value( fixvalTF=(Num_ct==0), orig_value=Map[["beta1_ft"]] )
         }else{
           stop( "Missing years may not work using a factor-model for intercepts" )
         }
-      }
+      #}
     }else{
       # Don't fix because it would affect estimates of variance
     }
     # Beta2 -- Fixed
     if( RhoConfig["Beta2"]==0 ){
-      if( "beta2_ct" %in% names(TmbParams) ){
-        Map[["beta2_ct"]] = fix_value( fixvalTF=(Num_ct==0) )
-      }
-      if( "beta2_ft" %in% names(TmbParams) ){
+      #if( "beta2_ct" %in% names(TmbParams) ){
+      #  Map[["beta2_ct"]] = fix_value( fixvalTF=(Num_ct==0) )
+      #}
+      #if( "beta2_ft" %in% names(TmbParams) ){
         if( DataList[["FieldConfig"]][3,2] == -2 ){
-          Map[["beta2_ft"]] = fix_value( fixvalTF=(Num_ct==0) )
+          Map[["beta2_ft"]] = fix_value( fixvalTF=(Num_ct==0), orig_value=Map[["beta2_ft"]] )
         }else{
           stop( "Missing years may not work using a factor-model for intercepts" )
         }
-      }
+      #}
     }else{
       # Don't fix because it would affect estimates of variance
     }
@@ -627,217 +625,206 @@ function( DataList,
   # overwrite previous, but also re-checks for missing data
   #####
 
-  Use_informative_starts = FALSE
-  if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
-    Use_informative_starts = TRUE
-  }
-  if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
-    if( all(DataList$FieldConfig[3,1:2] == -2) ){
-      Use_informative_starts = TRUE
-    }
-  }
-  if( Use_informative_starts==TRUE ){
-    # Temporary object for mapping
-    Map_tmp = list( "beta1_ct"=NA, "beta2_ct"=NA )
+  Prop_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'prop_nonzero',drop=FALSE], drop=3)
 
-    # Change beta1_ct if 100% encounters (not designed to work with seasonal models)
-    if( any(DataList$ObsModel_ez[,2] %in% c(3)) ){
-      if( ncol(DataList$t_iz)==1 ){
-        Prop_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'prop_nonzero',drop=FALSE], drop=3)
-        Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Prop_ct)), dim=dim(Prop_ct) )
-        Map_tmp[["beta1_ct"]][which(is.na(Prop_ct) | Prop_ct==1)] = NA
-        # MAYBE ADD FEATURE TO TURN OFF FOR Prop_ct==0
-      }else{
-        stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
-      }
-    }
+  # Temporary object for mapping
+  #Map_tmp = list( "beta1_ct"=NA, "beta2_ct"=NA )
 
-    # Change beta1_ct and beta2_ct if 0% or 100% encounters (not designed to work with seasonal models)
-    if( any(DataList$ObsModel_ez[,2] %in% c(4)) ){
-      if( ncol(DataList$t_iz)==1 ){
-        Prop_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'prop_nonzero',drop=FALSE], drop=3)
-        Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Prop_ct)), dim=dim(Prop_ct) )
-        Map_tmp[["beta1_ct"]][which(is.na(Prop_ct) | Prop_ct==1 | Prop_ct==0)] = NA
-        Map_tmp[["beta2_ct"]] = array( 1:prod(dim(Prop_ct)), dim=dim(Prop_ct) )
-        Map_tmp[["beta2_ct"]][which(is.na(Prop_ct) | Prop_ct==0)] = NA
-      }else{
-        stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
-      }
-    }
-
-    # Insert with name appropriate for a given version
-    if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
-      if( length(Map_tmp[["beta1_ct"]])>1 || !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ct"]] = factor(Map_tmp[["beta1_ct"]])
-      if( length(Map_tmp[["beta2_ct"]])>1 || !is.na(Map_tmp[["beta2_ct"]]) ) Map[["beta2_ct"]] = factor(Map_tmp[["beta2_ct"]])
-    }
-    if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
-      if( length(Map_tmp[["beta1_ct"]])>1 || !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ft"]] = factor(Map_tmp[["beta1_ct"]])
-      if( length(Map_tmp[["beta2_ct"]])>1 || !is.na(Map_tmp[["beta2_ct"]]) ) Map[["beta2_ft"]] = factor(Map_tmp[["beta2_ct"]])
-    }
+  # Change beta1_ct if 100% encounters (not designed to work with seasonal models)
+  if( any(DataList$ObsModel_ez[,2] %in% c(3)) ){
+    #if( ncol(DataList$t_iz)==1 ){
+      #Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Prop_ct)), dim=dim(Prop_ct) )
+      Map[["beta1_ft"]][which(is.na(Prop_ct) | Prop_ct==1)] = NA
+      # MAYBE ADD FEATURE TO TURN OFF FOR Prop_ct==0
+    #}else{
+    #  stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
+    #}
   }
+
+  # Change beta1_ct and beta2_ct if 0% or 100% encounters (not designed to work with seasonal models)
+  if( any(DataList$ObsModel_ez[,2] %in% c(4)) ){
+    #if( ncol(DataList$t_iz)==1 ){
+      #Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Prop_ct)), dim=dim(Prop_ct) )
+      Map[["beta2_ft"]][which(is.na(Prop_ct) | Prop_ct==1 | Prop_ct==0)] = NA
+      #Map_tmp[["beta2_ct"]] = array( 1:prod(dim(Prop_ct)), dim=dim(Prop_ct) )
+      Map[["beta2_ft"]][which(is.na(Prop_ct) | Prop_ct==0)] = NA
+    #}else{
+    #  stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
+    #}
+  }
+
+  # Insert with name appropriate for a given version
+  #if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
+  #  if( length(Map_tmp[["beta1_ct"]])>1 || !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ct"]] = (Map_tmp[["beta1_ct"]])
+  #  if( length(Map_tmp[["beta2_ct"]])>1 || !is.na(Map_tmp[["beta2_ct"]]) ) Map[["beta2_ct"]] = (Map_tmp[["beta2_ct"]])
+  #}
+  #if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
+  #  if( length(Map_tmp[["beta1_ct"]])>1 || !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ft"]] = (Map_tmp[["beta1_ct"]])
+  #  if( length(Map_tmp[["beta2_ct"]])>1 || !is.na(Map_tmp[["beta2_ct"]]) ) Map[["beta2_ft"]] = (Map_tmp[["beta2_ct"]])
+  #}
 
   #####
   # Step 3: Structure for hyper-parameters
   # overwrites previous structure on intercepts only if temporal structure is specified (in which case its unnecessary)
   #####
 
-  # Hyperparameters for intercepts for <= V5.3.0
-  if( all(c("logsigmaB1","logsigmaB2") %in% names(TmbParams)) ){
-    if( RhoConfig["Beta1"]==0){
-      Map[["Beta_mean1"]] = factor( NA )
-      Map[["Beta_rho1"]] = factor( NA )
-      Map[["logsigmaB1"]] = factor( NA )
-    }
-    # Beta1 -- White-noise
-    if( RhoConfig["Beta1"]==1){
-      Map[["Beta_rho1"]] = factor( NA )
-    }
-    # Beta1 -- Random-walk
-    if( RhoConfig["Beta1"]==2){
-      Map[["Beta_mean1"]] = factor( NA )
-      Map[["Beta_rho1"]] = factor( NA )
-    }
-    # Beta1 -- Constant over time for each category
-    if( RhoConfig["Beta1"]==3){
-      Map[["Beta_mean1"]] = factor( NA )
-      Map[["Beta_rho1"]] = factor( NA )
-      Map[["logsigmaB1"]] = factor( NA )
-      Map[["beta1_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
-    }
-    # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
-    if( RhoConfig["Beta2"] %in% c(0,6) ){
-      Map[["Beta_mean2"]] = factor( NA )
-      Map[["Beta_rho2"]] = factor( NA )
-      Map[["logsigmaB2"]] = factor( NA )
-    }
-    # Beta2 -- White-noise
-    if( RhoConfig["Beta2"]==1){
-      Map[["Beta_rho2"]] = factor( NA )
-    }
-    # Beta2 -- Random-walk
-    if( RhoConfig["Beta2"]==2){
-      Map[["Beta_mean2"]] = factor( NA )
-      Map[["Beta_rho2"]] = factor( NA )
-    }
-    # Beta2 -- Constant over time for each category
-    if( RhoConfig["Beta2"]==3){
-      Map[["Beta_mean2"]] = factor( NA )
-      Map[["Beta_rho2"]] = factor( NA )
-      Map[["logsigmaB2"]] = factor( NA )
-      Map[["beta2_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
-    }
-    # Warnings
-    if( DataList$n_c >= 2 ){
-      warnings( "This version of VAST has the same hyperparameters for the intercepts of all categories.  Please use CPP version >=5.4.0 for different hyperparameters for each category." )
-    }
-  }
-  # Hyperparameters for intercepts for >= V5.4.0 & <7.0.0
-  if( all(c("logsigmaB1_c","logsigmaB2_c") %in% names(TmbParams)) ){
-    if( RhoConfig["Beta1"]==0){
-      Map[["Beta_mean1_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["Beta_rho1_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["logsigmaB1_c"]] = factor( rep(NA,DataList$n_c) )
-    }
-    # Beta1 -- White-noise
-    if( RhoConfig["Beta1"]==1){
-      Map[["Beta_rho1_c"]] = factor( rep(NA,DataList$n_c) )
-    }
-    # Beta1 -- Random-walk
-    if( RhoConfig["Beta1"]==2){
-      Map[["Beta_mean1_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["Beta_rho1_c"]] = factor( rep(NA,DataList$n_c) )
-    }
-    # Beta1 -- Constant over time for each category
-    if( RhoConfig["Beta1"]==3){
-      Map[["Beta_mean1_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["Beta_rho1_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["logsigmaB1_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["beta1_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
-    }
-    # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
-    if( RhoConfig["Beta2"] %in% c(0,6) ){
-      Map[["Beta_mean2_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["Beta_rho2_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["logsigmaB2_c"]] = factor( rep(NA,DataList$n_c) )
-    }
-    # Beta2 -- White-noise
-    if( RhoConfig["Beta2"]==1){
-      Map[["Beta_rho2_c"]] = factor( rep(NA,DataList$n_c) )
-    }
-    # Beta2 -- Random-walk
-    if( RhoConfig["Beta2"]==2){
-      Map[["Beta_mean2_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["Beta_rho2_c"]] = factor( rep(NA,DataList$n_c) )
-    }
-    # Beta2 -- Constant over time for each category
-    if( RhoConfig["Beta2"]==3){
-      Map[["Beta_mean2_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["Beta_rho2_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["logsigmaB2_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["beta2_ct"]] = factor( 1:DataList$n_c %o% rep(1,DataList$n_t) )
-    }
-    # Warnings
-    if( DataList$n_c >= 2 ){
-      warnings( "This version of VAST has different hyperparameters for each category. Default behavior for CPP version <=5.3.0 was to have the same hyperparameters for the intercepts of all categories." )
-    }
-  }
+  ## Hyperparameters for intercepts for <= V5.3.0
+  #if( all(c("logsigmaB1","logsigmaB2") %in% names(TmbParams)) ){
+  #  if( RhoConfig["Beta1"]==0){
+  #    Map[["Beta_mean1"]] = ( NA )
+  #    Map[["Beta_rho1"]] = ( NA )
+  #    Map[["logsigmaB1"]] = ( NA )
+  #  }
+  #  # Beta1 -- White-noise
+  #  if( RhoConfig["Beta1"]==1){
+  #    Map[["Beta_rho1"]] = ( NA )
+  #  }
+  #  # Beta1 -- Random-walk
+  #  if( RhoConfig["Beta1"]==2){
+  #    Map[["Beta_mean1"]] = ( NA )
+  #    Map[["Beta_rho1"]] = ( NA )
+  #  }
+  #  # Beta1 -- Constant over time for each category
+  #  if( RhoConfig["Beta1"]==3){
+  #    Map[["Beta_mean1"]] = ( NA )
+  #    Map[["Beta_rho1"]] = ( NA )
+  #    Map[["logsigmaB1"]] = ( NA )
+  #    Map[["beta1_ct"]] = ( 1:DataList$n_c %o% rep(1,DataList$n_t) )
+  #  }
+  #  # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
+  #  if( RhoConfig["Beta2"] %in% c(0,6) ){
+  #    Map[["Beta_mean2"]] = ( NA )
+  #    Map[["Beta_rho2"]] = ( NA )
+  #    Map[["logsigmaB2"]] = ( NA )
+  #  }
+  #  # Beta2 -- White-noise
+  #  if( RhoConfig["Beta2"]==1){
+  #    Map[["Beta_rho2"]] = ( NA )
+  #  }
+  #  # Beta2 -- Random-walk
+  #  if( RhoConfig["Beta2"]==2){
+  #    Map[["Beta_mean2"]] = ( NA )
+  #    Map[["Beta_rho2"]] = ( NA )
+  #  }
+  #  # Beta2 -- Constant over time for each category
+  #  if( RhoConfig["Beta2"]==3){
+  #    Map[["Beta_mean2"]] = ( NA )
+  #    Map[["Beta_rho2"]] = ( NA )
+  #    Map[["logsigmaB2"]] = ( NA )
+  #    Map[["beta2_ct"]] = ( 1:DataList$n_c %o% rep(1,DataList$n_t) )
+  #  }
+  #  # Warnings
+  #  if( DataList$n_c >= 2 ){
+  #    warnings( "This version of VAST has the same hyperparameters for the intercepts of all categories.  Please use CPP version >=5.4.0 for different hyperparameters for each category." )
+  #  }
+  #}
+  ## Hyperparameters for intercepts for >= V5.4.0 & <7.0.0
+  #if( all(c("logsigmaB1_c","logsigmaB2_c") %in% names(TmbParams)) ){
+  #  if( RhoConfig["Beta1"]==0){
+  #    Map[["Beta_mean1_c"]] = ( rep(NA,DataList$n_c) )
+  #    Map[["Beta_rho1_c"]] = ( rep(NA,DataList$n_c) )
+  #    Map[["logsigmaB1_c"]] = ( rep(NA,DataList$n_c) )
+  #  }
+  #  # Beta1 -- White-noise
+  #  if( RhoConfig["Beta1"]==1){
+  #    Map[["Beta_rho1_c"]] = ( rep(NA,DataList$n_c) )
+  #  }
+  #  # Beta1 -- Random-walk
+  #  if( RhoConfig["Beta1"]==2){
+  #    Map[["Beta_mean1_c"]] = ( rep(NA,DataList$n_c) )
+  #    Map[["Beta_rho1_c"]] = ( rep(NA,DataList$n_c) )
+  #  }
+  #  # Beta1 -- Constant over time for each category
+  #  if( RhoConfig["Beta1"]==3){
+  #    Map[["Beta_mean1_c"]] = ( rep(NA,DataList$n_c) )
+  #    Map[["Beta_rho1_c"]] = ( rep(NA,DataList$n_c) )
+  #    Map[["logsigmaB1_c"]] = ( rep(NA,DataList$n_c) )
+  #    Map[["beta1_ct"]] = ( 1:DataList$n_c %o% rep(1,DataList$n_t) )
+  #  }
+  #  # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
+  #  if( RhoConfig["Beta2"] %in% c(0,6) ){
+  #    Map[["Beta_mean2_c"]] = ( rep(NA,DataList$n_c) )
+  #    Map[["Beta_rho2_c"]] = ( rep(NA,DataList$n_c) )
+  #    Map[["logsigmaB2_c"]] = ( rep(NA,DataList$n_c) )
+  #  }
+  #  # Beta2 -- White-noise
+  #  if( RhoConfig["Beta2"]==1){
+  #    Map[["Beta_rho2_c"]] = ( rep(NA,DataList$n_c) )
+  #  }
+  #  # Beta2 -- Random-walk
+  #  if( RhoConfig["Beta2"]==2){
+  #    Map[["Beta_mean2_c"]] = ( rep(NA,DataList$n_c) )
+  #    Map[["Beta_rho2_c"]] = ( rep(NA,DataList$n_c) )
+  #  }
+  #  # Beta2 -- Constant over time for each category
+  #  if( RhoConfig["Beta2"]==3){
+  #    Map[["Beta_mean2_c"]] = ( rep(NA,DataList$n_c) )
+  #    Map[["Beta_rho2_c"]] = ( rep(NA,DataList$n_c) )
+  #    Map[["logsigmaB2_c"]] = ( rep(NA,DataList$n_c) )
+  #    Map[["beta2_ct"]] = ( 1:DataList$n_c %o% rep(1,DataList$n_t) )
+  #  }
+  #  # Warnings
+  #  if( DataList$n_c >= 2 ){
+  #    warnings( "This version of VAST has different hyperparameters for each category. Default behavior for CPP version <=5.3.0 was to have the same hyperparameters for the intercepts of all categories." )
+  #  }
+  #}
   # Hyperparameters for intercepts for >= V7.0.0
   if( all(c("L_beta1_z","L_beta2_z") %in% names(TmbParams)) ){
     if( RhoConfig["Beta1"]==0){
-      Map[["Beta_mean1_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["Beta_rho1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) )
-      Map[["L_beta1_z"]] = factor( rep(NA,length(TmbParams$L_beta1_z)) ) # Turn off all because Data_Fn has thrown an error whenever not using IID
+      Map[["Beta_mean1_c"]] = ( rep(NA,DataList$n_c) )
+      Map[["Beta_rho1_f"]] = ( rep(NA,nrow(TmbParams$beta1_ft)) )
+      Map[["L_beta1_z"]] = ( rep(NA,length(TmbParams$L_beta1_z)) ) # Turn off all because Data_Fn has thrown an error whenever not using IID
     }
     # Beta1 -- White-noise
     if( RhoConfig["Beta1"]==1){
-      Map[["Beta_rho1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) )
+      Map[["Beta_rho1_f"]] = ( rep(NA,nrow(TmbParams$beta1_ft)) )
     }
     # Beta1 -- Random-walk
     if( RhoConfig["Beta1"]==2){
-      # Map[["Beta_mean1_c"]] = factor( rep(NA,DataList$n_c) ) # Estimate Beta_mean1_c given RW, because RW in year t=0 starts as deviation from Beta_mean1_c
-      Map[["Beta_rho1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) )
+      # Map[["Beta_mean1_c"]] = ( rep(NA,DataList$n_c) ) # Estimate Beta_mean1_c given RW, because RW in year t=0 starts as deviation from Beta_mean1_c
+      Map[["Beta_rho1_f"]] = ( rep(NA,nrow(TmbParams$beta1_ft)) )
       warnings( "Version >=7.0.0 has different behavior for random-walk intercepts than <7.0.0, so results may not be identical. Consult James Thorson or code for details.")
     }
     # Beta1 -- Constant over time for each category
     if( RhoConfig["Beta1"]==3){
-      Map[["Beta_mean1_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["Beta_rho1_f"]] = factor( rep(NA,nrow(TmbParams$beta1_ft)) )
-      Map[["beta1_ft"]] = factor( row(TmbParams$beta1_ft) )
-      Map[["L_beta1_z"]] = factor( rep(NA,length(TmbParams$L_beta1_z)) ) # Turn off all because Data_Fn has thrown an error whenever not using IID
+      Map[["Beta_mean1_c"]] = ( rep(NA,DataList$n_c) )
+      Map[["Beta_rho1_f"]] = ( rep(NA,nrow(TmbParams$beta1_ft)) )
+      Map[["beta1_ft"]] = ( row(TmbParams$beta1_ft) )
+      Map[["L_beta1_z"]] = ( rep(NA,length(TmbParams$L_beta1_z)) ) # Turn off all because Data_Fn has thrown an error whenever not using IID
     }
     # Beta1 -- AR with shared
     if( RhoConfig["Beta1"]==4){
-      Map[["Beta_rho1_f"]] = factor( rep(1,nrow(TmbParams$beta1_ft)) )
+      Map[["Beta_rho1_f"]] = ( rep(1,nrow(TmbParams$beta1_ft)) )
     }
     # Beta1 -- AR with separate Rho
     if( RhoConfig["Beta1"]==5){
     }
     # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
     if( RhoConfig["Beta2"] %in% c(0,6) ){
-      Map[["Beta_mean2_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["Beta_rho2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
-      Map[["L_beta2_z"]] = factor( rep(NA,length(TmbParams$L_beta2_z)) )    # Turn off all because Data_Fn has thrown an error whenever not using IID
+      Map[["Beta_mean2_c"]] = ( rep(NA,DataList$n_c) )
+      Map[["Beta_rho2_f"]] = ( rep(NA,nrow(TmbParams$beta2_ft)) )
+      Map[["L_beta2_z"]] = ( rep(NA,length(TmbParams$L_beta2_z)) )    # Turn off all because Data_Fn has thrown an error whenever not using IID
     }
     # Beta2 -- White-noise
     if( RhoConfig["Beta2"]==1){
-      Map[["Beta_rho2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
+      Map[["Beta_rho2_f"]] = ( rep(NA,nrow(TmbParams$beta2_ft)) )
     }
     # Beta2 -- Random-walk
     if( RhoConfig["Beta2"]==2){
-      # Map[["Beta_mean2_c"]] = factor( rep(NA,DataList$n_c) )  # Estimate Beta_mean2_c given RW, because RW in year t=0 starts as deviation from Beta_mean2_c
-      Map[["Beta_rho2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
+      # Map[["Beta_mean2_c"]] = ( rep(NA,DataList$n_c) )  # Estimate Beta_mean2_c given RW, because RW in year t=0 starts as deviation from Beta_mean2_c
+      Map[["Beta_rho2_f"]] = ( rep(NA,nrow(TmbParams$beta2_ft)) )
       warnings( "Version >=7.0.0 has different behavior for random-walk intercepts than <7.0.0, so results may not be identical. Consult James Thorson or code for details.")
     }
     # Beta2 -- Constant over time for each category
     if( RhoConfig["Beta2"]==3){
-      Map[["Beta_mean2_c"]] = factor( rep(NA,DataList$n_c) )
-      Map[["Beta_rho2_f"]] = factor( rep(NA,nrow(TmbParams$beta2_ft)) )
-      Map[["beta2_ft"]] = factor( row(TmbParams$beta2_ft) )
-      Map[["L_beta2_z"]] = factor( rep(NA,length(TmbParams$L_beta2_z)) ) # Turn off all because Data_Fn has thrown an error whenever not using IID
+      Map[["Beta_mean2_c"]] = ( rep(NA,DataList$n_c) )
+      Map[["Beta_rho2_f"]] = ( rep(NA,nrow(TmbParams$beta2_ft)) )
+      Map[["beta2_ft"]] = ( row(TmbParams$beta2_ft) )
+      Map[["L_beta2_z"]] = ( rep(NA,length(TmbParams$L_beta2_z)) ) # Turn off all because Data_Fn has thrown an error whenever not using IID
     }
     # Beta1 -- AR with shared
     if( RhoConfig["Beta2"]==4){
-      Map[["Beta_rho2_f"]] = factor( rep(1,nrow(TmbParams$beta2_ft)) )
+      Map[["Beta_rho2_f"]] = ( rep(1,nrow(TmbParams$beta2_ft)) )
     }
     # Beta1 -- AR with separate Rho
     if( RhoConfig["Beta2"]==5){
@@ -848,11 +835,12 @@ function( DataList,
     }
   }
   if( all(c("Beta_mean1_t","Beta_mean2_t") %in% names(TmbParams)) ){
-    Map[["Beta_mean1_t"]] = factor( rep(NA,DataList$n_t) )
-    Map[["Beta_mean2_t"]] = factor( rep(NA,DataList$n_t) )
+    Map[["Beta_mean1_t"]] = ( rep(NA,DataList$n_t) )
+    Map[["Beta_mean2_t"]] = ( rep(NA,DataList$n_t) )
   }
 
   # Return
+  Map = lapply( Map, as.factor )
   return(Map)
 }
 
