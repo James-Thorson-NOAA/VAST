@@ -45,6 +45,15 @@ test_that("Condition-and-density example is working ", {
     build_model = FALSE,
     backwards_compatible_kmeans=TRUE )
 
+  #
+  if( FALSE ){
+    tapply( b_i, INDEX=list(example$sampling_data[,'year'],c_i), FUN=function(x){mean(x>0)} )
+    DataList = fit$data_list
+    TmbParams = fit$tmb_list$Parameters
+    RhoConfig = c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0)
+    Npool = 0
+  }
+
   # Modify Map
   Map = fit$tmb_list$Map
     Map$lambda2_k = factor(NA)
@@ -63,12 +72,13 @@ test_that("Condition-and-density example is working ", {
   # END CODE BLOCK FROM WIKI
     #framework = "CppAD",
     getsd=FALSE,
+    run_model=TRUE,
     #newtonsteps=0,
     backwards_compatible_kmeans=TRUE )
 
   # Comparisons
-  Par1 = fit$parameter_estimates$par[names(fit$parameter_estimates$par)%in%c("ln_H_input","beta1_ft","logkappa1","beta2_ft","logSigmaM")]
-  Par2 = parameter_estimates$par[names(parameter_estimates$par)%in%c("ln_H_input","beta1_ft","logkappa1","beta2_ft","logSigmaM")]
+  Par1 = fit$parameter_estimates$par[names(fit$parameter_estimates$par)%in%c("ln_H_input","logkappa1","logSigmaM")]
+  Par2 = parameter_estimates$par[names(parameter_estimates$par)%in%c("ln_H_input","logkappa1","logSigmaM")]
   expect_equal( as.vector(Par1), as.vector(Par2), tolerance=1e-3 )
   expect_equal( parameter_estimates$objective, fit$parameter_estimates$objective, tolerance=1e-3 )
 })

@@ -119,6 +119,11 @@ function( DataList,
     }
   }
 
+  # Unpack metadata
+  num_nonzero_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'num_nonzero',drop=FALSE], drop=3)
+  EncNum_c = rowSums( num_nonzero_ct )
+  Prop_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'prop_nonzero',drop=FALSE], drop=3)
+
   #########################
   # 1. Residual variance ("logSigmaM")
   # 2. Lognormal-Poisson overdispersion ("delta_i")
@@ -271,8 +276,6 @@ function( DataList,
       stop("Npool should only be specified when using 'IID' variation for `FieldConfig`")
     }
   }
-  Prop_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'num_nonzero',drop=FALSE], drop=3)
-  EncNum_c = rowSums( Prop_ct )
   if( any(EncNum_c < Npool) ){
     pool = function(poolTF){
       Return = seq_along(poolTF)
@@ -590,31 +593,21 @@ function( DataList,
   if( any(Num_ct==0) ){
     # Beta1 -- Fixed
     if( RhoConfig["Beta1"]==0 ){
-      #if( "beta1_ct" %in% names(TmbParams) ){
-      #  Map[["beta1_ct"]] = fix_value( fixvalTF=(Num_ct==0) )
-      #}
-      #if( "beta1_ft" %in% names(TmbParams) ){
-        if( DataList[["FieldConfig"]][3,1] == -2 ){
-          Map[["beta1_ft"]] = fix_value( fixvalTF=(Num_ct==0), orig_value=Map[["beta1_ft"]] )
-        }else{
-          stop( "Missing years may not work using a factor-model for intercepts" )
-        }
-      #}
+      if( DataList[["FieldConfig"]][3,1] == -2 ){
+        Map[["beta1_ft"]] = fix_value( fixvalTF=(Num_ct==0), orig_value=Map[["beta1_ft"]] )
+      }else{
+        stop( "Missing years may not work using a factor-model for intercepts" )
+      }
     }else{
       # Don't fix because it would affect estimates of variance
     }
     # Beta2 -- Fixed
     if( RhoConfig["Beta2"]==0 ){
-      #if( "beta2_ct" %in% names(TmbParams) ){
-      #  Map[["beta2_ct"]] = fix_value( fixvalTF=(Num_ct==0) )
-      #}
-      #if( "beta2_ft" %in% names(TmbParams) ){
-        if( DataList[["FieldConfig"]][3,2] == -2 ){
-          Map[["beta2_ft"]] = fix_value( fixvalTF=(Num_ct==0), orig_value=Map[["beta2_ft"]] )
-        }else{
-          stop( "Missing years may not work using a factor-model for intercepts" )
-        }
-      #}
+      if( DataList[["FieldConfig"]][3,2] == -2 ){
+        Map[["beta2_ft"]] = fix_value( fixvalTF=(Num_ct==0), orig_value=Map[["beta2_ft"]] )
+      }else{
+        stop( "Missing years may not work using a factor-model for intercepts" )
+      }
     }else{
       # Don't fix because it would affect estimates of variance
     }
@@ -625,149 +618,22 @@ function( DataList,
   # overwrite previous, but also re-checks for missing data
   #####
 
-  Prop_ct = abind::adrop(DataList$Options_list$metadata_ctz[,,'prop_nonzero',drop=FALSE], drop=3)
-
-  # Temporary object for mapping
-  #Map_tmp = list( "beta1_ct"=NA, "beta2_ct"=NA )
-
   # Change beta1_ct if 100% encounters (not designed to work with seasonal models)
   if( any(DataList$ObsModel_ez[,2] %in% c(3)) ){
-    #if( ncol(DataList$t_iz)==1 ){
-      #Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Prop_ct)), dim=dim(Prop_ct) )
-      Map[["beta1_ft"]][which(is.na(Prop_ct) | Prop_ct==1)] = NA
-      # MAYBE ADD FEATURE TO TURN OFF FOR Prop_ct==0
-    #}else{
-    #  stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
-    #}
+    Map[["beta1_ft"]][which(is.na(Prop_ct) | Prop_ct==1)] = NA
   }
 
   # Change beta1_ct and beta2_ct if 0% or 100% encounters (not designed to work with seasonal models)
   if( any(DataList$ObsModel_ez[,2] %in% c(4)) ){
-    #if( ncol(DataList$t_iz)==1 ){
-      #Map_tmp[["beta1_ct"]] = array( 1:prod(dim(Prop_ct)), dim=dim(Prop_ct) )
-      Map[["beta2_ft"]][which(is.na(Prop_ct) | Prop_ct==1 | Prop_ct==0)] = NA
-      #Map_tmp[["beta2_ct"]] = array( 1:prod(dim(Prop_ct)), dim=dim(Prop_ct) )
-      Map[["beta2_ft"]][which(is.na(Prop_ct) | Prop_ct==0)] = NA
-    #}else{
-    #  stop("`ObsModel[,2]==3` is not implemented to work with seasonal models")
-    #}
+    Map[["beta2_ft"]][which(is.na(Prop_ct) | Prop_ct==1 | Prop_ct==0)] = NA
+    Map[["beta2_ft"]][which(is.na(Prop_ct) | Prop_ct==0)] = NA
   }
-
-  # Insert with name appropriate for a given version
-  #if( all(c("beta1_ct","beta2_ct") %in% names(TmbParams)) ){
-  #  if( length(Map_tmp[["beta1_ct"]])>1 || !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ct"]] = (Map_tmp[["beta1_ct"]])
-  #  if( length(Map_tmp[["beta2_ct"]])>1 || !is.na(Map_tmp[["beta2_ct"]]) ) Map[["beta2_ct"]] = (Map_tmp[["beta2_ct"]])
-  #}
-  #if( all(c("beta1_ft","beta2_ft") %in% names(TmbParams)) ){
-  #  if( length(Map_tmp[["beta1_ct"]])>1 || !is.na(Map_tmp[["beta1_ct"]]) ) Map[["beta1_ft"]] = (Map_tmp[["beta1_ct"]])
-  #  if( length(Map_tmp[["beta2_ct"]])>1 || !is.na(Map_tmp[["beta2_ct"]]) ) Map[["beta2_ft"]] = (Map_tmp[["beta2_ct"]])
-  #}
 
   #####
   # Step 3: Structure for hyper-parameters
   # overwrites previous structure on intercepts only if temporal structure is specified (in which case its unnecessary)
   #####
 
-  ## Hyperparameters for intercepts for <= V5.3.0
-  #if( all(c("logsigmaB1","logsigmaB2") %in% names(TmbParams)) ){
-  #  if( RhoConfig["Beta1"]==0){
-  #    Map[["Beta_mean1"]] = ( NA )
-  #    Map[["Beta_rho1"]] = ( NA )
-  #    Map[["logsigmaB1"]] = ( NA )
-  #  }
-  #  # Beta1 -- White-noise
-  #  if( RhoConfig["Beta1"]==1){
-  #    Map[["Beta_rho1"]] = ( NA )
-  #  }
-  #  # Beta1 -- Random-walk
-  #  if( RhoConfig["Beta1"]==2){
-  #    Map[["Beta_mean1"]] = ( NA )
-  #    Map[["Beta_rho1"]] = ( NA )
-  #  }
-  #  # Beta1 -- Constant over time for each category
-  #  if( RhoConfig["Beta1"]==3){
-  #    Map[["Beta_mean1"]] = ( NA )
-  #    Map[["Beta_rho1"]] = ( NA )
-  #    Map[["logsigmaB1"]] = ( NA )
-  #    Map[["beta1_ct"]] = ( 1:DataList$n_c %o% rep(1,DataList$n_t) )
-  #  }
-  #  # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
-  #  if( RhoConfig["Beta2"] %in% c(0,6) ){
-  #    Map[["Beta_mean2"]] = ( NA )
-  #    Map[["Beta_rho2"]] = ( NA )
-  #    Map[["logsigmaB2"]] = ( NA )
-  #  }
-  #  # Beta2 -- White-noise
-  #  if( RhoConfig["Beta2"]==1){
-  #    Map[["Beta_rho2"]] = ( NA )
-  #  }
-  #  # Beta2 -- Random-walk
-  #  if( RhoConfig["Beta2"]==2){
-  #    Map[["Beta_mean2"]] = ( NA )
-  #    Map[["Beta_rho2"]] = ( NA )
-  #  }
-  #  # Beta2 -- Constant over time for each category
-  #  if( RhoConfig["Beta2"]==3){
-  #    Map[["Beta_mean2"]] = ( NA )
-  #    Map[["Beta_rho2"]] = ( NA )
-  #    Map[["logsigmaB2"]] = ( NA )
-  #    Map[["beta2_ct"]] = ( 1:DataList$n_c %o% rep(1,DataList$n_t) )
-  #  }
-  #  # Warnings
-  #  if( DataList$n_c >= 2 ){
-  #    warnings( "This version of VAST has the same hyperparameters for the intercepts of all categories.  Please use CPP version >=5.4.0 for different hyperparameters for each category." )
-  #  }
-  #}
-  ## Hyperparameters for intercepts for >= V5.4.0 & <7.0.0
-  #if( all(c("logsigmaB1_c","logsigmaB2_c") %in% names(TmbParams)) ){
-  #  if( RhoConfig["Beta1"]==0){
-  #    Map[["Beta_mean1_c"]] = ( rep(NA,DataList$n_c) )
-  #    Map[["Beta_rho1_c"]] = ( rep(NA,DataList$n_c) )
-  #    Map[["logsigmaB1_c"]] = ( rep(NA,DataList$n_c) )
-  #  }
-  #  # Beta1 -- White-noise
-  #  if( RhoConfig["Beta1"]==1){
-  #    Map[["Beta_rho1_c"]] = ( rep(NA,DataList$n_c) )
-  #  }
-  #  # Beta1 -- Random-walk
-  #  if( RhoConfig["Beta1"]==2){
-  #    Map[["Beta_mean1_c"]] = ( rep(NA,DataList$n_c) )
-  #    Map[["Beta_rho1_c"]] = ( rep(NA,DataList$n_c) )
-  #  }
-  #  # Beta1 -- Constant over time for each category
-  #  if( RhoConfig["Beta1"]==3){
-  #    Map[["Beta_mean1_c"]] = ( rep(NA,DataList$n_c) )
-  #    Map[["Beta_rho1_c"]] = ( rep(NA,DataList$n_c) )
-  #    Map[["logsigmaB1_c"]] = ( rep(NA,DataList$n_c) )
-  #    Map[["beta1_ct"]] = ( 1:DataList$n_c %o% rep(1,DataList$n_t) )
-  #  }
-  #  # Beta2 -- Fixed (0) or Beta_rho2 mirroring Beta_rho1 (6)
-  #  if( RhoConfig["Beta2"] %in% c(0,6) ){
-  #    Map[["Beta_mean2_c"]] = ( rep(NA,DataList$n_c) )
-  #    Map[["Beta_rho2_c"]] = ( rep(NA,DataList$n_c) )
-  #    Map[["logsigmaB2_c"]] = ( rep(NA,DataList$n_c) )
-  #  }
-  #  # Beta2 -- White-noise
-  #  if( RhoConfig["Beta2"]==1){
-  #    Map[["Beta_rho2_c"]] = ( rep(NA,DataList$n_c) )
-  #  }
-  #  # Beta2 -- Random-walk
-  #  if( RhoConfig["Beta2"]==2){
-  #    Map[["Beta_mean2_c"]] = ( rep(NA,DataList$n_c) )
-  #    Map[["Beta_rho2_c"]] = ( rep(NA,DataList$n_c) )
-  #  }
-  #  # Beta2 -- Constant over time for each category
-  #  if( RhoConfig["Beta2"]==3){
-  #    Map[["Beta_mean2_c"]] = ( rep(NA,DataList$n_c) )
-  #    Map[["Beta_rho2_c"]] = ( rep(NA,DataList$n_c) )
-  #    Map[["logsigmaB2_c"]] = ( rep(NA,DataList$n_c) )
-  #    Map[["beta2_ct"]] = ( 1:DataList$n_c %o% rep(1,DataList$n_t) )
-  #  }
-  #  # Warnings
-  #  if( DataList$n_c >= 2 ){
-  #    warnings( "This version of VAST has different hyperparameters for each category. Default behavior for CPP version <=5.3.0 was to have the same hyperparameters for the intercepts of all categories." )
-  #  }
-  #}
   # Hyperparameters for intercepts for >= V7.0.0
   if( all(c("L_beta1_z","L_beta2_z") %in% names(TmbParams)) ){
     if( RhoConfig["Beta1"]==0){
