@@ -93,6 +93,9 @@ function( x,
   if( any(x$data_list$RhoConfig[c("Beta1","Beta2")] %in% c(0)) ){
     stop("`project_model` is currently designed to work only with temporally varying or constant beta terms")
   }
+  if( FishStatsUtils::convert_version_name(x$settings$Version) < FishStatsUtils::convert_version_name("VAST_v14_0_1") ){
+    stop("`project_model` requires version >= `VAST_v14_0_1`")
+  }
 
   ##############
   # Step 1: Generate uncertainty in historical period
