@@ -47,7 +47,7 @@ Additional_repositories: https://inla.r-inla-download.org/R/stable
 License: file LICENSE
 LazyData: true
 Encoding: UTF-8
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3
 ByteCompile: true
 URL: http://github.com/James-Thorson-NOAA/VAST
 BugReports: http://github.com/James-Thorson-NOAA/VAST/issues

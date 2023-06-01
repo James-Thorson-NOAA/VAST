@@ -76,7 +76,9 @@ distributions for subsets of samples, or various other applications.}
 
 \item{v_i}{Vector of integers ranging from 0 to the number of vessels minus 1,
 providing sampling category (e.g., vessel or tow) associated with overdispersed variation for each observation i
-(by default \code{v_i=0} for all samples, which will not affect things given the default values for \code{OverdispersionConfig})}
+(by default \code{v_i=0} for all samples, which will not affect things given the default values for \code{OverdispersionConfig}).
+In some cases a portion of observations have a overdispersion-effect, but not others, and in this case the observations without
+are specified as \code{v_i=NA}}
 
 \item{FieldConfig}{See Details section of \code{\link[VAST]{make_data}} for details}
 
@@ -234,15 +236,17 @@ calculate changes in synchrony over time (only used if \code{Options['Calculate_
   \item{\code{Options["range_fraction"]}}{The decorrelation range when passing over land relative to over water; the default value \code{Options["range_fraction"]=0.2} indicates that the range is shorter over land, i.e., that correlations are strongest via water, while changing to \code{Options["range_fraction"]=5} would represent correlations transfer via land more than water}#' }}
 
 \item{Expansion_cz}{matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.
-The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates,
-where density is weighted by area ("area-weighted expansion", \code{Expansion[c,1]=0}, the default),
-where density is weighted by the expanded value for another category ("abundance weighted expansion" \code{Expansion[c1,1]=1}),
-the index is calculated as the weighted average of density weighted by the expanded value for another category
-("abundance weighted-average expansion" \code{Expansion[c1,1]=2}), or the area-weighted abundance is added to the expanded
-abundance for a prior category \code{Expansion[c1,1]=3}).
-The 2nd column is used when \code{Expansion[c1,1]=1} or \code{Expansion[c1,1]=2} or \code{Expansion[c1,1]=3},
-and specifies the category to use for abundance-weighted expansion/average/summation,
-where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.}
+       The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates as follows:
+\describe{
+  \item{\code{Expansion[c,1]=0}}{ density is weighted by area ("area-weighted expansion", the default) }
+  \item{\code{Expansion[c,1]=1}}{ density is weighted by the expanded value for another category ("abundance weighted expansion") }
+  \item{\code{Expansion[c,1]=2}}{ the index is calculated as the weighted average of density weighted by the expanded value for another category ("abundance weighted-average expansion") }
+  \item{\code{Expansion[c,1]=3}}{ area-weighted abundance is added to the expanded abundance for a prior category ("area-weighted cumulative total") }
+  \item{\code{Expansion[c,1]=4}}{ The fraction across categories is calculated, and then multiplied by another area-weighted index }
+}
+       The 2nd column is used when \code{Expansion[c1,1]=1} or \code{Expansion[c1,1]=2} or \code{Expansion[c1,1]=3},
+       and specifies the category to use for abundance-weighted expansion/average/summation,
+       where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.}
 
 \item{Z_gm}{matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics.
 Defaults to eastings and northings for each knots or extrapolation-grid cell.}

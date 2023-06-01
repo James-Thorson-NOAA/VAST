@@ -2291,6 +2291,7 @@ Type objective_function<Type>::operator() ()
     array<Type> Index_ctl(n_c, n_t, n_l);
     array<Type> ln_Index_ctl(n_c, n_t, n_l);
     Index_ctl.setZero();
+    Type tmp;
     for(t=0; t<n_t; t++){
     for(int l=0; l<n_l; l++){
       for(c=0; c<n_c; c++){
@@ -2319,6 +2320,19 @@ Type objective_function<Type>::operator() ()
         if( Expansion_cz(c,0)==3 ){
           for(g=0; g<n_g; g++){
             Index_gctl(g,c,t,l) = D_gct(g,c,t) * a_gl(g,l) + Index_gctl(g,Expansion_cz(c,1),t,l);
+            Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
+          }
+        }
+        // Normalize by category
+        if( Expansion_cz(c,0)==4 ){
+          for(g=0; g<n_g; g++){
+            tmp = 0;
+            for(int c2=0; c2<n_c; c2++){
+              if( Expansion_cz(c2,0)==4 ){
+                tmp += D_gct(g,c2,t);
+              }
+            }
+            Index_gctl(g,c,t,l) = D_gct(g,c,t)/tmp * Index_gctl(g,Expansion_cz(c,1),t,l);
             Index_ctl(c,t,l) += Index_gctl(g,c,t,l);
           }
         }

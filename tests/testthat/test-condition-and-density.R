@@ -72,7 +72,7 @@ test_that("Condition-and-density example is working ", {
   # END CODE BLOCK FROM WIKI
     #framework = "CppAD",
     getsd=FALSE,
-    run_model=TRUE,
+    #run_model=FALSE,
     #newtonsteps=0,
     backwards_compatible_kmeans=TRUE )
 
