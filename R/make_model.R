@@ -61,7 +61,7 @@ function( TmbData,
           intern = FALSE,
           inner.control = list(sparse=TRUE, lowrank=TRUE, trace=FALSE),
           supernodal = FALSE,
-          flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign" ){
+          flags = "" ){
 
   # Extract Options and Options_vec (depends upon version)
   if( all(c("Options","Options_vec") %in% names(TmbData)) ){
