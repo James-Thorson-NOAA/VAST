@@ -786,7 +786,7 @@ function( b_i,
 
   # Check for wrong dimensions
   if( CheckForErrors==TRUE ){
-    if( any(c(length(b_i),length(a_i),nrow(c_iz),length(tprime_i),length(v_i),length(PredTF_i))!=n_i) ) stop("b_i, a_i, c_i, s_i, v_i, or tprime_i doesn't have length n_i")
+    if( any(c(length(b_i),length(a_i),length(e_i),nrow(c_iz),length(tprime_i),length(v_i),length(PredTF_i))!=n_i) ) stop("b_i, a_i, c_i, s_i, v_i, or tprime_i doesn't have length n_i")
     if( nrow(a_gl)!=n_x | ncol(a_gl)!=n_l ) stop("a_xl has wrong dimensions")
     if( any(dim(X1_gctp)[1:3] != c(n_g,n_c,n_t)) ) stop("X1_gctp has wrong dimensions")
     if( nrow(X1_ip) != n_i ) stop("X1_ip has wrong dimensions")
