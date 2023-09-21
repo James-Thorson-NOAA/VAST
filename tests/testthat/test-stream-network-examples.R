@@ -12,6 +12,7 @@ test_that("Stream network example is working ", {
   settings$max_cells = Inf
   #settings$Version = FishStatsUtils::get_latest_version()
   settings$Version = Version_VAST
+  settings$mesh_package = "INLA"
   attach(settings)
   on.exit( detach(settings) )
 

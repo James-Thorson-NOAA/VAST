@@ -25,7 +25,7 @@ make_model(
   intern = FALSE,
   inner.control = list(sparse = TRUE, lowrank = TRUE, trace = FALSE),
   supernodal = FALSE,
-  flags = "-Wno-ignored-attributes -O2 -mfpmath=sse -msse2 -mstackrealign"
+  flags = ""
 )
 }
 \arguments{
