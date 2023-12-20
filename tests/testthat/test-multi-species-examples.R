@@ -19,7 +19,7 @@ test_that("Eastern Bering Sea 3-species is working ", {
   # Run model
   load( file.path(test_path,"Data_Geostat.RData") )
   Extrapolation_List = make_extrapolation_info( Region=Region, strata.limits=strata.limits )
-  Spatial_List = make_spatial_info( grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=Data_Geostat[,'Lon'], Lat=Data_Geostat[,'Lat'], Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=test_path )
+  Spatial_List = make_spatial_info( grid_size_km=grid_size_km, n_x=n_x, Method=Method, Lon=as.numeric(Data_Geostat[,'Lon']), Lat=as.numeric(Data_Geostat[,'Lat']), Extrapolation_List=Extrapolation_List, randomseed=Kmeans_Config[["randomseed"]], nstart=Kmeans_Config[["nstart"]], iter.max=Kmeans_Config[["iter.max"]], DirPath=test_path )
   TmbData = make_data("Version"=Version_VAST, "OverdispersionConfig"=rep(VesselConfig[2],2), "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=ObsModel, "c_i"=Data_Geostat[,'spp']-1, "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(factor(paste(Data_Geostat[,'Vessel'],Data_Geostat[,'Year'])))-1, "t_i"=Data_Geostat[,'Year'], "spatial_list"=Spatial_List )
   TmbList = make_model("build_model"=TRUE, "TmbData"=TmbData, "RunDir"=test_path, "Version"=Version_VAST, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x)
   #on.exit( dyn.unload(paste0(system.file("executables", package = "VAST"),"/",TMB::dynlib(Version_VAST))), add=TRUE )

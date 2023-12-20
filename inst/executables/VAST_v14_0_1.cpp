@@ -1589,8 +1589,8 @@ Type objective_function<Type>::operator() ()
 
   ////// Probability of correlated overdispersion among bins
   // 1st component
-  int n_eta_f1;
-  n_eta_f1 = eta1_vf.cols();
+//  int n_eta_f1;
+//  n_eta_f1 = eta1_vf.cols();
 //  matrix<Type> eta1_mean_vf(n_v, n_eta_f1);
 //  eta1_mean_vf.setZero();
   matrix<Type> eta1_vc(n_v, n_c);
@@ -1610,8 +1610,8 @@ Type objective_function<Type>::operator() ()
   eta1_vc = eta1_vf * L_eta1_cf.transpose();
 
   // 1st component
-  int n_eta_f2;
-  n_eta_f2 = eta2_vf.cols();
+//  int n_eta_f2;
+//  n_eta_f2 = eta2_vf.cols();
 //  matrix<Type> eta2_mean_vf(n_v, n_eta_f2);
 //  eta2_mean_vf.setZero();
   matrix<Type> eta2_vc(n_v, n_c);
