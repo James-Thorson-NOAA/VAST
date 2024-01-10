@@ -182,14 +182,16 @@
 #' @param Z_gm matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics.
 #'        Defaults to eastings and northings for each knots or extrapolation-grid cell.
 #' @param Expansion_cz matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.
-#'        The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates,
-#'        where density is weighted by area ("area-weighted expansion", \code{Expansion[c,1]=0}, the default),
-#'        where density is weighted by the expanded value for another category ("abundance weighted expansion" \code{Expansion[c1,1]=1}),
-#'        the index is calculated as the weighted average of density weighted by the expanded value for another category
-#'        ("abundance weighted-average expansion" \code{Expansion[c1,1]=2}), or the area-weighted abundance is added to the expanded
-#'        abundance for a prior category \code{Expansion[c1,1]=3}).
-#'        The 2nd column is used when \code{Expansion[c1,1]=1} or \code{Expansion[c1,1]=2} or \code{Expansion[c1,1]=3},
-#'        and specifies the category to use for abundance-weighted expansion/average/summation,
+#'        The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates as follows:
+#' \describe{
+#'   \item{\code{Expansion[c,1]=0}}{ density is weighted by area ("area-weighted expansion", the default) }
+#'   \item{\code{Expansion[c,1]=1}}{ density is weighted by the expanded value for another category ("abundance weighted expansion") }
+#'   \item{\code{Expansion[c,1]=2}}{ the index is calculated as the weighted average of density weighted by the expanded value for another category ("abundance weighted-average expansion") }
+#'   \item{\code{Expansion[c,1]=3}}{ area-weighted abundance is added to the expanded abundance for a prior category ("area-weighted cumulative total") }
+#'   \item{\code{Expansion[c,1]=4}}{ The fraction across categories is calculated, and then multiplied by another area-weighted index ("abundance weighted proportional expansion") }
+#' }
+#'        The 2nd column is used when \code{Expansion[c1,1]=1} or \code{Expansion[c1,1]=2} or \code{Expansion[c1,1]=3} or \code{Expansion[c1,1]=4},
+#'        and specifies the category to use for abundance-weighted expansion/average/summation/proportions,
 #'        where \code{Expansion[c1,2]=c2} and \code{c2} must be lower than \code{c1}.
 #' @param F_ct matrix of instantanous fishing mortality for each category c and year t.  Only feasible when using a Poisson-link delta model
 #'        and specifying temporal structure on intercepts, when the temporal autocorrelation is equivalent to a Spawning Potential
@@ -204,7 +206,7 @@
 #'   \item{\code{Options["Calculate_Synchrony"]=TRUE}}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
 #'   \item{\code{Options["report_additional_variables"]=TRUE}}{Export additional variables to \code{Report} object, to use for diagnostics or additional exploration}
 #'   \item{\code{Options["basin_method"]}}{Controls how the density-dependent index is generated from model variables.  Default \code{Options["basin_method"]=2}) uses annual mean of betas and epsilons as index.  Alternative \code{Options["basin_method"]=4}) uses a Lagrange multiplier to penalize index towards total abundance}
-#'   \item{\code{Options["range_fraction"]}}{The decorrelation range when passing over land relative to over water; the default value \code{Options["range_fraction"]=0.2} indicates that the range is shorter over land, i.e., that correlations are strongest via water, while changing to \code{Options["range_fraction"]=5} would represent correlations transfer via land more than water}#' }
+#'   \item{\code{Options["range_fraction"]}}{The decorrelation range when passing over land relative to over water; the default value \code{Options["range_fraction"]=0.2} indicates that the range is shorter over land, i.e., that correlations are strongest via water, while changing to \code{Options["range_fraction"]=5} would represent correlations transfer via land more than water}
 #' @param yearbounds_zz matrix with two columns, giving first and last years for defining one or more periods (rows) used to
 #'        calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})
 #' @param CheckForErrors whether to check for errors in input (NOTE: when \code{CheckForErrors=TRUE}, the function will throw an error if
@@ -670,11 +672,11 @@ function( b_i,
     if( !is.array(Expansion_cz) || !(all(dim(Expansion_cz)==c(n_c,2))) ){
       stop("`Expansion_cz` has wrong dimensions")
     }
-    if( any(Expansion_cz[,2] >= 1:n_c) ){
+    if( !all(Expansion_cz[,2] %in% (1:n_c - 1)) ){
       stop("`Expansion_cz[c,2]` must be less than c for each row")
     }
-    if( !all(Expansion_cz[,1] %in% c(0,1,2,3)) ){
-      stop("`Expansion_cz[c,1]` must be one of the available options: {0,1,2,3}")
+    if( !all(Expansion_cz[,1] %in% c(0,1,2,3,4)) ){
+      stop("`Expansion_cz[c,1]` must be one of the available options: {0,1,2,3,4}")
     }
   }
 
@@ -784,7 +786,7 @@ function( b_i,
 
   # Check for wrong dimensions
   if( CheckForErrors==TRUE ){
-    if( any(c(length(b_i),length(a_i),nrow(c_iz),length(tprime_i),length(v_i),length(PredTF_i))!=n_i) ) stop("b_i, a_i, c_i, s_i, v_i, or tprime_i doesn't have length n_i")
+    if( any(c(length(b_i),length(a_i),length(e_i),nrow(c_iz),length(tprime_i),length(v_i),length(PredTF_i))!=n_i) ) stop("b_i, a_i, c_i, s_i, v_i, or tprime_i doesn't have length n_i")
     if( nrow(a_gl)!=n_x | ncol(a_gl)!=n_l ) stop("a_xl has wrong dimensions")
     if( any(dim(X1_gctp)[1:3] != c(n_g,n_c,n_t)) ) stop("X1_gctp has wrong dimensions")
     if( nrow(X1_ip) != n_i ) stop("X1_ip has wrong dimensions")
@@ -1022,7 +1024,7 @@ function( b_i,
   }
   if( is.null(Return) ) stop("`Version` provided does not match the list of possible values")
   if( "spde" %in% names(Return) ) Return[['spde']] = MeshList$isotropic_spde$param.inla[c("M0","M1","M2")]
-  if( "spde_aniso" %in% names(Return) ) Return[['spde_aniso']] = list("n_s"=MeshList$anisotropic_spde$n.spde, "n_tri"=nrow(MeshList$anisotropic_mesh$graph$tv), "Tri_Area"=MeshList$Tri_Area, "E0"=MeshList$E0, "E1"=MeshList$E1, "E2"=MeshList$E2, "TV"=MeshList$TV-1, "G0"=MeshList$anisotropic_spde$param.inla$M0, "G0_inv"=INLA::inla.as.dgTMatrix(solve(MeshList$anisotropic_spde$param.inla$M0)) )
+  if( "spde_aniso" %in% names(Return) ) Return[['spde_aniso']] = list("n_s"=MeshList$anisotropic_spde$n.spde, "n_tri"=nrow(MeshList$anisotropic_mesh$graph$tv), "Tri_Area"=MeshList$Tri_Area, "E0"=MeshList$E0, "E1"=MeshList$E1, "E2"=MeshList$E2, "TV"=MeshList$TV-1, "G0"=MeshList$anisotropic_spde$param.inla$M0, "G0_inv"=as(solve(MeshList$anisotropic_spde$param.inla$M0),"dgTMatrix") )
   if( "spdeMatricesBarrier" %in% names(Return) ){
     Return[['spdeMatricesBarrier']] = MeshList$barrier_list
     Return[['Barrier_scaling']] = c(1, Options2use['range_fraction'])

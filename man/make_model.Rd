@@ -24,7 +24,8 @@ make_model(
   framework = "TMBad",
   intern = FALSE,
   inner.control = list(sparse = TRUE, lowrank = TRUE, trace = FALSE),
-  supernodal = FALSE
+  supernodal = FALSE,
+  flags = ""
 )
 }
 \arguments{
@@ -88,6 +89,8 @@ from the list of outputs, modifying it manually, and then passing it explicitly,
 \item{inner.control}{List controlling inner optimization.}
 
 \item{supernodal}{Turn on preprocessor flag to use supernodal sparse Cholesky/Inverse from system wide suitesparse library}
+
+\item{flags}{Character with compile flags.}
 }
 \value{
 Object of class \code{make_model}, containing objects for running a VAST model

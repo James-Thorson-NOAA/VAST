@@ -28,10 +28,7 @@ test_that("Tweedie gives identical results to mgcv::gam(.) ", {
   mgcv_gam = gam( d_i ~ 1, family=tw )
   p = 1 + plogis(mgcv_gam$family$getTheta())
 
-  # load data set
-  example = load_example( data_set="EBS_pollock" )
-
-  # Make settings (turning off bias.correct to save time for example)
+  # Make settings
   settings = make_settings( n_x=100,
     Region="other",
     purpose="index2",
@@ -59,6 +56,8 @@ test_that("Tweedie gives identical results to mgcv::gam(.) ", {
   expect_equal( as.numeric(p_hat), as.numeric(p), tolerance=0.01 )
   # Comparison -- scale
   expect_equal( as.numeric(exp(fit$ParHat$beta1_ft)), as.numeric(mgcv_gam$scale), tolerance=0.05 )
+  # Comparison -- AIC
+  expect_equal( as.numeric(fit$par$AIC), AIC(mgcv_gam), tolerance=1 )
 })
 
 # Eastern Bering Sea pollcok
@@ -104,7 +103,7 @@ test_that("Covariate effects when using a smoother gives identical results to mg
     X2_formula = ~ Temp + I(Temp^2),
     working_dir = multispecies_example_path,
     getsd = FALSE,
-    Use_REML = TRUE )
+    Use_REML = FALSE )
   p_hat = 1 + plogis( fit_tweedie$ParHat$logSigmaM[1,1] )
 
   # Fit using GAM
@@ -120,6 +119,9 @@ test_that("Covariate effects when using a smoother gives identical results to mg
   # slopes
   expect_equal( as.numeric(fit_tweedie$ParHat$gamma2_cp), as.numeric(summary(mgcv_gam)$p.coeff[c('Temp_i','I(Temp_i^2)')]), tolerance=0.01 )
   expect_equal( as.numeric(p_hat), as.numeric(p), tolerance=0.01 )
+
+  # Comparison -- AIC ... doesn't match exactly but seems close
+  #expect_equal( as.numeric(fit_tweedie$par$AIC), AIC(mgcv_gam), tolerance=1 )
 
   ##################
   # Conventional delta-lognormal
@@ -168,6 +170,10 @@ test_that("Covariate effects when using a smoother gives identical results to mg
   match2 = match( c('Temp_i','I(Temp_i^2)'), names(summary(gam2)$p.coeff) )
   expect_equal( as.numeric(fit$ParHat$gamma2_cp), as.numeric(summary(gam2)$p.coeff[match2]), tolerance=0.1 )
   #expect_equal( as.numeric(fit$ParHat$beta2_ft), as.numeric(summary(gam2)$p.coeff[-match2]), tolerance=0.1 )
+  
+  # Comparison -- AIC ... doesn't match exactly but seems close
+  # Must include the log(x) correction for converting normal to lognormal distribution in gam2
+  #expect_equal( as.numeric(fit$par$AIC), AIC(gam1)+AIC(gam2)+2*sum(log(Data[which(Data$catch>0),'catch'])), tolerance=1 )
 
   ##################
   # Try predict ... I haven't gotten this to work yet

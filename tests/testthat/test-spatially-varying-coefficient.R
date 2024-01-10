@@ -15,6 +15,7 @@ test_that("Spatially varying coefficient example is working ", {
   #settings$Version = FishStatsUtils::get_latest_version()
   settings$Version = Version_VAST
   settings$Options = c( settings$Options, "report_additional_variables"=TRUE )
+  settings$mesh_package = "INLA"
   attach(settings)
   on.exit( detach(settings) )
 
