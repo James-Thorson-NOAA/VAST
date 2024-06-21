@@ -211,7 +211,7 @@ function( DataList,
     if("L_epsilon2_z" %in% names(TmbParams)) Map[["L_epsilon2_z"]] = ( rep(NA,length(TmbParams[["L_epsilon2_z"]])) )
   }
   if( all(DataList[["FieldConfig"]][1:2,2] == -1 )){
-    if( !( "Xconfig_zcp" %in% names(DataList) && any(DataList[["Xconfig_zcp"]][2,,] %in% c(2,3)) ) ){
+    if( !( any(DataList[["X2config_cp"]]%in%c(2,3,4)) | any(DataList[["Q2config_k"]]%in%c(2,3)) ) ){
       Map[["logkappa2"]] = (NA)
       if("rho_c2" %in% names(TmbParams)) Map[["rho_c2"]] = (NA)
     }
