@@ -1,8 +1,8 @@
 Package: VAST
 Type: Package
 Title: Vector-Autoregressive Spatio-Temporal (VAST) Model
-Version: 3.11.1
-Date: 2024-06-20
+Version: 3.11.2
+Date: 2024-07-15
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -30,7 +30,7 @@ Imports:
     devtools
 Depends:
     TMB (>= 1.8.0),
-    FishStatsUtils (>= 2.13.0),
+    FishStatsUtils (>= 2.13.1),
     R (>= 3.5.0)
 Suggests:
     testthat,
