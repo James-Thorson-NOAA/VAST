@@ -85,6 +85,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           devtools::install_local()
+          devtools::install_deps(dependencies=TRUE)
           out <- devtools::test(stop_on_failure=TRUE)
           print(getwd())
           print(ls())
