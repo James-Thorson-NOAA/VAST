@@ -5,7 +5,6 @@ context("Testing examples")
 test_that("Spatially varying coefficient example is working ", {
   skip_on_ci()
   skip_if(skip_local)
-  if(!require(INLA)) install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
 
   # Prepping
   test_path = file.path(multispecies_example_path,"Spatially_varying_coefficient")

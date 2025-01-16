@@ -7,7 +7,6 @@ context("Testing multispecies examples")
 test_that("Eastern Bering Sea 3-species is working ", {
   skip_on_ci()
   skip_if(skip_local)
-  if(!require(INLA)) install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
 
   # Prepping
   test_path = file.path(multispecies_example_path,"EBS_3species")
@@ -34,7 +33,6 @@ test_that("Eastern Bering Sea 3-species is working ", {
 test_that("Eastern Bering Sea 5-species is working ", {
   skip_on_ci()
   skip_if(skip_local)
-  if(!require(INLA)) install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
 
   # Prepping
   test_path = file.path(multispecies_example_path,"EBS_5species")

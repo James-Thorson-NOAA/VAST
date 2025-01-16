@@ -8,7 +8,6 @@ test_that("Density covariates give identical results to glmer(.) ", {
   # Previously worked with CI, but not anymore
   #skip_on_ci()
   skip_if(skip_local)
-  if(!require(INLA)) install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
   library(lme4)
 
   # load data set

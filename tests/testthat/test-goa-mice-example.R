@@ -6,7 +6,6 @@ test_that("Gulf of Alaska MICE-in-space example is working ", {
   # THREW MEMORY ALLOCATION ERROR ON CI
   skip_on_ci()
   skip_if(skip_local)
-  if(!require(INLA)) install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
 
   # VAM is disabled for now
   skip_if(TRUE)
