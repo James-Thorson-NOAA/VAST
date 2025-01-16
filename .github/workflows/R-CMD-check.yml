@@ -65,6 +65,7 @@ jobs:
         run: |
           remotes::install_deps(dependencies=TRUE)
           remotes::install_cran("rcmdcheck")
+          install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
         shell: Rscript {0}
 
       - name: Check Ubuntu

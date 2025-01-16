@@ -6,9 +6,10 @@
 #'
 #' The function specifically simulates new values for random effects occurring
 #'      during forecasted years.  This includes some combination of intercepts
-#'      {beta1/beta2} and spatio-temporal terms {epsilon1/epsilon2} depending on which
+#'      \code{beta1} or \code{beta2} and spatio-temporal terms
+#'      \code{epsilon1} or \code{epsilon2} depending on which
 #'      are treated as random during estimation.  It does *not* generate new values of
-#'      covariates or random-effects that are not indexed by time {omega1/omega2}
+#'      covariates or random-effects that are not indexed by time \code{omega1} or \code{omega2}
 #'
 #' Note that the model may behave poorly when \code{historical_uncertainty="both"}
 #'      and the estimation model includes an AR1 process for any component.

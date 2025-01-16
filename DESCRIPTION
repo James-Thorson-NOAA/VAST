@@ -23,7 +23,6 @@ Imports:
     abind,
     effects,
     stats,
-    ThorsonUtilities,
     utils,
     fmesher,
     remotes,
@@ -42,11 +41,10 @@ Suggests:
     lme4,
 Remotes:
     james-thorson-NOAA/FishStatsUtils,
-    james-thorson/utilities
 License: file LICENSE
 LazyData: true
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 ByteCompile: true
 URL: http://github.com/James-Thorson-NOAA/VAST
 BugReports: http://github.com/James-Thorson-NOAA/VAST/issues
