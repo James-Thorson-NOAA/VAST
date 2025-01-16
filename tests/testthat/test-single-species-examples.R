@@ -20,6 +20,7 @@ test_that("Eastern Bering Sea pollock is working ", {
   # Previously worked with CI, but not anymore
   #skip_on_ci()
   skip_if(skip_local)
+  if(!require(INLA)) install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
 
   # Prepping
   test_path = file.path(singlespecies_example_path,"EBS_pollock")

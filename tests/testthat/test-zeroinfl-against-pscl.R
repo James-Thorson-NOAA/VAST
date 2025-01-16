@@ -7,6 +7,7 @@ context("Testing examples")
 test_that("Zero-inflated Poisson gives identical results to pscl::zeroinfl(.) ", {
   #skip_on_ci()
   skip_if(skip_local)
+  if(!require(INLA)) install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
 
   ## Simulate
   set.seed(101)

@@ -5,6 +5,8 @@ context("Testing examples")
 test_that("Condition-and-density example is working ", {
   skip_on_ci()
   skip_if(skip_local)
+  if(!require(INLA)) install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
+
   # Prepping
   test_path = file.path(multispecies_example_path,"Condition_and_density")
   load( file.path(test_path,"saved_estimates.RData") )

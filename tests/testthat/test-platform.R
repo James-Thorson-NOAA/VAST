@@ -5,6 +5,7 @@ context("Testing cross platform and R version compatibility")
 # Eastern Bering Sea pollcok
 test_that("Eastern Bering Sea pollock is working ", {
   #skip_on_ci()
+  if(!require(INLA)) install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
 
   ## Prep really simple example using built-in data set, adapted
   ## from simple example on wiki

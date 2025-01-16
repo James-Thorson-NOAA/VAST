@@ -5,6 +5,7 @@ context("Testing examples")
 test_that("Male lingcod compositional expansion is working ", {
   skip_on_ci()
   skip_if(skip_local)
+  if(!require(INLA)) install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
 
   # MakeADFun crashes for TMBad .. see:
   #  C:\Users\James.Thorson\Desktop\Work files\AFSC\2022-08 -- testthat fix for comp-expansion

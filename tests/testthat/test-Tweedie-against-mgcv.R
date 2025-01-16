@@ -8,6 +8,7 @@ test_that("Tweedie gives identical results to mgcv::gam(.) ", {
   # Previously worked with CI, but not anymore
   #skip_on_ci()
   skip_if(skip_local)
+  if(!require(INLA)) install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
   library(mgcv)
 
   #library(tweedie)  # Installed from locally from tweedie_2.3.2.tar.gz here: https://cran.r-project.org/web/packages/tweedie/index.html
@@ -64,6 +65,7 @@ test_that("Tweedie gives identical results to mgcv::gam(.) ", {
 test_that("Covariate effects when using a smoother gives identical results to mgcv::gam(.) ", {
   #skip_on_ci()
   skip_if(skip_local)
+  if(!require(INLA)) install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
   library(mgcv)
 
   # Simulate
