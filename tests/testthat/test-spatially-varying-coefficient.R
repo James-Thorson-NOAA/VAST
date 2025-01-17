@@ -6,7 +6,6 @@ test_that("Spatially varying coefficient example is working ", {
   skip_on_ci()
   skip_if(skip_local)
 
-
   # Prepping
   test_path = file.path(multispecies_example_path,"Spatially_varying_coefficient")
   load( file=file.path(test_path,"Data.RData") )

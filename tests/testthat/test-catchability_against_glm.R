@@ -20,6 +20,10 @@ test_that("Catchability covariates give identical results to glm(.) ", {
   # Previously worked with CI, but not anymore
   #skip_on_ci()
   skip_if(skip_local)
+  if(!require("INLA")){
+    install.packages("INLA", dep=TRUE, repos=c( CRAN="https://cloud.r-project.org",
+                                                INLA="https://inla.r-inla-download.org/R/stable") )
+  }
 
   # load data set
   example = load_example( data_set="covariate_example" )

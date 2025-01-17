@@ -265,7 +265,7 @@ function( TmbData,
   Obj$env$inner.control$grad.tol <- c(1e-8,1e-12,1e-15)[ConvergeTol] # # Default : 1e-8  # Maximum gradient limit inner optimization
 
   # Print number of parameters
-  ThorsonUtilities::list_parameters( Obj )
+  list_parameters( Obj )
 
   # Return stuff
   Return = list("Obj"=Obj, "Upper"=Bounds[,'Upper'], "Lower"=Bounds[,'Lower'], "Parameters"=Parameters, "Map"=Map, "Random"=Random)

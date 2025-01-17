@@ -1,8 +1,8 @@
 Package: VAST
 Type: Package
 Title: Vector-Autoregressive Spatio-Temporal (VAST) Model
-Version: 3.11.2
-Date: 2024-07-15
+Version: 3.11.3
+Date: 2025-01-16
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -23,14 +23,13 @@ Imports:
     abind,
     effects,
     stats,
-    ThorsonUtilities,
     utils,
     fmesher,
     remotes,
     devtools
 Depends:
     TMB (>= 1.8.0),
-    FishStatsUtils (>= 2.13.1),
+    FishStatsUtils (>= 2.13.2),
     R (>= 3.5.0)
 Suggests:
     testthat,
@@ -42,11 +41,10 @@ Suggests:
     lme4,
 Remotes:
     james-thorson-NOAA/FishStatsUtils,
-    james-thorson/utilities
 License: file LICENSE
 LazyData: true
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 ByteCompile: true
 URL: http://github.com/James-Thorson-NOAA/VAST
 BugReports: http://github.com/James-Thorson-NOAA/VAST/issues

@@ -20,6 +20,10 @@ test_that("Eastern Bering Sea pollock is working ", {
   # Previously worked with CI, but not anymore
   #skip_on_ci()
   skip_if(skip_local)
+  if(!require("INLA")){
+    install.packages("INLA", dep=TRUE, repos=c( CRAN="https://cloud.r-project.org",
+                                                INLA="https://inla.r-inla-download.org/R/stable") )
+  }
 
   # Prepping
   test_path = file.path(singlespecies_example_path,"EBS_pollock")
@@ -36,7 +40,7 @@ test_that("Eastern Bering Sea pollock is working ", {
   TmbData = make_data("Version"=Version_VAST, "OverdispersionConfig"=rep(VesselConfig[2],2), "FieldConfig"=FieldConfig, "RhoConfig"=RhoConfig, "ObsModel"=c(ObsModel,0), "c_i"=rep(0,nrow(Data_Geostat)), "b_i"=Data_Geostat[,'Catch_KG'], "a_i"=Data_Geostat[,'AreaSwept_km2'], "v_i"=as.numeric(factor(paste(Data_Geostat[,'Vessel'],Data_Geostat[,'Year'])))-1, "t_i"=Data_Geostat[,'Year'], "spatial_list"=Spatial_List )
   TmbList = make_model("TmbData"=TmbData, "build_model"=TRUE, "RunDir"=test_path, "Version"=Version_VAST, "RhoConfig"=RhoConfig, "loc_x"=Spatial_List$loc_x ) #, "Parameters"=Params)
   #on.exit( dyn.unload(paste0(system.file("executables", package = "VAST"),"/",TMB::dynlib(Version_VAST))), add=TRUE )
-  Opt = TMBhelper::fit_tmb( obj=TmbList[["Obj"]], getsd=FALSE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]] )  # , rel.tol=1e-20
+  Opt = fit_tmb( obj=TmbList[["Obj"]], getsd=FALSE, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]] )  # , rel.tol=1e-20
   # Comparisons
   Par1 = Opt$par[names(Opt$par)%in%c("ln_H_input","beta1_ct","beta1_ft","logkappa1","beta2_ct","beta2_ft","logkappa1","logSigmaM")]
   Par2 = opt$par[names(opt$par)%in%c("ln_H_input","beta1_t","logkappa1","beta2_t","logkappa1","logSigmaM")]
