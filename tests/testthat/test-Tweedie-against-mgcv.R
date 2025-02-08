@@ -75,7 +75,7 @@ test_that("Covariate effects when using a smoother gives identical results to mg
   library(mgcv)
 
   # Simulate
-  data( EBS_pollock_data, package="FishStatsUtils" )
+  data( EBS_pollock_data, package="VAST" )
   EBS_pollock_data = EBS_pollock_data$sampling_data
   pollock_data = EBS_pollock_data[ which(EBS_pollock_data$waterTmpC > -999), ]
 

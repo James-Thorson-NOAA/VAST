@@ -11,7 +11,7 @@ test_that("Density covariates give identical results to glmer(.) ", {
   library(lme4)
 
   # load data set
-  data( EBS_pollock_data, package="FishStatsUtils" )
+  data( EBS_pollock_data, package="VAST" )
   EBS_pollock_data = EBS_pollock_data$sampling_data
   Data = data.frame(EBS_pollock_data,
     "year_factor" = factor(EBS_pollock_data$year,levels=sort(unique(EBS_pollock_data$year))),

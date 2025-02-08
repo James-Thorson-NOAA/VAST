@@ -62,7 +62,7 @@ function( Version,
     }
     # Turned off
     if( n_f== -1 ){
-      if( FishStatsUtils::convert_version_name(Version) >= FishStatsUtils::convert_version_name("VAST_v12_0_0") ){
+      if( convert_version_name(Version) >= convert_version_name("VAST_v12_0_0") ){
         List[[which(names(List)==list_names[1])]] = vector()  # Turn off SD when zero factors, i.e., n_f = -1, MUST BE 1.0 BY DEFAULT
         List[[which(names(List)==list_names[2])]] = rarray(dim=as.vector(na.omit(c(n_i,0,n_t))), sd=sd)
       }else{

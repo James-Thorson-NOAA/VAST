@@ -11,7 +11,6 @@ test_that("Spatially varying coefficient example is working ", {
   load( file=file.path(test_path,"Data.RData") )
   load( file.path(test_path,"saved_estimates.RData") )
   load( file.path(test_path,"settings.RData") )
-  #settings$Version = FishStatsUtils::get_latest_version()
   settings$Version = Version_VAST
   settings$Options = c( settings$Options, "report_additional_variables"=TRUE )
   settings$mesh_package = "INLA"

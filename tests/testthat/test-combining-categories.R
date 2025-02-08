@@ -16,7 +16,7 @@ test_that("Combining categories example is working ", {
   ## loosely conditioned on EBS pollock.
 
   ## !! THIS IS NOT REAL DATA !! ###
-  data(acoustic_and_trawl, package = "FishStatsUtils" )
+  data(acoustic_and_trawl, package = "VAST" )
   dat <- subset(acoustic_and_trawl, Year<2012)
   ## Make default settings for index standardization
   settings <- make_settings(

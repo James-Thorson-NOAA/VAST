@@ -122,4 +122,21 @@ Param_Fn = function( ... ){
   make_parameters( ... )
 }
 
+PlotLoadings = function( ... ){
+  .Deprecated( new="FishStatsUtils::plot_loadings" )
+  FishStatsUtils::plot_loadings( ... )
+}
+Rotate_Fn = function( ... ){
+  .Deprecated( new="FishStatsUtils::rotate_factors" )
+  FishStatsUtils::rotate_factors( ... )
+}
+Calc_Anisotropic_Mesh = function( ... ){
+  .Deprecated( new="FishStatsUtils::make_mesh" )
+  FishStatsUtils::make_mesh( ... )
+}
+Calc_Kmeans = function( ... ){
+  .Deprecated( new="FishStatsUtils::make_kmeans" )
+  FishStatsUtils::make_kmeans( ... )
+}
+
 

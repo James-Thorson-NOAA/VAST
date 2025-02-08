@@ -92,7 +92,6 @@ function( TmbData,
 
   # Save package version info
   capture.output( packageDescription("VAST"), file=paste0(RunDir,"/packageDescription.txt") )
-  capture.output( packageDescription("FishStatsUtils"), file=paste0(RunDir,"/packageDescription.txt"), append=TRUE )
 
   # Parameters
     # TmbData=TmbData
