@@ -46,7 +46,9 @@ Imports:
     viridisLite,
     spacetime,
     gstat,
-    marginaleffects
+    marginaleffects,
+    methods,
+    graphics,
 Depends:
     TMB (>= 1.8.0),
     R (>= 3.5.0),
