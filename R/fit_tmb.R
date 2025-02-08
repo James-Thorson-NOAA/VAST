@@ -36,9 +36,6 @@
 #' @return the standard output from \code{\link[stats]{nlminb}}, except with additional diagnostics and timing info,
 #'         and a new slot containing the output from \code{\link[TMB]{sdreport}}
 #'
-#' @examples
-#' fit_tmb( Obj ) # where Obj is a compiled TMB object
-#'
 #' @references For more details see \url{https://doi.org/10.1016/j.fishres.2015.11.016}
 #' @export
 fit_tmb <-

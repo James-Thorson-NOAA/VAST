@@ -87,10 +87,6 @@ the standard output from \code{\link[stats]{nlminb}}, except with additional dia
 \description{
 \code{fit_tmb} runs a TMB model and generates standard diagnostics
 }
-\examples{
-fit_tmb( Obj ) # where Obj is a compiled TMB object
-
-}
 \references{
 For more details see \url{https://doi.org/10.1016/j.fishres.2015.11.016}
 }
