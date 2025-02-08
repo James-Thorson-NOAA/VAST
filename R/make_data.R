@@ -208,6 +208,7 @@
 #'   \item{\code{Options["report_additional_variables"]=TRUE}}{Export additional variables to \code{Report} object, to use for diagnostics or additional exploration}
 #'   \item{\code{Options["basin_method"]}}{Controls how the density-dependent index is generated from model variables.  Default \code{Options["basin_method"]=2}) uses annual mean of betas and epsilons as index.  Alternative \code{Options["basin_method"]=4}) uses a Lagrange multiplier to penalize index towards total abundance}
 #'   \item{\code{Options["range_fraction"]}}{The decorrelation range when passing over land relative to over water; the default value \code{Options["range_fraction"]=0.2} indicates that the range is shorter over land, i.e., that correlations are strongest via water, while changing to \code{Options["range_fraction"]=5} would represent correlations transfer via land more than water}
+#'   \item{\code{Options["Project_factors"]}}{Whether to estimate spatial projection of factors representing covariance among years and/or variables, as used to plot these rank-reduced patterns}
 #' }
 #' @param yearbounds_zz matrix with two columns, giving first and last years for defining one or more periods (rows) used to
 #'        calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})
