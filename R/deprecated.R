@@ -620,7 +620,7 @@ calc_synchrony = function( Report, Data, yearbounds_zz=matrix(c(1,Data$n_t),nrow
 #' \code{Coherence} calculates buffering (`phi`) and coherence (`psi`)
 #'
 #' @inheritParams plot_overdispersion
-#' @inheritParams VAST::make_data
+#' @inheritParams make_data
 #' @param covhat estimated covariance used for calculating coherence
 #' @return Tagged list containing measures of synchrony
 #' \describe{

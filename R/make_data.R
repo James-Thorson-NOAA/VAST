@@ -196,7 +196,8 @@
 #' @param F_ct matrix of instantanous fishing mortality for each category c and year t.  Only feasible when using a Poisson-link delta model
 #'        and specifying temporal structure on intercepts, when the temporal autocorrelation is equivalent to a Spawning Potential
 #'        Ratio (SPR) proxy for fishing mortality targets given the implied Gompertz density dependence.
-#' @param Options a tagged-vector that is empty by default, \code{Options=c()}, but where the following slots might be helpful to add,
+#' @param Options a tagged-vector that is empty by default \code{Options=c()},
+#'        but where the following slots might be helpful to add,
 #'        either by passing \code{Options} to \code{\link{make_settings}}, or editing after a call to that function:
 #' \describe{
 #'   \item{\code{Options["Calculate_Range"]=TRUE}}{Turns on internal calculation and SE for center-of-gravity}
@@ -207,6 +208,7 @@
 #'   \item{\code{Options["report_additional_variables"]=TRUE}}{Export additional variables to \code{Report} object, to use for diagnostics or additional exploration}
 #'   \item{\code{Options["basin_method"]}}{Controls how the density-dependent index is generated from model variables.  Default \code{Options["basin_method"]=2}) uses annual mean of betas and epsilons as index.  Alternative \code{Options["basin_method"]=4}) uses a Lagrange multiplier to penalize index towards total abundance}
 #'   \item{\code{Options["range_fraction"]}}{The decorrelation range when passing over land relative to over water; the default value \code{Options["range_fraction"]=0.2} indicates that the range is shorter over land, i.e., that correlations are strongest via water, while changing to \code{Options["range_fraction"]=5} would represent correlations transfer via land more than water}
+#' }
 #' @param yearbounds_zz matrix with two columns, giving first and last years for defining one or more periods (rows) used to
 #'        calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})
 #' @param CheckForErrors whether to check for errors in input (NOTE: when \code{CheckForErrors=TRUE}, the function will throw an error if

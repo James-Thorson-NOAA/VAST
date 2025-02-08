@@ -38,6 +38,7 @@
 #' @importFrom grDevices colorRampPalette dev.off png
 #' @importFrom stats cov cov2cor na.omit nlminb qlogis rnorm var weighted.mean
 #' @importFrom utils capture.output
+#' @importFrom marginaleffects get_coef
 
 #' @export
 make_model <-

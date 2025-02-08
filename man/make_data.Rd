@@ -38,7 +38,7 @@ make_data(
   Options = c(),
   Expansion_cz = NULL,
   Z_gm = NULL,
-  Version = FishStatsUtils::get_latest_version(package = "VAST"),
+  Version = get_latest_version(package = "VAST"),
   overlap_zz = matrix(ncol = 7, nrow = 0),
   ...
 )
@@ -205,7 +205,7 @@ by default (but can be specified to do so when an appropriate `formula` is suppl
 
 \item{Q2config_k}{Same as argument \code{Q1config_cp} but affecting affecting the 2nd linear predictor for catchability}
 
-\item{spatial_list}{tagged list of locational information from , i.e., from \code{\link[FishStatsUtils]{make_spatial_info}}}
+\item{spatial_list}{tagged list of locational information from , i.e., from \code{\link{make_spatial_info}}}
 
 \item{Network_sz}{An interface to specify a directed acyclic graphic representing a stream network, used only when \code{Method="Stream_network"}.}
 
@@ -222,6 +222,20 @@ it detects a problem with inputs.  However, failing to throw an error is no guar
 
 \item{yearbounds_zz}{matrix with two columns, giving first and last years for defining one or more periods (rows) used to
 calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})}
+
+\item{Options}{a tagged-vector that is empty by default \code{Options=c()},
+       but where the following slots might be helpful to add,
+       either by passing \code{Options} to \code{\link{make_settings}}, or editing after a call to that function:
+\describe{
+  \item{\code{Options["Calculate_Range"]=TRUE}}{Turns on internal calculation and SE for center-of-gravity}
+  \item{\code{Options["Calculate_effective_area"]=TRUE}}{Turns on internal calculation and SE for effective area occupied measuring range expansion/contraction}
+  \item{\code{Options["Calculate_Cov_SE"]=TRUE}}{Turns on internal calculation and SE for covariance among categories (i.e. in factor model)}
+  \item{\code{Options["Calculate_proportion"]=TRUE}}{Turns on internal calculation and SE for proportion of response within each category (e.g., for calculating proportion-at-age or species turnover)}
+  \item{\code{Options["Calculate_Synchrony"]=TRUE}}{Turns on internal calculation and SE for Loreau metric of synchrony (a.k.a. portfolio effects)}
+  \item{\code{Options["report_additional_variables"]=TRUE}}{Export additional variables to \code{Report} object, to use for diagnostics or additional exploration}
+  \item{\code{Options["basin_method"]}}{Controls how the density-dependent index is generated from model variables.  Default \code{Options["basin_method"]=2}) uses annual mean of betas and epsilons as index.  Alternative \code{Options["basin_method"]=4}) uses a Lagrange multiplier to penalize index towards total abundance}
+  \item{\code{Options["range_fraction"]}}{The decorrelation range when passing over land relative to over water; the default value \code{Options["range_fraction"]=0.2} indicates that the range is shorter over land, i.e., that correlations are strongest via water, while changing to \code{Options["range_fraction"]=5} would represent correlations transfer via land more than water}
+}}
 
 \item{Expansion_cz}{matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.
        The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates as follows:
@@ -240,7 +254,7 @@ calculate changes in synchrony over time (only used if \code{Options['Calculate_
 Defaults to eastings and northings for each knots or extrapolation-grid cell.}
 
 \item{Version}{Which CPP version to use.  If missing, defaults to latest version
-using \code{\link[FishStatsUtils]{get_latest_version}}.
+using \code{\link{get_latest_version}}.
 Can be used to specify using an older CPP, to maintain backwards compatibility.}
 
 \item{overlap_zz}{A matrix with seven columns (and zero rows by default), indicating whether overlap metrics should be calculated as a derived quantity.
@@ -256,7 +270,7 @@ Object of class \code{make_data}, containing inputs to function \code{\link{make
 \code{make_data} builds a tagged list of data inputs used by TMB for running the model
 }
 \details{
-Specification of \code{FieldConfig} can be seen by calling \code{\link[FishStatsUtils]{make_settings}},
+Specification of \code{FieldConfig} can be seen by calling \code{\link{make_settings}},
   which is the recommended way of generating this input for beginning users.
 
 Argument \code{FieldConfig} is a matrix of form
@@ -288,6 +302,6 @@ In each slot of \code{FieldConfig}, the user can specify various options:
     this is only useful for \code{Epsilon_year} to "turn off" covariance among years while still including spatio-temporal variation}
 }
 
-\code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_ip} using \code{\link[FishStatsUtils]{make_covariates}};
+\code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_ip} using \code{\link{make_covariates}};
 see that function for more details.
 }
