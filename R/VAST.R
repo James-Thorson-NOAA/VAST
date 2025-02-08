@@ -20,4 +20,9 @@
 #' @name VAST
 #' @importFrom utils packageVersion packageDescription
 #' @importFrom stats gaussian model.matrix poisson update.formula
+#' @importFrom grDevices jpeg rainbow rgb tiff
+#' @importFrom graphics abline arrows contour legend lines matplot plot.new points polygon rect
+#' @importFrom methods as formalArgs is slot
+#' @importFrom stats .getXlevels cor cutree delete.response dist hclust lm median model.frame optimHess pchisq pgamma plnorm plogis pnorm qnorm quantile rbinom rgamma rlnorm rpois runif sd terms varimax
+#' @importFrom utils data example head tail write.csv
 NULL

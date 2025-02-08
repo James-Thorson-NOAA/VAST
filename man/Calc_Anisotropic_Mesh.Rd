@@ -2,7 +2,7 @@
 % Please edit documentation in R/deprecated.R
 \name{Calc_Anisotropic_Mesh}
 \alias{Calc_Anisotropic_Mesh}
-\title{Copy of FishStatsUtils::make_mesh}
+\title{Copy of make_mesh}
 \usage{
 Calc_Anisotropic_Mesh(...)
 }
@@ -13,6 +13,6 @@ Calc_Anisotropic_Mesh(...)
 Included for continuity when using old scripts
 }
 \details{
-Please use \code{?FishStatsUtils::make_mesh} to see list of arguments
+Please use \code{?make_mesh} to see list of arguments
 and usage
 }

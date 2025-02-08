@@ -126,7 +126,7 @@ see \code{\link[TMB]{sdreport}} and \code{fit_tmb} for details}
 
 \item{use_anisotropy}{Boolean indicating whether to estimate two additional parameters representing geometric anisotropy}
 
-\item{vars_to_correct}{a character-vector listing which parameters to include for bias-correction, as passed to \code{\link[TMBhelper]{fit_tmb}}}
+\item{vars_to_correct}{a character-vector listing which parameters to include for bias-correction, as passed to \code{\link{fit_tmb}}}
 
 \item{Version}{Which CPP version to use.  If missing, defaults to latest version
 using \code{\link{get_latest_version}}.

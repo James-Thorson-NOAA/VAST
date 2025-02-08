@@ -35,7 +35,7 @@ Rerun_Fn(
 This input is useful, e.g., to build a model without estimating parameters, extracting Map
 from the list of outputs, modifying it manually, and then passing it explicitly, \code{make_model(Map=NewMap)} (OPTIONAL)}
 
-\item{MapDetails_List}{output from \code{FishStatsUtils::MapDetails_Fn}}
+\item{MapDetails_List}{output from \code{MapDetails_Fn}}
 
 \item{year_set}{set of parameters to include}
 

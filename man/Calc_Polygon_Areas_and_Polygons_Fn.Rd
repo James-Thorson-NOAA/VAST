@@ -2,7 +2,7 @@
 % Please edit documentation in R/deprecated.R
 \name{Calc_Polygon_Areas_and_Polygons_Fn}
 \alias{Calc_Polygon_Areas_and_Polygons_Fn}
-\title{Copy of FishStatsUtils::calculate_knot_areas}
+\title{Copy of calculate_knot_areas}
 \usage{
 Calc_Polygon_Areas_and_Polygons_Fn(...)
 }
@@ -13,6 +13,6 @@ Calc_Polygon_Areas_and_Polygons_Fn(...)
 Included for continuity when using old scripts
 }
 \details{
-Please use \code{?FishStatsUtils::calculate_knot_areas} to see list of arguments
+Please use \code{?calculate_knot_areas} to see list of arguments
 and usage
 }

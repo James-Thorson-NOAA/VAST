@@ -26,8 +26,7 @@ It is convenient to compute one-step-ahead residuals for data that arise as a mi
 One common example is a delta-model, which arises as a mixture of an encounter probability and a continuous distribution for
 biomass given an encounter.  In these cases, it is possible to apply \code{\link[TMB]{oneStepPredict}} twice, once for
 observations falling within the continuous domain, and again for observations in the discrete domain, and then combining the two.
-This function provides an example of doing so.  It is designed to use the `method="cdf"` feature in \code{\link[TMB]{oneStepPredict}},
-and code changes in the CPP side are shown in the example script `deltaModel.R` loaded within directory `system.file("tmb",package="TMBhelper")`.
+This function provides an example of doing so.  It is designed to use the `method="cdf"` feature in \code{\link[TMB]{oneStepPredict}}.
 This example also shows a proof-of-concept for uniform residuals under a (sufficiently-close-to) correctly specified model.
 }
 \examples{
@@ -109,7 +108,6 @@ mesh = inla.mesh.create( loc_xy, plot.delay=NULL, refine=FALSE)
 spde <- inla.spde2.matern(mesh, alpha=2)
 
 # COmpile
-setwd( system.file("tmb",package="TMBhelper") )
 compile( "deltaModel.cpp" )
 dyn.load( dynlib("deltaModel") )
 

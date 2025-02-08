@@ -25,7 +25,7 @@ format_covariates(
 
 \item{Cov_ep, }{matrix of covariates}
 
-\item{Spatial_List, }{Output from \code{FishStatsUtils::Spatial_Information_Fn}, representing spatial location of knots}
+\item{Spatial_List, }{Output from \code{Spatial_Information_Fn}, representing spatial location of knots}
 
 \item{FUN, }{function used to aggregate observations associated with each knot-time combination}
 

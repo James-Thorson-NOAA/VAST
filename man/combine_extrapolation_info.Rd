@@ -7,10 +7,10 @@
 combine_extrapolation_info(..., create_strata_per_region = FALSE)
 }
 \arguments{
-\item{...}{a sequence of outputs from \code{FishStatsUtils::make_extrapolation_info}}
+\item{...}{a sequence of outputs from \code{make_extrapolation_info}}
 }
 \value{
-Identical output from \code{FishStatsUtils::make_extrapolation_info}, but combined from each input
+Identical output from \code{make_extrapolation_info}, but combined from each input
 }
 \description{
 \code{combine_extrapolation_info} combines multiple extrapolation grids when combining data from multiple surveysn

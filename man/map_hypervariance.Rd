@@ -9,7 +9,7 @@ map_hypervariance(report, Spatial_List, method)
 \arguments{
 \item{report}{Report from TmbObj (e.g., TmbList[["Obj"]])}
 
-\item{Spatial_List}{Output from FishStatsUtils::Spatial_Information_Fn()}
+\item{Spatial_List}{Output from Spatial_Information_Fn()}
 
 \item{method}{Choose whether to plot anisotropic or isotropic covariance matrix}
 }

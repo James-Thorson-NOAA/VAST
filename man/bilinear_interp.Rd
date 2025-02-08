@@ -2,7 +2,7 @@
 % Please edit documentation in R/deprecated.R
 \name{bilinear_interp}
 \alias{bilinear_interp}
-\title{Calculate weights for bilinear interpolation}
+\title{Plot vessel effects}
 \usage{
 bilinear_interp(xyz1, xyz2, xyz3, xypred)
 }
@@ -14,8 +14,20 @@ bilinear_interp(xyz1, xyz2, xyz3, xypred)
 \item{xyz3, }{2D location and height of third neighbor}
 
 \item{xypred, }{2D location of location to interpolate}
+
+\item{TmbData}{Formatted data inputs, from `Data_Fn(...)`}
+
+\item{Sdreport}{TMB output from `TMB::sdreport(Obj)`}
+
+\item{FileName_VYplot}{Full filename (including directory) for center-of-gravity plot}
 }
 \value{
+Return Tagged list of output
+
+Calculate weights for bilinear interpolation
+
+\code{bilinear_interp} calculates three coefficients, used to calculate height via blinear interpolation from height and location of three neighbors
+
 Tagged list of useful output
 \describe{
   \item{zpred}{height at location \code{xypred}}
@@ -23,5 +35,5 @@ Tagged list of useful output
 }
 }
 \description{
-\code{bilinear_interp} calculates three coefficients, used to calculate height via blinear interpolation from height and location of three neighbors
+\code{Vessel_Fn} plots estimated vessel effects for model components
 }

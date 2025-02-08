@@ -7,7 +7,7 @@
 check_fit(parameter_estimates, check_gradients = FALSE, quiet = FALSE)
 }
 \arguments{
-\item{parameter_estimates}{output from \code{\link[TMBhelper]{fit_tmb}}}
+\item{parameter_estimates}{output from \code{\link{fit_tmb}}}
 
 \item{check_gradients}{Boolean stating whether to check bounds as well as other issues}
 

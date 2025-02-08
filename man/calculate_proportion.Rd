@@ -30,7 +30,7 @@ calculate_proportion(
 \arguments{
 \item{TmbData}{Formatted data inputs, from \code{\link[VAST]{make_data}}}
 
-\item{Index}{output from \code{FishStatsUtils::plot_biomass_index}}
+\item{Index}{output from \code{plot_biomass_index}}
 
 \item{Expansion_cz}{matrix specifying how densities are expanded when calculating annual indices, with a row for each category \code{c} and two columns.
        The first column specifies whether to calculate annual index for category \code{c} as the weighted-sum across density estimates as follows:
