@@ -2,29 +2,29 @@
 
 
 
-#' Copy of FishStatsUtils::calculate_knot_areas
+#' Copy of calculate_knot_areas
 #'
 #' Included for continuity when using old scripts
 #'
-#' Please use \code{?FishStatsUtils::calculate_knot_areas} to see list of arguments
+#' Please use \code{?calculate_knot_areas} to see list of arguments
 #' and usage
 #' @param ... Arguments to be passed to \code{calculate_knot_areas}
 #' @export
 Calc_Polygon_Areas_and_Polygons_Fn = function( ... ){
-  .Deprecated( new="FishStatsUtils::calculate_knot_areas" )
+  .Deprecated( new="calculate_knot_areas" )
   calculate_knot_areas( ... )
 }
 
-#' Copy of FishStatsUtils::make_mesh
+#' Copy of make_mesh
 #'
 #' Included for continuity when using old scripts
 #'
-#' Please use \code{?FishStatsUtils::make_mesh} to see list of arguments
+#' Please use \code{?make_mesh} to see list of arguments
 #' and usage
 #' @param ... Arguments to be passed to \code{make_mesh}
 #' @export
 Calc_Anisotropic_Mesh = function( ... ){
-  .Deprecated( new="FishStatsUtils::make_mesh" )
+  .Deprecated( new="make_mesh" )
   make_mesh( ... )
 }
 
@@ -33,7 +33,7 @@ Calc_Anisotropic_Mesh = function( ... ){
 #' \code{map_hypervariance} Plot variance of GMRF knots
 #'
 #' @param report Report from TmbObj (e.g., TmbList[["Obj"]])
-#' @param Spatial_List Output from FishStatsUtils::Spatial_Information_Fn()
+#' @param Spatial_List Output from Spatial_Information_Fn()
 #' @param method Choose whether to plot anisotropic or isotropic covariance matrix
 map_hypervariance <- function(report, Spatial_List, method){
   solveSubset <- function(Q) {
@@ -100,7 +100,7 @@ map_hypervariance <- function(report, Spatial_List, method){
 #' @param mgp passed to \code{par}
 #' @param tck passed to \code{par}
 #' @param oma passed to \code{par}
-#' @param ... passed to \code{ThorsonUtilities::save_fig}
+#' @param ... passed to \code{save_fig}
 summarize_covariance <-
 function( Report,
           Data,
@@ -118,7 +118,7 @@ function( Report,
           ...){
 
   #
-  .Deprecated( new="FishStatsUtils::plot_similarities" )
+  .Deprecated( new="plot_similarities" )
 
   # Adds intercept defaults to FieldConfig if missing
   if( is.vector(Data[["FieldConfig"]]) && length(Data[["FieldConfig"]])==4 ){
@@ -151,7 +151,7 @@ function( Report,
       Slot_name = paste0("lowercov_uppercor_",Par_name)
       if( Slot_name %in% rownames(sd_summary) ){
         # Extract covariances
-        Cor = Cov = Mat = ThorsonUtilities::Extract_SE( SD=SD, parname=Slot_name, columns=1:2, Dim=c(Data$n_c,Data$n_c) )
+        Cor = Cov = Mat = Extract_SE( SD=SD, parname=Slot_name, columns=1:2, Dim=c(Data$n_c,Data$n_c) )
         dimnames(Cor) = dimnames(Cov) = list( category_names, category_names, c("Estimate","Std.Error") )
         # Cor
         Cor[,,1][lower.tri(Cor[,,1])] = t(Mat[,,1])[lower.tri(Mat[,,1])]
@@ -197,7 +197,7 @@ function( Report,
     }
 
     # Plot analytic
-    ThorsonUtilities::save_fig( file=paste0(plotdir,figname,"--Analytic.png"), width=Dim[2]*4+1, height=Dim[1]*4, ... )
+    png( file=paste0(plotdir,figname,"--Analytic.png"), width=Dim[2]*4+1, height=Dim[1]*4, units="in", res=200, )
       par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
       for(i in 1:6 ){      #
         if( i %in% which(plotTF>0) ){
@@ -216,7 +216,7 @@ function( Report,
     dev.off()
 
 #    # Plot sample
-#    ThorsonUtilities::save_fig( file=paste0(plotdir,figname,"--Sample.png"), width=Dim[2]*4+1, height=Dim[1]*4, ... )
+#    save_fig( file=paste0(plotdir,figname,"--Sample.png"), width=Dim[2]*4+1, height=Dim[1]*4, ... )
 #      par(mfrow=Dim, mar=c(0,1,1,0), mgp=mgp, tck=tck, oma=oma)
 #      for(i in which(plotTF>0) ){
 #        if(i==1) Cov_cc = cov(Report$Omega1_sc)
@@ -274,7 +274,7 @@ plot_cov = function( Cov, zlim=NULL, names=1:nrow(Cov), names2=names, ncolors=21
 #' @param calculate_COG Boolean whether to calculate COG for each run
 #' @param figname name for figure to plot density in counter-factual scenario
 #' @inheritParams make_model
-#' @param MapDetails_List output from \code{FishStatsUtils::MapDetails_Fn}
+#' @param MapDetails_List output from \code{MapDetails_Fn}
 #' @param year_set set of parameters to include
 #' @param c_set set of categories to include
 #' @param ... additional arguments passed to \code{Build_TMB_Fn}
@@ -311,7 +311,7 @@ Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat0[
       for( i in 1:(length(c_set)-1) ){
         Mat = log(D_xcy[,i,])
         Zlim = range( log(D_xcy[,i,]) )
-        FishStatsUtils:::PlotMap_Fn( MappingDetails=MapDetails_List[["MappingDetails"]], Mat=Mat, zlim=Zlim, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName="", Year_Set=year_set, Rescale=FALSE, Rotate=MapDetails_List[["Rotate"]], Format="", Res=NA, mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,4,0), Cex=MapDetails_List[["Cex"]], textmargin=textmargin, add=FALSE, pch=20, zone=MapDetails_List[["Zone"]] )
+        PlotMap_Fn( MappingDetails=MapDetails_List[["MappingDetails"]], Mat=Mat, zlim=Zlim, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName="", Year_Set=year_set, Rescale=FALSE, Rotate=MapDetails_List[["Rotate"]], Format="", Res=NA, mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,4,0), Cex=MapDetails_List[["Cex"]], textmargin=textmargin, add=FALSE, pch=20, zone=MapDetails_List[["Zone"]] )
         mtext( side=3, outer=TRUE, text=paste0("Size bounds:",c_set[i]," to ",c_set[i+1]), cex=1.5, line=1 )
       }
     }
@@ -320,7 +320,7 @@ Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat0[
       for( i in 1:length(year_set) ){
         Mat = log(D_xcy[,,i])
         Zlim = range( log(D_xcy[,,i]) )
-        FishStatsUtils:::PlotMap_Fn( MappingDetails=MapDetails_List[["MappingDetails"]], Mat=Mat, zlim=Zlim, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName="", Year_Set=c_set[-1], Rescale=FALSE, Rotate=MapDetails_List[["Rotate"]], Format="", Res=NA, mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,4,0), Cex=MapDetails_List[["Cex"]], textmargin=textmargin, add=FALSE, pch=20, zone=MapDetails_List[["Zone"]] )
+        PlotMap_Fn( MappingDetails=MapDetails_List[["MappingDetails"]], Mat=Mat, zlim=Zlim, PlotDF=MapDetails_List[["PlotDF"]], MapSizeRatio=MapDetails_List[["MapSizeRatio"]], Xlim=MapDetails_List[["Xlim"]], Ylim=MapDetails_List[["Ylim"]], FileName="", Year_Set=c_set[-1], Rescale=FALSE, Rotate=MapDetails_List[["Rotate"]], Format="", Res=NA, mfrow=Dim, mar=c(0,0,2,0), oma=c(3.5,3.5,4,0), Cex=MapDetails_List[["Cex"]], textmargin=textmargin, add=FALSE, pch=20, zone=MapDetails_List[["Zone"]] )
         mtext( side=3, outer=TRUE, text=paste0("Year:",year_set[i]), cex=1.5, line=1 )
       }
     }    #
@@ -365,7 +365,7 @@ Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat0[
   # Plot
   #if( !is.null(figname) & !is.null(MapDetails_List) ){
   #  message( "Starting plot for counter-factual run" )
-  #  ThorsonUtilities::save_fig( file=figname, width=8, height=12, type="pdf", onefile=TRUE )
+  #  save_fig( file=figname, width=8, height=12, type="pdf", onefile=TRUE )
   #    plot_density( Report=Report, MapDetails_List=MapDetails_List, type="year", year_set=Year_Set, c_set=c_set )
   #  dev.off()
   #}
@@ -743,7 +743,7 @@ Crossvalidate_Fn = function(record_dir, parhat, original_data, group_i=NULL, kfo
       TmbList[["Upper"]][grep("logkappa",names(TmbList[["Upper"]]))] = Inf
 
       # Run model
-      Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], newtonsteps=newtonsteps )  # , rel.tol=1e-20
+      Opt = fit_tmb( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], newtonsteps=newtonsteps )  # , rel.tol=1e-20
 
       # Reports
       Report = Obj$report( Obj$env$last.par.best )
@@ -796,7 +796,7 @@ Plot_Ellipse_Fn = function( filename, Report, yearset=NULL, years2include=NULL, 
       if( ZinUTM==FALSE ){
         maps::map(MappingDetails[[1]], MappingDetails[[2]], ylim=mean(Ylim)+1*c(-0.5,0.5)*diff(Ylim), xlim=mean(Xlim)+1*c(-0.5,0.5)*diff(Xlim), fill=TRUE, ...) # , orientation=c(mean(y.lim),mean(x.lim),15)
       }else{
-        FishStatsUtils:::Plot_States_in_UTM_Fn( MappingDetails=MappingDetails, fillcol=NA, xlim=Xlim, ylim=Ylim, zone=zone, ... )
+        Plot_States_in_UTM_Fn( MappingDetails=MappingDetails, fillcol=NA, xlim=Xlim, ylim=Ylim, zone=zone, ... )
       }
       # Plot ellipsoids
       for(t in years2include){
@@ -1204,7 +1204,7 @@ function(MappingDetails, Mat, PlotDF, MapSizeRatio=c('Width(in)'=4,'Height(in)'=
     }
     # Include legend
     if( Legend$use==TRUE ){
-      FishStatsUtils:::smallPlot( FishStatsUtils:::Heatmap_Legend(colvec=Col, heatrange=list(range(Mat[Which,],na.rm=TRUE),zlim)[[ifelse(is.null(zlim),1,2)]], dopar=FALSE), x=Legend$x, y=Legend$y, mar=c(0,0,0,0), mgp=c(2,0.5,0), tck=-0.2, font=2 )  #
+      smallPlot( Heatmap_Legend(colvec=Col, heatrange=list(range(Mat[Which,],na.rm=TRUE),zlim)[[ifelse(is.null(zlim),1,2)]], dopar=FALSE), x=Legend$x, y=Legend$y, mar=c(0,0,0,0), mgp=c(2,0.5,0), tck=-0.2, font=2 )  #
     }
     # Margin text
     if(add==FALSE) mtext(side=1, outer=TRUE, outermargintext[1], cex=1.75, line=par()$oma[1]/2)
@@ -1225,7 +1225,7 @@ function(MappingDetails, Mat, PlotDF, MapSizeRatio=c('Width(in)'=4,'Height(in)'=
            width=1, height=2*MapSizeRatio['Height(in)'], res=Res, units='in')
     }
     if(Format %in% c("png","jpg","tif","tiff")){
-      FishStatsUtils:::Heatmap_Legend( colvec=Col, heatrange=list(range(Mat,na.rm=TRUE),zlim)[[ifelse(is.null(zlim),1,2)]], textmargin=textmargin )
+      Heatmap_Legend( colvec=Col, heatrange=list(range(Mat,na.rm=TRUE),zlim)[[ifelse(is.null(zlim),1,2)]], textmargin=textmargin )
       dev.off()
     }
   }
@@ -1310,7 +1310,7 @@ smallPlot <- function( expr, x=c(5,70), y=c(50,100), x1,y1,x2,y2, mar=c(12, 14, 
 #' @param Lon_e, Longitude for covariate sample e
 #' @param t_e, Time (e.g., year) for covariate sample e
 #' @param Cov_ep, matrix of covariates
-#' @param Spatial_List, Output from \code{FishStatsUtils::Spatial_Information_Fn}, representing spatial location of knots
+#' @param Spatial_List, Output from \code{Spatial_Information_Fn}, representing spatial location of knots
 #' @param FUN, function used to aggregate observations associated with each knot-time combination
 #' @param Year_Set, Set of times \code{t_e} used when generating \code{Cov_xtp}
 #' @param na.omit, What to do when some knot-time combination has no observation. Options include \code{"error"} which throw an error, or \code{"time-average"} which fills in the average for other years with observations for each knot

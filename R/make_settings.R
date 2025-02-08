@@ -23,7 +23,7 @@
 #' \item{\code{purpose="EOF3"}}{Same as "EOF2" but ensures that spatio-temporal factors are zero-centered, such that estimated Omega represents distribution in the "average" year.}
 #' }
 #' @param use_anisotropy Boolean indicating whether to estimate two additional parameters representing geometric anisotropy
-#' @param vars_to_correct a character-vector listing which parameters to include for bias-correction, as passed to \code{\link[TMBhelper]{fit_tmb}}
+#' @param vars_to_correct a character-vector listing which parameters to include for bias-correction, as passed to \code{\link{fit_tmb}}
 #' @param treat_nonencounter_as_zero Boolean indicating whether to treat any year-category combination as having zero biomass when generating abundance indices and resulting compositional estimates
 #' @param n_categories number of categories in a multivariate model (only necessary to specify given some values for \code{purpose})
 #'

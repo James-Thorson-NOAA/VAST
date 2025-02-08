@@ -33,7 +33,7 @@ function( fit,
   residual_semivariance = gstat::variogram(values~1, stfdf, width=20, cutoff = 500, tlags=0:min(7,length(time)-1) )
 
   # Plot
-  ThorsonUtilities::save_fig( file=file.path(working_dir,file_name), width=6, height=5 )
+  png( file=file.path(working_dir,paste0(file_name,".png")), width=6, height=5, units="in", res=200 )
     # gstat:::plot.gstatVariogram
     # gstat:::plot.StVariogram
     semivariance_plot = plot( residual_semivariance,

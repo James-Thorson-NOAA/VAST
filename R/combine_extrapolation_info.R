@@ -3,9 +3,9 @@
 #'
 #' \code{combine_extrapolation_info} combines multiple extrapolation grids when combining data from multiple surveysn
 #'
-#' @param ... a sequence of outputs from \code{FishStatsUtils::make_extrapolation_info}
+#' @param ... a sequence of outputs from \code{make_extrapolation_info}
 
-#' @return Identical output from \code{FishStatsUtils::make_extrapolation_info}, but combined from each input
+#' @return Identical output from \code{make_extrapolation_info}, but combined from each input
 
 #' @export
 combine_extrapolation_info = function( ..., create_strata_per_region=FALSE ){

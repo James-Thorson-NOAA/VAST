@@ -12,7 +12,7 @@
 #'   \item{\code{sample_size_method="sample_based"}}{Taking samples from the joint precision of fixed and random effects, calculating proportions for each sample, and then computing the variance across those samples}
 #' }
 #' The sample-based approximation is expected to have higher variance and therefore lower approximate sample size.  However, it may also have poor performance in cases when variance estimates are imprecise (such that the multivariate-normal approximation to joint precision is poor), and has not been thoroughly groundtested in real-world cases.
-#' @param Index output from \code{FishStatsUtils::plot_biomass_index}
+#' @param Index output from \code{plot_biomass_index}
 #' @param ... list of arguments to pass to \code{plot_index}
 #'
 #' @return Tagged list of output

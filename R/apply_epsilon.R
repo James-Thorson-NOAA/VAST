@@ -4,7 +4,7 @@
 #' \code{apply_epsilon} uses updates to TMB to implement a faster calculation for epsilon-correction
 #'
 #' @inheritParams TMB::MakeADFun
-#' @param fit output from \code{\link[FishStatsUtils]{fit_model}}, specifically using
+#' @param fit output from \code{\link{fit_model}}, specifically using
 #'        slotes \code{tmb_list}, \code{input_args}, \code{parameter_estimates$SD}
 #' @param ADREPORT_name string indicating name of ADREPORT'ed variable
 #' @param eps_name string indicating name of PARAMETER used internally by TMB

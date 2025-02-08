@@ -24,7 +24,7 @@
 #' For example, if any `L_beta1_z` is approaching zero (i.e., +/- 0.001), then consider using `fit_model(...,Map=[custom-map])` to turn off individual parameters;
 #' or if using a factor model then reduce the number of factors by decreasing \code{FieldConfig["Beta1"]}
 #'
-#' @param parameter_estimates output from \code{\link[TMBhelper]{fit_tmb}}
+#' @param parameter_estimates output from \code{\link{fit_tmb}}
 #' @param check_gradients Boolean stating whether to check bounds as well as other issues
 #' @param quiet Boolean stating whether to print warnings to terminal
 #' @return Did an automated check find an obvious problem code (TRUE is bad; FALSE is good)
