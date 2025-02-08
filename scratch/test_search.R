@@ -2,7 +2,7 @@
 
 setwd( R'(C:\Users\James.Thorson\Desktop\Git\VAST\R)' )
 files = list.files()
-search_terms = c("ThorsonUtilities", "FishStatsUtils", "TMBhelper")
+search_terms = c("ThorsonUtilities", "FishStatsUtils", "TMBhelper", "plot_cov")
 
 for(j in seq_along(search_terms)){
 for(i in seq_along(files)){
