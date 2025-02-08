@@ -206,7 +206,7 @@ library(VAST)
 
 # load data set
 # see `?load_example` for list of stocks with example data
-# that are installed automatically with `FishStatsUtils`.
+# that are installed automatically with `VAST`.
 example = load_example( data_set="EBS_pollock" )
 
 # Make settings
@@ -231,7 +231,7 @@ plot_results( settings=settings, fit=fit )
 
 }
 \seealso{
-\code{\link[VAST]{VAST}} for general documentation, \code{\link[FishStatsUtils]{make_settings}} for generic settings, \code{\link[FishStatsUtils]{fit_model}} for model fitting, and \code{\link[FishStatsUtils]{plot_results}} for generic plots
+\code{\link[VAST]{VAST}} for general documentation, \code{\link{make_settings}} for generic settings, \code{\link{fit_model}} for model fitting, and \code{\link{plot_results}} for generic plots
 
 VAST wiki \url{https://github.com/James-Thorson-NOAA/VAST/wiki} for examples documenting many different use-cases and features.
 

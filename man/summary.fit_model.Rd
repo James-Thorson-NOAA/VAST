@@ -63,7 +63,7 @@ so that DHARMa can be used to plot those PIT residuals. PIT residuals are used b
 are not correct when using a delta-model (due to additional jittered values added by DHARMa when detecting multiple 0-valued observations), hence
 the need to call this function to correctly calculate PIT residuals for a delta-model.
 
-Note that \code{summary(fit, ..., type=0} uses \code{\link[FishStatsUtils]{oneStepPredict_deltaModel}} to calculate one-step-ahead
+Note that \code{summary(fit, ..., type=0} uses \code{\link{oneStepPredict_deltaModel}} to calculate one-step-ahead
 residuals.  These are probably the most appropriate method for evaluating residuals, but are also *very* slow to calculate relative
 to other methods.
 }

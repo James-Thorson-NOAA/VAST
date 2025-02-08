@@ -55,7 +55,7 @@
 #' }
 #'
 #' @family wrapper functions
-#' @seealso \code{\link[VAST]{VAST}} for general documentation, \code{\link[FishStatsUtils]{make_settings}} for generic settings, \code{\link[FishStatsUtils]{fit_model}} for model fitting, and \code{\link[FishStatsUtils]{plot_results}} for generic plots
+#' @seealso \code{\link[VAST]{VAST}} for general documentation, \code{\link{make_settings}} for generic settings, \code{\link{fit_model}} for model fitting, and \code{\link{plot_results}} for generic plots
 #' @seealso VAST wiki \url{https://github.com/James-Thorson-NOAA/VAST/wiki} for examples documenting many different use-cases and features.
 #' @seealso GitHub mainpage \url{https://github.com/James-Thorson-NOAA/VAST#description} for a list of user resources and publications documenting features
 #' @seealso \code{\link{summary.fit_model}} for methods to summarize output, including obtain a dataframe of estimated densities and an explanation of DHARMa Probability-Integral-Transform residuals
@@ -68,7 +68,7 @@
 #'
 #' # load data set
 #' # see `?load_example` for list of stocks with example data
-#' # that are installed automatically with `FishStatsUtils`.
+#' # that are installed automatically with `VAST`.
 #' example = load_example( data_set="EBS_pollock" )
 #'
 #' # Make settings
@@ -498,7 +498,7 @@ plot.fit_model <- function(x, what="results", ...)
 #' are not correct when using a delta-model (due to additional jittered values added by DHARMa when detecting multiple 0-valued observations), hence
 #' the need to call this function to correctly calculate PIT residuals for a delta-model.
 #'
-#' Note that \code{summary(fit, ..., type=0} uses \code{\link[FishStatsUtils]{oneStepPredict_deltaModel}} to calculate one-step-ahead
+#' Note that \code{summary(fit, ..., type=0} uses \code{\link{oneStepPredict_deltaModel}} to calculate one-step-ahead
 #' residuals.  These are probably the most appropriate method for evaluating residuals, but are also *very* slow to calculate relative
 #' to other methods.
 #'

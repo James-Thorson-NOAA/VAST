@@ -38,7 +38,7 @@
 #' }
 #'
 #' @family wrapper functions
-#' @seealso \code{\link[VAST]{VAST}} for general documentation, \code{\link[FishStatsUtils]{make_settings}} for generic settings, \code{\link[FishStatsUtils]{fit_model}} for model fitting, and \code{\link[FishStatsUtils]{plot_results}} for generic plots
+#' @seealso \code{\link[VAST]{VAST}} for general documentation, \code{\link{make_settings}} for generic settings, \code{\link{fit_model}} for model fitting, and \code{\link{plot_results}} for generic plots
 #'
 #' @export
 plot_results <-

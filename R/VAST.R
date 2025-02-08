@@ -12,9 +12,9 @@
 #' }
 #' Features are built to be compatible among model types, e.g., by allowing catchability and density covariates to be included in EOF analysis.
 #'
-#' See \code{\link[FishStatsUtils]{fit_model}} for a simple example of high-level wrapper functions for using VAST.
+#' See \code{\link{fit_model}} for a simple example of high-level wrapper functions for using VAST.
 #'
-#' @seealso \code{\link[VAST]{VAST}} for general documentation, \code{\link[FishStatsUtils]{make_settings}} for generic settings, \code{\link[FishStatsUtils]{fit_model}} for model fitting, and \code{\link[FishStatsUtils]{plot_results}} for generic plots
+#' @seealso \code{\link[VAST]{VAST}} for general documentation, \code{\link{make_settings}} for generic settings, \code{\link{fit_model}} for model fitting, and \code{\link{plot_results}} for generic plots
 #' @seealso VAST wiki \url{https://github.com/James-Thorson-NOAA/VAST/wiki} for examples documenting many different use-cases and features.
 #' @seealso GitHub mainpage \url{https://github.com/James-Thorson-NOAA/VAST#description} for a list of user resources and publications documenting features
 #' @name VAST

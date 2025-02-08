@@ -36,6 +36,3 @@ A list containing results for each specified categories
 \description{
 Diagnostic QQ function
 }
-\examples{
-Q <- QQ_Fn(TmbData = TmbData, Report = Report)
-}

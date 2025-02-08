@@ -53,13 +53,3 @@ Tagged list
 \description{
 \code{Rerun_Fn} re-builds a model while fixing a subset of parameters at zero
 }
-\examples{
-\dontrun{
-# Run without GMRF
-
-Rerun_Fn(parhat0 = Obj$env$parList(),
-         turnoff_pars = c("Epsiloninput1_sft", "Epsiloninput2_sft"),
-         loc_x = Spatial_List$loc_x,
-         TmbData = TmbData, Version = "VAST_v4_0_0")
-}
-}

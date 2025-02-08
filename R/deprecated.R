@@ -35,10 +35,6 @@ Calc_Anisotropic_Mesh = function( ... ){
 #' @param report Report from TmbObj (e.g., TmbList[["Obj"]])
 #' @param Spatial_List Output from FishStatsUtils::Spatial_Information_Fn()
 #' @param method Choose whether to plot anisotropic or isotropic covariance matrix
-#' @examples
-#' map_hypervariance(report = Save$Report,
-#'                   Spatial_List = Spatial_List,
-#'                   method = "anisotropic")
 map_hypervariance <- function(report, Spatial_List, method){
   solveSubset <- function(Q) {
     require(Matrix)
@@ -286,15 +282,6 @@ plot_cov = function( Cov, zlim=NULL, names=1:nrow(Cov), names2=names, ncolors=21
 #' \describe{
 #'   \item{Report}{Report output for counter-factual run}
 #'   \item{NewBuild_List}{Output from \code{Build_TMB_Fn} using counter-factual parameters}
-#' }
-#' @examples
-#' \dontrun{
-#' # Run without GMRF
-#'
-#' Rerun_Fn(parhat0 = Obj$env$parList(),
-#'          turnoff_pars = c("Epsiloninput1_sft", "Epsiloninput2_sft"),
-#'          loc_x = Spatial_List$loc_x,
-#'          TmbData = TmbData, Version = "VAST_v4_0_0")
 #' }
 Rerun_Fn = function( parhat0, turnoff_pars, loc_x, cov_to_turnoff=1:dim(parhat0[["gamma2_ctp"]])[3], calculate_COG=TRUE, figname=NULL,
   Map="generate", MapDetails_List=NULL, year_set=1:ncol(parhat0[["beta1_ct"]]), c_set=1:nrow(parhat0[["beta1_ct"]]), ... ){
@@ -942,12 +929,6 @@ function( TmbData, Sdreport, FileName_VYplot=NULL ){
 #'   \item{zpred}{height at location \code{xypred}}
 #'   \item{phi}{Coefficients for interpolation}
 #' }
-#' @examples
-#'
-#'   \dontrun{
-#'   bilinear_interp( xyz1=c(0,0,0), xyz2=c(1,-1,1), xyz3=c(0,1,2), xypred=c(0.1,0.7))
-#'   # Should equal 1.7
-#'   }
 bilinear_interp = function( xyz1, xyz2, xyz3, xypred ){
   # Make constaint matrix
   #  1st row:  sum to one
@@ -1435,17 +1416,6 @@ format_covariates = function( Lat_e, Lon_e, t_e, Cov_ep, Extrapolation_List, Spa
 #'   \item{Data_Geostat}{Simulated data for analysis}
 #'   \item{B_tl}{True biomass for each year and stratum}
 #' }
-#' @examples
-#' ## Do not run (will be slow, due to simulating fine-scale spatial variation for many sites):
-#' ##
-#' ## # Prepare inputs
-#' ## Database = FishData::download_catch_rates( survey="Eastern_Bering_Sea", species_set="Gadus chalcogrammus", error_tol=0.01 )
-#' ## Data_Geostat = data.frame("Lat"=Database[,'Lat'], "Lon"=Database[,'Long'], "Year"=Database[,'Year'], "Vessel"="missing", "AreaSwept_km2"=1 )
-#' ## Extrapolation_List = FishStatsUtils::Prepare_Extrapolation_Data_Fn( Region="Eastern_Bering_Sea", strata.limits=data.frame( 'STRATA'="All_areas") )
-#' ##
-#' ## # Use function
-#' ## SimList = FishStatsUtils::Geostat_Sim(Sim_Settings=list(), Extrapolation_List, Data_Geostat=Data_Geostat )
-#' ## Data_Sim = SimList$Data_Geostat
 Geostat_Sim <-
 function(Sim_Settings, Extrapolation_List, Data_Geostat=NULL, MakePlot=FALSE, DateFile=paste0(getwd(),"/"), standardize_fields=FALSE ){
   # Terminology
@@ -1715,7 +1685,6 @@ function(Sim_Settings, Extrapolation_List, Data_Geostat=NULL, MakePlot=FALSE, Da
 #' @param FileName_Phist If NULL is specified then do not save this type of plot
 #' @param FileName_QQ If NULL is specified then do not save this type of plot
 #' @param FileName_Qhist If NULL is specified then do not save this type of plot
-#' @examples Q <- QQ_Fn(TmbData = TmbData, Report = Report)
 #' @return A list containing results for each specified categories
 plot_quantile_diagnostic <- function(TmbData,
                   Report,

@@ -25,10 +25,3 @@ Tagged list of useful output
 \description{
 \code{bilinear_interp} calculates three coefficients, used to calculate height via blinear interpolation from height and location of three neighbors
 }
-\examples{
-
-  \dontrun{
-  bilinear_interp( xyz1=c(0,0,0), xyz2=c(1,-1,1), xyz3=c(0,1,2), xypred=c(0.1,0.7))
-  # Should equal 1.7
-  }
-}

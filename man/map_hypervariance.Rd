@@ -16,8 +16,3 @@ map_hypervariance(report, Spatial_List, method)
 \description{
 \code{map_hypervariance} Plot variance of GMRF knots
 }
-\examples{
-map_hypervariance(report = Save$Report,
-                  Spatial_List = Spatial_List,
-                  method = "anisotropic")
-}

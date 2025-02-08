@@ -139,7 +139,7 @@ It does this by calling a series of mid-level plotting functions; see list of fu
 In particular, for making customized maps of output please see \code{\link{plot_variable}}
 }
 \seealso{
-\code{\link[VAST]{VAST}} for general documentation, \code{\link[FishStatsUtils]{make_settings}} for generic settings, \code{\link[FishStatsUtils]{fit_model}} for model fitting, and \code{\link[FishStatsUtils]{plot_results}} for generic plots
+\code{\link[VAST]{VAST}} for general documentation, \code{\link{make_settings}} for generic settings, \code{\link{fit_model}} for model fitting, and \code{\link{plot_results}} for generic plots
 
 Other wrapper functions: 
 \code{\link{fit_model}()},

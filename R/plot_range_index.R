@@ -96,7 +96,7 @@ function( Sdreport,
     }
 
     # Plot center of gravity
-    # Can't use `FishStatsUtils::plot_index` because of 2-column format
+    # Can't use `plot_index` because of 2-column format
     png( file=file.path(PlotDir,"center_of_gravity.png"), width=6.5, height=TmbData$n_c*2, res=200, units="in")
       par( mar=c(2,2,1,0), mgp=c(1.75,0.25,0), tck=-0.02, oma=c(1,1,0,1.5), mfrow=c(TmbData$n_c,dim(SD_mean_Z_ctm)[[3]]), ... )  #
       for( cI in 1:TmbData$n_c ){

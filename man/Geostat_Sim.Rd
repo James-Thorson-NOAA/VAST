@@ -32,15 +32,3 @@ Return Tagged list of output
 \description{
 \code{Geostat_Sim} simulates data for use when testing \code{VAST}
 }
-\examples{
-## Do not run (will be slow, due to simulating fine-scale spatial variation for many sites):
-##
-## # Prepare inputs
-## Database = FishData::download_catch_rates( survey="Eastern_Bering_Sea", species_set="Gadus chalcogrammus", error_tol=0.01 )
-## Data_Geostat = data.frame("Lat"=Database[,'Lat'], "Lon"=Database[,'Long'], "Year"=Database[,'Year'], "Vessel"="missing", "AreaSwept_km2"=1 )
-## Extrapolation_List = FishStatsUtils::Prepare_Extrapolation_Data_Fn( Region="Eastern_Bering_Sea", strata.limits=data.frame( 'STRATA'="All_areas") )
-##
-## # Use function
-## SimList = FishStatsUtils::Geostat_Sim(Sim_Settings=list(), Extrapolation_List, Data_Geostat=Data_Geostat )
-## Data_Sim = SimList$Data_Geostat
-}
