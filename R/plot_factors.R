@@ -12,6 +12,7 @@
 #' @param Dim_species Plotting dimension (row,column) for plot of categories (default: square with sufficient size for number of categories)
 #' @param plotdir directory for saving plots
 #' @param land_color color for filling in land (use \code{land_color=rgb(0,0,0,alpha=0)} for transparent land)
+#' @param factor_samples number of samples from joint precision used to estimate precision for derived quantities
 #' @param ... additional arguments passed to \code{\link{plot_maps}} and/or \code{\link{plot_variable}} when plotting factor-values on a map
 #'
 #' @references For details regarding spatial factor analysis see \url{https://doi.org/10.1111/2041-210X.12359}
@@ -35,6 +36,7 @@ function( fit,
           land_color = "grey",
           zlim = NA,
           testcutoff = 1e-4,
+          factor_samples = 100,
           plot_value = "estimate",
           ... ){
 
@@ -171,14 +173,14 @@ function( fit,
       # Extract SEs if available
       # Could also edit to extract L_SE_list and Psi2_SE_list
       if( !is.null(Obj) && class(SD)=="sdreport" ){
-        L_cfr = sample_variable( Sdreport=SD, Obj=Obj, variable_name=L_name, n_samples=100, sample_fixed=TRUE, seed=123456 )
-        Psi_gjtr = sample_variable( Sdreport=SD, Obj=Obj, variable_name=Var2_name, n_samples=100, sample_fixed=TRUE, seed=123456 )
+        L_cfr = sample_variable( Sdreport=SD, Obj=Obj, variable_name=L_name, n_samples=factor_samples, sample_fixed=TRUE, seed=123456 )
+        Psi_gjtr = sample_variable( Sdreport=SD, Obj=Obj, variable_name=Var2_name, n_samples=factor_samples, sample_fixed=TRUE, seed=123456 )
         if( Par_name %in% c("EpsilonTime1","EpsilonTime2") ){
           Psi_gjtr = aperm( Psi_gjtr, c(1,3,2,4) )
         }
         Lprime_cfr = array(NA, dim=dim(L_cfr) )
         Psiprime_gjtr = array(NA, dim=dim(Psi_gjtr) )
-        for( rI in 1:100 ){
+        for( rI in seq_len(factor_samples) ){
           tmplist = rotate_factors( L_pj = array(L_cfr[,,rI],dim=dim(L_cfr)[1:2]),
             Psi_sjt = array(Psi_gjtr[,,,rI],dim=dim(Psi_gjtr)[1:3])/tau,
             RotationMethod = RotationMethod,
@@ -266,9 +268,10 @@ function( fit,
                      legend_y = mapdetails_list[["Legend"]]$y/100,
                      zlim = zlim,
                      land_color = land_color,
+                     n_cells = NULL,
                      projargs = projargs,
-                     plot_value = "estimate",
-                     ... )
+                    # ...,
+                     plot_value = "estimate" )
         }  #
 
         # Plot Omega
@@ -280,8 +283,8 @@ function( fit,
                          panel_labels = paste0("Factor_",1:dim(Var_rot$Psi_rot)[2]),
                          file_name = paste0("Factor_maps--",Par_name),
                          land_color = land_color,
-                         projargs = projargs,
-                         ... )
+                        # ...,
+                         projargs = projargs )
         }
 
         ## Doesn't make sense to make maps of beta factors since they aren't spatial
@@ -306,10 +309,11 @@ function( fit,
                      legend_x = mapdetails_list[["Legend"]]$x/100,
                      legend_y = mapdetails_list[["Legend"]]$y/100,
                      zlim = zlim,
+                     n_cells = NULL,
                      land_color = land_color,
                      projargs = projargs,
-                     plot_value = "estimate",
-                     ...)
+                    # ...,
+                     plot_value = "estimate" )
         }  #
       }
     }else{

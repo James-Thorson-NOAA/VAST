@@ -333,7 +333,7 @@ function( plot_set = 3,
 
     # Get default years_to_plot_modified ... must remake for each plot_num
     years_to_plot_modified = years_to_plot
-    if( names(dimnames(fit$Report$D_gct))[3] != "Time" ){
+    if( names(dimnames(Report$D_gct))[3] != "Time" ){
       years_to_plot_modified = NULL
     }
     if( !all(years_to_plot_modified %in% seq_len(dim(Array_xct)[3])) ){
