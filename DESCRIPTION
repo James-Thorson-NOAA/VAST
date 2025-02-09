@@ -1,8 +1,8 @@
 Package: VAST
 Type: Package
 Title: Vector-Autoregressive Spatio-Temporal (VAST) Model
-Version: 3.11.3
-Date: 2025-01-16
+Version: 4.0.0
+Date: 2025-02-07
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -26,12 +26,38 @@ Imports:
     utils,
     fmesher,
     remotes,
-    devtools
+    devtools,
+    alphahull,
+    corpcor,
+    corrplot,
+    DHARMa,
+    ecodist,
+    fastcluster,
+    plotrix,
+    RANN,
+    sf,
+    raster,
+    reshape2,
+    rnaturalearth,
+    rnaturalearthdata,
+    seriation,
+    shape,
+    sp,
+    viridisLite,
+    spacetime,
+    gstat,
+    marginaleffects,
+    methods,
+    graphics,
 Depends:
     TMB (>= 1.8.0),
-    FishStatsUtils (>= 2.13.2),
-    R (>= 3.5.0)
+    R (>= 3.5.0),
+    units,
+    marginaleffects
+Enhances:
+    tidyr,
 Suggests:
+    INLA,
     testthat,
     knitr,
     rmarkdown,
@@ -39,8 +65,7 @@ Suggests:
     tweedie,
     mgcv,
     lme4,
-Remotes:
-    james-thorson-NOAA/FishStatsUtils,
+Additional_repositories: https://inla.r-inla-download.org/R/stable
 License: file LICENSE
 LazyData: true
 Encoding: UTF-8

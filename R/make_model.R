@@ -38,6 +38,7 @@
 #' @importFrom grDevices colorRampPalette dev.off png
 #' @importFrom stats cov cov2cor na.omit nlminb qlogis rnorm var weighted.mean
 #' @importFrom utils capture.output
+#' @importFrom marginaleffects get_coef get_predict get_vcov set_coef
 
 #' @export
 make_model <-
@@ -92,7 +93,6 @@ function( TmbData,
 
   # Save package version info
   capture.output( packageDescription("VAST"), file=paste0(RunDir,"/packageDescription.txt") )
-  capture.output( packageDescription("FishStatsUtils"), file=paste0(RunDir,"/packageDescription.txt"), append=TRUE )
 
   # Parameters
     # TmbData=TmbData

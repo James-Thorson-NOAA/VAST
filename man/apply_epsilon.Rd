@@ -12,7 +12,7 @@ apply_epsilon(
 )
 }
 \arguments{
-\item{fit}{output from \code{\link[FishStatsUtils]{fit_model}}, specifically using
+\item{fit}{output from \code{\link{fit_model}}, specifically using
 slotes \code{tmb_list}, \code{input_args}, \code{parameter_estimates$SD}}
 
 \item{ADREPORT_name}{string indicating name of ADREPORT'ed variable}

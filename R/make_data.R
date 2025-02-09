@@ -3,7 +3,7 @@
 #'
 #' \code{make_data} builds a tagged list of data inputs used by TMB for running the model
 #'
-#' Specification of \code{FieldConfig} can be seen by calling \code{\link[FishStatsUtils]{make_settings}},
+#' Specification of \code{FieldConfig} can be seen by calling \code{\link{make_settings}},
 #'   which is the recommended way of generating this input for beginning users.
 #'
 #' Argument \code{FieldConfig} is a matrix of form
@@ -35,7 +35,7 @@
 #'     this is only useful for \code{Epsilon_year} to "turn off" covariance among years while still including spatio-temporal variation}
 #' }
 #'
-#' \code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_ip} using \code{\link[FishStatsUtils]{make_covariates}};
+#' \code{make_data} generates arrays of covariates \code{X_gtp} and \code{X_ip} using \code{\link{make_covariates}};
 #' see that function for more details.
 #'
 #' @param b_i Vector, providing sampled value (biomass, counts, etc.) for each observation i.
@@ -69,7 +69,7 @@
 #'        In some cases a portion of observations have a overdispersion-effect, but not others, and in this case the observations without
 #'        are specified as \code{v_i=NA}
 #' @param Version Which CPP version to use.  If missing, defaults to latest version
-#'        using \code{\link[FishStatsUtils]{get_latest_version}}.
+#'        using \code{\link{get_latest_version}}.
 #'        Can be used to specify using an older CPP, to maintain backwards compatibility.
 #' @param FieldConfig See Details section of \code{\link[VAST]{make_data}} for details
 #' @param OverdispersionConfig a vector of format \code{c("eta1"=0, "eta2"="AR1")} governing any correlated overdispersion
@@ -176,7 +176,7 @@
 #'        and note that it is a vector (instead of matrix) given that catchability responses do not vary among variables \code{c}
 #'        by default (but can be specified to do so when an appropriate `formula` is supplied)
 #' @param Q2config_k Same as argument \code{Q1config_cp} but affecting affecting the 2nd linear predictor for catchability
-#' @param spatial_list tagged list of locational information from , i.e., from \code{\link[FishStatsUtils]{make_spatial_info}}
+#' @param spatial_list tagged list of locational information from , i.e., from \code{\link{make_spatial_info}}
 #' @param PredTF_i OPTIONAL, whether each observation i is included in the likelihood, \code{PredTF_i[i]=0}, or in the predictive probability, \code{PredTF_i[i]=1}
 #' @param Aniso whether to assume isotropy, \code{Aniso=0}, or geometric anisotropy, \code{Aniso=1}
 #' @param Z_gm matrix specifying coordinates to use when calculating center-of-gravity and range-edge statistics.
@@ -196,8 +196,9 @@
 #' @param F_ct matrix of instantanous fishing mortality for each category c and year t.  Only feasible when using a Poisson-link delta model
 #'        and specifying temporal structure on intercepts, when the temporal autocorrelation is equivalent to a Spawning Potential
 #'        Ratio (SPR) proxy for fishing mortality targets given the implied Gompertz density dependence.
-#' @param Options a tagged-vector that is empty by default, \code{Options=c()}, but where the following slots might be helpful to add,
-#'        either by passing \code{Options} to \code{\link[FishStatsUtils]{make_settings}}, or editing after a call to that function:
+#' @param Options a tagged-vector that is empty by default \code{Options=c()},
+#'        but where the following slots might be helpful to add,
+#'        either by passing \code{Options} to \code{\link{make_settings}}, or editing after a call to that function:
 #' \describe{
 #'   \item{\code{Options["Calculate_Range"]=TRUE}}{Turns on internal calculation and SE for center-of-gravity}
 #'   \item{\code{Options["Calculate_effective_area"]=TRUE}}{Turns on internal calculation and SE for effective area occupied measuring range expansion/contraction}
@@ -207,6 +208,8 @@
 #'   \item{\code{Options["report_additional_variables"]=TRUE}}{Export additional variables to \code{Report} object, to use for diagnostics or additional exploration}
 #'   \item{\code{Options["basin_method"]}}{Controls how the density-dependent index is generated from model variables.  Default \code{Options["basin_method"]=2}) uses annual mean of betas and epsilons as index.  Alternative \code{Options["basin_method"]=4}) uses a Lagrange multiplier to penalize index towards total abundance}
 #'   \item{\code{Options["range_fraction"]}}{The decorrelation range when passing over land relative to over water; the default value \code{Options["range_fraction"]=0.2} indicates that the range is shorter over land, i.e., that correlations are strongest via water, while changing to \code{Options["range_fraction"]=5} would represent correlations transfer via land more than water}
+#'   \item{\code{Options["Project_factors"]}}{Whether to estimate spatial projection of factors representing covariance among years and/or variables, as used to plot these rank-reduced patterns}
+#' }
 #' @param yearbounds_zz matrix with two columns, giving first and last years for defining one or more periods (rows) used to
 #'        calculate changes in synchrony over time (only used if \code{Options['Calculate_Synchrony']=1})
 #' @param CheckForErrors whether to check for errors in input (NOTE: when \code{CheckForErrors=TRUE}, the function will throw an error if
@@ -257,7 +260,7 @@ function( b_i,
           Options = c(),
           Expansion_cz = NULL,
           Z_gm = NULL,
-          Version = FishStatsUtils::get_latest_version(package = "VAST"),
+          Version = get_latest_version(package = "VAST"),
           overlap_zz = matrix(ncol = 7,nrow = 0),
           ... ){
 
@@ -455,7 +458,7 @@ function( b_i,
   if( !is.null(X_xtp) ){
     stop("`X_xtp` is deprecated")
   }
-  if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v11_0_0") ){
+  if( convert_version_name(Version) <= convert_version_name("VAST_v11_0_0") ){
     if( (X1_formula != ~0) | (X2_formula != ~0) ){
       stop("`X1_formula` and `X2_formula`; to use these please use `Version='VAST_v12_0_0'` or higher")
     }
@@ -500,7 +503,7 @@ function( b_i,
       if( "formula" %in% names(alternate_inputs) ){
         Covariates_created = TRUE
         warning("Using input `formula` to generate covariates. This interface is soft-deprecated but still available for backwards compatibility; please switch to using `X1_formula` and `X2_formula`")
-        covariate_list = FishStatsUtils::make_covariates( formula=alternate_inputs[["formula"]], covariate_data=covariate_data, Year_i=t_i,
+        covariate_list = make_covariates( formula=alternate_inputs[["formula"]], covariate_data=covariate_data, Year_i=t_i,
           spatial_list=spatial_list, contrasts.arg=X_contrasts )
         X1_gtp = X2_gtp = covariate_list$X_gtp
         X1_ip = X2_ip = covariate_list$X_ip
@@ -512,19 +515,19 @@ function( b_i,
   if( Covariates_created==FALSE ){
     if( !is.null(covariate_data) ){
       Covariates_created = TRUE
-      if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v9_4_0") ){
+      if( convert_version_name(Version) <= convert_version_name("VAST_v9_4_0") ){
         stop("To use separate formula interface for linear predictors, please use version >= CPP 10.0.0")
       }
 
       # First linear predictor
-      covariate_list = FishStatsUtils::make_covariates( formula=X1_formula, covariate_data=covariate_data, Year_i=t_i,
+      covariate_list = make_covariates( formula=X1_formula, covariate_data=covariate_data, Year_i=t_i,
         spatial_list=spatial_list, contrasts.arg=X_contrasts )
       X1_gtp = covariate_list$X_gtp
       X1_ip = covariate_list$X_ip
       X1_gctp = aperm( outer(X1_gtp,rep(1,n_c)), c(1,4,2,3) )
 
       # Second linear predictor
-      covariate_list = FishStatsUtils::make_covariates( formula=X2_formula, covariate_data=covariate_data, Year_i=t_i,
+      covariate_list = make_covariates( formula=X2_formula, covariate_data=covariate_data, Year_i=t_i,
         spatial_list=spatial_list, contrasts.arg=X_contrasts )
       X2_gtp = covariate_list$X_gtp
       X2_ip = covariate_list$X_ip
@@ -572,7 +575,7 @@ function( b_i,
   ####################
 
   # Check for backwards-compatibility issues
-  if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v11_0_0") ){
+  if( convert_version_name(Version) <= convert_version_name("VAST_v11_0_0") ){
     if( (Q1_formula != ~0) | (Q2_formula != ~0) ){
       stop("`Q1_formula` and `Q1_formula`; to use these please use `Version='VAST_v12_0_0'` or higher")
     }
@@ -802,12 +805,12 @@ function( b_i,
   # Check for incompatibilities amongst versions
   ###################
 
-  if( FishStatsUtils::convert_version_name(Version) >= FishStatsUtils::convert_version_name("VAST_v9_4_0") ){
+  if( convert_version_name(Version) >= convert_version_name("VAST_v9_4_0") ){
     if(VamConfig[1]==3) stop("`VamConfig[1]=3` feature causes compile issues on macOS, and has been removed from the CPP; please contact package author if interested in using it.")
   }
   if( is.null(spatial_list) ) stop("Must provide `spatial_list` for Version >= 8.0.0")
   if( any(ObsModel_ez[,1]==3) ){
-    if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v8_2_0") ){
+    if( convert_version_name(Version) <= convert_version_name("VAST_v8_2_0") ){
       stop("Inverse-gaussian distribution only available for CPP version >= 8_3_0")
     }
   }
@@ -986,7 +989,7 @@ function( b_i,
 
   # Tweedie bug
   if( any(ObsModel_ez[,1]==10) ){
-    if( FishStatsUtils::convert_version_name(Version) <= FishStatsUtils::convert_version_name("VAST_v8_3_0") ){
+    if( convert_version_name(Version) <= convert_version_name("VAST_v8_3_0") ){
       warning("CPP versions prior to 8.4.0 had a bug in dtweedie, where the power parameter xi was mistakenly constrained to range from 1.5 to 2.0 (rather than 1.0 to 2.0). This bug either had no effect, or resulted in the parameter hitting a bound and impaired model fit.")
     }
   }

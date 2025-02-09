@@ -10,14 +10,13 @@ test_that("Stream network example is working ", {
   load( file.path(test_path,"parameter_estimates.RData") )
   load( file.path(test_path, "settings.RData"))
   settings$max_cells = Inf
-  #settings$Version = FishStatsUtils::get_latest_version()
   settings$Version = Version_VAST
   settings$mesh_package = "INLA"
   attach(settings)
   on.exit( detach(settings) )
 
   # Run model
-  data( "stream_network_eel_example", package="FishStatsUtils" )
+  data( "stream_network_eel_example", package="VAST" )
 
   ## load each dataset object
   network <- stream_network_eel_example[["network"]]   ## network

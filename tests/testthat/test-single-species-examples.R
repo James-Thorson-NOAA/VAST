@@ -32,7 +32,7 @@ test_that("Eastern Bering Sea pollock is working ", {
   attach(Record)
   on.exit( detach(Record) )
   # Run model
-  data( EBS_pollock_data, package="FishStatsUtils" )
+  data( EBS_pollock_data, package="VAST" )
   EBS_pollock_data = EBS_pollock_data$sampling_data
   Data_Geostat = data.frame( "Catch_KG"=EBS_pollock_data[,'catch'], "Year"=EBS_pollock_data[,'year'], "Vessel"="missing", "AreaSwept_km2"=0.01, "Lat"=EBS_pollock_data[,'lat'], "Lon"=EBS_pollock_data[,'long'], "Pass"=0)
   Extrapolation_List = make_extrapolation_info( Region=Region, strata.limits=strata.limits )

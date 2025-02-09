@@ -2,7 +2,7 @@
 % Please edit documentation in R/zzz.R
 \name{Plot_factors}
 \alias{Plot_factors}
-\title{Copy of FishStatsUtils::plot_factors}
+\title{Copy of plot_factors}
 \usage{
 Plot_factors(...)
 }
@@ -13,5 +13,5 @@ Plot_factors(...)
 Included for continuity when using old scripts
 }
 \details{
-Please use \code{?FishStatsUtils::plot_factors} to see list of arguments and usage
+Please use \code{?plot_factors} to see list of arguments and usage
 }

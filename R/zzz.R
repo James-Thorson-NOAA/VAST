@@ -24,13 +24,6 @@
   #  }
   #}
   #
-  ## Load `FishStatsUtils` via .onAttach because Remotes doessn't enforce branch properly
-  #if( !"FishStatsUtils" %in% utils::installed.packages()[,1] || utils::packageVersion("FishStatsUtils") < numeric_version("2.11.0") ){
-  #  packageStartupMessage("Updating package FishStatsUtils because previously using version < 2.11.0")
-  #  remotes::install_github("james-thorson-NOAA/FishStatsUtils", ref="dev")
-  #}
-  #packageStartupMessage( "Loading package `FishStatsUtils` version ", packageVersion("FishStatsUtils") )
-  #library(FishStatsUtils)
 }
 
 #' Copy of VAST::make_model
@@ -59,40 +52,40 @@ Data_Fn = function( ... ){
   VAST::make_data( ... )
 }
 
-#' Copy of FishStatsUtils::plot_factors
+#' Copy of plot_factors
 #'
 #' Included for continuity when using old scripts
 #'
-#' Please use \code{?FishStatsUtils::plot_factors} to see list of arguments and usage
+#' Please use \code{?plot_factors} to see list of arguments and usage
 #' @param ... Arguments to be passed to \code{plot_factors}
 #' @export
 Plot_factors = function( ... ){
-  .Deprecated( new="FishStatsUtils::plot_factors" )
-  FishStatsUtils::plot_factors( ... )
+  .Deprecated( new="plot_factors" )
+  plot_factors( ... )
 }
 
-#' Copy of FishStatsUtils::plot_overdispersion
+#' Copy of plot_overdispersion
 #'
 #' Included for continuity when using old scripts
 #'
-#' Please use \code{?FishStatsUtils::plot_overdispersion} to see list of arguments and usage
+#' Please use \code{?plot_overdispersion} to see list of arguments and usage
 #' @param ... Arguments to be passed to \code{plot_overdispersion}
 #' @export
 Plot_Overdispersion = function( ... ){
-  .Deprecated( new="FishStatsUtils::plot_overdispersion" )
-  FishStatsUtils::plot_overdispersion( ... )
+  .Deprecated( new="plot_overdispersion" )
+  plot_overdispersion( ... )
 }
 
-#' Copy of FishStatsUtils::summarize_covariance
+#' Copy of summarize_covariance
 #'
 #' Included for continuity when using old scripts
 #'
-#' Please use \code{?FishStatsUtils::summarize_covariace} to see list of arguments and usage
+#' Please use \code{?summarize_covariace} to see list of arguments and usage
 #' @param ... Arguments to be passed to \code{summarize_covariance}
 #' @export
 Summarize_Covariance = function( ... ){
-  .Deprecated( new="FishStatsUtils::summarize_covariance" )
-  FishStatsUtils::summarize_covariance( ... )
+  .Deprecated( new="summarize_covariance" )
+  summarize_covariance( ... )
 }
 
 #' Copy of make_map
@@ -120,6 +113,23 @@ Make_Map = function( ... ){
 Param_Fn = function( ... ){
   .Deprecated( new="make_parameters" )
   make_parameters( ... )
+}
+
+PlotLoadings = function( ... ){
+  .Deprecated( new="plot_loadings" )
+  plot_loadings( ... )
+}
+Rotate_Fn = function( ... ){
+  .Deprecated( new="rotate_factors" )
+  rotate_factors( ... )
+}
+Calc_Anisotropic_Mesh = function( ... ){
+  .Deprecated( new="make_mesh" )
+  make_mesh( ... )
+}
+Calc_Kmeans = function( ... ){
+  .Deprecated( new="make_kmeans" )
+  make_kmeans( ... )
 }
 
 

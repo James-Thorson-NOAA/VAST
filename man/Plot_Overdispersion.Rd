@@ -2,7 +2,7 @@
 % Please edit documentation in R/zzz.R
 \name{Plot_Overdispersion}
 \alias{Plot_Overdispersion}
-\title{Copy of FishStatsUtils::plot_overdispersion}
+\title{Copy of plot_overdispersion}
 \usage{
 Plot_Overdispersion(...)
 }
@@ -13,5 +13,5 @@ Plot_Overdispersion(...)
 Included for continuity when using old scripts
 }
 \details{
-Please use \code{?FishStatsUtils::plot_overdispersion} to see list of arguments and usage
+Please use \code{?plot_overdispersion} to see list of arguments and usage
 }

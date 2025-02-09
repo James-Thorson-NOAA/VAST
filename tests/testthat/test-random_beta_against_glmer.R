@@ -11,11 +11,11 @@ test_that("Density covariates give identical results to glmer(.) ", {
   library(lme4)
 
   # load data set
-  data( EBS_pollock_data, package="FishStatsUtils" )
-  EBS_pollock_data = EBS_pollock_data$sampling_data
+  example = load_example( "EBS_pollock" )
+  EBS_pollock_data = example$sampling_data
   Data = data.frame(EBS_pollock_data,
-    "year_factor" = factor(EBS_pollock_data$year,levels=sort(unique(EBS_pollock_data$year))),
-    "pres" = ifelse(EBS_pollock_data$catch>0,1,0),
+    "year_factor" = factor(EBS_pollock_data$Year,levels=sort(unique(EBS_pollock_data$Year))),
+    "pres" = ifelse(EBS_pollock_data$Catch_KG>0,1,0),
     "AreaSwept_km2" = 0.01 )
 
   # Make settings (turning off bias.correct to save time for example)
@@ -23,7 +23,7 @@ test_that("Density covariates give identical results to glmer(.) ", {
     Region="Eastern_Bering_Sea",
     purpose="index2",
     use_anisotropy=FALSE,
-    strata.limits=example$strata.limits,
+    strata.limits = example$strata.limits,
     bias.correct=FALSE,
     fine_scale=TRUE,
     FieldConfig=c(0,0,0,0),
@@ -34,10 +34,10 @@ test_that("Density covariates give identical results to glmer(.) ", {
 
   # Run model -- Lognormal
   fit = fit_model( settings=settings,
-    Lat_i=EBS_pollock_data[,'lat'],
-    Lon_i=EBS_pollock_data[,'long'],
-    t_i=EBS_pollock_data[,'year'],
-    b_i=EBS_pollock_data[,'catch'],
+    Lat_i=EBS_pollock_data[,'Lat'],
+    Lon_i=EBS_pollock_data[,'Lon'],
+    t_i=EBS_pollock_data[,'Year'],
+    b_i=EBS_pollock_data[,'Catch_KG'],
     a_i=rep(0.01,nrow(EBS_pollock_data)),
     working_dir=multispecies_example_path )
 
@@ -52,7 +52,7 @@ test_that("Density covariates give identical results to glmer(.) ", {
     data=Data, family="binomial" )
 
   # Glm1 -- Lognormal
-  Glm1 = lmer( formula= log(catch) ~ 1 + (1 | year_factor),
+  Glm1 = lmer( formula= log(Catch_KG) ~ 1 + (1 | year_factor),
     data=Data[which(Data$pres==1),], offset=log(AreaSwept_km2) )
 
   # Comparison with Glm0
