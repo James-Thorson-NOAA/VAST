@@ -247,7 +247,7 @@ make_extrapolation_info = function( Region,
   # Optionally reduce number of extrapolation-grid cells
   # Run K-means only on grid-cells with nonzero area
   loc_orig = Return$Data_Extrap[,c("E_km","N_km")]
-    loc_orig = loc_orig[ which(Return$Area_km2_x>0), ]
+    loc_orig = loc_orig[ which( strip_units(Return$Area_km2_x) >0), ]
   if( max_cells < nrow(loc_orig) ){
     message( "# Reducing extrapolation-grid from ",nrow(Return$Data_Extrap)," to ",max_cells," cells for Region(s): ",paste(Region,collapse=", ") )
     Kmeans = make_kmeans( n_x=max_cells, loc_orig=loc_orig, nstart=nstart,
