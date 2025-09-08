@@ -134,7 +134,7 @@ function( x,
   }
 
   ##############
-  # Step 2: Generate uncertainty in historical period
+  # Step 2: Augment objects
   ##############
 
   t_i = c( x$data_frame$t_i, max(x$data_frame$t_i)+rep(seq_len(n_proj),each=2) )
@@ -262,7 +262,7 @@ function( x,
     }
 
     ##############
-    # Step 5: Simulate random effects
+    # Step 6: Simulate samples
     ##############
 
     # Simulate Epsiloninput / Betainput for projection years
